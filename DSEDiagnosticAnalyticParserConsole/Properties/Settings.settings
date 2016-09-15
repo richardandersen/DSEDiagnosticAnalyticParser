@@ -1,0 +1,242 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="DSEDiagnosticAnalyticParserConsole.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MaxRowInExcelWorkBook" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000000</Value>
+    </Setting>
+    <Setting Name="MaxRowInExcelWorkSheet" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">500000</Value>
+    </Setting>
+    <Setting Name="GCPausedFlagThresholdInMS" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">5000</Value>
+    </Setting>
+    <Setting Name="CompactionFlagThresholdInMS" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10000</Value>
+    </Setting>
+    <Setting Name="SlowLogQueryThresholdInMS" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">2000</Value>
+    </Setting>
+    <Setting Name="LogTimeSpanRange" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">02:00:00</Value>
+    </Setting>
+    <Setting Name="LogCurrentDate" Type="System.DateTime" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LogMaxRowsPerNode" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">-1</Value>
+    </Setting>
+    <Setting Name="LogSummaryIndicatorType" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;WARN&lt;/string&gt;
+  &lt;string&gt;ERROR&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="LogSummaryTaskItems" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;SliceQueryFilter.java&lt;/string&gt;
+  &lt;string&gt;BatchStatement.java&lt;/string&gt;
+  &lt;string&gt;CompactionController.java&lt;/string&gt;
+  &lt;string&gt;HintedHandoffMetrics.java&lt;/string&gt;
+  &lt;string&gt;GCInspector.java&lt;/string&gt;
+  &lt;string&gt;MessagingService.java&lt;/string&gt;
+  &lt;string&gt;CompactionTask.java&lt;/string&gt;
+  &lt;string&gt;RepairSession.java&lt;/string&gt;
+  &lt;string&gt;SSTableWriter.java&lt;/string&gt;
+  &lt;string&gt;CqlSlowLogWriter.java&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="LogSummaryIgnoreTaskExceptions" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LogSummaryPeriods" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LogSummaryPeriodRanges" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LogExcelWorkbookFilter" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="LoadLogsIntoExcel" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ExcelTemplateFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[MyDocuments]\LINQPad Queries\DataStax\dseTemplate.xlsx</Value>
+    </Setting>
+    <Setting Name="ExcelFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[DeskTop]\Test.xlsx</Value>
+    </Setting>
+    <Setting Name="DiagnosticPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[MyDocuments]\LINQPad Queries\DataStax\TestData\na1_v_prd_green-diagnostics-2016_08_30_19_08_03_UTC</Value>
+    </Setting>
+    <Setting Name="DiagnosticNoSubFolders" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ParseLogs" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ParseNonLogs" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ParseArchivedLogs" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="AlternativeLogFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="AlternativeDDLFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ExcelWorkSheetRingInfo" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Node Information</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetRingTokenRanges" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Ring Token Ranges</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetCFStats" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">CFStats</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetNodeStats" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">NodeStats</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetLogCassandra" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cassandra Log</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetDDLKeyspaces" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DDL Keyspaces</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetDDLTables" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DDL Tables</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetCompactionHist" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Compaction History</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetYaml" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Settings-Yamls</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetOSMachineInfo" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">OS-Machine Info</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetSummaryLogCassandra" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cassandra Summary Logs</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetStatusLogCassandra" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cassandra Status Logs</Value>
+    </Setting>
+    <Setting Name="IgnoreKeySpaces" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;dse_system&lt;/string&gt;
+  &lt;string&gt;system_auth&lt;/string&gt;
+  &lt;string&gt;system_traces&lt;/string&gt;
+  &lt;string&gt;system&lt;/string&gt;
+  &lt;string&gt;dse_perf&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="CFStatsCreateMBColumns" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;memory used&lt;/string&gt;
+  &lt;string&gt;bytes&lt;/string&gt;
+  &lt;string&gt;space used&lt;/string&gt;
+  &lt;string&gt;data size&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="DiagNodeDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">nodes</Value>
+    </Setting>
+    <Setting Name="NodetoolDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">nodetool</Value>
+    </Setting>
+    <Setting Name="DSEToolDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dsetool</Value>
+    </Setting>
+    <Setting Name="LogsDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">logs</Value>
+    </Setting>
+    <Setting Name="NodetoolRingFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ring</Value>
+    </Setting>
+    <Setting Name="DSEtoolRingFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ring</Value>
+    </Setting>
+    <Setting Name="NodetoolCFStatsFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">cfstats</Value>
+    </Setting>
+    <Setting Name="NodetoolTPStatsFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">tpstats</Value>
+    </Setting>
+    <Setting Name="NodetoolInfoFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">info</Value>
+    </Setting>
+    <Setting Name="NodetoolCompactionHistFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">compactionhistory</Value>
+    </Setting>
+    <Setting Name="LogCassandraSystemLogFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">system</Value>
+    </Setting>
+    <Setting Name="LogCassandraSystemLogFileArchive" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">system.log.*</Value>
+    </Setting>
+    <Setting Name="ConfCassandraDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\conf\cassandra</Value>
+    </Setting>
+    <Setting Name="ConfCassandraFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">cassandra.yaml</Value>
+    </Setting>
+    <Setting Name="ConfCassandraType" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">cassandra</Value>
+    </Setting>
+    <Setting Name="ConfDSEDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\conf\dse</Value>
+    </Setting>
+    <Setting Name="ConfDSEYamlFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dse.yaml</Value>
+    </Setting>
+    <Setting Name="ConfDSEYamlType" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dse yaml</Value>
+    </Setting>
+    <Setting Name="ConfDSEType" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dse</Value>
+    </Setting>
+    <Setting Name="ConfDSEFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dse</Value>
+    </Setting>
+    <Setting Name="CQLDDLDirFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\cqlsh\describe_schema</Value>
+    </Setting>
+    <Setting Name="CQLDDLDirFileExt" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">*.cql"</Value>
+    </Setting>
+    <Setting Name="OSMachineFiles" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;java_heap.json&lt;/string&gt;
+  &lt;string&gt;java_system_properties.json&lt;/string&gt;
+  &lt;string&gt;machine-info.json&lt;/string&gt;
+  &lt;string&gt;os-info.json&lt;/string&gt;
+  &lt;string&gt;.\os-metrics\cpu.json&lt;/string&gt;
+  &lt;string&gt;.\os-metrics\load_avg.json&lt;/string&gt;
+  &lt;string&gt;.\os-metrics\memory.json&lt;/string&gt;
+  &lt;string&gt;.\ntp\ntpstat&lt;/string&gt;
+  &lt;string&gt;.\ntp\ntptime&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="OPSCenterDir" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\opscenterd</Value>
+    </Setting>
+    <Setting Name="OPSCenterFiles" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;node_info.json&lt;/string&gt;
+  &lt;string&gt;repair_service.json&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="LogCassandraDirSystemLog" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.\cassandra\system.log</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
