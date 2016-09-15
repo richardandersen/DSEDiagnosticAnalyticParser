@@ -97,6 +97,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (ksItem == null)
                             {
                                 line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
+                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line: " + line.Substring(0, 10) + "...");
                                 continue;
                             }
 
@@ -118,6 +119,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (string.IsNullOrEmpty(parsedLine[2]))
                             {
                                 line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
+                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line: " + line.Substring(0, 10) + "...");
                                 continue;
                             }
                         }

@@ -27,6 +27,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (dataRow == null)
             {
                 ipAddress.Dump(Logger.DumpType.Warning, "IP Address was not found in the \"nodetool ring\" file but was found within the \"nodetool info\" file.");
+                Program.ConsoleWarnings.Increment("IP Address found in dsetool but not in nodetool: " + ipAddress);
                 return;
             }
 
@@ -101,6 +102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         break;
                     default:
                         line.Dump(Logger.DumpType.Warning, "\"nodetool info\" Invalid line found.");
+                        Program.ConsoleWarnings.Increment("nodetool info invalid line: " + line.Substring(0,10) + "...");
                         break;
                 }
             }

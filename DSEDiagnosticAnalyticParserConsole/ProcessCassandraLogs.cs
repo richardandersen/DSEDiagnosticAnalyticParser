@@ -374,6 +374,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (lastRow != null)
                     {
                         line.Dump(Logger.DumpType.Warning, "Invalid Log Line File: {0}", clogFilePath.PathResolved);
+                        Program.ConsoleWarnings.Increment("Invalid Log Line: " + line.Substring(0, 10) + "...");
                     }
                     continue;
                 }
@@ -402,6 +403,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 else
                 {
                     line.Dump(Logger.DumpType.Warning, "Invalid Log Date/Time File: {0}", clogFilePath.PathResolved);
+                    Program.ConsoleWarnings.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
                     continue;
                 }
 
@@ -416,6 +418,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //nodeRangers.Dump(string.Format("Warning: Log Date \"{1}\" falls between already processed timestamp ranges. Processing of this log file is aborted. Log File is \"{0}\"",
                             //                                    clogFilePath.PathResolved,
                             //                                    lineDateTime));
+                            //Program.ConsoleErrors.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
                             //break;
                             continue;
                         }

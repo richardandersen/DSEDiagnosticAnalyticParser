@@ -20,6 +20,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public ConsoleDisplay ConsoleExcelLogStatus = null;
         static public ConsoleDisplay ConsoleExcel = null;
         static public ConsoleDisplay ConsoleExcelWorkbook = null;
+        static public ConsoleDisplay ConsoleWarnings = null;
+        static public ConsoleDisplay ConsoleErrors = null;
 
         static void Main(string[] args)
         {
@@ -40,6 +42,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             Logger.Instance.Info("Starting with " + argResult.Value.ToString());
 
+            if(!argResult.Value.CheckArguments())
+            {
+                return;
+            }
+
             Console.WriteLine(" ");
 
             ConsoleNonLogFiles = new ConsoleDisplay("Non-Log Files: {0} Count: {1} Task: {2}");
@@ -51,6 +58,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Count: {1} Task: {2}");
             ConsoleExcelLogStatus = new ConsoleDisplay("Excel Status Log: {0}  Count: {1} Task: {2}");
             ConsoleExcelWorkbook = new ConsoleDisplay("Excel Workbooks: {0} File: {2}");
+            ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
+            ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
 
             #region Local Variables
 
@@ -82,11 +91,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (includeLogEntriesAfterThisTimeFrame != DateTime.MinValue)
             {
-                Logger.Instance.InfoFormat("Warning: Log Entries after \"{0}\" will only be parsed", includeLogEntriesAfterThisTimeFrame);
+                Logger.Instance.InfoFormat("Log Entries after \"{0}\" will only be parsed", includeLogEntriesAfterThisTimeFrame);
             }
             else
             {
-                Logger.Instance.Info("Warning: All Log Entries will be parsed!");
+                Logger.Instance.Info("All Log Entries will be parsed!");
             }
 
             var diagPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
@@ -225,6 +234,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (ParserSettings.ParseNonLogs && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                    Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
                                 Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
@@ -237,6 +247,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     //We need to have a list of valid Keyspaces and Tables...
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "DDL was not found, parsing a TPStats file to obtain data model information");
+                                    Program.ConsoleWarnings.Increment("DDL Not Found");
                                     ProcessFileTasks.ReadCFStatsFileForKeyspaceTableInfo((IFilePath)diagFile, ParserSettings.IgnoreKeySpaces, kstblNames);
                                 }
                                 Program.ConsoleNonLogFiles.TaskEnd((IFilePath)diagFile);
@@ -246,6 +257,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                    Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
                                 Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
@@ -260,6 +272,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                    Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
                                 Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
@@ -271,6 +284,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                    Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
                                 Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
@@ -285,6 +299,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                    Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
                                 logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks((IFilePath)diagFile,
@@ -312,6 +327,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         else if (((IFilePath)diagFile).FileExtension.ToLower() != ".cql")
                         {
                             diagFile.Path.Dump(Logger.DumpType.Error, "File was Skipped");
+                            Program.ConsoleErrors.Increment("File Skipped");
                         }
                     }
                 });
@@ -346,6 +362,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (string.IsNullOrEmpty(dcName))
                             {
                                 element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                             }
 
                             logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(element,
@@ -377,6 +394,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (kstblNames.Count == 0)
                 {
                     Logger.Dump("DDL was not found which can cause missing information in the Excel workbooks.", Logger.DumpType.Warning);
+                    Program.ConsoleWarnings.Increment("DDL Not Found");
                 }
 
                 #endregion
@@ -498,6 +516,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (filePath.Exist())
                         {
                             filePath.Path.Dump(Logger.DumpType.Warning, "DDL was not found, parsing a TPStats file to obtain data model information");
+                            Program.ConsoleWarnings.Increment("DDL Not Found");
                             Program.ConsoleNonLogFiles.Increment(filePath);
                             ProcessFileTasks.ReadCFStatsFileForKeyspaceTableInfo(filePath, ParserSettings.IgnoreKeySpaces, kstblNames);
                             Program.ConsoleNonLogFiles.TaskEnd(filePath);
@@ -508,6 +527,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (kstblNames.Count == 0)
                 {
                     Logger.Dump("DDL was not found which can cause missing information in the Excel workbooks.", Logger.DumpType.Warning);
+                    Program.ConsoleWarnings.Increment("DDL Not Found");
                 }
 
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
@@ -538,6 +558,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (string.IsNullOrEmpty(dcName))
                             {
                                 element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                             }
 
                             logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(element,
@@ -578,6 +599,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (ParserSettings.ParseNonLogs && string.IsNullOrEmpty(dcName))
                     {
                         element.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the Ring file.");
+                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                     }
 
                     if (ParserSettings.ParseNonLogs)
@@ -808,10 +830,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (!string.IsNullOrEmpty(ParserSettings.ExcelTemplateFilePath))
             {
-                var excelTemplateFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
+                var excelTemplateFile = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
                 var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
 
-                if (!excelFile.Exist()
+                if (excelTemplateFile != null
+                        && !excelFile.Exist()
                         && excelTemplateFile.Exist())
                 {
                     try
@@ -824,6 +847,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     catch (System.Exception ex)
                     {
                         Logger.Instance.Error(string.Format("Created Workbook \"{0}\" from Template \"{1}\" Failed", excelFile.Path, excelTemplateFile.Path), ex);
+                        Program.ConsoleErrors.Increment("Workbook Template Copy Failed");
                     }
                 }
             }
@@ -924,6 +948,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (e.ExceptionObject is System.Exception)
             {
                 Logger.Instance.Error("Unhandled Exception", ((System.Exception)e.ExceptionObject));
+                Program.ConsoleErrors.Increment("Unhandled Exception");
             }
 
             //ExceptionOccurred = true;

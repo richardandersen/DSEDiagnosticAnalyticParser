@@ -26,6 +26,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (dtErrors.Length > 0)
             {
                 dtErrors.Dump(Logger.DumpType.Error, "Table \"{0}\" Has Error", dtExcel.TableName);
+                Program.ConsoleErrors.Increment("Data Table has Errors");
             }
 
             if (dtExcel.Rows.Count == 0) return null;

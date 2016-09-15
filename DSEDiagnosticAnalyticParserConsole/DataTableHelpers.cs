@@ -49,6 +49,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (dtErrors.Length > 0)
                 {
                     dtErrors.Dump(Logger.DumpType.Error, "Table \"{0}\" Has Error", dtItem.TableName);
+                    Program.ConsoleErrors.Increment("Data Table has Errors");
                 }
 
                 using (var dtReader = dtItem.CreateDataReader())

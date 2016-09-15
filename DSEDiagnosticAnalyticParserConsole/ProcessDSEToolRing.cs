@@ -49,6 +49,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (dataRow == null)
                     {
                         ipAddress.Dump(Logger.DumpType.Warning, "IP Address was not found in the \"nodetool ring\" file but was found within the \"dsetool ring\" file. Ring information added.");
+                        Program.ConsoleWarnings.Increment("IP Address found in dsetool but not in nodetool: " + ipAddress);
 
                         dataRow = dtRingInfo.NewRow();
 

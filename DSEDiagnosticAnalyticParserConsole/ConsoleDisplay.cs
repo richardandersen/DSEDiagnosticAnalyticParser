@@ -17,9 +17,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         private long _counter = 0;
         private Common.Patterns.Collections.ThreadSafe.List<string> _taskItems = new Common.Patterns.Collections.ThreadSafe.List<string>();
 
-        public ConsoleDisplay(string displayString, int maxLines = 2)
+        public ConsoleDisplay(string displayString, int maxLines = 2, bool enableSpinner = true)
         {
             this.LineFormat = displayString;
+            this.Spinner = enableSpinner;
             consoleWriter.ReserveRwWriteConsoleSpace(ConsoleDisplays.Count.ToString(), maxLines, -1);
             ConsoleDisplays.Add(this);
         }
@@ -34,6 +35,12 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             get { return Common.Patterns.Threading.LockFree.Read(ref this._counter); }
             set { Common.Patterns.Threading.LockFree.Update(ref this._counter, value); }
+        }
+
+        public bool Spinner
+        {
+            get;
+            set;
         }
 
         public long Increment(string taskItem = null)
@@ -148,7 +155,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 if (!ConsoleDisplays[nIndex].Terminated)
                 {
-                    consoleWriter.ReWriteAndTurn(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+                    if (ConsoleDisplays[nIndex].Spinner && ConsoleDisplays[nIndex].Counter != 0)
+                    {
+                        consoleWriter.ReWriteAndTurn(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+                    }
+                    else
+                    {
+                        consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+                    }
                 }
             }
         }

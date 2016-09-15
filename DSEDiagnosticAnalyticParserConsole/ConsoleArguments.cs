@@ -171,7 +171,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// Location of the Excel Template File that is copied and updated with the DSE data.
         /// </summary>
-        [Option('T', "ExcelTemplateFilePath", HelpText = "Location of the Excel Template File that is copied and updated with the DSE data.",
+        [Option('T', "ExcelTemplateFilePath", HelpText = "Location of the Excel Template File that is copied and updated with the DSE data. If Relative Path, this path is merged with current value. If null, no template is used.",
                     Required = false)]
         public string ExcelTemplateFilePath
         {
@@ -179,13 +179,30 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 return Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath)?.PathResolved;
             }
-            set { ParserSettings.ExcelTemplateFilePath = value; }
+            set
+            {
+                if (value == null || ParserSettings.ExcelTemplateFilePath == null)
+                {
+                    ParserSettings.ExcelTemplateFilePath = value;
+                }
+                else
+                {
+                    var currentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
+                    var newPath = Common.Path.PathUtils.BuildPath(value,
+                                                                    currentPath.ParentDirectoryPath.PathResolved,
+                                                                    currentPath.FileExtension,
+                                                                    true,
+                                                                    true,
+                                                                    true);
+                    ParserSettings.ExcelTemplateFilePath = newPath.Path;
+                }
+            }
         }
 
         /// <summary>
         /// Excel target file.
         /// </summary>
-        [Option('P', "ExcelFilePath", HelpText = "Excel target file.",
+        [Option('P', "ExcelFilePath", HelpText = "Excel target file. If Relative Path, this path is merged with current value.",
                     Required = false)]
         public string ExcelFilePath
         {
@@ -193,7 +210,17 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 return Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath)?.PathResolved;
             }
-            set { ParserSettings.ExcelFilePath = value; }
+            set
+            {
+                var currentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
+                var newPath = Common.Path.PathUtils.BuildPath(value,
+                                                                currentPath.ParentDirectoryPath.PathResolved,
+                                                                currentPath.FileExtension,
+                                                                true,
+                                                                true,
+                                                                true);
+                ParserSettings.ExcelFilePath = newPath.Path;
+            }
         }
 
         /// <summary>
@@ -231,12 +258,24 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// The directory location of the diagnostic files. The structure of these folders and files is depending on the value of DiagnosticNoSubFolders.
         /// </summary>
-        [Option('D', "DiagnosticPath", HelpText = "The directory location of the diagnostic files. The structure of these folders and files is depending on the value of DiagnosticNoSubFolders.",
+        [Option('D', "DiagnosticPath", HelpText = "The directory location of the diagnostic files. The structure of these folders and files is depending on the value of DiagnosticNoSubFolders. If Relative Path, this path is merged with current value.",
                     Required = false)]
         public string DiagnosticPath
         {
-            get { return Common.Path.PathUtils.BuildFilePath(ParserSettings.DiagnosticPath)?.PathResolved; }
-            set { ParserSettings.DiagnosticPath = value; }
+            get { return Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath)?.PathResolved; }
+            set
+            {
+                var currentPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
+                var newPath = Common.Path.PathUtils.BuildPath(value,
+                                                                currentPath.PathResolved,
+                                                                null,
+                                                                false,
+                                                                true,
+                                                                true,
+                                                                true,
+                                                                false);
+                ParserSettings.DiagnosticPath = newPath.Path;
+            }
         }
 
         /// <summary>
@@ -292,6 +331,42 @@ namespace DSEDiagnosticAnalyticParserConsole
             set;
         }
 
+        public bool CheckArguments()
+        {
+            bool bResult = true;
+            var diagnosticPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
+            var excelFilePathrentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
+            var excelTemplateFilePath = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
+
+            if(!diagnosticPath.Exist())
+            {
+                var msg = string.Format("Diagnostic Directory doesn't exists. Directory is \"{0}\".", diagnosticPath.PathResolved);
+
+                Console.WriteLine(msg);
+                Logger.Instance.Error(msg);
+                bResult = false;
+            }
+
+            if (!excelFilePathrentPath.ParentDirectoryPath.Exist())
+            {
+                var msg = string.Format("Excel Target Directory doesn't exists. Directory is \"{0}\".", excelFilePathrentPath.ParentDirectoryPath.PathResolved);
+
+                Console.WriteLine(msg);
+                Logger.Instance.Error(msg);
+                bResult = false;
+            }
+
+            if (excelTemplateFilePath != null && !excelTemplateFilePath.Exist())
+            {
+                var msg = string.Format("Excel Template file doesn't exists. File is \"{0}\".", excelTemplateFilePath.PathResolved);
+
+                Console.WriteLine(msg);
+                Logger.Instance.Error(msg);
+                bResult = false;
+            }
+
+            return bResult;
+        }
         public override string ToString()
         {
             return string.Format("Values: " +

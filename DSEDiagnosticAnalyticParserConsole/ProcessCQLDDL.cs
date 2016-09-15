@@ -471,11 +471,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else
                             {
                                 cqlStr.Dump(Logger.DumpType.Warning, "Unrecognized CQL found in file \"{0}\"", cqlDDLFilePath.PathResolved);
+                                Program.ConsoleWarnings.Increment("Unrecognized CQL: " + cqlStr.Substring(0, 10) + "...");
                             }
                         }
                         else
                         {
                             cqlStr.Dump(Logger.DumpType.Warning, "Unrecognized CQL found in file \"{0}\"", cqlDDLFilePath.PathResolved);
+                            Program.ConsoleWarnings.Increment("Unrecognized CQL: " + cqlStr.Substring(0, 10) + "...");
                         }
                     }
                 }
