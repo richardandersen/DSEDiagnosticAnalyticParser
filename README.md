@@ -85,8 +85,8 @@ Below settings are used for processing of Excel worksheets/workbooks:
 
 **MaxRowInExcelWorkBook** -- The maximum number of Excel rows in the whole workbook. If this limit is reached a new workbook is created. Default 1,000,000
 
-**LogExcelWorkbookFilter** -- This is a filter that is applied to only log entries when loading into Excel. The default it no value (null). Below is an example of a filter:
-    "[Timestamp] >= #2016-08-01#"
+**LogExcelWorkbookFilter** -- This is a filter that is applied to only log entries when loading into Excel. The default is no value (null). See http://www.csharp-examples.net/dataview-rowfilter/ for more information. Below is an example of a filter:
+    "[Timestamp] >= #2016-08-01 15:30:00#"
     
     Filter Columns are:
   	  [Data Center], string, AllowDBNull
