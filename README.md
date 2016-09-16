@@ -25,7 +25,7 @@ The application configuration setting file, DSEDiagnosticAnalyticParserConsole.e
 
 **IgnoreKeySpaces** -- A collection of keyspaces that are ignored during parsing. Default is: dse_system, system_auth, system_traces, system, dse_perf
 
-**ParseArchivedLogs** -- If enabled (true), any archieve C* logs are read. Default is true. Note: This option is only valid when LogMaxRowsPerNode is enabled (> 0) and DiagnosticNoSubFolders is false.
+**ParseArchivedLogs** -- If enabled (true), any archieve C* logs are read. Default is true. Note: This option is only valid when LogMaxRowsPerNode is disable (-1), DiagnosticNoSubFolders is false, and ParseLogs is true.
 
 **ParseLogs** -- If true, log files are parsed. If false, no log files are parsed and any associated analytics will not be performed. Default is true. If false, archive log files are not parsed either.
 
@@ -55,7 +55,7 @@ The application configuration setting file, DSEDiagnosticAnalyticParserConsole.e
     All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
     e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
 
-Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or bucket:
+Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or buckets:
 
 **LogSummaryPeriods** -- Defines the period as a series of dates and time entries. Each entry is defined by two fields. First field (Item1) is the beginning date/time bucket and the second (Item2) is the aggregation of that time gor that bucket. The time ranges starts at this entry and ends at the next entry. Here is an example:
     [{"Item1":"2016-08-02T00:00:00","Item2":"00:30:00"},{"Item1":"2016-08-01T00:00:00","Item2":"1.00:00:00"},{"Item1":"2016-07-20T00:00:00","Item2":"7.00:00:00"}]
@@ -75,7 +75,7 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
     
     Default is [{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"1.00:00:00","Item2":"1.00:00:00"},{"Item1":"4.00:00:00","Item2":"7.00:00:00"}]. Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
 
-Below settings are used for processing of the Excel worksheets/workbooks:
+Below settings are used for processing of Excel worksheets/workbooks:
 
 **MaxRowInExcelWorkSheet** -- The maximum number of Excel rows in an individual worksheet. If this limit is reached a new worksheet is created. Default 500,000
 
