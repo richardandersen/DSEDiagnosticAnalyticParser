@@ -59,20 +59,22 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
 
 **LogSummaryPeriods** -- Defines the period as a series of dates and time entries. Each entry is defined by two fields. First field (Item1) is the beginning date/time bucket and the second (Item2) is the aggregation of that time gor that bucket. The time ranges starts at this entry and ends at the next entry. Here is an example:
     [{"Item1":"2016-08-02T00:00:00","Item2":"00:30:00"},{"Item1":"2016-08-01T00:00:00","Item2":"1.00:00:00"},{"Item1":"2016-07-20T00:00:00","Item2":"7.00:00:00"}]
+```
   This defines the following date/time ranges:
     Range 1 -- 2016-08-02 midnight to 2016-08-01 midnight (exclusive) where all log entries are aggregated every 30 mins.
     Range 2 -- 2016-08-01 midnight to 2016-07-20 midnight (exclusive) where all log entries are aggregated every 1 day.
     Range 3 -- 2016-07-20 midnight to remaining entries where all log entries are aggregated every 7 days.
-    
+```    
   Default is no value (disabled). Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
 
 **LogSummaryPeriodRanges** -- Defines the period as a series of time spans and time range entries. Each entry is defined by two fields. First field (Item1) is the time span from the most recent log entry or the last entry, and the second (Item2) is the aggregation of that time range. Here is an example:
     [{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"2.00:00:00","Item2":"01:00:00"},{"Item1":"10.00:00:00","Item2":"7.00:00:00"}]
+```  
   This defines the following date/time ranges assuming the most recent log entry is 2016-09-12 10:45:
     Range 1 -- using most recent log for 1 day ==> 2016-09-12 10:45 to 2016-09-11 10:45 (exclusive) where all log entries are aggregated every 15 mins.
     Range 2 -- Using the ending date/time from Range 1 ==> 2016-09-11 10:45 to 2016-09-08 10:45 (exclusive) where all log entries are aggregated every 1 hour.
     Range 3 -- Using the ending date/time from Range 2 ==> 2016-09-08 10:45 to remaining entries where all log entries are aggregated every 7 days.
-    
+```    
     Default is [{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"1.00:00:00","Item2":"1.00:00:00"},{"Item1":"4.00:00:00","Item2":"7.00:00:00"}]. Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
 
 Below settings are used for processing of Excel worksheets/workbooks:
