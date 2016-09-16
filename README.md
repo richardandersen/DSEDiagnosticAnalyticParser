@@ -21,7 +21,7 @@ The application configuration setting file, DSEDiagnosticAnalyticParserConsole.e
 
 **LogTimeSpanRange** -- Only valid if LogCurrentDate is defined. The time span from LogCurrentDate to collect the C* entries (e.g., the last 5 days from LogCurrentDate of 2016-09-15; From 2016-09-15 23:59:59 to 2016-09-10 00:00:00). Default 02:00:00 (2 days)
 
-**LogMaxRowsPerNode** -- The maximum number of C* log entries that are read per log file node. -1 will allow all entries to be read. Default is -1. Note: If this is enabled (> 0), reading C* achieve logs are disabled.
+**LogMaxRowsPerNode** -- The maximum number of C* log entries that are read per log file node. -1 will allow all entries to be read. Default is -1. Note: If this is enabled (> 0), reading C* achieve logs are disabled (only the most LogMaxRowsPerNode current lines in each Cassandra/system.log are read).
 
 **IgnoreKeySpaces** -- A collection of keyspaces that are ignored during parsing. Default is: dse_system, system_auth, system_traces, system, dse_perf
 
@@ -48,7 +48,7 @@ The application configuration setting file, DSEDiagnosticAnalyticParserConsole.e
         |       |     | - compactionhistory
         |  	    | - logs -- static folder name
         |       | 	  | - Cassandra -- static folder name
-        |  				    | - system.log -- This must be the Cassandra log file from the node
+        |       |     |     | - system.log -- This must be the Cassandra log file from the node
         | - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2
   ```
   If diagnosticNoSubFolders is true:
