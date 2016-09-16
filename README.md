@@ -110,4 +110,5 @@ Alternative Folder Locations. These are additional locations to find additional 
 
 **AlternativeDDLFilePath** -- Additional file path that is used to parse CQL/DDL files. Wild cards in the path are supported. Default is no value (null). 
 
-**Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the emulator with square brackets, e.g., [DeskTop]). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+**Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the enumeration with square brackets, e.g., [DeskTop]\Test.xlsx). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+Also, all command arguments that take a path string (e.g., --ExcelFilePath) will merge the argument against the default value. For example, "[DeskTop]\Test.xlsx" is the default (defined in the application config file) and "myDSEReview" is the argument to --ExcelFilePath, the resulting path used by the application would be "[DeskTop]\myDSEReview.xlsx".
