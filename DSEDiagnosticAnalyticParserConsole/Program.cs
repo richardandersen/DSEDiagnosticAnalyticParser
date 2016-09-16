@@ -11,6 +11,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     class Program
     {
+        public static readonly DateTime RunDateTime = DateTime.Now;
+        public static string CommandArgsString = null;
+
         static public ConsoleDisplay ConsoleNonLogFiles = null;
         static public ConsoleDisplay ConsoleLogFiles = null;
         static public ConsoleDisplay ConsoleParsingNonLog = null;
@@ -31,7 +34,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (argResult.Value.DisplayDefaults)
             {
-                Logger.Instance.Info(argResult.Value.ToString());
+                Console.WriteLine(argResult.Value.ToString());
                 return;
             }
 
@@ -40,7 +43,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
-            Logger.Instance.Info("Starting with " + argResult.Value.ToString());
+            Logger.Instance.InfoFormat("Program: {0} Version: {1} Directory: {2}",
+                                            Common.Functions.Instance.ApplicationName,
+                                            Common.Functions.Instance.ApplicationVersion,
+                                            Common.Functions.Instance.AssemblyDir);
+
+            Logger.Instance.Info("Starting with " + (CommandArgsString = argResult.Value.ToString()));
 
             if(!argResult.Value.CheckArguments())
             {
@@ -408,11 +416,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (diagNodePath != null && (opsCtrDiag = diagNodePath.Exist()))
                 {
-                    nodeDirs = diagNodePath.Children().Cast<Common.IDirectoryPath>().ToList();
+                    var childrenItems = diagNodePath.Children();
+                    var files = childrenItems.Where(item => item.IsFilePath).Cast<Common.IFilePath>();
+                    
+                    if(files.HasAtLeastOneElement())
+                    {
+                        var filesInWarning = string.Format("Invalid File(s) Found in OpsCenter Folder: {0}",
+                                                            string.Join(", ", files.Select(file => "\"" + file.Path + "\"")));
+                        Logger.Instance.Warn(filesInWarning);
+                        Program.ConsoleWarnings.Increment("Invalid File(s) Found in OpsCenter Folder");
+                    }
+
+                    nodeDirs = childrenItems.Where(item => item.IsDirectoryPath).Cast<Common.IDirectoryPath>().ToList();
                 }
                 else
                 {
-                    nodeDirs = diagPath.Children().Cast<Common.IDirectoryPath>().ToList();
+                    var childrenItems = diagPath.Children();
+                    
+                    nodeDirs = childrenItems.Where(item => item.IsDirectoryPath).Cast<Common.IDirectoryPath>().ToList();
                 }
 
                 IFilePath filePath = null;
@@ -826,6 +847,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             #endregion
 
+            Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
+
             #region Excel Creation/Formatting
 
             if (!string.IsNullOrEmpty(ParserSettings.ExcelTemplateFilePath))
@@ -921,12 +944,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 ParserSettings.ExcelWorkSheetCFStats,
                                                                 dtNodeStatsStack,
                                                                 ParserSettings.ExcelWorkSheetNodeStats);
-                   
+                 
+                    DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
+
                     excelPkg.Save();
                     Program.ConsoleExcelWorkbook.Increment(excelFile);
                     Program.ConsoleExcelNonLog.Terminate();
                 } //Save non-log data
-                Logger.Instance.InfoFormat("*** Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
+                Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
             }
            
             runLogToExcel?.Wait();
@@ -940,6 +965,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
+            ConsoleDisplay.Console.WriteLine(" ");
+
             Logger.Instance.FatalFormat("Unhandled Exception Occurred! Exception Is \"{0}\" ({1}) Terminating Processing: {2}",
                                             e.ExceptionObject.GetType(),
                                             e.ExceptionObject is System.Exception ? ((System.Exception)e.ExceptionObject).Message : "<Not an Exception Object>",

@@ -676,11 +676,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (parsedValues[4] == "SliceQueryFilter.java")
                     {
                         //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstoned cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
+                        // Scanned over 100000 tombstones in capitalonehomeloans.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
                         if (nCell == itemPos)
                         {
                             var splitItems = SplitTableName(parsedValues[nCell], null);
+                            string tableName = splitItems.Item2;
 
-                            dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+                            if(tableName[tableName.Length - 1] == ';')
+                            {
+                                tableName = tableName.Substring(0, tableName.Length - 1);
+                            }
+
+                            dataRow["Associated Item"] = splitItems.Item1 + '.' + tableName;
                         }
                         if (nCell == itemValuePos)
                         {
@@ -713,6 +720,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemPos = nCell + 8;
                             itemValuePos = nCell + 4;
                             dataRow["Flagged"] = true;
+                        }
+                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over" )
+                        {
+                            itemPos = nCell + 5;
+                            itemValuePos = 2;
+                            dataRow["Flagged"] = true;
+                            dataRow["Exception"] = "Query Tombstones Aborted";
                         }
                     }
                     else if (parsedValues[4] == "HintedHandoffMetrics.java")
@@ -976,6 +990,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                     new List<CLogSummaryInfo>()));
                 }
 
+                Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
+
                 Parallel.ForEach(segments, element =>
                 //foreach (var element in segments)
                 {
@@ -1161,6 +1177,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
             }
+
+            Logger.Instance.InfoFormat("Summary Log Nbr Rows: {0:###,###,##0}", dtCSummaryLog.Rows.Count);
         }
 
         static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+(\d+)(?:.*Eden Space:\s*(\d+)\s*->\s*(\d+))?(?:.*Old Gen:\s*(\d+)\s*->\s*(\d+))?(?:.*Survivor Space:\s*(\d+)\s*->\s*(\d+).*)?.*",

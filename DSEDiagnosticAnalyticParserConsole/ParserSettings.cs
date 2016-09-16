@@ -20,12 +20,18 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] LogSummaryIndicatorType = Properties.Settings.Default.LogSummaryIndicatorType.ToArray();
         public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray();
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
-        public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = null; //new Tuple<DateTime, TimeSpan>[] { new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 02), new TimeSpan(0, 0, 30, 0)), //From By date/time and aggregation period
-                                                                            //new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 1, 0, 0, 0), new TimeSpan(0, 1, 0, 0)),
-                                                                            //new Tuple<DateTime,TimeSpan>(new DateTime(2016, 07, 29, 0, 0, 0), new TimeSpan(1, 0, 0, 0))}; //null disable Summaries.
-        public static Tuple<TimeSpan, TimeSpan>[] LogSummaryPeriodRanges = new Tuple<TimeSpan, TimeSpan>[] { new Tuple<TimeSpan,TimeSpan>(new TimeSpan(1, 0, 0, 0), new TimeSpan(0, 0, 15, 0)), //Timespan from Log's Max Date or prevous rang/Period time and aggregation period
-																								new Tuple<TimeSpan,TimeSpan>(new TimeSpan(1, 0, 0, 0), new TimeSpan(1, 0, 0, 0)),
-                                                                                                new Tuple<TimeSpan,TimeSpan>(new TimeSpan(4, 0, 0, 0), new TimeSpan(7, 0, 0, 0))}; //null disable Summaries.
+
+        public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<DateTime, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriods);
+        //new Tuple<DateTime, TimeSpan>[] { new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 02), new TimeSpan(0, 0, 30, 0)), //From By date/time and aggregation period
+        //                                  new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 1, 0, 0, 0), new TimeSpan(0, 1, 0, 0)),
+        //                                  new Tuple<DateTime,TimeSpan>(new DateTime(2016, 07, 29, 0, 0, 0), new TimeSpan(1, 0, 0, 0))}; //null disable Summaries.
+        //[{"Item1":"2016-08-02T00:00:00","Item2":"00:30:00"},{"Item1":"2016-08-01T00:00:00","Item2":"01:00:00"},{"Item1":"2016-07-29T00:00:00","Item2":"1.00:00:00"}]
+        public static Tuple<TimeSpan, TimeSpan>[] LogSummaryPeriodRanges = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<TimeSpan, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriodRanges);
+        //new Tuple<TimeSpan, TimeSpan>[] { new Tuple<TimeSpan, TimeSpan>(new TimeSpan(1, 0, 0, 0), new TimeSpan(0, 0, 15, 0)), //Timespan from Log's Max Date or previous rang/Period time and aggregation period
+        //                                  new Tuple<TimeSpan, TimeSpan>(new TimeSpan(1, 0, 0, 0), new TimeSpan(1, 0, 0, 0)),
+        //                                  new Tuple<TimeSpan, TimeSpan>(new TimeSpan(4, 0, 0, 0), new TimeSpan(7, 0, 0, 0))};
+        //[{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"1.00:00:00","Item2":"1.00:00:00"},{"Item1":"4.00:00:00","Item2":"7.00:00:00"}]
+
 
         //Creates a filter that is used for loading the Cassandra Log Worksheets
         // Data Columns are:

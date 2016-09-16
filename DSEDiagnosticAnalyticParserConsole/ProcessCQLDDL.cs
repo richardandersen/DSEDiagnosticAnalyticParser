@@ -202,7 +202,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow = dtTable.NewRow();
                                 dataRow["Keyspace Name"] = kstblName.Item1;
                                 dataRow["Name"] = kstblName.Item2;
-                                dataRow["DDL"] = cqlStr;
+
+                                if (cqlStr.Length > 32760)
+                                {
+                                    dataRow["DDL"] = cqlStr.Substring(0, 32755) + "...";
+                                    cqlStr.Dump(Logger.DumpType.Warning, "CQL DDL String exceed Excels Maximum Length of 32,760 ({0:###,##,##0}). CQL DDL String truncated to 32,775.", cqlStr.Length);
+                                    Program.ConsoleWarnings.Increment("CQL DDL Truncated");                                    
+                                }
+                                else
+                                {
+                                    dataRow["DDL"] = cqlStr;
+                                }
 
                                 //Find Columns
                                 var tblColumns = Common.StringFunctions.Split(strColsTbl,

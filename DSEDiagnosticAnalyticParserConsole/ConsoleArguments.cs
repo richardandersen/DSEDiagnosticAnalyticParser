@@ -132,6 +132,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.LoadLogsIntoExcel = value; }
         }
 
+        [Option('e', "DisableLoadLogsIntoExcel", HelpText = "Disabled the loading of logs into Excel",
+                   Required = false)]
+        public bool DisableLoadLogsIntoExcel
+        {
+            get { return ParserSettings.LoadLogsIntoExcel; }
+            set { ParserSettings.LoadLogsIntoExcel = !value; }
+        }
+
         /// <summary>
         /// True to allow parsing of log files.
         /// </summary>
@@ -143,6 +151,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.ParseLogs = value; }
         }
 
+        [Option('l', "DisableParseLogs", HelpText = "Disable the parsing of log files.",
+                    Required = false)]
+        public bool DisableParseLogs
+        {
+            get { return ParserSettings.ParseLogs; }
+            set { ParserSettings.ParseLogs = !value; }
+        }
+
         /// <summary>
         /// True to parse non-log files (e.g., cfstats, ring, json, etc.). 
         /// </summary>
@@ -152,6 +168,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             get { return ParserSettings.ParseNonLogs; }
             set { ParserSettings.ParseNonLogs = value; }
+        }
+
+        [Option('n', "DisableParseNonLogs", HelpText = "Disables the parsing of non-log files (e.g., cfstats, ring, json, etc.).",
+                    Required = false)]
+        public bool DisableParseNonLogs
+        {
+            get { return ParserSettings.ParseNonLogs; }
+            set { ParserSettings.ParseNonLogs = !value; }
         }
 
         /// <summary>
@@ -166,6 +190,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             get { return ParserSettings.ParseArchivedLogs; }
             set { ParserSettings.ParseArchivedLogs = value; }
+        }
+
+        [Option('a', "DisableParseArchivedLogs", HelpText = "Disables the parsing of the archived log files.",
+                    Required = false)]
+        public bool DisableParseArchivedLogs
+        {
+            get { return ParserSettings.ParseArchivedLogs; }
+            set { ParserSettings.ParseArchivedLogs = !value; }
         }
 
         /// <summary>
@@ -253,6 +285,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             get { return ParserSettings.DiagnosticNoSubFolders; }
             set { ParserSettings.DiagnosticNoSubFolders = value; }
+        }
+
+        [Option('o', "DiagnosticSubFolders", HelpText = "The folder follows the OpsCenter Diagnostic Tar Ball structure.",
+                    Required = false)]
+        public bool DiagnosticSubFolders
+        {
+            get { return ParserSettings.DiagnosticNoSubFolders; }
+            set { ParserSettings.DiagnosticNoSubFolders = !value; }
         }
 
         /// <summary>

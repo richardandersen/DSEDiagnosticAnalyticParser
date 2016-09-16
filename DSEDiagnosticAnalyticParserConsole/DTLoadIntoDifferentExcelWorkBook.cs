@@ -64,6 +64,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 startingWSCell);
 
                     workBookActions?.Invoke(WorkBookProcessingStage.PreSave, excelFile, workSheetName, excelPkg, dtExcel.Rows.Count);
+                    DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
                     excelPkg.Save();
                     workBookActions?.Invoke(WorkBookProcessingStage.Saved, excelFile, workSheetName, excelPkg, dtExcel.Rows.Count);
                     Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
@@ -105,6 +106,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     System.Threading.Interlocked.Add(ref nResult, dtSplit.Rows.Count);
 
                     workBookActions?.Invoke(WorkBookProcessingStage.PreSave, excelFile, workSheetName, excelPkg, dtSplit.Rows.Count);
+                    DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
                     excelPkg.Save();
                     workBookActions?.Invoke(WorkBookProcessingStage.Saved, excelFile, workSheetName, excelPkg, dtSplit.Rows.Count);
                     Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
@@ -142,5 +144,25 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             true);
         }
 
+        static public void UpdateApplicationWs(ExcelPackage excelPkg)
+        {
+            var workSheet = excelPkg.Workbook.Worksheets["Application"];
+            if (workSheet == null)
+            {
+                workSheet = excelPkg.Workbook.Worksheets.Add("Application");
+            }
+           
+            workSheet.Cells["A2"].Value = string.Format("Run Timestamp {0}", Program.RunDateTime);
+            workSheet.Cells["A3"].Value = string.Format("Program: {0} Version: {1} Directory: {2}",
+                                                            Common.Functions.Instance.ApplicationName,
+                                                            Common.Functions.Instance.ApplicationVersion,
+                                                            Common.Functions.Instance.AssemblyDir);
+            workSheet.Cells["A4"].Value = string.Format("Working Directory: {0}", System.Environment.CurrentDirectory);
+            workSheet.Cells["A5"].Value = Program.CommandArgsString;
+            workSheet.Cells["A6"].Value = string.Format("Warnings: {0} Errors: {1}",
+                                                            Program.ConsoleWarnings.Counter > 0,
+                                                            Program.ConsoleErrors.Counter > 0);
+            workSheet.Cells["A7"].Value = string.Format("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
+        }
     }
 }

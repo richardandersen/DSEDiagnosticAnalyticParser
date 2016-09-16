@@ -75,7 +75,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         public static string Dump(this string strItem, DumpType dumpType, string comments = null, params object[] args)
         {
-            string strComment = comments == null ? string.Empty : (string.Format(comments, args) + ":");
+            string strComment = comments == null ? string.Empty : (string.Format(comments, args) + ": ");
 
             switch (dumpType)
             {

@@ -96,14 +96,27 @@ namespace DSEDiagnosticAnalyticParserConsole
             get { return this._taskItems.Count; }
         }
 
-        public string Line(int pos)
+        public string Line(int pos, bool retry = true)
         {
-            return string.Format(LineFormat,
-                                    Common.Patterns.Threading.LockFree.Read(ref this._counter),
-                                    this._taskItems.Count,
-                                    this._taskItems.Count == 0
-                                        ? string.Empty
-                                        : (pos >= 0 && pos < this._taskItems.Count) ? this._taskItems[pos] : this._taskItems.LastOrDefault());
+            try
+            {
+                var taskItem = this._taskItems.Count == 0
+                                       ? string.Empty
+                                       : (pos >= 0 && pos < this._taskItems.Count) ? this._taskItems.ElementAtOrDefault(pos) : this._taskItems.LastOrDefault();
+
+                return string.Format(LineFormat,
+                                        Common.Patterns.Threading.LockFree.Read(ref this._counter),
+                                        this._taskItems.Count,
+                                        taskItem);
+            }
+            catch(System.ArgumentOutOfRangeException)
+            {
+            	if(retry)
+                {
+                    return this.Line(-1, false);
+                }
+            }
+            return string.Empty;
         }
 
         int _runningCnt = 0;
@@ -146,6 +159,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             //consoleWriter.DisableSpinner();
         }
 
+        public static ConsoleWriter Console { get { return consoleWriter; } }
 
         static void TimerCallback(object state)
         {

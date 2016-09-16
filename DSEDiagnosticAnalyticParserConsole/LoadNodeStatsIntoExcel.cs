@@ -26,10 +26,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                             workSheet.Cells["E:L"].Style.Numberformat.Format = "#,###,###,##0";
-
-                                            workSheet.View.FreezePanes(2, 1);
+                                           
                                             workSheet.Cells["A1:L1"].AutoFilter = true;
                                             workSheet.Cells.AutoFitColumns();
+                                            workSheet.View.FreezePanes(2, 1);
                                         },
                                         false,
                                         -1,
