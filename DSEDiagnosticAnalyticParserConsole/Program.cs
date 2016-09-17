@@ -55,6 +55,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
+            ConsoleDisplay.Console.ClearScreen();
+
             Console.WriteLine(" ");
 
             ConsoleNonLogFiles = new ConsoleDisplay("Non-Log Files: {0} Count: {1} Task: {2}");

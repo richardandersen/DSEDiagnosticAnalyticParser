@@ -1255,7 +1255,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCStatusLog.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //x
                 dtCStatusLog.Columns.Add("From (mb)", typeof(decimal)).AllowDBNull = true; //y
                 dtCStatusLog.Columns.Add("To (mb)", typeof(decimal)).AllowDBNull = true;//z
-                dtCStatusLog.Columns.Add("Latancy (ms)", typeof(int)).AllowDBNull = true; //aa
+                dtCStatusLog.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true; //aa
                 dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ab
                 dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ac
                 dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ad
@@ -1572,7 +1572,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["SSTables"] = int.Parse(splits[1].Replace(",", string.Empty));
                                 dataRow["From (mb)"] = ConvertInToMB(splits[3], "bytes");
                                 dataRow["To (mb)"] = ConvertInToMB(splits[4], "bytes");
-                                dataRow["Latancy (ms)"] = time;
+                                dataRow["Latency (ms)"] = time;
                                 dataRow["Rate (MB/s)"] = rate;
                                 dataRow["Partitions Merged"] = splits[8] + ":" + splits[9];
                                 dataRow["Merge Counts"] = splits[10];
