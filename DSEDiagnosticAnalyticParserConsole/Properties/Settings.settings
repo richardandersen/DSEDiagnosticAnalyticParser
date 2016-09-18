@@ -8,7 +8,7 @@
     <Setting Name="MaxRowInExcelWorkSheet" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">500000</Value>
     </Setting>
-    <Setting Name="GCPausedFlagThresholdInMS" Type="System.Int32" Scope="Application">
+    <Setting Name="GCFlagThresholdInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">5000</Value>
     </Setting>
     <Setting Name="CompactionFlagThresholdInMS" Type="System.Int32" Scope="Application">
@@ -46,6 +46,7 @@
   &lt;string&gt;RepairSession.java&lt;/string&gt;
   &lt;string&gt;SSTableWriter.java&lt;/string&gt;
   &lt;string&gt;CqlSlowLogWriter.java&lt;/string&gt;
+  &lt;string&gt;CqlSolrQueryExecutor.java&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="LogSummaryIgnoreTaskExceptions" Type="System.Collections.Specialized.StringCollection" Scope="Application">

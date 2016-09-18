@@ -14,6 +14,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public enum WorkBookProcessingStage
         {
             PreProcess,
+            PreProcessDataTable,
+            PrepareFileName,
             PreLoad,
             PreSave,
             Saved,
@@ -23,7 +25,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public int DifferentExcelWorkBook(string excelFilePath,
                                                     string workSheetName,
                                                     DataTable dtExcel,
-                                                    Action<WorkBookProcessingStage, IFilePath, string, ExcelPackage, int> workBookActions,
+                                                    Action<WorkBookProcessingStage, IFilePath, IFilePath, string, ExcelPackage, DataTable, int> workBookActions,
                                                     Action<ExcelWorksheet> worksheetAction = null,
                                                     int maxRowInExcelWorkBook = -1,
                                                     int maxRowInExcelWorkSheet = -1,
@@ -32,15 +34,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     bool bypassPreprocessAction = false)
         {
             var excelTargetFile = Common.Path.PathUtils.BuildFilePath(excelFilePath);
+            var orgTargetFile = (IFilePath) excelTargetFile.Clone();
 
-            if (!bypassPreprocessAction)
-            {
-                workBookActions?.Invoke(WorkBookProcessingStage.PreProcess, excelTargetFile, null, null, -1);
-            }
-
+            workBookActions?.Invoke(bypassPreprocessAction
+                                            ? WorkBookProcessingStage.PreProcessDataTable
+                                            : WorkBookProcessingStage.PreProcess,
+                                        orgTargetFile,
+                                        null,
+                                        workSheetName,
+                                        null,
+                                        dtExcel,
+                                        -1);
+            
             if (dtExcel.Rows.Count == 0)
             {
-                workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, null, null, null, 0);
+                workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, orgTargetFile, null, null, null, dtExcel,  0);
                 return 0;
             }
 
@@ -50,11 +58,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         excelTargetFile.Name,
                                                                         excelTargetFile.FileExtension);
 
-                var excelFile = excelTargetFile.ApplyFileNameFormat(new object[] { workSheetName });
-                
+                var excelFile = ((IFilePath)excelTargetFile.Clone()).ApplyFileNameFormat(new object[] { workSheetName });
+
+                workBookActions?.Invoke(WorkBookProcessingStage.PrepareFileName, orgTargetFile, excelFile, workSheetName, null, dtExcel, -1);
+
                 using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
                 {
-                    workBookActions?.Invoke(WorkBookProcessingStage.PreLoad, excelFile, workSheetName, excelPkg, -1);
+                    workBookActions?.Invoke(WorkBookProcessingStage.PreLoad, orgTargetFile, excelFile, workSheetName, excelPkg, dtExcel, -1);
 
                     WorkBook(excelPkg,
                                 workSheetName,
@@ -63,14 +73,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 null,
                                 startingWSCell);
 
-                    workBookActions?.Invoke(WorkBookProcessingStage.PreSave, excelFile, workSheetName, excelPkg, dtExcel.Rows.Count);
+                    workBookActions?.Invoke(WorkBookProcessingStage.PreSave, orgTargetFile, excelFile, workSheetName, excelPkg, dtExcel, dtExcel.Rows.Count);
                     DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
                     excelPkg.Save();
-                    workBookActions?.Invoke(WorkBookProcessingStage.Saved, excelFile, workSheetName, excelPkg, dtExcel.Rows.Count);
+                    workBookActions?.Invoke(WorkBookProcessingStage.Saved, orgTargetFile, excelFile, workSheetName, excelPkg, dtExcel, dtExcel.Rows.Count);
                     Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
                 }
 
-                workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, null, null, null, dtExcel.Rows.Count);
+                workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, orgTargetFile, null, workSheetName, null, dtExcel, dtExcel.Rows.Count);
                 return dtExcel.Rows.Count;
             }
 
@@ -86,11 +96,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             //foreach (var dtSplit in dtSplits)
             {
                 var excelFile = ((IFilePath)excelTargetFile.Clone()).ApplyFileNameFormat(new object[] { workSheetName, System.Threading.Interlocked.Increment(ref totalRows) });
+
+                workBookActions?.Invoke(WorkBookProcessingStage.PrepareFileName, orgTargetFile, excelFile, workSheetName, null, dtSplit, -1);
+
                 using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
                 {
                     var newStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
 
-                    workBookActions?.Invoke(WorkBookProcessingStage.PreLoad, excelFile, workSheetName, excelPkg, -1);
+                    workBookActions?.Invoke(WorkBookProcessingStage.PreLoad, orgTargetFile, excelFile, workSheetName, excelPkg, dtSplit, -1);
 
                     newStack.Push(dtSplit);
 
@@ -105,15 +118,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     System.Threading.Interlocked.Add(ref nResult, dtSplit.Rows.Count);
 
-                    workBookActions?.Invoke(WorkBookProcessingStage.PreSave, excelFile, workSheetName, excelPkg, dtSplit.Rows.Count);
+                    workBookActions?.Invoke(WorkBookProcessingStage.PreSave, orgTargetFile, excelFile, workSheetName, excelPkg, dtSplit, dtSplit.Rows.Count);
                     DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
                     excelPkg.Save();
-                    workBookActions?.Invoke(WorkBookProcessingStage.Saved, excelFile, workSheetName, excelPkg, dtSplit.Rows.Count);
+                    workBookActions?.Invoke(WorkBookProcessingStage.Saved, orgTargetFile, excelFile, workSheetName, excelPkg, dtSplit, dtSplit.Rows.Count);
                     Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
                 }
             });
 
-            workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, null, null, null, nResult);
+            workBookActions?.Invoke(WorkBookProcessingStage.PostProcess, orgTargetFile, null, workSheetName, null, null, nResult);
 
             return nResult;
         }
@@ -121,14 +134,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public int DifferentExcelWorkBook(string excelFilePath,
                                                     string workSheetName,
                                                     Common.Patterns.Collections.LockFree.Stack<DataTable> dtExcelStack,
-                                                    Action<WorkBookProcessingStage, IFilePath, string, ExcelPackage, int> workBookActions,
+                                                    Action<WorkBookProcessingStage, IFilePath, IFilePath, string, ExcelPackage, DataTable, int> workBookActions,
                                                     Action<ExcelWorksheet> worksheetAction = null,
                                                     int maxRowInExcelWorkBook = -1,
                                                     int maxRowInExcelWorkSheet = -1,
                                                     Tuple<string, string, DataViewRowState> viewFilterSortRowStateOpts = null,
                                                     string startingWSCell = "A1")
         {
-            workBookActions?.Invoke(WorkBookProcessingStage.PreProcess, Common.Path.PathUtils.BuildFilePath(excelFilePath), null, null, -1);
+            workBookActions?.Invoke(WorkBookProcessingStage.PreProcess, Common.Path.PathUtils.BuildFilePath(excelFilePath), null, workSheetName, null, null, -1);
 
             var dtComplete = dtExcelStack.MergeIntoOneDataTable(viewFilterSortRowStateOpts);
 

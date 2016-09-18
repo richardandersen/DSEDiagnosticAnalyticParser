@@ -204,7 +204,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (item.Length > 2
                     && ((item[0] == '\'' && item[item.Length - 1] == '\'')
-                            || (item[0] == '"' && item[item.Length - 1] == '"')))
+                            || (item[0] == '"' && item[item.Length - 1] == '"')
+                            || (item[0] == '[' && item[item.Length - 1] == ']')))
             {
                 newItem = item.Substring(1, item.Length - 2);
                 return true;

@@ -10,7 +10,7 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         public static int MaxRowInExcelWorkSheet = Properties.Settings.Default.MaxRowInExcelWorkSheet; //-1 disabled
         public static int MaxRowInExcelWorkBook = Properties.Settings.Default.MaxRowInExcelWorkBook; //-1 disabled
-        public static int GCPausedFlagThresholdInMS = Properties.Settings.Default.GCPausedFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java) and log worksheets
+        public static int GCFlagThresholdInMS = Properties.Settings.Default.GCFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java) and log worksheets
         public static int CompactionFlagThresholdInMS = Properties.Settings.Default.CompactionFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java) and log worksheets
         public static int SlowLogQueryThresholdInMS = Properties.Settings.Default.SlowLogQueryThresholdInMS;
 

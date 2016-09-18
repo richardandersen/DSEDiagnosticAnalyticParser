@@ -57,7 +57,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             ConsoleDisplay.Console.ClearScreen();
 
-            Console.WriteLine(" ");
+            ConsoleDisplay.Console.WriteLine(" ");
+            ConsoleDisplay.Console.WriteLine("Diagnostic Source Folder: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.DiagnosticPath)?.PathResolved);
+            ConsoleDisplay.Console.WriteLine("Excel Target File: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.ExcelFilePath)?.PathResolved);
+            ConsoleDisplay.Console.WriteLine("Parse Non-Logs: {0} Logs: {1} Archived Logs: {2} Excel Load Logs: {3}",
+                                                argResult.Value.ParseNonLogs,
+                                                argResult.Value.ParseLogs,
+                                                argResult.Value.ParseArchivedLogs,
+                                                argResult.Value.LoadLogsIntoExcel);
+
+            ConsoleDisplay.Console.WriteLine(" ");
 
             ConsoleNonLogFiles = new ConsoleDisplay("Non-Log Files: {0} Count: {1} Task: {2}");
             ConsoleLogFiles = new ConsoleDisplay("Log Files: {0}  Count: {1} Task: {2}");
@@ -329,7 +338,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             dtLogStatusStack,
                                                                                             dtCFStatsStack,
                                                                                             dtNodeStatsStack,
-                                                                                            ParserSettings.GCPausedFlagThresholdInMS,
+                                                                                            ParserSettings.GCFlagThresholdInMS,
                                                                                             ParserSettings.CompactionFlagThresholdInMS,
                                                                                             ParserSettings.SlowLogQueryThresholdInMS));
                             }
@@ -392,7 +401,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dtLogStatusStack,
                                                                                         dtCFStatsStack,
                                                                                         dtNodeStatsStack,
-                                                                                        ParserSettings.GCPausedFlagThresholdInMS,
+                                                                                        ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
                         }
@@ -601,7 +610,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dtLogStatusStack,
                                                                                         dtCFStatsStack,
                                                                                         dtNodeStatsStack,
-                                                                                        ParserSettings.GCPausedFlagThresholdInMS,
+                                                                                        ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
                         }
@@ -717,7 +726,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dtLogStatusStack,
                                                                                         dtCFStatsStack,
                                                                                         dtNodeStatsStack,
-                                                                                        ParserSettings.GCPausedFlagThresholdInMS,
+                                                                                        ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
                         }

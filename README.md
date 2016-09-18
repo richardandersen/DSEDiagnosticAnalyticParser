@@ -11,7 +11,7 @@ The "Binaries" folder contains zip files of the complete set of required assembl
 
 The application configuration setting file, DSEDiagnosticAnalyticParserConsole.exe.config, defines the default settings for the application and for the logger (log4net). Currently log4net is configured to overwrite the log file (DSEDiagnosticAnalyticParserConsole.log) on each run. This log file will contain all warning and error messages and should be reviewed after each run. Below is a description of the application settings:
 
-**GCPausedFlagThresholdInMS** -- Defines a threshold, in milliseconds, that will flag GC related latencies in the C* log. Default 5000 
+**GCFlagThresholdInMS** -- Defines a threshold, in milliseconds, that will flag GC related latencies in the C* log. Default 5000 
 
 **CompactionFlagThresholdInMS** -- Defines a threshold, in milliseconds, that will flag compaction latencies in the C* log. Default 10000
 

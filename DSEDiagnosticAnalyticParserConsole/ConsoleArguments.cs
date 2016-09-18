@@ -39,12 +39,12 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java is defined) and log status for GC latencies. 
         /// </summary>
-        [Option('G', "GCPausedFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java is defined) and log status for GC latencies.",
+        [Option('G', "GCFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java is defined) and log status for GC latencies.",
                     Required = false)]
-        public int GCPausedFlagThresholdInMS
+        public int GCFlagThresholdInMS
         {
-            get { return ParserSettings.GCPausedFlagThresholdInMS; }
-            set { ParserSettings.GCPausedFlagThresholdInMS = value; }
+            get { return ParserSettings.GCFlagThresholdInMS; }
+            set { ParserSettings.GCFlagThresholdInMS = value; }
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Console.WriteLine(msg);
                 Logger.Instance.Error(msg);
                 bResult = false;
-            }
+            }            
 
             return bResult;
         }
@@ -412,7 +412,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             return string.Format("Values: " +
                                     "--MaxRowInExcelWork[S]heet {0} " +
                                     "--MaxRowInExcelWork[B]ook {1} " +
-                                    "--[G]CPausedFlagThresholdInMS {2} " +
+                                    "--[G]CFlagThresholdInMS {2} " +
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
                                     "--LogTimeSpan[R]ange \"{5}\" " +
@@ -431,7 +431,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--IgnoreKeySpaces {{{18}}}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
-                                    this.GCPausedFlagThresholdInMS,
+                                    this.GCFlagThresholdInMS,
                                     this.CompactionFlagThresholdInMS,
                                     this.SlowLogQueryThresholdInMS,
                                     this.LogTimeSpanRange,

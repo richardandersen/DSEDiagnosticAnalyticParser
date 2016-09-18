@@ -14,8 +14,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         private static void LoadSummaryLog(ExcelPackage excelPkg,
                                             DataTable dtLogSummary,
                                             string excelWorkSheetSummaryLogCassandra,
-                                            DateTimeRange logCassandraMaxMinTimestamp,
-                                            DateTimeRange maxminMaxLogDate,
+                                            DateTimeRange logCassandraMaxMinTimestamp,                                            
                                             TimeSpan logTimeSpanRange,
                                             string logExcelWorkbookFilter)
         {
@@ -25,22 +24,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         excelWorkSheetSummaryLogCassandra,
                                         dtLogSummary,
                                         workSheet =>
-                                        {
-                                            var maxTimeStamp = logCassandraMaxMinTimestamp.Max;
-                                            var minTimeStamp = logExcelWorkbookFilter == string.Empty ? (maxminMaxLogDate.Min - logTimeSpanRange) : logCassandraMaxMinTimestamp.Min;
-
+                                        {                                           
                                             workSheet.Cells["1:2"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
                                             workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
                                             workSheet.Cells["A1:H1"].Style.WrapText = true;
                                             workSheet.Cells["A1:H1"].Merge = true;
-                                            workSheet.Cells["A1:H1"].Value = string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
-                                                                                                minTimeStamp,
-                                                                                                maxTimeStamp,
-                                                                                                maxTimeStamp - minTimeStamp,
-                                                                                                minTimeStamp.DayOfWeek,
-                                                                                                maxTimeStamp.DayOfWeek);
+                                            workSheet.Cells["A1:H1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
+                                                                                ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
+                                                                                                    logCassandraMaxMinTimestamp.Min,
+                                                                                                    logCassandraMaxMinTimestamp.Max,
+                                                                                                    logCassandraMaxMinTimestamp.Max - logCassandraMaxMinTimestamp.Min,
+                                                                                                    logCassandraMaxMinTimestamp.Min.DayOfWeek,
+                                                                                                    logCassandraMaxMinTimestamp.Max.DayOfWeek)
+                                                                                    : logExcelWorkbookFilter;
                                             workSheet.Cells["A1:H1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
                                             workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm";

@@ -44,9 +44,9 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("5000")]
-        public int GCPausedFlagThresholdInMS {
+        public int GCFlagThresholdInMS {
             get {
-                return ((int)(this["GCPausedFlagThresholdInMS"]));
+                return ((int)(this["GCFlagThresholdInMS"]));
             }
         }
         
@@ -119,6 +119,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>RepairSession.java</string>
   <string>SSTableWriter.java</string>
   <string>CqlSlowLogWriter.java</string>
+  <string>CqlSolrQueryExecutor.java</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection LogSummaryTaskItems {
             get {

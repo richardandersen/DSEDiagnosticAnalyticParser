@@ -34,8 +34,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             LoadSummaryLog(excelPkg,
                             runSummaryLogTask.Result,
                             excelWorkSheetSummaryLogCassandra,
-                            logCassandraMaxMinTimestamp,
-                            maxminMaxLogDate,
+                            logCassandraMaxMinTimestamp,                            
                             logTimeSpanRange,
                             logExcelWorkbookFilter);            
         }

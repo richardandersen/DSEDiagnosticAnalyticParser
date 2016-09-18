@@ -26,24 +26,33 @@ namespace DSEDiagnosticAnalyticParserConsole
                 DifferentExcelWorkBook(excelFilePath,
                                                 excelWorkSheetStatusLogCassandra,
                                                 dtLogStatusStack,
-                                                (stage, filePath, workSheetName, excelPackage, rowCount) =>
+                                                (stage, orgFilePath, targetFilePath, workSheetName, excelPackage, excelDataTable, rowCount) =>
                                                 {
                                                     switch (stage)
                                                     {
                                                         case WorkBookProcessingStage.PreProcess:
-                                                            Program.ConsoleExcelLogStatus.Increment(filePath);
+                                                            Program.ConsoleExcelLog.Increment(string.Format("{0} - {1}", workSheetName, orgFilePath.FileName));
+                                                            break;
+                                                        case WorkBookProcessingStage.PrepareFileName:
+                                                            targetFilePath.FileNameFormat = null;
+                                                            targetFilePath.ReplaceFileName(string.Format("{0}-{1} {2:yyyy-MM-dd-HH-mm-ss} To {3:yyyy-MM-dd-HH-mm-ss}",
+                                                                                                            orgFilePath.FileNameWithoutExtension,
+                                                                                                            workSheetName,
+                                                                                                            excelDataTable.Rows[0]["Timestamp"],
+                                                                                                            excelDataTable.Rows[excelDataTable.Rows.Count - 1]["Timestamp"]),
+                                                                                                            targetFilePath.FileExtension);
                                                             break;
                                                         case WorkBookProcessingStage.PreLoad:
-                                                            Program.ConsoleExcelLogStatus.Increment(string.Format("{0} - {1}", workSheetName, filePath.FileName));
+                                                            Program.ConsoleExcelLogStatus.Increment(targetFilePath);
                                                             break;
                                                         case WorkBookProcessingStage.PreSave:
                                                             break;
                                                         case WorkBookProcessingStage.Saved:
-                                                            Program.ConsoleExcelLogStatus.TaskEnd(string.Format("{0} - {1}", workSheetName, filePath.FileName));
-                                                            Program.ConsoleExcelWorkbook.Increment(filePath);
+                                                            Program.ConsoleExcelLogStatus.TaskEnd(targetFilePath);
+                                                            Program.ConsoleExcelWorkbook.Increment(targetFilePath);
                                                             break;
                                                         case WorkBookProcessingStage.PostProcess:
-                                                            Program.ConsoleExcelLogStatus.Decrement(filePath);
+                                                            Program.ConsoleExcelLog.Increment(string.Format("{0} - {1}", workSheetName, orgFilePath.FileName));
                                                             break;
                                                         default:
                                                             break;
@@ -56,9 +65,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     //workSheet.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                                     workSheet.View.FreezePanes(3, 1);
 
-                                                    workSheet.Cells["A1:E1"].Style.WrapText = true;
-                                                    workSheet.Cells["A1:E1"].Merge = true;
-                                                    workSheet.Cells["A1:E1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
+                                                    workSheet.Cells["A1:F1"].Style.WrapText = true;
+                                                    workSheet.Cells["A1:F1"].Merge = true;
+                                                    workSheet.Cells["A1:F1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
                                                                                         ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
                                                                                                         logCassandraMaxMinTimestamp.Min,
                                                                                                         logCassandraMaxMinTimestamp.Max,
@@ -66,7 +75,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                         logCassandraMaxMinTimestamp.Min.DayOfWeek,
                                                                                                         logCassandraMaxMinTimestamp.Max.DayOfWeek)
                                                                                         : logExcelWorkbookFilter;
-                                                    workSheet.Cells["A1:E1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                                                    workSheet.Cells["A1:F1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
                                                     workSheet.Cells["G1:M1"].Style.WrapText = true;
                                                     workSheet.Cells["G1:M1"].Merge = true;

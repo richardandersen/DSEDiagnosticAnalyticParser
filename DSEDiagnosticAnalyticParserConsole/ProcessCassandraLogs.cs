@@ -196,6 +196,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public DateTimeRange LogCassandraMaxMinTimestamp = new Common.DateTimeRange();
         static public Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>> LogCassandraNodeMaxMinTimestamps = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>>();
 
+        static Regex RegExCLogCL = new Regex(@".*Cannot achieve consistency level\s+(\w+)\s*",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegExCLogTO = new Regex(@".*(?:No response after timeout:|Operation timed out - received only).*\s+(\d+)\s*",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static int ReadCassandraLogParseIntoDataTable(IFilePath clogFilePath,
                                                 string ipAddress,
                                                 string dcName,
@@ -235,6 +239,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             string tableItem = null;
             int tableItemPos = -1;
             int nbrRows = 0;
+            DateTimeRange ignoredTimeRange = new DateTimeRange();
             //int tableItemValuePos = -1;
 
             maxTimestamp = DateTime.MinValue;
@@ -287,6 +292,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
                 //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
                 //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
+                //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 17:11:16,429  CqlSlowLogWriter.java:151 - Recording statements with duration of 60001 in slow log
+                //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
+                //WARN  [CqlSlowLog-Writer-thread-0] 2016-08-17 00:21:05,698  CqlSlowLogWriter.java:245 - Error writing to cql slow log
+                //org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level ONE
 
                 #region Exception Log Info Parsing
                 if (parsedValues[0].ToLower().Contains("exception"))
@@ -302,22 +311,38 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (lastRow["Associated Value"] == DBNull.Value)
                         {
-                            foreach (var element in parsedValues)
+                            var clMatch = RegExCLogCL.Match(line);
+                            var toMatch = RegExCLogTO.Match(line);
+
+                            if (toMatch.Success)
                             {
-                                if (element[0] == '(')
+                                lastRow["Associated Value"] = int.Parse(toMatch.Groups[1].Value);
+                                lastRow["Associated Item"] = "No response|Operation timeout";
+                            }
+                            else if (clMatch.Success)
+                            {
+                                lastRow["Associated Value"] = clMatch.Groups[1].Value;
+                                lastRow["Associated Item"] = "Cannot achieve consistency level";
+                            }
+                            else
+                            {
+                                foreach (var element in parsedValues)
                                 {
-                                    if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
+                                    if (element[0] == '(')
                                     {
-                                        lastRow["Associated Value"] = lineIPAddress;
-                                        break;
+                                        if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
+                                        {
+                                            lastRow["Associated Value"] = lineIPAddress;
+                                            break;
+                                        }
                                     }
-                                }
-                                else if (element[0] == '/')
-                                {
-                                    if (LookForIPAddress(element, ipAddress, out lineIPAddress))
+                                    else if (element[0] == '/')
                                     {
-                                        lastRow["Associated Value"] = lineIPAddress;
-                                        break;
+                                        if (LookForIPAddress(element, ipAddress, out lineIPAddress))
+                                        {
+                                            lastRow["Associated Value"] = lineIPAddress;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -420,9 +445,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //                                    lineDateTime));
                             //Program.ConsoleErrors.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
                             //break;
+                            ignoredTimeRange.SetMinMax(lineDateTime);
                             continue;
                         }
                     }
+                }
+
+                if(!ignoredTimeRange.IsEmpty())
+                {
+                    Logger.Instance.WarnFormat("A Log {0} was ignored because this date range for node {1} was already processed. The ignored range was found in log file \"{2}\".",
+                                                    ignoredTimeRange,
+                                                    ipAddress,
+                                                    clogFilePath.PathResolved);
+                    ignoredTimeRange.MakeEmpty();
                 }
 
                 #endregion
@@ -503,8 +538,46 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                 {
-                    if (parsedValues[nCell].ToLower().Contains("exception"))
+                    if (parsedValues[4] == "SolrException.java")
                     {
+                        #region SolrException.java
+                        //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
+                        if (nCell > 4)
+                        {
+                            if (dataRow["Exception"] == DBNull.Value && parsedValues[nCell].ToLower().Contains("exception"))
+                            {
+                                dataRow["Flagged"] = true;
+
+                                var startExceptionPos = line.IndexOf(parsedValues[nCell]);
+                                var exceptionInfo = Common.StringFunctions.Split(line.Substring(startExceptionPos),
+                                                                                    ':',
+                                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
+                                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+
+                                if (exceptionInfo.Count == 1)
+                                {
+                                    dataRow["Exception"] = parsedValues[nCell];
+                                }
+                                else
+                                {
+                                    if (exceptionInfo[0] == "org.apache.solr.common.SolrException")
+                                    {
+                                        dataRow["Exception"] = exceptionInfo[0] + " (" + exceptionInfo[1] + ")";
+                                    }
+                                    else
+                                    {
+                                        dataRow["Exception"] = exceptionInfo[0];
+                                    }
+
+                                    dataRow["Exception Description"] = string.Join(": ", exceptionInfo.Skip(1));
+                                }
+                            }
+                        }
+                        #endregion
+                    }
+                    else if (parsedValues[nCell].ToLower().Contains("exception"))
+                    {
+                        #region exception
                         var exceptionLine = fileLines[nLine + 1].Trim();
                         var exceptionEndPos = exceptionLine.IndexOf(' ');
                         var exceptionClass = exceptionEndPos > 0 ? exceptionLine.Substring(0, exceptionEndPos) : null;
@@ -515,9 +588,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Exception Description"] = exceptionLine.Substring(exceptionEndPos + 1).TrimStart();
                             ++nLine;
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "CompactionController.java")
                     {
+                        #region CompactionController.java
                         //Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
 
                         if (itemPos == nCell)
@@ -553,9 +628,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Compacting large row";
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "SSTableWriter.java")
                     {
+                        #region SSTableWriter.java
                         //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
 
                         if (itemPos == nCell)
@@ -591,9 +668,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Compacting large partition";
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "GCInspector.java")
                     {
+                        #region GCInspector.java
                         //GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
                         //GCInspector.java (line 119) GC forConcurrentMarkSweep: 15132 ms for 2 collections, 4229845696 used; max is 25125584896
                         // ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
@@ -607,7 +686,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (time is int && (int)time >= gcPausedFlagThresholdInMS)
                             {
                                 dataRow["Flagged"] = true;
-                                dataRow["Exception"] = "GC Pause";
+                                dataRow["Exception"] = "GC Threshold";
                             }
                             dataRow["Associated Value"] = time;
                         }
@@ -638,9 +717,37 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Heap Full";
                         }
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "FailureDetector.java")
+                    {
+                        #region FailureDetector.java
+                        //Not marking nodes down due to local pause of 12817405727 > 5000000000
+                        if (itemPos == nCell)
+                        {
+                            var time = DetermineTime(parsedValues[nCell]);
+
+                            if(time is long)
+                            {
+                                time = (int)(long)time;
+                            }
+                            if (time is int)
+                            {
+                                dataRow["Flagged"] = true;
+                                dataRow["Exception"] = "GC Pause (FailureDetector)";                               
+                            }
+                            dataRow["Associated Value"] = time;                            
+                        }
+                        
+                        if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
+                        {
+                            itemPos = nCell + 8;                           
+                        }
+                        #endregion
                     }
                     else if (parsedValues[4] == "BatchStatement.java")
                     {
+                        #region BatchStatement.java
                         //BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
                         if (nCell == itemPos)
                         {
@@ -672,17 +779,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemValuePos = nCell + 9;
                             dataRow["Exception"] = "Batch Size Exceeded";
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "SliceQueryFilter.java")
                     {
-                        //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstoned cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
+                        #region SliceQueryFilter.java
+                        //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstone cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
                         // Scanned over 100000 tombstones in capitalonehomeloans.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
                         if (nCell == itemPos)
                         {
                             var splitItems = SplitTableName(parsedValues[nCell], null);
                             string tableName = splitItems.Item2;
 
-                            if(tableName[tableName.Length - 1] == ';')
+                            if (tableName[tableName.Length - 1] == ';')
                             {
                                 tableName = tableName.Substring(0, tableName.Length - 1);
                             }
@@ -721,16 +830,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemValuePos = nCell + 4;
                             dataRow["Flagged"] = true;
                         }
-                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over" )
+                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
                         {
                             itemPos = nCell + 5;
                             itemValuePos = 2;
                             dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Query Tombstones Aborted";
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "HintedHandoffMetrics.java")
                     {
+                        #region HintedHandoffMetrics.java
                         //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.				
                         if (parsedValues[nCell] == "dropped")
                         {
@@ -742,9 +853,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Associated Value"] = lineIPAddress;
                             }
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "StorageService.java")
                     {
+                        #region StorageService.java
                         //	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
                         if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
                         {
@@ -776,9 +889,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Exception"] = "CFS Flush";
                             itemValuePos = nCell + 1;
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "StatusLogger.java")
                     {
+                        #region StatusLogger.java
                         //StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
                         //StatusLogger.java:66 - MutationStage                     4         0     2383662788         0                 0
                         //StatusLogger.java:75 - CompactionManager                 2         3
@@ -811,9 +926,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "MessagingService.java")
                     {
+                        #region MessagingService.java
                         //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
                         if (nCell == itemPos)
                         {
@@ -848,9 +965,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Exception"] = "Dropped Mutations";
                             itemPos = nCell + 8;
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "CompactionTask.java")
                     {
+                        #region CompactionTask.java
                         //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
 
                         if (nCell == itemValuePos)
@@ -870,9 +989,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemValuePos = nCell + 11;
                             dataRow["Associated Item"] = "Compaction";
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "RepairSession.java" || parsedValues[4] == "RepairJob.java")
                     {
+                        #region RepairSession.java RepairJob.java
                         //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
                         //INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
 
@@ -894,9 +1015,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Associated Value"] = parsedValues[nCell];
                         }
+                        #endregion
                     }
                     else if (parsedValues[4] == "CqlSlowLogWriter.java")
                     {
+                        #region CqlSlowLogWriter.java
                         //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 01:42:34,277  CqlSlowLogWriter.java:151 - Recording statements with duration of 60248 in slow log
                         if (nCell == itemValuePos)
                         {
@@ -915,6 +1038,36 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemValuePos = nCell + 5;
                             dataRow["Associated Item"] = "Slow Query Writing to dse_perf.node_slow_log table";
                         }
+                        #endregion
+                    }                    
+                    else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
+                    {
+                        #region CqlSolrQueryExecutor.java
+                        //ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
+                        if (parsedValues[nCell] == "No" && parsedValues[nCell + 1] == "response" && parsedValues[nCell + 3] == "timeout")
+                        {
+                            dataRow["Flagged"] = true;                                                       
+                            dataRow["Associated Item"] = "Solr Timeout";
+                            dataRow["Associated Value"] = int.Parse(parsedValues[nCell + 4]);
+                        }
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "SolrCore.java")
+                    {
+                        #region SolrCore.java
+                        //WARN  [SolrSecondaryIndex taulia_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [taulia_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
+
+                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
+                        {
+                            dataRow["Flagged"] = true;
+                            dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell));
+
+                            var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell -1]), null);
+                            var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
+
+                            dataRow["Associated Value"] = ksTableName;
+                        }
+                        #endregion
                     }
                     else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
                     {
@@ -1282,10 +1435,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java') and [Flagged] = true and [Exception] is not null)",
+                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java') and [Flagged] = true and [Exception] is not null)",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
+                var gcPause = new List<int>();
                 var compactionLatencies = new List<Tuple<string, string, int>>();
                 var compactionRates = new List<Tuple<string, string, decimal>>();
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
@@ -1399,6 +1553,27 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         continue;
+                        #endregion
+                    }
+                    else if (item == "FailureDetector.java")
+                    {
+                        #region FailureDetector.java
+                        var exception = vwDataRow["Exception"] as string;
+
+                        if (exception.StartsWith("GC Pause") && vwDataRow["Associated Value"] is int)
+                        {                            
+                            var dataRow = dtCStatusLog.NewRow();
+                            var time = (int)vwDataRow["Associated Value"];
+
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = "GC Pause";
+                            dataRow["GC Time (ms)"] = time;
+
+                            dtCStatusLog.Rows.Add(dataRow);
+                            gcPause.Add(time);
+                        }
                         #endregion
                     }
                     else if (item == "StatusLogger.java")
@@ -1650,11 +1825,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #region Add TP/CF Stats Info
 
-                if (dtTPStats != null && gcLatencies.Count > 0)
+                if (dtTPStats != null)
                 {
-                    #region gcLatencies
-
                     initializeTPStatsDataTable(dtTPStats);
+
+                    #region gcLatencies                    
 
                     gcLatencies.RemoveAll(x => x <= 0);
 
@@ -1873,6 +2048,61 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtTPStats.Rows.Add(dataRow);
                         }
+                    }
+
+                    #endregion
+
+                    #region gcPause                    
+
+                    gcPause.RemoveAll(x => x <= 0);
+
+                    if (gcPause.Count > 0)
+                    {
+                        Logger.Instance.InfoFormat("Adding GC Pause ({2}) to TPStats for \"{0}\" \"{1}\"", dcName, ipAddress, gcPause.Count);
+
+                        var gcMax = gcPause.Max();
+                        var gcMin = gcPause.Min();
+                        var gcAvg = (int)gcPause.Average();
+
+                        var dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "GC pause minimum latency";
+                        dataRow["Latency (ms)"] = gcMin;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "GC pause maximum latency";
+                        dataRow["Latency (ms)"] = gcMax;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "GC pause mean latency";
+                        dataRow["Latency (ms)"] = gcAvg;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "GC pause occurrences";
+                        dataRow["Occurrences"] = gcPause.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
                     }
 
                     #endregion
