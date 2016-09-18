@@ -87,21 +87,13 @@ Below settings are used for processing of Excel worksheets/workbooks:
 
 **LogExcelWorkbookFilter** -- This is a filter that is applied to only log entries when loading into Excel. The default is no value (null). See http://www.csharp-examples.net/dataview-rowfilter/ for more information. Below is an example of a filter:
     "[Timestamp] >= #2016-08-01 15:30:00#"
-    
+```    
     Filter Columns are:
   	  [Data Center], string, AllowDBNull
   	  [Node IPAddress], string
-  	  [Timestamp], DateTime
-    	[Indicator], string (e.g., INFO, WARN, ERROR)
-    	[Task], string (e.g., ReadStage, CompactionExecutor)
-    	[Item], string (e.g., HintedHandoffMetrics.java, BatchStatement.java)
-    	[Exception], string, AllowDBNull (e.g., java.io.IOException)
-    	[Exception Description], string, AllowDBNull (e.g., "Caused by: java.io.IOException: Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed")
-    	[Associated Item], string, AllowDBNull (e.g., 10.27.34.54, <keyspace.tablename>)  
-    	[Associated Value], object, AllowDBNull (e.g., <size in MB>, <time in ms>)
-    	[Description], string -- log's description
-    	[Flagged], bool, AllowDBNull -- if true this log entry was flagged because it matched some criteria (e.g., GC Pauses -- GCInspector.java exceeds GCPausedFlagThresholdInMS)
-  	
+  	  [Timestamp], DateTime    	
+```
+
 **LoadLogsIntoExcel** -- If true log entries are loaded into their own separate workbooks. Default is true. Note that if this is disabled (false), logs are still process if ParseLogs is true. If ParseLogs is false this option is ignored and no logs are loaded into Excel. 
 
 **ExcelTemplateFilePath** -- The location of the Diagnostic Analytic Excel template workbook file that is used to create the "main" workbook. This can be no value (null), no template will be used. Default is ".\dseTemplate.xlsx" (looks in the current directory for the file).

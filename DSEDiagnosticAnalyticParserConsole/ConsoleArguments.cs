@@ -102,16 +102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         ///     Data Columns are:
  		///         [Data Center], string, AllowDBNull
         ///         [Node IPAddress], string
-        ///         [Timestamp], DateTime
-        ///         [Indicator], string (e.g., INFO, WARN, ERROR)
-        ///         [Task], string (e.g., ReadStage, CompactionExecutor)
-        ///         [Item], string (e.g., HintedHandoffMetrics.java, BatchStatement.java)
-        ///         [Exception], string, AllowDBNull(e.g., java.io.IOException)
-        ///         [Exception Description], string, AllowDBNull(e.g., &quot; Caused by: java.io.IOException: Cannot proceed on repair because a neighbor(/10.27.34.54) is dead: session failed&quot;)
-        ///         [Associated Item], string, AllowDBNull(e.g., 10.27.34.54, &lt; keyspace.tablename&gt;)  
-        ///         [Associated Value], object, AllowDBNull(e.g., &lt; size in MB&gt;, &lt;time in ms&gt;)
-        ///         [Description], string -- log&apos;s description
-        ///         [Flagged], bool, AllowDBNull -- if true this log entry was flagged because it matched some criteria(e.g., GC Pauses -- GCInspector.java exceeds GCPausedFlagThresholdInMS)
+        ///         [Timestamp], DateTime      
         /// </remarks>
         [Option('F', "LogExcelWorkbookFilter", HelpText = "This filter is only used when loading into Excel. Null disables filtering.",
                     Required = false)]
