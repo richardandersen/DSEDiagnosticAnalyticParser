@@ -192,8 +192,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[MyDocuments]\\LINQPad Queries\\DataStax\\TestData\\na1_v_prd_green-diagnostics-2016_" +
-            "08_30_19_08_03_UTC")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[MyDocuments]\\LINQPad Queries\\DataStax\\TestData\\HL_Statim_Cluster-diagnostics-201" +
+            "6_09_12_14_39_32_UTC")]
         public string DiagnosticPath {
             get {
                 return ((string)(this["DiagnosticPath"]));
@@ -371,6 +371,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>system_traces</string>
   <string>system</string>
   <string>dse_perf</string>
+  <string>dse_security</string>
+  <string>solr_admin</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection IgnoreKeySpaces {
             get {
@@ -638,6 +640,24 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string LogCassandraDirSystemLog {
             get {
                 return ((string)(this["LogCassandraDirSystemLog"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("cfhistogram")]
+        public string CFHistogramFileName {
+            get {
+                return ((string)(this["CFHistogramFileName"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("CFHistogram")]
+        public string ExcelCFHistogramWorkSheet {
+            get {
+                return ((string)(this["ExcelCFHistogramWorkSheet"]));
             }
         }
     }

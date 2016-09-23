@@ -126,10 +126,12 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ConfDSEFile = Properties.Settings.Default.ConfDSEFile;
         public static string CQLDDLDirFile = Properties.Settings.Default.CQLDDLDirFile;
         public static string CQLDDLDirFileExt = Properties.Settings.Default.CQLDDLDirFileExt;
-        //var nodetoolCFHistogramsFile = "cfhistograms"; //this is based on keyspace and table and not sure of the format. HC doc has it as cfhistograms_keyspace_table.txt
         public static string[] OSMachineFiles = Properties.Settings.Default.OSMachineFiles.ToArray(false); //Referenced from the node directory
         public static string OPSCenterDir = Properties.Settings.Default.OPSCenterDir;
         public static string[] OPSCenterFiles = Properties.Settings.Default.OPSCenterFiles.ToArray(false);
+
+        public static string CFHistogramFileName = Properties.Settings.Default.CFHistogramFileName;
+        public static string ExcelCFHistogramWorkSheet = Properties.Settings.Default.ExcelCFHistogramWorkSheet;
 
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {

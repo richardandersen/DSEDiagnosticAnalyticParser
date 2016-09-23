@@ -24,8 +24,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCFStats.Columns.Add("Unit of Measure", typeof(string)).AllowDBNull = true;
 
                 dtCFStats.Columns.Add("Size in MB", typeof(decimal)).AllowDBNull = true;
+                dtCFStats.Columns.Add("Active", typeof(bool)).AllowDBNull = true;
                 dtCFStats.Columns.Add("(Value)", typeof(object));
-
+                
                 //dtCFStats.PrimaryKey = new System.Data.DataColumn[] { dtFSStats.Columns[0],  dtFSStats.Columns[1],  dtFSStats.Columns[2],  dtFSStats.Columns[3], dtFSStats.Columns[4] };
             }
 
@@ -191,5 +192,26 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        static public Common.Patterns.Collections.ThreadSafe.List<string> ActiveTables = new Common.Patterns.Collections.ThreadSafe.List<string>();
+
+        static public void UpdateTableActiveStatus(System.Data.DataTable dtCFStats)
+        {
+            var activeTblView = from r in dtCFStats.AsEnumerable()
+                                where (r.Field<string>("Attribute") == "Local read count"
+                                            || r.Field<string>("Attribute") == "Local write count")
+                                        && r.Field<dynamic>("Value") > 0
+                                group r by new { ks = r.Field<string>("KeySpace"), tbl = r.Field<string>("Table") } into g
+                                select g.Key.ks + '.' + g.Key.tbl;
+
+            ActiveTables.AddRange(activeTblView);
+
+            foreach (DataRow dataRow in dtCFStats.Rows)
+            {
+                if (dataRow["Table"] != DBNull.Value)
+                {
+                    dataRow["Active"] = ActiveTables.Contains(((string)dataRow["KeySpace"]) + '.' + ((string)dataRow["Table"]));
+                }
+            }
+        }
     }
 }

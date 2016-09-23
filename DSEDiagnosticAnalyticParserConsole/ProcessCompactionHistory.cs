@@ -11,9 +11,6 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
-        static Regex RegEndingDigits = new Regex(@"\d+$",
-                                        RegexOptions.Compiled);
-
         static public void ReadCompactionHistFileParseIntoDataTable(IFilePath cmphistFilePath,
                                                                         string ipAddress,
                                                                         string dcName,
@@ -60,6 +57,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     continue;
                 }
 
+                if (line.StartsWith("exception running", StringComparison.OrdinalIgnoreCase))
+                {
+                    line.Dump(Logger.DumpType.Warning, "Invalid Line in \"{0}\".", cmphistFilePath);
+                    Program.ConsoleWarnings.Increment("Compaction History invalid Line...");
+                    continue;
+                }
+
                 //Compaction History: 
                 //id 									keyspace_name      	columnfamily_name 	compacted_at		bytes_in 	bytes_out      					rows_merged
                 //cfde9db0-3d06-11e6-adbd-0fa082120add 	production_mqh_bi  	bi_newdata			1467101014795		247011505	247011472      					{ 1:354, 2:1}
@@ -96,8 +100,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             if (ksItem == null)
                             {
-                                line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
-                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line: " + line.Substring(0, 10) + "...");
+                                line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found/Unknown Keyspace/Table in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
+                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl: " + line.Substring(0, 10) + "...");
                                 continue;
                             }
 
@@ -110,17 +114,28 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (parsedLine[2].Length > 30)
                         {
-                            var strDigits = RegEndingDigits.Match(parsedLine[2]);
+                            var ksItem = kstblExists
+                                            .Where(e => e.KeySpaceName == currentKeySpace
+                                                            && parsedLine[2].StartsWith(e.TableName))
+                                            .OrderByDescending(e => e.LogName.Length).FirstOrDefault();
 
-                            currentTable = parsedLine[2].Substring(0, parsedLine[2].Length - strDigits.Value.Length);
-                            parsedLine[2] = strDigits.Value;
-                            offSet = 1;
+                            currentTable = ksItem == null ? "?" : ksItem.TableName;
 
-                            if (string.IsNullOrEmpty(parsedLine[2]))
+                            if (ksItem != null && parsedLine[2].Length > currentTable.Length)
                             {
-                                line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
-                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line: " + line.Substring(0, 10) + "...");
-                                continue;
+                                parsedLine[2] = parsedLine[2].Substring(currentTable.Length);
+                                offSet = 1;
+                            }
+                            else
+                            {
+                                if (ksItem == null)
+                                {
+                                    line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found/unknown keyspace/table in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
+                                    Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl: " + line.Substring(0, 10) + "...");
+                                    continue;
+                                }
+
+                                offSet = 1;
                             }
                         }
                         else

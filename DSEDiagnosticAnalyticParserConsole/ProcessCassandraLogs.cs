@@ -40,7 +40,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var logTask = Task.Factory.StartNew(() =>
                                 {
                                     Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
-                                    Program.ConsoleLogFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
+                                    Program.ConsoleLogReadFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     dtLogsStack.Push(dtLog);
                                     var linesRead = ReadCassandraLogParseIntoDataTable(logFilePath,
@@ -59,7 +59,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         maxminMaxLogDate.SetMinMax(maxLogTimestamp);
                                     }
 
-                                    Program.ConsoleLogFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
+                                    Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     return linesRead;
                                 },
@@ -734,7 +734,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (time is int)
                             {
                                 dataRow["Flagged"] = true;
-                                dataRow["Exception"] = "GC Pause (FailureDetector)";                               
+                                dataRow["Exception"] = "Pause (FailureDetector)";                               
                             }
                             dataRow["Associated Value"] = time;                            
                         }
@@ -1379,6 +1379,28 @@ namespace DSEDiagnosticAnalyticParserConsole
             //
             //CompactionTask.java - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
 
+            //Out of order example:
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:115 - system.hints                          23,1572
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:66 - MiscStage                         0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.IndexInfo                          0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_columnfamilies                 0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_triggers                    0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - AntiEntropySessions               0         0           3467         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.size_estimates          377300,9604612
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - HintedHandoff                     0         1           1400         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.paxos                              0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:66 - GossipStage                       0         0        1490684         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:115 - system.peer_events                        0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CacheCleanupExecutor              0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.range_xfers                        0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - InternalResponseStage             0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.compactions_in_progress                 0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CommitLogArchiver                 0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.peers                              0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CompactionExecutor                0         0        2120758         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_keyspaces                   0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_usertypes                   0,0
+
             if (dtCStatusLog.Columns.Count == 0)
             {
                 dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
@@ -1439,7 +1461,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
-                var gcPause = new List<int>();
+                var pauses = new List<int>();
                 var compactionLatencies = new List<Tuple<string, string, int>>();
                 var compactionRates = new List<Tuple<string, string, decimal>>();
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
@@ -1560,7 +1582,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #region FailureDetector.java
                         var exception = vwDataRow["Exception"] as string;
 
-                        if (exception.StartsWith("GC Pause") && vwDataRow["Associated Value"] is int)
+                        if (exception.StartsWith("Pause") && vwDataRow["Associated Value"] is int)
                         {                            
                             var dataRow = dtCStatusLog.NewRow();
                             var time = (int)vwDataRow["Associated Value"];
@@ -1572,7 +1594,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["GC Time (ms)"] = time;
 
                             dtCStatusLog.Rows.Add(dataRow);
-                            gcPause.Add(time);
+                            pauses.Add(time);
                         }
                         #endregion
                     }
@@ -1609,106 +1631,145 @@ namespace DSEDiagnosticAnalyticParserConsole
                             processingTable = false;
                             continue;
                         }
-                        else if (processingCache)
+                        else
                         {
-                            var splits = RegExCacheLine.Split(descr);
-                            var dataRow = dtCStatusLog.NewRow();
+                            bool localprocessingCache = processingCache;
+                            bool localprocessingPool = processingPool;
+                            bool localprocessingTable = processingTable;
 
-                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                            dataRow["Data Center"] = dcName;
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Pool/Cache Type"] = splits[1];
-                            dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
-                            dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
-                            dataRow["KeysToSave"] = splits[4];
+                            //if(localprocessingCache && !RegExCacheLine.Match(descr).Success)
+                            //{
+                            //    localprocessingPool = RegExPoolLine.Match(descr).Success;
+                            //    localprocessingTable = RegExPoolLine.Match(descr).Success
+                            //                                    || RegExPool2Line.Match(descr).Success;
+                            //    localprocessingCache = !(localprocessingPool || localprocessingTable);
+                            //}
+                            //else if(localprocessingPool && !(RegExPoolLine.Match(descr).Success
+                            //                                    || RegExPool2Line.Match(descr).Success))
+                            //{
+                            //    localprocessingCache = RegExCacheLine.Match(descr).Success;
+                            //    localprocessingTable = RegExTblLine.Match(descr).Success;
+                            //    localprocessingPool = !(localprocessingCache || localprocessingTable);
+                            //}
+                            //else if (localprocessingTable && !RegExTblLine.Match(descr).Success)
+                            //{
+                            //    localprocessingPool = RegExPoolLine.Match(descr).Success;
+                            //    localprocessingCache = RegExPoolLine.Match(descr).Success;
+                            //    var localprocessingCache2 = RegExPool2Line.Match(descr).Success;
+                                    
+                            //    if(localprocessingPool && localprocessingCache && localprocessingCache2)
+                            //    {
+                            //        localprocessingCache = false;
+                            //    }
+                            //    else if(localprocessingCache2)
+                            //    {
+                            //        localprocessingCache = true;
+                            //        localprocessingPool = false;
+                            //    }
+                            //        ;
+                            //    localprocessingTable = !(localprocessingPool || localprocessingCache);
+                            //}
 
-                            dtCStatusLog.Rows.Add(dataRow);
-                            continue;
-                        }
-                        else if (processingPool)
-                        {
-                            var splits = RegExPoolLine.Split(descr);
-                            var dataRow = dtCStatusLog.NewRow();
-
-                            if (splits.Length == 1)
+                            if (localprocessingCache)
                             {
-                                splits = RegExPool2Line.Split(descr);
-                            }
+                                var splits = RegExCacheLine.Split(descr);
+                                var dataRow = dtCStatusLog.NewRow();
 
-                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                            dataRow["Data Center"] = dcName;
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Pool/Cache Type"] = splits[1];
+                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["Pool/Cache Type"] = splits[1];
+                                dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
+                                dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
+                                dataRow["KeysToSave"] = splits[4];
 
-                            if (splits.Length == 8)
-                            {
-                                dataRow["Active"] = long.Parse(splits[2]);
-                                dataRow["Pending"] = long.Parse(splits[3]);
-                                dataRow["Completed"] = long.Parse(splits[4]);
-                                dataRow["Blocked"] = long.Parse(splits[5]);
-                                dataRow["All Time Blocked"] = long.Parse(splits[6]);
-
-                                tpStatusCounts.Add(new Tuple<string, long, long, long, long, long>(splits[1],
-                                                                                                    (long)dataRow["Active"],
-                                                                                                    (long)dataRow["Pending"],
-                                                                                                    (long)dataRow["Completed"],
-                                                                                                    (long)dataRow["Blocked"],
-                                                                                                    (long)dataRow["All Time Blocked"]));
-                            }
-                            else
-                            {
-                                long numValue;
-                                if (long.TryParse(splits[2], out numValue))
-                                {
-                                    dataRow["Active"] = numValue;
-                                }
-                                else
-                                {
-                                    dataRow["Active"] = splits[2];
-                                }
-
-                                if (long.TryParse(splits[3], out numValue))
-                                {
-                                    dataRow["Pending"] = numValue;
-                                }
-                                else
-                                {
-                                    dataRow["Pending"] = splits[3];
-                                }
-                            }
-
-                            dtCStatusLog.Rows.Add(dataRow);
-                            continue;
-                        }
-                        else if (processingTable)
-                        {
-                            var splits = RegExTblLine.Split(descr);
-
-                            var ksTable = SplitTableName(splits[1], null);
-
-                            if (ignoreKeySpaces.Contains(ksTable.Item1))
-                            {
+                                dtCStatusLog.Rows.Add(dataRow);
                                 continue;
                             }
+                            else if (localprocessingPool)
+                            {
+                                var splits = RegExPoolLine.Split(descr);
+                                var dataRow = dtCStatusLog.NewRow();
 
-                            var dataRow = dtCStatusLog.NewRow();
+                                if (splits.Length == 1)
+                                {
+                                    splits = RegExPool2Line.Split(descr);
+                                }
 
-                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                            dataRow["Data Center"] = dcName;
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Pool/Cache Type"] = "ColumnFamily";
-                            dataRow["KeySpace"] = ksTable.Item1;
-                            dataRow["Table"] = ksTable.Item2;
-                            dataRow["MemTable OPS"] = long.Parse(splits[2]);
-                            dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
+                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["Pool/Cache Type"] = splits[1];
 
-                            dtCStatusLog.Rows.Add(dataRow);
+                                if (splits.Length == 8)
+                                {
+                                    dataRow["Active"] = long.Parse(splits[2]);
+                                    dataRow["Pending"] = long.Parse(splits[3]);
+                                    dataRow["Completed"] = long.Parse(splits[4]);
+                                    dataRow["Blocked"] = long.Parse(splits[5]);
+                                    dataRow["All Time Blocked"] = long.Parse(splits[6]);
 
-                            statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
-                                                                                            ksTable.Item2,
-                                                                                            (long)dataRow["MemTable OPS"],
-                                                                                            (decimal)dataRow["Data (mb)"]));
-                            continue;
+                                    tpStatusCounts.Add(new Tuple<string, long, long, long, long, long>(splits[1],
+                                                                                                        (long)dataRow["Active"],
+                                                                                                        (long)dataRow["Pending"],
+                                                                                                        (long)dataRow["Completed"],
+                                                                                                        (long)dataRow["Blocked"],
+                                                                                                        (long)dataRow["All Time Blocked"]));
+                                }
+                                else
+                                {
+                                    long numValue;
+                                    if (long.TryParse(splits[2], out numValue))
+                                    {
+                                        dataRow["Active"] = numValue;
+                                    }
+                                    else
+                                    {
+                                        dataRow["Active"] = splits[2];
+                                    }
+
+                                    if (long.TryParse(splits[3], out numValue))
+                                    {
+                                        dataRow["Pending"] = numValue;
+                                    }
+                                    else
+                                    {
+                                        dataRow["Pending"] = splits[3];
+                                    }
+                                }
+
+                                dtCStatusLog.Rows.Add(dataRow);
+                                continue;
+                            }
+                            else if (processingTable)
+                            {
+                                var splits = RegExTblLine.Split(descr);
+                                var ksTable = SplitTableName(splits[1], null);
+
+                                if (ignoreKeySpaces.Contains(ksTable.Item1))
+                                {
+                                    continue;
+                                }
+
+                                var dataRow = dtCStatusLog.NewRow();
+
+                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["Pool/Cache Type"] = "ColumnFamily";
+                                dataRow["KeySpace"] = ksTable.Item1;
+                                dataRow["Table"] = ksTable.Item2;
+                                dataRow["MemTable OPS"] = long.Parse(splits[2]);
+                                dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
+
+                                dtCStatusLog.Rows.Add(dataRow);
+
+                                statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
+                                                                                                ksTable.Item2,
+                                                                                                (long)dataRow["MemTable OPS"],
+                                                                                                (decimal)dataRow["Data (mb)"]));
+                                continue;
+                            }
                         }
                         #endregion
                     }
@@ -2052,24 +2113,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #endregion
 
-                    #region gcPause                    
+                    #region Pause                    
 
-                    gcPause.RemoveAll(x => x <= 0);
+                    pauses.RemoveAll(x => x <= 0);
 
-                    if (gcPause.Count > 0)
+                    if (pauses.Count > 0)
                     {
-                        Logger.Instance.InfoFormat("Adding GC Pause ({2}) to TPStats for \"{0}\" \"{1}\"", dcName, ipAddress, gcPause.Count);
+                        Logger.Instance.InfoFormat("Adding Pause ({2}) to TPStats for \"{0}\" \"{1}\"", dcName, ipAddress, pauses.Count);
 
-                        var gcMax = gcPause.Max();
-                        var gcMin = gcPause.Min();
-                        var gcAvg = (int)gcPause.Average();
+                        var gcMax = pauses.Max();
+                        var gcMin = pauses.Min();
+                        var gcAvg = (int)pauses.Average();
 
                         var dataRow = dtTPStats.NewRow();
 
                         dataRow["Source"] = "Cassandra Log";
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Attribute"] = "GC pause minimum latency";
+                        dataRow["Attribute"] = "Pause minimum latency";
                         dataRow["Latency (ms)"] = gcMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2079,7 +2140,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Source"] = "Cassandra Log";
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Attribute"] = "GC pause maximum latency";
+                        dataRow["Attribute"] = "Pause maximum latency";
                         dataRow["Latency (ms)"] = gcMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2089,7 +2150,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Source"] = "Cassandra Log";
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Attribute"] = "GC pause mean latency";
+                        dataRow["Attribute"] = "Pause mean latency";
                         dataRow["Latency (ms)"] = gcAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2099,8 +2160,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Source"] = "Cassandra Log";
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Attribute"] = "GC pause occurrences";
-                        dataRow["Occurrences"] = gcPause.Count;
+                        dataRow["Attribute"] = "Pause occurrences";
+                        dataRow["Occurrences"] = pauses.Count;
 
                         dtTPStats.Rows.Add(dataRow);
                     }

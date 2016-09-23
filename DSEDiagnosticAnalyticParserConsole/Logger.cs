@@ -73,6 +73,32 @@ namespace DSEDiagnosticAnalyticParserConsole
             return dataRows;
         }
 
+        public static string[] Dump(this string[] strValues, DumpType dumpType, string comments = null, params object[] args)
+        {
+            string strComment = comments == null ? string.Empty : (string.Format(comments, args) + ":");
+            var strValue = string.Join(", ", strValues);
+
+            switch (dumpType)
+            {
+                case DumpType.Info:
+                    Instance.Info(strComment + strValue);
+                    break;
+                case DumpType.Warning:
+                    Instance.Warn(strComment + strValue);
+                    break;
+                case DumpType.Error:
+                    Instance.Error(strComment + strValue);
+                    break;
+                case DumpType.Debug:
+                    Instance.Debug(strComment + strValue);
+                    break;
+                default:
+                    break;
+            }
+
+            return strValues;
+        }
+
         public static string Dump(this string strItem, DumpType dumpType, string comments = null, params object[] args)
         {
             string strComment = comments == null ? string.Empty : (string.Format(comments, args) + ": ");

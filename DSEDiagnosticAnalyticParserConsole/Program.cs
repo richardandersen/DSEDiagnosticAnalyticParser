@@ -14,8 +14,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static readonly DateTime RunDateTime = DateTime.Now;
         public static string CommandArgsString = null;
 
-        static public ConsoleDisplay ConsoleNonLogFiles = null;
-        static public ConsoleDisplay ConsoleLogFiles = null;
+        static public ConsoleDisplay ConsoleNonLogReadFiles = null;
+        static public ConsoleDisplay ConsoleLogReadFiles = null;
         static public ConsoleDisplay ConsoleParsingNonLog = null;
         static public ConsoleDisplay ConsoleParsingLog = null;
         static public ConsoleDisplay ConsoleExcelNonLog = null;
@@ -68,14 +68,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             ConsoleDisplay.Console.WriteLine(" ");
 
-            ConsoleNonLogFiles = new ConsoleDisplay("Non-Log Files: {0} Count: {1} Task: {2}");
-            ConsoleLogFiles = new ConsoleDisplay("Log Files: {0}  Count: {1} Task: {2}");
-            ConsoleParsingNonLog = new ConsoleDisplay("Non-Log Processing: {0}  Count: {1} Task: {2}");
-            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Count: {1} Task: {2}");
-            ConsoleExcel = new ConsoleDisplay("Excel: {0}  Count: {1} WorkSheet: {2}");
-            ConsoleExcelNonLog = new ConsoleDisplay("Excel Non-Log: {0}  Count: {1} Task: {2}");
-            ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Count: {1} Task: {2}");
-            ConsoleExcelLogStatus = new ConsoleDisplay("Excel Status Log: {0}  Count: {1} Task: {2}");
+            ConsoleNonLogReadFiles = new ConsoleDisplay("Non-Log Files: {0} Working: {1} Task: {2}");
+            ConsoleLogReadFiles = new ConsoleDisplay("Log Files: {0}  Working: {1} Task: {2}");
+            ConsoleParsingNonLog = new ConsoleDisplay("Non-Log Processing: {0}  Working: {1} Task: {2}");
+            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");
+            ConsoleExcel = new ConsoleDisplay("Excel: {0}  Working: {1} WorkSheet: {2}");
+            ConsoleExcelNonLog = new ConsoleDisplay("Excel Non-Log: {0}  Working: {1} Task: {2}");
+            ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Working: {1} Task: {2}");
+            ConsoleExcelLogStatus = new ConsoleDisplay("Excel Status Log: {0}  Working: {1} Task: {2}");
             ConsoleExcelWorkbook = new ConsoleDisplay("Excel Workbooks: {0} File: {2}");
             ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
             ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
@@ -95,12 +95,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtLogStatusStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var dtCompHistStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var listCYamlStack = new Common.Patterns.Collections.LockFree.Stack<List<YamlInfo>>();
+            
             var dtYaml = new System.Data.DataTable(ParserSettings.ExcelWorkSheetYaml);
             var dtOSMachineInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetOSMachineInfo);
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
             var maxminMaxLogDate = new DateTimeRange();
-
+            Task<DataTable> tskdtCFHistogram = Task.FromResult<DataTable>(null);
             var includeLogEntriesAfterThisTimeFrame = ParserSettings.LogCurrentDate == DateTime.MinValue ? DateTime.MinValue : ParserSettings.LogCurrentDate - ParserSettings.LogTimeSpanRange;
+            int nbrNodes = -1;
+
+            ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtTable);
 
             #endregion
 
@@ -120,26 +124,36 @@ namespace DSEDiagnosticAnalyticParserConsole
             var diagPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
             var logParsingTasks = new Common.Patterns.Collections.ThreadSafe.List<Task>();
             var kstblNames = new List<CKeySpaceTableNames>();
+            var parsedLogList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedDDLList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedRingList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedCFStatList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedCFHistList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedTPStatList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedOSMachineList = new Common.Patterns.Collections.ThreadSafe.List<string>();
+            var parsedYamlList = new Common.Patterns.Collections.ThreadSafe.List<string>();
 
             if (ParserSettings.DiagnosticNoSubFolders)
             {
-                #region Parse -- All Files in one Folder
+                #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
 
                 var diagChildren = diagPath.Children();
 
                 //Need to process nodetool ring files first
                 var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
 
+                #region preprocessing File
+
                 if (ParserSettings.ParseNonLogs && nodetoolRingChildFiles.HasAtLeastOneElement())
                 {
                     foreach (var element in nodetoolRingChildFiles)
                     {
-                        Program.ConsoleNonLogFiles.Increment((IFilePath)element);
+                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
                         ProcessFileTasks.ReadRingFileParseIntoDataTables((IFilePath)element, dtRingInfo, dtTokenRange);
-
-                        Program.ConsoleNonLogFiles.TaskEnd((IFilePath)element);
+                        //parsedRingList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
                 }
@@ -150,12 +164,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     foreach (var element in nodetoolRingChildFiles)
                     {
-                        Program.ConsoleNonLogFiles.Increment((IFilePath)element);
+                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
                         ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable((IFilePath)element, dtRingInfo);
-
-                        Program.ConsoleNonLogFiles.TaskEnd((IFilePath)element);
+                        //parsedRingList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
                 }
@@ -166,7 +180,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     foreach (IFilePath element in cqlFilePath.GetWildCardMatches())
                     {
-                        Program.ConsoleNonLogFiles.Increment((IFilePath)element);
+                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
                         ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
@@ -184,11 +198,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }
                         }
-
-                        Program.ConsoleNonLogFiles.TaskEnd((IFilePath)element);
+                        parsedDDLList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
                 }
+
+                #endregion
 
                 #region alternative file paths (DDL)
 
@@ -210,9 +226,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                         alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
                     }
 
+                    Logger.Instance.InfoFormat("Queing {0} Alternative CQL Files: {1}",
+                                                alterFiles.Count,
+                                                string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
-                        Program.ConsoleNonLogFiles.Increment((IFilePath)element);
+                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
                         ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
@@ -230,13 +249,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }
                         }
-
-                        Program.ConsoleNonLogFiles.TaskEnd((IFilePath)element);
+                        parsedDDLList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
                 }
 
                 #endregion
+
+                Logger.Instance.InfoFormat("Queing {0} Files: {1}",
+                                            diagChildren.Count,
+                                            string.Join(", ", diagChildren.Select(p => p.Name).Sort()));
 
                 Parallel.ForEach(diagChildren, (diagFile) =>
                 //foreach (var diagFile in diagChildren)
@@ -256,7 +279,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
-                                Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
+                                Program.ConsoleNonLogReadFiles.Increment((IFilePath)diagFile);
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
                                 var dtCFStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCFStats + "-" + ipAddress);
                                 dtCFStatsStack.Push(dtCFStats);
@@ -269,7 +292,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     Program.ConsoleWarnings.Increment("DDL Not Found");
                                     ProcessFileTasks.ReadCFStatsFileForKeyspaceTableInfo((IFilePath)diagFile, ParserSettings.IgnoreKeySpaces, kstblNames);
                                 }
-                                Program.ConsoleNonLogFiles.TaskEnd((IFilePath)diagFile);
+                                parsedCFStatList.TryAdd(ipAddress);
+                                Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
                             else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolTPStatsFile))
                             {
@@ -279,12 +303,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
-                                Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
+                                Program.ConsoleNonLogReadFiles.Increment((IFilePath)diagFile);
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
                                 var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + ipAddress);
                                 dtNodeStatsStack.Push(dtTPStats);
                                 ProcessFileTasks.ReadTPStatsFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtTPStats);
-                                Program.ConsoleNonLogFiles.TaskEnd((IFilePath)diagFile);
+                                parsedTPStatList.TryAdd(ipAddress);
+                                Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
                             else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolInfoFile))
                             {
@@ -293,10 +318,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
-                                Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
+                                Program.ConsoleNonLogReadFiles.Increment((IFilePath)diagFile);
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
                                 ProcessFileTasks.ReadInfoFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtRingInfo);
-                                Program.ConsoleNonLogFiles.TaskEnd((IFilePath)diagFile);
+                                parsedRingList.TryAdd(ipAddress);
+                                Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
                             else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolCompactionHistFile))
                             {
@@ -306,12 +332,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
-                                Program.ConsoleNonLogFiles.Increment((IFilePath)diagFile);
+                                Program.ConsoleNonLogReadFiles.Increment((IFilePath)diagFile);
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
                                 var dtCompHist = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCompactionHist + "-" + ipAddress);
                                 dtCompHistStack.Push(dtCompHist);
                                 ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtCompHist, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
-                                Program.ConsoleNonLogFiles.TaskEnd((IFilePath)diagFile);
+                                Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
                             else if (ParserSettings.ParseLogs && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile))
                             {
@@ -341,6 +367,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             ParserSettings.GCFlagThresholdInMS,
                                                                                             ParserSettings.CompactionFlagThresholdInMS,
                                                                                             ParserSettings.SlowLogQueryThresholdInMS));
+                                parsedLogList.TryAdd(ipAddress);
                             }
                         }
                         else if (((IFilePath)diagFile).FileExtension.ToLower() != ".cql")
@@ -371,6 +398,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
                     }
 
+                    Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
+                                                alterFiles.Count,
+                                                string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
                         string ipAddress;
@@ -404,6 +434,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
+                            parsedLogList.TryAdd(ipAddress);
                         }
                     }
                 }
@@ -420,7 +451,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                #region Parse -- Files located in separate folders
+                #region Read/Parse -- Files located in separate folders where each folder's name is the IP Address
 
                 var diagNodePath = diagPath.MakeChild(ParserSettings.DiagNodeDir) as Common.IDirectoryPath;
                 List<Common.IDirectoryPath> nodeDirs = null;
@@ -448,53 +479,90 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 IFilePath filePath = null;
+                var preFilesProcessed = new bool[3];
 
-                if (ParserSettings.ParseNonLogs && nodeDirs.First().MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolRingFile, out filePath))
+                #region preparsing Files
+
+                for (int fileIndex = 0;
+                        fileIndex < nodeDirs.Count && !preFilesProcessed.All(flag => flag);
+                        ++fileIndex)
                 {
-                    if (filePath.Exist())
+                    if (ParserSettings.ParseNonLogs
+                            && !preFilesProcessed[0]
+                            && nodeDirs[fileIndex].MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolRingFile, out filePath))
                     {
-                        Program.ConsoleNonLogFiles.Increment(filePath);
-                        Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                        ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
-                        Program.ConsoleNonLogFiles.TaskEnd(filePath);
-                    }
-                }
-
-                if (ParserSettings.ParseNonLogs && nodeDirs.First().MakeChild(ParserSettings.DSEToolDir).MakeFile(ParserSettings.DSEtoolRingFile, out filePath))
-                {
-                    if (filePath.Exist())
-                    {
-                        Program.ConsoleNonLogFiles.Increment(filePath);
-                        Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                        ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
-                        Program.ConsoleNonLogFiles.TaskEnd(filePath);
-                    }
-                }
-
-                if (ParserSettings.ParseNonLogs && nodeDirs.First().MakeFile(ParserSettings.CQLDDLDirFile, out filePath))
-                {
-                    if (filePath.Exist())
-                    {
-                        Program.ConsoleNonLogFiles.Increment(filePath);
-                        Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                        ProcessFileTasks.ReadCQLDDLParseIntoDataTable(filePath,
-                                                                        null,
-                                                                        null,
-                                                                        dtKeySpace,
-                                                                        dtTable,
-                                                                        cqlHashCheck,
-                                                                        ParserSettings.IgnoreKeySpaces);
-
-                        foreach (DataRow dataRow in dtTable.Rows)
+                        if (filePath.Exist())
                         {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
-                            {
-                                kstblNames.Add(new CKeySpaceTableNames(dataRow));
-                            }
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
+                            Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
+                            ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
+                            //parsedRingList.TryAdd(filePath.PathResolved);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
+
+                            preFilesProcessed[0] = true;
                         }
-                        Program.ConsoleNonLogFiles.TaskEnd(filePath);
+                        else
+                        {
+                            Logger.Instance.InfoFormat("NodeTool Ring file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                        }
+                    }
+
+                    if (ParserSettings.ParseNonLogs
+                            && !preFilesProcessed[1]
+                            && nodeDirs[fileIndex].MakeChild(ParserSettings.DSEToolDir).MakeFile(ParserSettings.DSEtoolRingFile, out filePath))
+                    {
+                        if (filePath.Exist())
+                        {
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
+                            Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
+                            ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
+                            //parsedRingList.TryAdd(filePath.PathResolved);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
+
+                            preFilesProcessed[1] = true;
+                        }
+                        else
+                        {
+                            Logger.Instance.InfoFormat("DSETool Ring file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                        }
+                    }
+
+                    if (ParserSettings.ParseNonLogs
+                            && !preFilesProcessed[2]
+                            && nodeDirs[fileIndex].MakeFile(ParserSettings.CQLDDLDirFile, out filePath))
+                    {
+                        if (filePath.Exist())
+                        {
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
+                            Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
+                            ProcessFileTasks.ReadCQLDDLParseIntoDataTable(filePath,
+                                                                            null,
+                                                                            null,
+                                                                            dtKeySpace,
+                                                                            dtTable,
+                                                                            cqlHashCheck,
+                                                                            ParserSettings.IgnoreKeySpaces);
+
+                            foreach (DataRow dataRow in dtTable.Rows)
+                            {
+                                if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
+                                {
+                                    kstblNames.Add(new CKeySpaceTableNames(dataRow));
+                                }
+                            }
+                            parsedDDLList.TryAdd(filePath.PathResolved);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
+
+                            preFilesProcessed[2] = true;
+                        }
+                        else
+                        {
+                            Logger.Instance.InfoFormat("CQL DDL file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                        }
                     }
                 }
+
+                #endregion
 
                 #region alternative file paths
 
@@ -516,9 +584,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                         alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
                     }
 
+                    Logger.Instance.InfoFormat("Queing {0} Alternative CQL Files: {1}",
+                                                alterFiles.Count,
+                                                string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
-                        Program.ConsoleNonLogFiles.Increment(element);
+                        Program.ConsoleNonLogReadFiles.Increment(element);
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
                         ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
                                                                         null,
@@ -535,7 +606,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }
                         }
-                        Program.ConsoleNonLogFiles.TaskEnd(element);
+                        parsedDDLList.TryAdd(filePath.FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd(element);
                         element.MakeEmpty();
                     }
                 }
@@ -549,9 +621,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             filePath.Path.Dump(Logger.DumpType.Warning, "DDL was not found, parsing a TPStats file to obtain data model information");
                             Program.ConsoleWarnings.Increment("DDL Not Found");
-                            Program.ConsoleNonLogFiles.Increment(filePath);
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
                             ProcessFileTasks.ReadCFStatsFileForKeyspaceTableInfo(filePath, ParserSettings.IgnoreKeySpaces, kstblNames);
-                            Program.ConsoleNonLogFiles.TaskEnd(filePath);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
                         }
                     }
                 }
@@ -580,6 +652,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
                     }
 
+                    Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
+                                                    alterFiles.Count,
+                                                    string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
                         string ipAddress;
@@ -613,12 +688,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
+                            parsedLogList.TryAdd(ipAddress);
                         }
                     }
                 }
 
                 #endregion
 
+                nbrNodes = nodeDirs.Count;
+
+                Logger.Instance.InfoFormat("Queing {0} Nodes: {1}",
+                                            nodeDirs.Count,
+                                            string.Join(", ", nodeDirs.Select(p => p.Name).Sort()));
                 Parallel.ForEach(nodeDirs, (element) =>
                 //foreach (var element in nodeDirs)
                 {
@@ -645,19 +726,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         ipAddress,
                                                                         dcName,
                                                                         dtOSMachineInfo);
+                        parsedOSMachineList.TryAdd(ipAddress);
                     }
 
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
 
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var dtCFStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCFStats + "-" + ipAddress);
                             dtCFStatsStack.Push(dtCFStats);
                             ProcessFileTasks.ReadCFStatsFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtCFStats, ParserSettings.IgnoreKeySpaces, ParserSettings.CFStatsCreateMBColumns);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            parsedCFStatList.TryAdd(ipAddress);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -665,12 +748,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + ipAddress);
                             dtNodeStatsStack.Push(dtTPStats);
                             ProcessFileTasks.ReadTPStatsFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtTPStats);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            parsedTPStatList.TryAdd(ipAddress);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -678,10 +762,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             ProcessFileTasks.ReadInfoFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtRingInfo);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            parsedRingList.TryAdd(ipAddress);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -689,12 +774,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var dtHistComp = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCompactionHist + "-" + ipAddress);
                             dtCompHistStack.Push(dtHistComp);
                             ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtHistComp, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -729,6 +814,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
+                            parsedLogList.TryAdd(ipAddress);
                         }
                     }
 
@@ -736,12 +822,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
                             ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfCassandraType, yamlList);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -749,12 +835,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
                             ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfDSEYamlType, yamlList);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            parsedYamlList.TryAdd(ipAddress);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -762,12 +849,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (diagFilePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(diagFilePath);
+                            Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
                             ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfDSEType, yamlList);
-                            Program.ConsoleNonLogFiles.TaskEnd(diagFilePath);
+                            parsedYamlList.TryAdd(ipAddress);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                     }
 
@@ -776,7 +864,96 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #endregion
             }
 
-            Program.ConsoleNonLogFiles.Terminate();
+            #region cfHistogram
+            IFilePath cfHistogramWildFilePath;
+
+            if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.CFHistogramFileName), out cfHistogramWildFilePath))
+            {
+                var cfhistFilesTask = Task.Factory.StartNew(() =>
+                                            cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>()
+                                            );
+                tskdtCFHistogram = cfhistFilesTask.ContinueWith(fileTask =>
+                                    {
+                                        var cfHistogramFiles = fileTask.Result;
+                                        var dtCFHistogramsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
+
+                                        Logger.Instance.InfoFormat("Queing {0} Histogram Files: {1}",
+                                                                        cfHistogramFiles.Count(),
+                                                                        string.Join(", ", cfHistogramFiles.Select(p => p.Name).Sort()));
+
+                                        if (cfHistogramFiles.HasAtLeastOneElement())
+                                        {
+                                            Parallel.ForEach(cfHistogramFiles, (chFile) =>
+                                            //foreach (var chFile in cfHistogramFiles)
+                                            {
+                                                string ipAddress = null;
+                                                string dcName = null;
+
+                                                ProcessFileTasks.DetermineIPDCFromFileName(chFile.Name, dtRingInfo, out ipAddress, out dcName);
+
+                                                if (string.IsNullOrEmpty(ipAddress))
+                                                {
+                                                    chFile.Path.Dump(Logger.DumpType.Warning, "IPAdress was not found in the CFHistogram file. File Ignored.");
+                                                    Program.ConsoleWarnings.Increment("IPAdress Not Found");
+                                                }
+                                                else
+                                                {
+                                                    if (string.IsNullOrEmpty(dcName))
+                                                    {
+                                                        chFile.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the CFHistogram file.");
+                                                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
+                                                    }
+
+                                                    var dataTable = new DataTable(ParserSettings.ExcelCFHistogramWorkSheet + "-" + ipAddress);
+                                                    dtCFHistogramsStack.Push(dataTable);
+
+                                                    Program.ConsoleNonLogReadFiles.Increment(chFile);
+
+                                                    ProcessFileTasks.ReadCFHistogramFileParseIntoDataTable(chFile, ipAddress, dcName, dataTable);
+                                                    parsedCFHistList.TryAdd(ipAddress);
+                                                    Program.ConsoleNonLogReadFiles.TaskEnd(chFile);
+                                                }
+                                            });
+                                        }
+
+                                        return dtCFHistogramsStack.MergeIntoOneDataTable();
+                                    },
+                                    TaskContinuationOptions.AttachedToParent
+                                        | TaskContinuationOptions.LongRunning
+                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
+
+            #endregion
+
+            tskdtCFHistogram.ContinueWith(Task =>
+                                {
+                                    ConsoleNonLogReadFiles.Terminate();
+                                    Logger.Instance.InfoFormat("Parsed Ring Data for {0} files: {1}",
+                                                                parsedRingList.Count,
+                                                                string.Join(", ", parsedRingList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed DDL Data for {0} files: {1}",
+                                                                parsedDDLList.Count,
+                                                                string.Join(", ", parsedDDLList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed CFStats Data for {0} Nodes: {1}",
+                                                                parsedCFStatList.Count,
+                                                                string.Join(", ", parsedCFStatList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed TPStats Data for {0} Nodes: {1}",
+                                                                parsedTPStatList.Count,
+                                                                string.Join(", ", parsedTPStatList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed OS/Machine Data for {0} Nodes: {1}",
+                                                                parsedOSMachineList.Count,
+                                                                string.Join(", ", parsedOSMachineList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed Yaml/Config Data for {0} Nodes: {1}",
+                                                                parsedYamlList.Count,
+                                                                string.Join(", ", parsedYamlList.Sort<string>()));
+                                    Logger.Instance.InfoFormat("Parsed CFHistogram Data for {0} Nodes: {1}",
+                                                                parsedCFHistList.Count,
+                                                                string.Join(", ", parsedCFHistList.Sort<string>()));
+                                });
+            
+            //Task
+            //    .Factory
+            //    .ContinueWhenAll(new Task[] { tskdtCFHistogram }, tasks => Program.ConsoleNonLogFiles.Terminate());
 
             var runYamlListIntoDTTask = Task.Factory.StartNew(() =>
                                             {
@@ -809,6 +986,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             Task<DataTable> runLogParsingTask = null;
             Task<DataTable> runSummaryLogTask = null;
+            Task<DataTable> runUpdateActiveTblStatus = null;
             
             if (ParserSettings.ParseLogs && logParsingTasks.Count > 0)
             {
@@ -817,9 +995,32 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
 
                 combLogParsingTasks.ContinueWith(action =>
-                                        {
-                                            Program.ConsoleLogFiles.Terminate();
+                                        {                                                                        
+                                            Program.ConsoleLogReadFiles.Terminate();
+                                            Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
+                                            Logger.Instance.InfoFormat("Parsed Log Data for {0} Nodes: {1}",
+                                                                        parsedLogList.Count,
+                                                                        string.Join(", ", parsedLogList.Sort<string>()));
                                         });
+
+                runUpdateActiveTblStatus = combLogParsingTasks.ContinueWith(action =>
+                                                {
+                                                    Program.ConsoleParsingLog.Increment("CFStats Merge");
+                                                    var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
+                                                                                                                                                        "[Data Center], [Node IPAddress], [KeySpace], [Table]",
+                                                                                                                                                        DataViewRowState.CurrentRows));
+                                                    ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
+                                                    Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
+
+                                                    Program.ConsoleParsingLog.Increment("DDL Active Table Update");
+                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
+                                                    Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
+
+                                                    return dtCFTable;
+                                                },
+                                                TaskContinuationOptions.AttachedToParent
+                                                    | TaskContinuationOptions.LongRunning
+                                                    | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 runLogParsingTask = combLogParsingTasks.ContinueWith(action =>
                                     {
@@ -849,16 +1050,31 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             ParserSettings.LogSummaryIgnoreTaskExceptions);
 
                 Task.Factory
-                    .ContinueWhenAll(new Task[] { runSummaryLogTask, updateRingWYamlInfoTask },
+                    .ContinueWhenAll(new Task[] { runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus },
                                         tasks => Program.ConsoleParsingNonLog.Terminate());
             }
             else
             {
-                updateRingWYamlInfoTask.ContinueWith(task => Program.ConsoleParsingNonLog.Terminate());
+                runUpdateActiveTblStatus = Task.Factory.StartNew(() =>
+                                            {
+                                                Program.ConsoleParsingLog.Increment("CFStats Merge");
+                                                var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
+                                                                                                                                                 "[Data Center], [Node IPAddress], [KeySpace], [Table]",
+                                                                                                                                                 DataViewRowState.CurrentRows));
+                                                ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
+                                                Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
+
+                                                Program.ConsoleParsingLog.Increment("DDL Active Table Update");
+                                                ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
+                                                Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
+
+                                                return dtCFTable;
+                                            });
+                Task.Factory
+                    .ContinueWhenAll(new Task[] { updateRingWYamlInfoTask, runUpdateActiveTblStatus },
+                                        tasks => Program.ConsoleParsingNonLog.Terminate());
             }
             #endregion
-
-            Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
 
             #region Excel Creation/Formatting
 
@@ -933,7 +1149,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
                     DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
                     DTLoadIntoExcel.LoadKeySpaceDDL(excelPkg, dtKeySpace, ParserSettings.ExcelWorkSheetDDLKeyspaces);
-                    DTLoadIntoExcel.LoadTableDDL(excelPkg, dtTable, ParserSettings.ExcelWorkSheetDDLTables);
+                    
                     DTLoadIntoExcel.LoadYamlRingOSInfo(updateRingWYamlInfoTask,
                                                         excelPkg,
                                                         dtYaml,
@@ -951,11 +1167,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 maxminMaxLogDate,
                                                                 ParserSettings.LogTimeSpanRange,
                                                                 ParserSettings.LogExcelWorkbookFilter,
-                                                                dtCFStatsStack,
+                                                                runUpdateActiveTblStatus,
                                                                 ParserSettings.ExcelWorkSheetCFStats,
                                                                 dtNodeStatsStack,
-                                                                ParserSettings.ExcelWorkSheetNodeStats);
-                 
+                                                                ParserSettings.ExcelWorkSheetNodeStats,
+                                                                dtTable,
+                                                                ParserSettings.ExcelWorkSheetDDLTables);
+
+                    DTLoadIntoExcel.LoadCFHistogram(excelPkg, tskdtCFHistogram, ParserSettings.ExcelCFHistogramWorkSheet);
+
                     DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
 
                     excelPkg.Save();
@@ -970,6 +1190,29 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             #endregion
 
+            var parsedItemCounts = new int[] { parsedCFHistList.Count,
+                                                parsedCFStatList.Count,
+                                               // parsedDDLList.Count,
+                                                parsedLogList.Count,
+                                                parsedOSMachineList.Count,
+                                                parsedRingList.Count,
+                                                parsedTPStatList.Count,
+                                                parsedYamlList.Count };
+
+            if (nbrNodes < 0)
+            {
+                nbrNodes = parsedItemCounts.Max();
+            }
+
+            if(nbrNodes != parsedItemCounts.Where(cnt => cnt > 0).Min())
+            {
+                var msg = string.Format("Number of components read/parsed should have been {0}, but some components only parsed/read {1}. Review Application Log for Warning/Errors.",
+                                            nbrNodes,
+                                            parsedItemCounts.Where(cnt => cnt > 0).Min());
+                Logger.Instance.Warn(msg);
+                ConsoleDisplay.Console.WriteLine(msg);
+            }
+           
             ConsoleDisplay.End();
             Logger.Instance.InfoFormat("Completed");
         }

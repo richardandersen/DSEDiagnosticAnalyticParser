@@ -12,6 +12,21 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -58,31 +73,31 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Common.Console">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Console.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Console.dll</HintPath>
     </Reference>
     <Reference Include="Common.Functions">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Functions.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Functions.dll</HintPath>
     </Reference>
     <Reference Include="Common.Path">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Path.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Path.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Collections">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Collections.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Collections.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Lock">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Lock.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Lock.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Shared">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Shared.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Shared.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Singleton">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Singleton.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Singleton.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Tasks">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Tasks.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="Common.Patterns.Threading">
-      <HintPath>..\..\..\..\Common Patterns\Assemblies\40\Release\Common.Patterns.Threading.dll</HintPath>
+      <HintPath>C:\Projects\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Threading.dll</HintPath>
     </Reference>
     <Reference Include="EPPlus, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.4.1.0\lib\net40\EPPlus.dll</HintPath>
@@ -120,6 +135,7 @@
     <Compile Include="LoadKeySpaceDDLIntoExcel.cs" />
     <Compile Include="LoadNodeStatsIntoExcel.cs" />
     <Compile Include="LoadOSMachineInfoIntoExcel.cs" />
+    <Compile Include="LoadCFHistogramIntoExcel.cs" />
     <Compile Include="LoadRingInfoIntoExcel.cs" />
     <Compile Include="LoadSummaryLogCFNodeStatsIntoExcel.cs" />
     <Compile Include="LoadSummaryLogIntoExcel.cs" />
@@ -140,6 +156,7 @@
     <Compile Include="ProcessOPSCenterInfo.cs" />
     <Compile Include="ProcessOSMachineInfo.cs" />
     <Compile Include="ProcessRingInfo.cs" />
+    <Compile Include="ProcessCFHistogram.cs" />
     <Compile Include="ProcessTPStats.cs" />
     <Compile Include="ProcessYamlConfigSettingFiles.cs" />
     <Compile Include="Program.cs" />
@@ -162,6 +179,18 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

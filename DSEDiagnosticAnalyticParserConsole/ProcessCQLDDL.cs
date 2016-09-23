@@ -16,15 +16,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Regex RegExCreateIndexUsing = new Regex(@".+using\s*((?:'|""|`)?.+?(?:'|""|`))?",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        static public void ReadCQLDDLParseIntoDataTable(IFilePath cqlDDLFilePath,
-                                                            string ipAddress,
-                                                            string dcName,
-                                                            DataTable dtKeySpace,
-                                                            DataTable dtTable,
-                                                            Dictionary<string, int> cqlHashCheck,
-                                                            IEnumerable<string> ignoreKeySpaces)
+        static public void InitializeCQLDDLDataTables(DataTable dtKeySpace,
+                                                      DataTable dtTable)
         {
-
             if (dtKeySpace.Columns.Count == 0)
             {
                 dtKeySpace.Columns.Add("Name", typeof(string));
@@ -39,26 +33,37 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (dtTable.Columns.Count == 0)
             {
-                dtTable.Columns.Add("Keyspace Name", typeof(string));//a
+                dtTable.Columns.Add("Active", typeof(bool));//a
+                dtTable.Columns.Add("Keyspace Name", typeof(string));//b
                 dtTable.Columns.Add("Name", typeof(string));
-                dtTable.Columns.Add("Pritition Key", typeof(string));
+                dtTable.Columns.Add("Partition Key", typeof(string));
                 dtTable.Columns.Add("Cluster Key", typeof(string)).AllowDBNull = true;
                 dtTable.Columns.Add("Compaction Strategy", typeof(string)).AllowDBNull = true;
                 dtTable.Columns.Add("Index", typeof(bool)).AllowDBNull = true;
-                dtTable.Columns.Add("Chance", typeof(decimal)).AllowDBNull = true;//f
-                dtTable.Columns.Add("DC Chance", typeof(decimal)).AllowDBNull = true;//g
-                dtTable.Columns.Add("Policy", typeof(string)).AllowDBNull = true;//h
-                dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//i
-                dtTable.Columns.Add("Collections", typeof(int));//j
-                dtTable.Columns.Add("Counters", typeof(int));//k
-                dtTable.Columns.Add("Blobs", typeof(int));//l
-                dtTable.Columns.Add("Total", typeof(int));//m
-                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//n
-                dtTable.Columns.Add("DDL", typeof(string));//o
+                dtTable.Columns.Add("Chance", typeof(decimal)).AllowDBNull = true;//g
+                dtTable.Columns.Add("DC Chance", typeof(decimal)).AllowDBNull = true;//h
+                dtTable.Columns.Add("Policy", typeof(string)).AllowDBNull = true;//i
+                dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//j
+                dtTable.Columns.Add("Collections", typeof(int));//k
+                dtTable.Columns.Add("Counters", typeof(int));//l
+                dtTable.Columns.Add("Blobs", typeof(int));//m
+                dtTable.Columns.Add("Total", typeof(int));//n
+                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//o
+                dtTable.Columns.Add("DDL", typeof(string));//p
 
                 dtTable.PrimaryKey = new System.Data.DataColumn[] { dtTable.Columns["Keyspace Name"], dtTable.Columns["Name"] };
             }
+        }
+        static public void ReadCQLDDLParseIntoDataTable(IFilePath cqlDDLFilePath,
+                                                            string ipAddress,
+                                                            string dcName,
+                                                            DataTable dtKeySpace,
+                                                            DataTable dtTable,
+                                                            Dictionary<string, int> cqlHashCheck,
+                                                            IEnumerable<string> ignoreKeySpaces)
+        {
 
+            InitializeCQLDDLDataTables(dtKeySpace, dtTable);
 
             var fileLines = cqlDDLFilePath.ReadAllLines();
             string line = null;
@@ -82,11 +87,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (line.Substring(0, 2) == "/*")
                     {
-                        for (; nLine < fileLines.Length || line.EndsWith("*/"); ++nLine)
+                        for (; nLine < fileLines.Length
+                                    && !line.Contains("*/");
+                                ++nLine)
                         {
                             line = fileLines[nLine].Trim();
                         }
+                        continue;
                     }
+
+                    line = RemoveCommentInLine(line, "/*", "*/");
 
                     strCQL.Append(" ");
                     strCQL.Append(line);
@@ -253,11 +263,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         {
                                             pkdtList.Add(tblColumns.Find(c => c.StartsWith(element)));
                                         }
-                                        dataRow["Pritition Key"] = string.Join(", ", pkdtList);
+                                        dataRow["Partition Key"] = string.Join(", ", pkdtList);
                                     }
                                     else
                                     {
-                                        dataRow["Pritition Key"] = tblColumns.Find(c => c.StartsWith(pkLocation));
+                                        dataRow["Partition Key"] = tblColumns.Find(c => c.StartsWith(pkLocation));
                                     }
 
                                     var cdtList = new List<string>();
@@ -273,7 +283,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     //look for keyworad Primary Key
                                     var pkVar = tblColumns.Find(c => c.EndsWith("primary key", StringComparison.OrdinalIgnoreCase));
 
-                                    dataRow["Pritition Key"] = pkVar.Substring(0, pkVar.Length - 11).TrimEnd();
+                                    dataRow["Partition Key"] = pkVar.Substring(0, pkVar.Length - 11).TrimEnd();
                                     dataRow["Cluster Key"] = null;
                                 }
 
@@ -469,7 +479,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                             if (colEndPos > 0)
                                             {
-                                                dataRow["Pritition Key"] = strCol.Substring(0, colEndPos);
+                                                dataRow["Partition Key"] = strCol.Substring(0, colEndPos);
                                             }
                                         }
                                     }
@@ -502,6 +512,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 dcName,
                                                 line);
                 Logger.Instance.Error("CQL DLL Parsing Error", ex);
+            }
+        }
+
+        static public void UpdateCQLDDLTableActiveStatus(DataTable dtTable)
+        {
+            foreach (DataRow dataRow in dtTable.Rows)
+            {
+                var secondaryIndex = dataRow["Index"] == DBNull.Value ? false : (bool)dataRow["Index"];
+
+                dataRow["Active"] = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
+                                                                + '.' + ((string)dataRow["Name"])
+                                                                + (secondaryIndex ? " (Index)" : string.Empty));
             }
         }
 

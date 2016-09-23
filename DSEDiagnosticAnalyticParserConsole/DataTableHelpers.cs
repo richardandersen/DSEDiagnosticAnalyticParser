@@ -17,8 +17,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             DataTable dtItem;
             DataRow[] dtErrors;
             bool firstDT = true;
-            string firstTableName = null;
-            string lastTableName = null;
+            string firstTableName = string.Empty;
+            string lastTableName = string.Empty;
             long rowCount = 0;
             int nbrMergedTables = 0;
 

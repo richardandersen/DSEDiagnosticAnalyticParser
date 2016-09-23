@@ -167,7 +167,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             for (int nIndex = 0; nIndex < ConsoleDisplays.Count; ++nIndex)
             {
-                if (!ConsoleDisplays[nIndex].Terminated)
+                if (ConsoleDisplays[nIndex].Terminated)
+                {
+                    consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+                }
+                else
                 {
                     if (ConsoleDisplays[nIndex].Spinner && ConsoleDisplays[nIndex].Counter != 0)
                     {

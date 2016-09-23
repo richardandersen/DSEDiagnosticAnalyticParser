@@ -40,6 +40,33 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if (!IPAddressStr(lastPartName, out ipAddress))
                     {
+                        //Might be the only the last address node...
+                        string lastAddressOct = null;
+
+                        if (possibleAddress[0].Length <= 3 && StringFunctions.IsValidNumeric(possibleAddress[0]))
+                        {
+                            lastAddressOct = possibleAddress[0];
+                        }
+                        else if (lastPartName.Length <= 3 && StringFunctions.IsValidNumeric(lastPartName))
+                        {
+                            lastAddressOct = lastPartName;
+                        }
+
+                        if (lastAddressOct != null)
+                        {
+                            var ipView = new DataView(dtRingInfo,
+                                                        string.Format("[Node IPAddress] like '%.{0}'", lastAddressOct),
+                                                        null,
+                                                        DataViewRowState.CurrentRows);
+
+                            if (ipView.Count == 1)
+                            {
+                                ipAddress = (string)ipView[0]["Node IPAddress"];
+                                dcName = ipView[0]["Data Center"] as string;
+                                return true;
+                            }
+                        }
+
                         dcName = null;
                         return false;
                     }
@@ -54,7 +81,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                dcName = dcRow[1] as string;
+                dcName = dcRow["Data Center"] as string;
             }
 
             return true;
@@ -218,7 +245,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Tuple<string, string> SplitTableName(string cqlTableName, string defaultKeySpaceName)
         {
             var nameparts = Common.StringFunctions.Split(cqlTableName,
-                                                            '.',
+                                                            new char[] {'.', '/'},
                                                             Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
                                                             Common.StringFunctions.SplitBehaviorOptions.Default
                                                                 | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
@@ -396,6 +423,23 @@ namespace DSEDiagnosticAnalyticParserConsole
             return line;
         }
 
+        static string RemoveCommentInLine(string line, string strCommentStart, string strCommentEnd)
+        {
+            var commentStartPos = line.IndexOf(strCommentStart);
+
+            if (commentStartPos >= 0)
+            {
+                var commentEndPos = line.LastIndexOf(strCommentStart);
+
+                return (line.Substring(0, commentStartPos)
+                            + (commentStartPos >= 0 
+                                    ? line.Substring(commentEndPos + strCommentEnd.Length)
+                                    : string.Empty)).TrimEnd();
+            }
+
+            return line;
+        }
+
         static object DetermineTime(string strTime)
         {
             var timeAbbrPos = strTime.IndexOfAny(new char[] { 'm', 's', 'h' });
@@ -412,6 +456,45 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
 
             return strTime;
+        }
+
+        static decimal ConvertToTimeMS(string strTime, string unitOfTime)
+        {
+            if(string.IsNullOrEmpty(strTime))
+            {
+                return 0;
+            }
+
+            if(unitOfTime.Length < 3)
+            {
+                unitOfTime = unitOfTime + "   ";
+            }
+
+            switch (unitOfTime.Substring(0,3).ToLower())
+            {
+                case "mic":
+                case "us ":
+                    return decimal.Parse(strTime) / 1000m;
+                case "ms ":
+                case "mil":
+                case "f  ":
+                    return decimal.Parse(strTime);
+                case "sec":
+                case "s  ":
+                    return decimal.Parse(strTime) * 1000m;
+                case "min":
+                case "m  ":
+                    return decimal.Parse(strTime) * 60000m;
+                case "hou":
+                case "hr ":
+                case "hrs":
+                case "h  ":
+                    return decimal.Parse(strTime) * 360000m;
+                default:
+                    break;
+            }
+
+            return -1;
         }
 
         static Dictionary<string, object> ParseJson(string strJson)

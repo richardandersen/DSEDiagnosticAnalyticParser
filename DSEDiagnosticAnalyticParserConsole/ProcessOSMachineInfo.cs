@@ -99,7 +99,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (filePath.Exist())
                         {
-                            Program.ConsoleNonLogFiles.Increment(filePath);
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
 
                             if (fileName.Contains("machine-info"))
                             {
@@ -231,7 +231,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                             }
 
-                            Program.ConsoleNonLogFiles.TaskEnd(filePath);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
                         }
                     }
                 }

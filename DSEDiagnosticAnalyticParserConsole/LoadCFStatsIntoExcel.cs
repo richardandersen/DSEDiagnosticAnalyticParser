@@ -12,14 +12,14 @@ namespace DSEDiagnosticAnalyticParserConsole
     static public partial class DTLoadIntoExcel
     {
         private static void LoadCFStats(ExcelPackage excelPkg,
-                                            Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
+                                            DataTable dtCFStats,
                                             string excelWorkSheetCFStats)
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetCFStats);
 
             DTLoadIntoExcel.WorkBook(excelPkg,
                                         excelWorkSheetCFStats,
-                                        dtCFStatsStack,
+                                        dtCFStats,
                                         workSheet =>
                                         {
                                             workSheet.Cells["1:1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
@@ -33,10 +33,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["A1:I1"].AutoFilter = true;
                                             //workSheet.Column(10).Hidden = true; //J
                                             workSheet.Cells.AutoFitColumns();
-                                        },
-                                        false,
-                                        -1,
-                                        new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress], [KeySpace], [Table]", DataViewRowState.CurrentRows));
+                                        });
 
             Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetCFStats);
         }

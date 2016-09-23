@@ -17,8 +17,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (dtRingInfo.Columns.Count == 0)
             {
                 dtRingInfo.Columns.Add("Node IPAddress", typeof(string));
-                dtRingInfo.Columns[0].Unique = true;
-                dtRingInfo.PrimaryKey = new System.Data.DataColumn[] { dtRingInfo.Columns[0] };
+                dtRingInfo.Columns["Node IPAddress"].Unique = true;
+                dtRingInfo.PrimaryKey = new System.Data.DataColumn[] { dtRingInfo.Columns["Node IPAddress"] };
                 dtRingInfo.Columns.Add("Data Center", typeof(string));
                 dtRingInfo.Columns.Add("Rack", typeof(string));
                 dtRingInfo.Columns.Add("Status", typeof(string));
