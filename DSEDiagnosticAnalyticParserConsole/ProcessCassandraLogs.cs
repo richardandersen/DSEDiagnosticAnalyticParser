@@ -1633,142 +1633,155 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else
                         {
-                            bool localprocessingCache = processingCache;
-                            bool localprocessingPool = processingPool;
-                            bool localprocessingTable = processingTable;
-
-                            //if(localprocessingCache && !RegExCacheLine.Match(descr).Success)
-                            //{
-                            //    localprocessingPool = RegExPoolLine.Match(descr).Success;
-                            //    localprocessingTable = RegExPoolLine.Match(descr).Success
-                            //                                    || RegExPool2Line.Match(descr).Success;
-                            //    localprocessingCache = !(localprocessingPool || localprocessingTable);
-                            //}
-                            //else if(localprocessingPool && !(RegExPoolLine.Match(descr).Success
-                            //                                    || RegExPool2Line.Match(descr).Success))
-                            //{
-                            //    localprocessingCache = RegExCacheLine.Match(descr).Success;
-                            //    localprocessingTable = RegExTblLine.Match(descr).Success;
-                            //    localprocessingPool = !(localprocessingCache || localprocessingTable);
-                            //}
-                            //else if (localprocessingTable && !RegExTblLine.Match(descr).Success)
-                            //{
-                            //    localprocessingPool = RegExPoolLine.Match(descr).Success;
-                            //    localprocessingCache = RegExPoolLine.Match(descr).Success;
-                            //    var localprocessingCache2 = RegExPool2Line.Match(descr).Success;
-                                    
-                            //    if(localprocessingPool && localprocessingCache && localprocessingCache2)
-                            //    {
-                            //        localprocessingCache = false;
-                            //    }
-                            //    else if(localprocessingCache2)
-                            //    {
-                            //        localprocessingCache = true;
-                            //        localprocessingPool = false;
-                            //    }
-                            //        ;
-                            //    localprocessingTable = !(localprocessingPool || localprocessingCache);
-                            //}
-
-                            if (localprocessingCache)
+                            try
                             {
-                                var splits = RegExCacheLine.Split(descr);
-                                var dataRow = dtCStatusLog.NewRow();
+                                bool localprocessingCache = processingCache;
+                                bool localprocessingPool = processingPool;
+                                bool localprocessingTable = processingTable;
 
-                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["Pool/Cache Type"] = splits[1];
-                                dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
-                                dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
-                                dataRow["KeysToSave"] = splits[4];
+                                //if(localprocessingCache && !RegExCacheLine.Match(descr).Success)
+                                //{
+                                //    localprocessingPool = RegExPoolLine.Match(descr).Success;
+                                //    localprocessingTable = RegExPoolLine.Match(descr).Success
+                                //                                    || RegExPool2Line.Match(descr).Success;
+                                //    localprocessingCache = !(localprocessingPool || localprocessingTable);
+                                //}
+                                //else if(localprocessingPool && !(RegExPoolLine.Match(descr).Success
+                                //                                    || RegExPool2Line.Match(descr).Success))
+                                //{
+                                //    localprocessingCache = RegExCacheLine.Match(descr).Success;
+                                //    localprocessingTable = RegExTblLine.Match(descr).Success;
+                                //    localprocessingPool = !(localprocessingCache || localprocessingTable);
+                                //}
+                                //else if (localprocessingTable && !RegExTblLine.Match(descr).Success)
+                                //{
+                                //    localprocessingPool = RegExPoolLine.Match(descr).Success;
+                                //    localprocessingCache = RegExPoolLine.Match(descr).Success;
+                                //    var localprocessingCache2 = RegExPool2Line.Match(descr).Success;
 
-                                dtCStatusLog.Rows.Add(dataRow);
-                                continue;
-                            }
-                            else if (localprocessingPool)
-                            {
-                                var splits = RegExPoolLine.Split(descr);
-                                var dataRow = dtCStatusLog.NewRow();
+                                //    if(localprocessingPool && localprocessingCache && localprocessingCache2)
+                                //    {
+                                //        localprocessingCache = false;
+                                //    }
+                                //    else if(localprocessingCache2)
+                                //    {
+                                //        localprocessingCache = true;
+                                //        localprocessingPool = false;
+                                //    }
+                                //        ;
+                                //    localprocessingTable = !(localprocessingPool || localprocessingCache);
+                                //}
 
-                                if (splits.Length == 1)
+                                if (localprocessingCache)
                                 {
-                                    splits = RegExPool2Line.Split(descr);
-                                }
+                                    var splits = RegExCacheLine.Split(descr);
+                                    var dataRow = dtCStatusLog.NewRow();
 
-                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["Pool/Cache Type"] = splits[1];
+                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = splits[1];
+                                    dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
+                                    dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
+                                    dataRow["KeysToSave"] = splits[4];
 
-                                if (splits.Length == 8)
-                                {
-                                    dataRow["Active"] = long.Parse(splits[2]);
-                                    dataRow["Pending"] = long.Parse(splits[3]);
-                                    dataRow["Completed"] = long.Parse(splits[4]);
-                                    dataRow["Blocked"] = long.Parse(splits[5]);
-                                    dataRow["All Time Blocked"] = long.Parse(splits[6]);
-
-                                    tpStatusCounts.Add(new Tuple<string, long, long, long, long, long>(splits[1],
-                                                                                                        (long)dataRow["Active"],
-                                                                                                        (long)dataRow["Pending"],
-                                                                                                        (long)dataRow["Completed"],
-                                                                                                        (long)dataRow["Blocked"],
-                                                                                                        (long)dataRow["All Time Blocked"]));
-                                }
-                                else
-                                {
-                                    long numValue;
-                                    if (long.TryParse(splits[2], out numValue))
-                                    {
-                                        dataRow["Active"] = numValue;
-                                    }
-                                    else
-                                    {
-                                        dataRow["Active"] = splits[2];
-                                    }
-
-                                    if (long.TryParse(splits[3], out numValue))
-                                    {
-                                        dataRow["Pending"] = numValue;
-                                    }
-                                    else
-                                    {
-                                        dataRow["Pending"] = splits[3];
-                                    }
-                                }
-
-                                dtCStatusLog.Rows.Add(dataRow);
-                                continue;
-                            }
-                            else if (processingTable)
-                            {
-                                var splits = RegExTblLine.Split(descr);
-                                var ksTable = SplitTableName(splits[1], null);
-
-                                if (ignoreKeySpaces.Contains(ksTable.Item1))
-                                {
+                                    dtCStatusLog.Rows.Add(dataRow);
                                     continue;
                                 }
+                                else if (localprocessingPool)
+                                {
+                                    var splits = RegExPoolLine.Split(descr);
+                                    var dataRow = dtCStatusLog.NewRow();
 
-                                var dataRow = dtCStatusLog.NewRow();
+                                    if (splits.Length == 1)
+                                    {
+                                        splits = RegExPool2Line.Split(descr);
+                                    }
 
-                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["Pool/Cache Type"] = "ColumnFamily";
-                                dataRow["KeySpace"] = ksTable.Item1;
-                                dataRow["Table"] = ksTable.Item2;
-                                dataRow["MemTable OPS"] = long.Parse(splits[2]);
-                                dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
+                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = splits[1];
 
-                                dtCStatusLog.Rows.Add(dataRow);
+                                    if (splits.Length == 8)
+                                    {
+                                        dataRow["Active"] = long.Parse(splits[2]);
+                                        dataRow["Pending"] = long.Parse(splits[3]);
+                                        dataRow["Completed"] = long.Parse(splits[4]);
+                                        dataRow["Blocked"] = long.Parse(splits[5]);
+                                        dataRow["All Time Blocked"] = long.Parse(splits[6]);
 
-                                statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
-                                                                                                ksTable.Item2,
-                                                                                                (long)dataRow["MemTable OPS"],
-                                                                                                (decimal)dataRow["Data (mb)"]));
-                                continue;
+                                        tpStatusCounts.Add(new Tuple<string, long, long, long, long, long>(splits[1],
+                                                                                                            (long)dataRow["Active"],
+                                                                                                            (long)dataRow["Pending"],
+                                                                                                            (long)dataRow["Completed"],
+                                                                                                            (long)dataRow["Blocked"],
+                                                                                                            (long)dataRow["All Time Blocked"]));
+                                    }
+                                    else
+                                    {
+                                        long numValue;
+                                        if (long.TryParse(splits[2], out numValue))
+                                        {
+                                            dataRow["Active"] = numValue;
+                                        }
+                                        else
+                                        {
+                                            dataRow["Active"] = splits[2];
+                                        }
+
+                                        if (long.TryParse(splits[3], out numValue))
+                                        {
+                                            dataRow["Pending"] = numValue;
+                                        }
+                                        else
+                                        {
+                                            dataRow["Pending"] = splits[3];
+                                        }
+                                    }
+
+                                    dtCStatusLog.Rows.Add(dataRow);
+                                    continue;
+                                }
+                                else if (processingTable)
+                                {
+                                    var splits = RegExTblLine.Split(descr);
+                                    var ksTable = SplitTableName(splits[1], null);
+
+                                    if (ignoreKeySpaces.Contains(ksTable.Item1))
+                                    {
+                                        continue;
+                                    }
+
+                                    var dataRow = dtCStatusLog.NewRow();
+
+                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = "ColumnFamily";
+                                    dataRow["KeySpace"] = ksTable.Item1;
+                                    dataRow["Table"] = ksTable.Item2;
+                                    dataRow["MemTable OPS"] = long.Parse(splits[2]);
+                                    dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
+
+                                    dtCStatusLog.Rows.Add(dataRow);
+
+                                    statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
+                                                                                                    ksTable.Item2,
+                                                                                                    (long)dataRow["MemTable OPS"],
+                                                                                                    (decimal)dataRow["Data (mb)"]));
+                                    continue;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                var msg = string.Format("StatusLogger Invalid Line for Type \"{0}\" with value \"{1}\"",
+                                                                         processingCache ? "Cache"
+                                                                            : (processingPool ? "Pool"
+                                                                                : (processingTable ? "ColumnFamily" : "UnKnown")),
+                                                                         descr);
+                                Logger.Instance.Error(msg, e);
+                                Program.ConsoleErrors.Increment(msg.Substring(0, 60));
                             }
                         }
                         #endregion

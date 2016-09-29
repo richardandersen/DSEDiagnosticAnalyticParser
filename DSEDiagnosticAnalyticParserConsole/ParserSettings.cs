@@ -130,6 +130,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string OPSCenterDir = Properties.Settings.Default.OPSCenterDir;
         public static string[] OPSCenterFiles = Properties.Settings.Default.OPSCenterFiles.ToArray(false);
 
+        public static string TableHistogramFileName = Properties.Settings.Default.TableHistogramFileName;
         public static string CFHistogramFileName = Properties.Settings.Default.CFHistogramFileName;
         public static string ExcelCFHistogramWorkSheet = Properties.Settings.Default.ExcelCFHistogramWorkSheet;
 

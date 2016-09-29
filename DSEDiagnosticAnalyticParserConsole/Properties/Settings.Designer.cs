@@ -496,7 +496,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("system.log.*")]
+        [global::System.Configuration.DefaultSettingValueAttribute("system.log*")]
         public string LogCassandraSystemLogFileArchive {
             get {
                 return ((string)(this["LogCassandraSystemLogFileArchive"]));
@@ -645,19 +645,28 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("cfhistogram")]
-        public string CFHistogramFileName {
+        [global::System.Configuration.DefaultSettingValueAttribute("tablehistogram")]
+        public string TableHistogramFileName {
             get {
-                return ((string)(this["CFHistogramFileName"]));
+                return ((string)(this["TableHistogramFileName"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("CFHistogram")]
+        [global::System.Configuration.DefaultSettingValueAttribute("TableHistogram")]
         public string ExcelCFHistogramWorkSheet {
             get {
                 return ((string)(this["ExcelCFHistogramWorkSheet"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("cfhistogram")]
+        public string CFHistogramFileName {
+            get {
+                return ((string)(this["CFHistogramFileName"]));
             }
         }
     }

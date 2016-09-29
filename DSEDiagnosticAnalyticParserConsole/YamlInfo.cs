@@ -32,8 +32,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             return this.DCName == compareItem.DCName
                     && this.Cmd == compareItem.Cmd
-                    && (this.KeyValueParams == null
-                        || (this.KeyValueParams.Count() == compareItem.KeyValueParams.Count()
+                    && ((this.KeyValueParams == null && compareItem.KeyValueParams == null)
+                        || (this.KeyValueParams != null
+                                && compareItem.KeyValueParams != null
+                                && this.KeyValueParams.Count() == compareItem.KeyValueParams.Count()
                                 && this.KeyValueParams.All(item => compareItem.KeyValueParams.Where(kvp => kvp.Item1 == item.Item1).Count() > 0)));
         }
 

@@ -865,13 +865,39 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
 
             #region cfHistogram
+
+            bool parseCFHistFiles = false;
             IFilePath cfHistogramWildFilePath;
+            IFilePath tableHistogramWildFilePath;
+            Task<IEnumerable<IFilePath>> cfhistFilesTask = Task.FromResult( (IEnumerable<IFilePath>) new IFilePath[0]);
 
             if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.CFHistogramFileName), out cfHistogramWildFilePath))
             {
-                var cfhistFilesTask = Task.Factory.StartNew(() =>
-                                            cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>()
-                                            );
+                cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
+                                        {
+                                            var tblMatches = cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+
+                                            return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
+                                        },
+                                    TaskContinuationOptions.AttachedToParent                                        
+                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+                parseCFHistFiles = true;
+            }
+            if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.TableHistogramFileName), out tableHistogramWildFilePath))
+            {
+                cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
+                                        {
+                                            var tblMatches = tableHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+
+                                            return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
+                                        },
+                                    TaskContinuationOptions.AttachedToParent                                      
+                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+                parseCFHistFiles = true;
+            }
+
+            if (parseCFHistFiles)
+            {                
                 tskdtCFHistogram = cfhistFilesTask.ContinueWith(fileTask =>
                                     {
                                         var cfHistogramFiles = fileTask.Result;
@@ -984,17 +1010,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             | TaskContinuationOptions.LongRunning
                                             | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-            Task<DataTable> runLogParsingTask = null;
-            Task<DataTable> runSummaryLogTask = null;
-            Task<DataTable> runUpdateActiveTblStatus = null;
-            
+            Task<DataTable> runLogParsingTask = Task.FromResult((DataTable)null); ;
+            Task<DataTable> runSummaryLogTask = Task.FromResult((DataTable) null);            
+            Task<int> runningLogTask = logParsingTasks.Count == 0
+                                        ? Task.FromResult(0)
+                                        : Task<int>
+                                            .Factory
+                                            .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
+
             if (ParserSettings.ParseLogs && logParsingTasks.Count > 0)
             {
-                var combLogParsingTasks = Task<int>
-                                        .Factory
-                                        .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
-
-                combLogParsingTasks.ContinueWith(action =>
+                runningLogTask.ContinueWith(action =>
                                         {                                                                        
                                             Program.ConsoleLogReadFiles.Terminate();
                                             Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
@@ -1003,26 +1029,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         string.Join(", ", parsedLogList.Sort<string>()));
                                         });
 
-                runUpdateActiveTblStatus = combLogParsingTasks.ContinueWith(action =>
-                                                {
-                                                    Program.ConsoleParsingLog.Increment("CFStats Merge");
-                                                    var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
-                                                                                                                                                        "[Data Center], [Node IPAddress], [KeySpace], [Table]",
-                                                                                                                                                        DataViewRowState.CurrentRows));
-                                                    ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
-                                                    Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
-
-                                                    Program.ConsoleParsingLog.Increment("DDL Active Table Update");
-                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
-                                                    Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
-
-                                                    return dtCFTable;
-                                                },
-                                                TaskContinuationOptions.AttachedToParent
-                                                    | TaskContinuationOptions.LongRunning
-                                                    | TaskContinuationOptions.OnlyOnRanToCompletion);
-
-                runLogParsingTask = combLogParsingTasks.ContinueWith(action =>
+                
+                runLogParsingTask = runningLogTask.ContinueWith(action =>
                                     {
                                         Program.ConsoleParsingLog.Increment("Log Merge");
                                         var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
@@ -1035,11 +1043,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-                runLogParsingTask.ContinueWith(action =>
-                                        {
-                                            Program.ConsoleParsingNonLog.Terminate();
-                                        });
-
                 runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
                                                                                             ParserSettings.ExcelWorkSheetLogCassandra,                                                                                            
                                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp,
@@ -1049,31 +1052,60 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             ParserSettings.LogSummaryTaskItems,
                                                                                             ParserSettings.LogSummaryIgnoreTaskExceptions);
 
-                Task.Factory
-                    .ContinueWhenAll(new Task[] { runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus },
-                                        tasks => Program.ConsoleParsingNonLog.Terminate());
+                runSummaryLogTask.ContinueWith(action =>
+                                        {
+                                            Program.ConsoleParsingLog.Terminate();
+                                        });
             }
-            else
-            {
-                runUpdateActiveTblStatus = Task.Factory.StartNew(() =>
-                                            {
-                                                Program.ConsoleParsingLog.Increment("CFStats Merge");
-                                                var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
-                                                                                                                                                 "[Data Center], [Node IPAddress], [KeySpace], [Table]",
-                                                                                                                                                 DataViewRowState.CurrentRows));
-                                                ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
-                                                Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
 
-                                                Program.ConsoleParsingLog.Increment("DDL Active Table Update");
-                                                ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
-                                                Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
+            tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
+                                    {
+                                        var dtCFHist = taskResult.Result;
 
-                                                return dtCFTable;
-                                            });
-                Task.Factory
-                    .ContinueWhenAll(new Task[] { updateRingWYamlInfoTask, runUpdateActiveTblStatus },
-                                        tasks => Program.ConsoleParsingNonLog.Terminate());
-            }
+                                        if (dtCFHist.Rows.Count > 0)
+                                        {
+
+                                            Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
+
+                                            var dtCFStat = new DataTable("CFHistogram");
+
+                                            dtCFStatsStack.Push(dtCFStat);
+                                            ProcessFileTasks.ProcessCFHistStats(dtCFHist, dtCFStat);
+
+                                            Program.ConsoleParsingNonLog.Decrement("TableHistogram => CFStats...");
+                                        }
+                                        return dtCFHist;
+                                    },
+                                    TaskContinuationOptions.AttachedToParent
+                                        | TaskContinuationOptions.LongRunning
+                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+            var runUpdateActiveTblStatus = Task.Factory
+                                                .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask }, ignoreItem => { })
+                                                .ContinueWith(action =>
+                                                    {
+                                                        Program.ConsoleParsingLog.Increment("CFStats Merge");
+                                                        var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
+                                                                                                                                                            "[Data Center], [Node IPAddress], [KeySpace], [Table]",
+                                                                                                                                                            DataViewRowState.CurrentRows));
+                                                        ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
+                                                        Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
+
+                                                        Program.ConsoleParsingLog.Increment("DDL Active Table Update");
+                                                        ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
+                                                        Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
+
+                                                        return dtCFTable;
+                                                    },
+                                                TaskContinuationOptions.AttachedToParent
+                                                    | TaskContinuationOptions.LongRunning
+                                                    | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+            Task.Factory
+                   .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus },
+                                       tasks => Program.ConsoleParsingNonLog.Terminate());
+
+
             #endregion
 
             #region Excel Creation/Formatting

@@ -182,7 +182,7 @@
       <Value Profile="(Default)">system</Value>
     </Setting>
     <Setting Name="LogCassandraSystemLogFileArchive" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">system.log.*</Value>
+      <Value Profile="(Default)">system.log*</Value>
     </Setting>
     <Setting Name="ConfCassandraDir" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\conf\cassandra</Value>
@@ -241,11 +241,14 @@
     <Setting Name="LogCassandraDirSystemLog" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\cassandra\system.log</Value>
     </Setting>
-    <Setting Name="CFHistogramFileName" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">cfhistogram</Value>
+    <Setting Name="TableHistogramFileName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">tablehistogram</Value>
     </Setting>
     <Setting Name="ExcelCFHistogramWorkSheet" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">CFHistogram</Value>
+      <Value Profile="(Default)">TableHistogram</Value>
+    </Setting>
+    <Setting Name="CFHistogramFileName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">cfhistogram</Value>
     </Setting>
   </Settings>
 </SettingsFile>
