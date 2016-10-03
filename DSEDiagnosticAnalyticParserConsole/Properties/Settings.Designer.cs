@@ -669,5 +669,140 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((string)(this["CFHistogramFileName"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
+            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
+            "tring>Average live cells per slice (last five minutes)</string>\r\n  <string>Avera" +
+            "ge tombstones per slice (last five minutes)</string>\r\n  <string>Batch size maxim" +
+            "um</string>\r\n  <string>Batch size mean</string>\r\n  <string>Batch size minimum</s" +
+            "tring>\r\n  <string>Batch size occurrences</string>\r\n  <string>Bloom filter false " +
+            "positives</string>\r\n  <string>Bloom filter false ratio</string>\r\n  <string>Bloom" +
+            " filter off heap memory used</string>\r\n  <string>Bloom filter space used</string" +
+            ">\r\n  <string>Compacted partition maximum bytes</string>\r\n  <string>Compacted par" +
+            "tition mean bytes</string>\r\n  <string>Compacted partition minimum bytes</string>" +
+            "\r\n  <string>Compaction maximum latency</string>\r\n  <string>Compaction maximum ra" +
+            "te</string>\r\n  <string>Compaction mean latency</string>\r\n  <string>Compaction me" +
+            "an rate</string>\r\n  <string>Compaction mean rate</string>\r\n  <string>Compaction " +
+            "minimum latency</string>\r\n  <string>Compaction minimum rate</string>\r\n  <string>" +
+            "Compaction occurrences</string>\r\n  <string>Compression metadata off heap memory " +
+            "used</string>\r\n  <string>Index summary off heap memory used</string>\r\n  <string>" +
+            "Local read count</string>\r\n  <string>Local read latency</string>\r\n  <string>Loca" +
+            "l write count</string>\r\n  <string>Local write latency</string>\r\n  <string>Maximu" +
+            "m live cells per slice (last five minutes)</string>\r\n  <string>Maximum tombstone" +
+            "s per slice (last five minutes)</string>\r\n  <string>MemTable OPS maximum</string" +
+            ">\r\n  <string>MemTable OPS mean</string>\r\n  <string>MemTable OPS minimum</string>" +
+            "\r\n  <string>MemTable Size maximum</string>\r\n  <string>MemTable Size mean</string" +
+            ">\r\n  <string>MemTable Size minimum</string>\r\n  <string>MemTable occurrences</str" +
+            "ing>\r\n  <string>Memtable cell count</string>\r\n  <string>Memtable data size</stri" +
+            "ng>\r\n  <string>Memtable off heap memory used</string>\r\n  <string>Memtable switch" +
+            " count</string>\r\n  <string>Number of keys (estimate)</string>\r\n  <string>Off hea" +
+            "p memory used (total)</string>\r\n  <string>Partition large maximum</string>\r\n  <s" +
+            "tring>Partition large mean</string>\r\n  <string>Partition large minimum</string>\r" +
+            "\n  <string>Partition large occurrences</string>\r\n  <string>Pending flushes</stri" +
+            "ng>\r\n  <string>Read Count</string>\r\n  <string>Read latency</string>\r\n  <string>R" +
+            "ead latency maximum</string>\r\n  <string>SSTable Compression Ratio</string>\r\n  <s" +
+            "tring>SSTable count</string>\r\n  <string>SSTable read maximum </string>\r\n  <strin" +
+            "g>Space used (live)</string>\r\n  <string>Space used (total)</string>\r\n  <string>S" +
+            "pace used by snapshots (total)</string>\r\n  <string>Tombstones warning maximum</s" +
+            "tring>\r\n  <string>Tombstones warning mean</string>\r\n  <string>Tombstones warning" +
+            " minimum</string>\r\n  <string>Tombstones warning occurrences</string>\r\n  <string>" +
+            "Write Count</string>\r\n  <string>Write latency</string>\r\n  <string>Write latency " +
+            "maximum</string>\r\n</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
+            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
+            "tring>AntiEntropySessions</string>\r\n  <string>AntiEntropyStage</string>\r\n  <stri" +
+            "ng>AntiEntropyStage Total</string>\r\n  <string>AntiEntropyStage maximum</string>\r" +
+            "\n  <string>AntiEntropyStage mean</string>\r\n  <string>AntiEntropyStage minimum</s" +
+            "tring>\r\n  <string>AntiEntropyStage occurrences</string>\r\n  <string>BINARY</strin" +
+            "g>\r\n  <string>COUNTER_MUTATION</string>\r\n  <string>CacheCleanupExecutor</string>" +
+            "\r\n  <string>CommitLogArchiver</string>\r\n  <string>CompactionExecutor</string>\r\n " +
+            " <string>CompactionExecutor Total</string>\r\n  <string>CompactionExecutor maximum" +
+            "</string>\r\n  <string>CompactionExecutor mean</string>\r\n  <string>CompactionExecu" +
+            "tor minimum</string>\r\n  <string>CompactionExecutor occurrences</string>\r\n  <stri" +
+            "ng>CounterMutationStage</string>\r\n  <string>CounterMutationStage Total</string>\r" +
+            "\n  <string>CounterMutationStage maximum</string>\r\n  <string>CounterMutationStage" +
+            " mean</string>\r\n  <string>CounterMutationStage minimum</string>\r\n  <string>Count" +
+            "erMutationStage occurrences</string>\r\n  <string>GC maximum latency</string>\r\n  <" +
+            "string>GC mean latency</string>\r\n  <string>GC minimum latency</string>\r\n  <strin" +
+            "g>GC occurrences</string>\r\n  <string>GossipStage</string>\r\n  <string>GossipStage" +
+            " Total</string>\r\n  <string>GossipStage maximum</string>\r\n  <string>GossipStage m" +
+            "ean</string>\r\n  <string>GossipStage minimum</string>\r\n  <string>GossipStage occu" +
+            "rrences</string>\r\n  <string>HintedHandoff</string>\r\n  <string>HintedHandoff Tota" +
+            "l</string>\r\n  <string>HintedHandoff maximum</string>\r\n  <string>HintedHandoff me" +
+            "an</string>\r\n  <string>HintedHandoff minimum</string>\r\n  <string>HintedHandoff o" +
+            "ccurrences</string>\r\n  <string>InternalResponseStage</string>\r\n  <string>Interna" +
+            "lResponseStage Total</string>\r\n  <string>InternalResponseStage maximum</string>\r" +
+            "\n  <string>InternalResponseStage mean</string>\r\n  <string>InternalResponseStage " +
+            "minimum</string>\r\n  <string>InternalResponseStage occurrences</string>\r\n  <strin" +
+            "g>MUTATION</string>\r\n  <string>MemtableFlushWriter</string>\r\n  <string>MemtableF" +
+            "lushWriter Total</string>\r\n  <string>MemtableFlushWriter maximum</string>\r\n  <st" +
+            "ring>MemtableFlushWriter mean</string>\r\n  <string>MemtableFlushWriter minimum</s" +
+            "tring>\r\n  <string>MemtableFlushWriter occurrences</string>\r\n  <string>MemtablePo" +
+            "stFlush</string>\r\n  <string>MemtablePostFlush Total</string>\r\n  <string>Memtable" +
+            "PostFlush maximum</string>\r\n  <string>MemtablePostFlush mean</string>\r\n  <string" +
+            ">MemtablePostFlush minimum</string>\r\n  <string>MemtablePostFlush occurrences</st" +
+            "ring>\r\n  <string>MemtableReclaimMemory</string>\r\n  <string>MemtableReclaimMemory" +
+            " Total</string>\r\n  <string>MemtableReclaimMemory maximum</string>\r\n  <string>Mem" +
+            "tableReclaimMemory mean</string>\r\n  <string>MemtableReclaimMemory minimum</strin" +
+            "g>\r\n  <string>MemtableReclaimMemory occurrences</string>\r\n  <string>MigrationSta" +
+            "ge</string>\r\n  <string>MigrationStage Total</string>\r\n  <string>MigrationStage m" +
+            "aximum</string>\r\n  <string>MigrationStage mean</string>\r\n  <string>MigrationStag" +
+            "e minimum</string>\r\n  <string>MigrationStage occurrences</string>\r\n  <string>Mis" +
+            "cStage</string>\r\n  <string>MutationStage</string>\r\n  <string>MutationStage Total" +
+            "</string>\r\n  <string>MutationStage maximum</string>\r\n  <string>MutationStage mea" +
+            "n</string>\r\n  <string>MutationStage minimum</string>\r\n  <string>MutationStage oc" +
+            "currences</string>\r\n  <string>PAGED_RANGE</string>\r\n  <string>Pause maximum late" +
+            "ncy</string>\r\n  <string>Pause mean latency</string>\r\n  <string>Pause minimum lat" +
+            "ency</string>\r\n  <string>Pause occurrences</string>\r\n  <string>PendingRangeCalcu" +
+            "lator</string>\r\n  <string>PendingRangeCalculator Total</string>\r\n  <string>Pendi" +
+            "ngRangeCalculator maximum</string>\r\n  <string>PendingRangeCalculator mean</strin" +
+            "g>\r\n  <string>PendingRangeCalculator minimum</string>\r\n  <string>PendingRangeCal" +
+            "culator occurrences</string>\r\n  <string>RANGE_SLICE</string>\r\n  <string>READ</st" +
+            "ring>\r\n  <string>READ_REPAIR</string>\r\n  <string>REQUEST_RESPONSE</string>\r\n  <s" +
+            "tring>ReadRepairStage</string>\r\n  <string>ReadRepairStage Total</string>\r\n  <str" +
+            "ing>ReadRepairStage maximum</string>\r\n  <string>ReadRepairStage mean</string>\r\n " +
+            " <string>ReadRepairStage minimum</string>\r\n  <string>ReadRepairStage occurrences" +
+            "</string>\r\n  <string>ReadStage</string>\r\n  <string>ReadStage Total</string>\r\n  <" +
+            "string>ReadStage maximum</string>\r\n  <string>ReadStage mean</string>\r\n  <string>" +
+            "ReadStage minimum</string>\r\n  <string>ReadStage occurrences</string>\r\n  <string>" +
+            "RequestResponseStage</string>\r\n  <string>RequestResponseStage Total</string>\r\n  " +
+            "<string>RequestResponseStage maximum</string>\r\n  <string>RequestResponseStage me" +
+            "an</string>\r\n  <string>RequestResponseStage minimum</string>\r\n  <string>RequestR" +
+            "esponseStage occurrences</string>\r\n  <string>Sampler</string>\r\n  <string>Slow Qu" +
+            "ery maximum latency</string>\r\n  <string>Slow Query mean latency</string>\r\n  <str" +
+            "ing>Slow Query minimum latency</string>\r\n  <string>Slow Query occurrences</strin" +
+            "g>\r\n  <string>ValidationExecutor</string>\r\n  <string>_TRACE</string>\r\n</ArrayOfS" +
+            "tring>")]
+        public global::System.Collections.Specialized.StringCollection NodeAttribs {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>SSTables</string>
+  <string>Write Latency</string>
+  <string>Read Latency</string>
+  <string>Partition Size</string>
+  <string>Cell Count</string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection TableHistogramAttribs {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["TableHistogramAttribs"]));
+            }
+        }
     }
 }

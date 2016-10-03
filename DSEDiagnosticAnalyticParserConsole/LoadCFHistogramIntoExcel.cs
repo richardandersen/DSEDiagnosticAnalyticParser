@@ -46,6 +46,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetCFHistogram);
             }
+            else
+            {
+                WorkSheetLoadColumnDefaults(excelPkg,
+                                            excelWorkSheetCFHistogram,
+                                            "F",
+                                            2,
+                                            ParserSettings.TablehistogramAttribs);
+            }
+
         }
 
     }

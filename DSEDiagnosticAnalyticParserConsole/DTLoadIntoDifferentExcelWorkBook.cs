@@ -175,7 +175,18 @@ namespace DSEDiagnosticAnalyticParserConsole
             workSheet.Cells["A6"].Value = string.Format("Warnings: {0} Errors: {1}",
                                                             Program.ConsoleWarnings.Counter > 0,
                                                             Program.ConsoleErrors.Counter > 0);
-            workSheet.Cells["A7"].Value = string.Format("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
+
+            if (ProcessFileTasks.LogCassandraMaxMinTimestamp.IsEmpty())
+            {
+                workSheet.Cells["A7"].Value = "No Log Range";
+            }
+            else
+            {
+                workSheet.Cells["A7"].Value = string.Format("Log From {0} ({0:ddd}) to {1} ({1:ddd}) duration {2:d\\ hh\\:mm}",
+                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
+                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp.Max,
+                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp.Max - ProcessFileTasks.LogCassandraMaxMinTimestamp.Min);
+            }
         }
     }
 }

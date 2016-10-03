@@ -325,7 +325,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 dataRow["Collections"] = nbrCollections;
                                 dataRow["Counters"] = nbrCounters;
-                                dataRow["Blobs"] = nbrCounters;
+                                dataRow["Blobs"] = nbrBlobs;
                                 dataRow["Total"] = endParan;
 
                                 //parse options...
@@ -521,9 +521,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var secondaryIndex = dataRow["Index"] == DBNull.Value ? false : (bool)dataRow["Index"];
 
-                dataRow["Active"] = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
-                                                                + '.' + ((string)dataRow["Name"])
-                                                                + (secondaryIndex ? " (Index)" : string.Empty));
+                if (secondaryIndex && (string) dataRow["Compaction Strategy"] == "Cql3SolrSecondaryIndex")
+                {
+                    continue;
+                }
+                else
+                {
+                    dataRow["Active"] = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
+                                                                    + '.' + ((string)dataRow["Name"])
+                                                                    + (secondaryIndex ? " (Index)" : string.Empty));
+                }
             }
         }
 

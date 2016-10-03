@@ -31,7 +31,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["I1"].Value = workSheet.Cells["I1"].Text + "(Formatted)";
                                             workSheet.View.FreezePanes(2, 1);
                                             workSheet.Cells["A1:I1"].AutoFilter = true;
-                                            //workSheet.Column(10).Hidden = true; //J
+                                            //workSheet.Column(10).Hidden = true;
+
+                                            WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);
+
                                             workSheet.Cells.AutoFitColumns();
                                         });
 

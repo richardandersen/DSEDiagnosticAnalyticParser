@@ -28,8 +28,38 @@ namespace DSEDiagnosticAnalyticParserConsole
             else
             {
                 var lastPartName = possibleAddress.Last();
+                var parts = Common.StringFunctions.CountOccurrences(lastPartName, '.');
 
-                if (Common.StringFunctions.CountOccurrences(lastPartName, '.') > 3)
+                if(parts == 0)
+                {
+                    var listSize = possibleAddress.Count();
+
+                    if (listSize >= 4)
+                    {
+                        lastPartName = possibleAddress[listSize - 4];
+                        lastPartName += "." + possibleAddress[listSize - 3];
+                        lastPartName += "." + possibleAddress[listSize - 2];
+                        lastPartName += "." + possibleAddress[listSize - 1];
+
+                        if(DetermineIPDCFromFileName(lastPartName, dtRingInfo, out ipAddress, out dcName))
+                        {
+                            return true;
+                        }
+
+                        lastPartName = possibleAddress[0];
+                        lastPartName += "." + possibleAddress[1];
+                        lastPartName += "." + possibleAddress[2];
+                        lastPartName += "." + possibleAddress[3];
+
+                        if (DetermineIPDCFromFileName(lastPartName, dtRingInfo, out ipAddress, out dcName))
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+                else if (parts > 3)
                 {
                     var extPos = lastPartName.LastIndexOf('.');
                     lastPartName = lastPartName.Substring(0, extPos);

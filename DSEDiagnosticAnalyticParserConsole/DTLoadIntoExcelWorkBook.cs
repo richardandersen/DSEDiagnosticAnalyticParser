@@ -40,6 +40,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 .ToTable();
             }
 
+            if (dtExcel.Rows.Count == 0) return null;
+
             var workSheet = excelPkg.Workbook.Worksheets[workSheetName];
             if (workSheet == null)
             {
@@ -116,6 +118,40 @@ namespace DSEDiagnosticAnalyticParserConsole
                             worksheetAction,
                             null,
                             startingWSCell);
+        }
+
+        static public void WorkSheetLoadColumnDefaults(ExcelWorksheet workSheet,
+                                                        string column,
+                                                        string[] defaultValues)
+        {           
+            for (int emptyRow = workSheet.Dimension.End.Row + 1, posValue = 0; posValue < defaultValues.Length; ++emptyRow, ++posValue)
+            {
+                workSheet.Cells[string.Format("{0}{1}", column, emptyRow)].Value = defaultValues[posValue];
+            }
+
+        }
+
+        static public void WorkSheetLoadColumnDefaults(ExcelPackage excelPkg,
+                                                        string workSheetName,
+                                                        string column,
+                                                        int startRow,
+                                                        string[] defaultValues)
+        {
+            var workSheet = excelPkg.Workbook.Worksheets[workSheetName];
+            if (workSheet == null)
+            {
+                workSheet = excelPkg.Workbook.Worksheets.Add(workSheetName);
+            }
+            else
+            {
+                workSheet.Cells[string.Format("{0}:{1}", startRow, workSheet.Dimension.End.Row)].Clear();                
+            }
+
+            for (int emptyRow = startRow, posValue = 0; posValue < defaultValues.Length; ++emptyRow, ++posValue)
+            {
+                workSheet.Cells[string.Format("{0}{1}", column, emptyRow)].Value = defaultValues[posValue];
+            }
+
         }
 
     }

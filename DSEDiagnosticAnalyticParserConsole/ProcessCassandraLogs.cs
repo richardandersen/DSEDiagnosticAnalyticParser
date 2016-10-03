@@ -725,18 +725,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                         //Not marking nodes down due to local pause of 12817405727 > 5000000000
                         if (itemPos == nCell)
                         {
-                            var time = DetermineTime(parsedValues[nCell]);
+                            long nbr;
 
-                            if(time is long)
+                            if (long.TryParse(parsedValues[nCell], out nbr))
                             {
-                                time = (int)(long)time;
+                                dataRow["Associated Value"] = nbr;
                             }
-                            if (time is int)
-                            {
-                                dataRow["Flagged"] = true;
-                                dataRow["Exception"] = "Pause (FailureDetector)";                               
-                            }
-                            dataRow["Associated Value"] = time;                            
+                            
+                            dataRow["Flagged"] = true;
+                            dataRow["Exception"] = "Pause (FailureDetector)";
                         }
                         
                         if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
@@ -766,9 +763,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         if (nCell == itemValuePos)
                         {
-                            object batchSize;
+                            int batchSize;
 
-                            if (StringFunctions.ParseIntoNumeric(parsedValues[nCell], out batchSize))
+                            if (int.TryParse(parsedValues[nCell], out batchSize))
                             {
                                 dataRow["Associated Value"] = batchSize;
                             }
@@ -777,6 +774,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             itemPos = nCell + 5;
                             itemValuePos = nCell + 9;
+                            dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Batch Size Exceeded";
                         }
                         #endregion
@@ -1055,7 +1053,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (parsedValues[4] == "SolrCore.java")
                     {
                         #region SolrCore.java
-                        //WARN  [SolrSecondaryIndex taulia_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [taulia_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
+                        //WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
 
                         if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
                         {
@@ -1409,7 +1407,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCStatusLog.Columns.Add("Pool/Cache Type", typeof(string)).AllowDBNull = true;
                 dtCStatusLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
                 dtCStatusLog.Columns.Add("Table", typeof(string)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("GC Time (ms)", typeof(int)).AllowDBNull = true; //g
+                dtCStatusLog.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //g
                 dtCStatusLog.Columns.Add("Eden-From (mb)", typeof(decimal)).AllowDBNull = true; //h
                 dtCStatusLog.Columns.Add("Eden-To (mb)", typeof(decimal)).AllowDBNull = true;
                 dtCStatusLog.Columns.Add("Old-From (mb)", typeof(decimal)).AllowDBNull = true;
@@ -1457,11 +1455,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java') and [Flagged] = true and [Exception] is not null)",
+                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java', 'BatchStatement.java') and [Flagged] = true)",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
-                var pauses = new List<int>();
+                var pauses = new List<long>();
                 var compactionLatencies = new List<Tuple<string, string, int>>();
                 var compactionRates = new List<Tuple<string, string, decimal>>();
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
@@ -1469,6 +1467,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var tpStatusCounts = new List<Tuple<string, long, long, long, long, long>>();
                 var statusMemTables = new List<Tuple<string, string, long, decimal>>();
                 var tpSlowQueries = new List<int>();
+                var batchSizes = new List<Tuple<string, string, int>>();
 
                 string item;
 
@@ -1505,7 +1504,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-ParNew";
-                            dataRow["GC Time (ms)"] = time;
+                            dataRow["GC Time (ms)"] = (long) time;
 
                             dtCStatusLog.Rows.Add(dataRow);
                             gcLatencies.Add((int)time);
@@ -1522,7 +1521,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-CMS";
-                            dataRow["GC Time (ms)"] = time;
+                            dataRow["GC Time (ms)"] = (long) ((dynamic) time);
 
                             if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -1550,7 +1549,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-G1";
-                            dataRow["GC Time (ms)"] = time;
+                            dataRow["GC Time (ms)"] = (long) ((dynamic) time);
 
                             if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -1582,19 +1581,28 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #region FailureDetector.java
                         var exception = vwDataRow["Exception"] as string;
 
-                        if (exception.StartsWith("Pause") && vwDataRow["Associated Value"] is int)
-                        {                            
+                        if (exception.StartsWith("Pause"))
+                        {
                             var dataRow = dtCStatusLog.NewRow();
-                            var time = (int)vwDataRow["Associated Value"];
+                            var time = vwDataRow["Associated Value"] as long?;
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC Pause";
-                            dataRow["GC Time (ms)"] = time;
 
-                            dtCStatusLog.Rows.Add(dataRow);
-                            pauses.Add(time);
+                            if (time.HasValue)
+                            {
+                                dataRow["GC Time (ms)"] = time.Value;
+                                pauses.Add(time.Value);
+                            }
+                            else
+                            {
+                                Program.ConsoleWarnings.Increment("Invalid Pause Value...");
+                                Logger.Dump(new DataRow[] { dataRow }, Logger.DumpType.Warning, "Invalid Pause Value");
+                            }
+                            
+                            dtCStatusLog.Rows.Add(dataRow);                            
                         }
                         #endregion
                     }
@@ -1888,6 +1896,29 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
+                    else if(item == "BatchStatement.java")
+                    {
+                        #region BatchSize
+
+                        var kstblName = vwDataRow["Associated Item"] as string;
+                        var batchSize = vwDataRow["Associated Value"] as int?;
+                        
+                        if (kstblName == null || !batchSize.HasValue)
+                        {
+                            continue;
+                        }
+
+                        var kstblSplit = SplitTableName(kstblName, null);
+
+                        if (ignoreKeySpaces.Contains(kstblSplit.Item1))
+                        {
+                            continue;
+                        }
+
+                        batchSizes.Add(new Tuple<string, string, int>(kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
+
+                        #endregion
+                    }
                     else
                     {
                         processingPool = false;
@@ -2128,15 +2159,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #region Pause                    
 
-                    pauses.RemoveAll(x => x <= 0);
-
                     if (pauses.Count > 0)
                     {
                         Logger.Instance.InfoFormat("Adding Pause ({2}) to TPStats for \"{0}\" \"{1}\"", dcName, ipAddress, pauses.Count);
 
-                        var gcMax = pauses.Max();
-                        var gcMin = pauses.Min();
-                        var gcAvg = (int)pauses.Average();
+                        var gcMax = (int) pauses.Max();
+                        var gcMin = (int) pauses.Min();
+                        var gcAvg = (int) pauses.Average();
 
                         var dataRow = dtTPStats.NewRow();
 
@@ -2644,6 +2673,94 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Value"] = (int)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
+                                dtCFStats.Rows.Add(dataRow);
+                            }
+                        }
+
+                        #endregion
+                    }
+
+                    if (batchSizes.Count > 0)
+                    {
+                        #region batcheSizes
+
+                        initializeCFStatsDataTable(dtCFStats);
+
+                        batchSizes.RemoveAll(x => x.Item3 <= 0);
+
+                        if (batchSizes.Count > 0)
+                        {
+                            Logger.Instance.InfoFormat("Adding Batch Sizes ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, batchSizes.Count);
+
+                            var compStats = from cmpItem in batchSizes
+                                            group cmpItem by new { cmpItem.Item1, cmpItem.Item2 }
+                                              into g
+                                            select new
+                                            {
+                                                KeySpace = g.Key.Item1,
+                                                Table = g.Key.Item2,
+                                                Max = g.Max(s => s.Item3),
+                                                Min = g.Min(s => s.Item3),
+                                                Avg = (int)g.Average(s => s.Item3),
+                                                Count = g.Count()
+                                            };
+
+                            foreach (var statItem in compStats)
+                            {
+                                var dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "Batch size maximum";
+                                dataRow["Value"] = statItem.Max;
+                                dataRow["(value)"] = statItem.Max;
+                                //dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "Batch size minimum";
+                                dataRow["Value"] = statItem.Min;
+                                dataRow["(Value)"] = statItem.Min;
+                                //dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "Batch size mean";
+                                dataRow["Value"] = statItem.Avg;
+                                dataRow["(Value)"] = statItem.Avg;
+                                //dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "Batch size occurrences";
+                                dataRow["Value"] = statItem.Count;
+                                dataRow["(Value)"] = statItem.Count;
+                                //dataRow["Unit of Measure"] = "bytes";
+
                                 dtCFStats.Rows.Add(dataRow);
                             }
                         }

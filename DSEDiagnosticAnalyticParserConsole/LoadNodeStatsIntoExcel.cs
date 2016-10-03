@@ -26,7 +26,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                             workSheet.Cells["E:L"].Style.Numberformat.Format = "#,###,###,##0";
-                                           
+
+                                            WorkSheetLoadColumnDefaults(workSheet, "D", ParserSettings.NodeStatsAttribs);
+
                                             workSheet.Cells["A1:L1"].AutoFilter = true;
                                             workSheet.Cells.AutoFitColumns();
                                             workSheet.View.FreezePanes(2, 1);
