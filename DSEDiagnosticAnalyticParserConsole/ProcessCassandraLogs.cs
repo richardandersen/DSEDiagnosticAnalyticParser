@@ -240,6 +240,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             int tableItemPos = -1;
             int nbrRows = 0;
             DateTimeRange ignoredTimeRange = new DateTimeRange();
+            bool exceptionOccurred = false;
             //int tableItemValuePos = -1;
 
             maxTimestamp = DateTime.MinValue;
@@ -249,9 +250,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                 line = fileLines[nLine].Trim();
 
                 if (string.IsNullOrEmpty(line)
-                    || line.Substring(0, 3).ToLower() == "at "
-                    || line.Substring(0, 4).ToLower() == "... ")
+                        || line.Length < 3)
                 {
+                    continue;
+                }
+
+                if (line.Substring(0, 3).ToLower() == "at "
+                        || line.Substring(0, 4).ToLower() == "... ")
+                {                    
                     continue;
                 }
 
@@ -296,9 +302,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
                 //WARN  [CqlSlowLog-Writer-thread-0] 2016-08-17 00:21:05,698  CqlSlowLogWriter.java:245 - Error writing to cql slow log
                 //org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level ONE
+                //java.lang.AssertionError: id=3114 length=3040 docID=2090 maxDoc=3040
+                //  at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]       
+                //Caused by: org.apache.solr.search.SyntaxError: Cannot parse '(((other_id:() AND other_id_type:(PASSPORT)))^1.0 OR phone:(5126148266 OR 5126148266)^1.0 OR ((street:(CHURCH) AND street:(6835)))^1.0)': Encountered " ")" ") "" at line 1, column 13.         
 
                 #region Exception Log Info Parsing
-                if (parsedValues[0].ToLower().Contains("exception"))
+                if (parsedValues[0].ToLower().Contains("exception")
+                        || parsedValues[0].ToLower().Contains("assertionerror"))
                 {
                     if (lastRow != null)
                     {
@@ -351,6 +361,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         lastRow.EndEdit();
                         lastRow.AcceptChanges();
                     }
+                    exceptionOccurred = true;
                     continue;
                 }
                 else if (parsedValues[0].ToLower() == "caused")
@@ -390,16 +401,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         lastRow.EndEdit();
                         lastRow.AcceptChanges();
                     }
+                    exceptionOccurred = true;
                     continue;
                 }
                 #endregion
 
                 if (parsedValues.Count < 6)
                 {
-                    if (lastRow != null)
+                    if (lastRow != null && !exceptionOccurred)
                     {
                         line.Dump(Logger.DumpType.Warning, "Invalid Log Line File: {0}", clogFilePath.PathResolved);
-                        Program.ConsoleWarnings.Increment("Invalid Log Line: " + line.Substring(0, 10) + "...");
+                        Program.ConsoleWarnings.Increment("Invalid Log Line: " + (line.Length <= 10 ? line : line.Substring(0, 10)) + "...");
                     }
                     continue;
                 }
@@ -461,6 +473,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 #endregion
+
+                exceptionOccurred = false;
 
                 #region Basic column Info
 
@@ -573,6 +587,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                             }
                         }
+                        exceptionOccurred = true;
                         #endregion
                     }
                     else if (parsedValues[nCell].ToLower().Contains("exception"))
@@ -588,6 +603,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Exception Description"] = exceptionLine.Substring(exceptionEndPos + 1).TrimStart();
                             ++nLine;
                         }
+                        exceptionOccurred = true;
                         #endregion
                     }
                     else if (parsedValues[4] == "CompactionController.java")
