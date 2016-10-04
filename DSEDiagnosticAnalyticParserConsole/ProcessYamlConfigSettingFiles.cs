@@ -54,6 +54,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             //
             // cassandra_audit_writer_options: {mode: sync, batch_size: 50, flush_time: 500, num_writers: 10,
             //		queue_size: 10000, write_consistency: QUORUM}
+            //
+            // data_file_directories:
+            //      - /data/1/dse/data
+            //      - /data/2/dse/data
+            //      - /data/3/dse/data
 
             for (int nIndex = 0; nIndex < fileLines.Length; ++nIndex)
             {
@@ -136,10 +141,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             foreach (var element in yamlList)
             {
-                var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
+                if (!element.Cmd.EndsWith("_directories"))
+                {
+                    var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
 
-                element.CmdParams = parsedValues.Item1;
-                element.KeyValueParams = parsedValues.Item2;
+                    element.CmdParams = parsedValues.Item1;
+                    element.KeyValueParams = parsedValues.Item2;
+                }
             }
         }
 
@@ -181,7 +189,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (paramItems.Item1 != null)
                         {
-                            throw new ArgumentException("Argument Param parasing Error. Argument: \"{0}\"", separateParams[nIndex]);
+                            throw new ArgumentException("Argument Param parsing Error. Argument: \"{0}\"", separateParams[nIndex]);
                         }
                         if (paramItems.Item2 != null)
                         {
@@ -211,7 +219,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             break;
                         }
                     }
-
+                   
                     if (separateParams[nIndex].EndsWith("_options"))
                     {
                         optionsFnd = true;

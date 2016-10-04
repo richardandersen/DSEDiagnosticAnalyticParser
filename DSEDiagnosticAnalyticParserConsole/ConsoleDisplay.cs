@@ -107,7 +107,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return string.Format(LineFormat,
                                         Common.Patterns.Threading.LockFree.Read(ref this._counter),
                                         this._taskItems.Count,
-                                        taskItem);
+                                        taskItem).Replace("{", "{{").Replace("}", "}}");
             }
             catch(System.ArgumentOutOfRangeException)
             {
