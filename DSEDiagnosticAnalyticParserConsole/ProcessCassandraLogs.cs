@@ -305,11 +305,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //java.lang.AssertionError: id=3114 length=3040 docID=2090 maxDoc=3040
                 //  at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]       
                 //Caused by: org.apache.solr.search.SyntaxError: Cannot parse '(((other_id:() AND other_id_type:(PASSPORT)))^1.0 OR phone:(5126148266 OR 5126148266)^1.0 OR ((street:(CHURCH) AND street:(6835)))^1.0)': Encountered " ")" ") "" at line 1, column 13.         
+                //ERROR [SharedPool-Worker-1] 2016-09-28 19:18:25,277  CqlSolrQueryExecutor.java:375 - No response after timeout: 60000
+                //org.apache.solr.common.SolrException: No response after timeout: 60000
+                //java.lang.RuntimeException: org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level LOCAL_ONE
+                //ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request; channel = [id: 0xc224c650, /10.16.9.33:49634 => /10.12.50.27:9042]
+                //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
+                //java.lang.OutOfMemoryError: Java heap space
 
                 #region Exception Log Info Parsing
-                if (parsedValues[0].ToLower().Contains("exception")
-                        || parsedValues[0].ToLower().Contains("assertionerror"))
+                if(parsedValues[0].Contains("OutOfMemoryError"))
                 {
+                    #region OutOfMemoryError
+
                     if (lastRow != null)
                     {
                         lastRow.BeginEdit();
@@ -318,8 +325,53 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
                                                 : parsedValues[0];
                         lastRow["Exception Description"] = line;
+                        lastRow["Flagged"] = true;
+                        lastRow["Associated Item"] = line.Substring(parsedValues[0].Length);
 
-                        if (lastRow["Associated Value"] == DBNull.Value)
+                        lastRow.EndEdit();
+                        lastRow.AcceptChanges();
+                    }
+                    exceptionOccurred = true;
+                    continue;
+
+                    #endregion
+                }
+                else if (parsedValues[0].ToLower().Contains("exception")
+                            || parsedValues[0].ToLower().Contains("assertionerror"))
+                {
+                    #region Exception
+
+                    if (lastRow != null)
+                    {
+                        lastRow.BeginEdit();
+
+                        lastRow["Exception"] = parsedValues[0][parsedValues[0].Length - 1] == ':'
+                                                ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
+                                                : parsedValues[0];
+                        lastRow["Exception Description"] = line;
+                        lastRow["Flagged"] = true;
+
+                        if((string)lastRow["Exception"] == "io.netty.handler.ssl.NotSslRecordException")
+                        {
+                            var lstDescr = lastRow["Description"] as string;
+
+                            if(!string.IsNullOrEmpty(lstDescr))
+                            {
+                                //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
+                                //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
+                                var pos = lstDescr.IndexOf("channel");
+
+                                if(pos > 0)
+                                {
+                                    var channelValue = lstDescr.Substring(pos + 10).Trim();
+                                    var cpos = channelValue.IndexOf('/');
+
+                                    lastRow["Associated Item"] = cpos > 0 ? "[" + channelValue.Substring(cpos) : channelValue;
+                                }
+                            }
+
+                        }
+                        else if (lastRow["Associated Value"] == DBNull.Value)
                         {
                             var clMatch = RegExCLogCL.Match(line);
                             var toMatch = RegExCLogTO.Match(line);
@@ -363,9 +415,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     exceptionOccurred = true;
                     continue;
+
+                    #endregion
                 }
                 else if (parsedValues[0].ToLower() == "caused")
                 {
+                    #region caused
+
                     if (lastRow != null)
                     {
                         lastRow.BeginEdit();
@@ -374,25 +430,45 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 ? parsedValues[2].Substring(0, parsedValues[2].Length - 1)
                                                 : parsedValues[2];
                         lastRow["Exception Description"] = line;
+                        lastRow["Flagged"] = true;
 
                         if (lastRow["Associated Value"] == DBNull.Value)
                         {
-                            foreach (var element in parsedValues)
+                            if (parsedValues[2].EndsWith("SyntaxError:"))
                             {
-                                if (element[0] == '(')
+                                if(parsedValues[3].ToLower() == "cannot" && parsedValues[4].ToLower() == "parse")
                                 {
-                                    if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
-                                    {
-                                        lastRow["Associated Value"] = lineIPAddress;
-                                        break;
-                                    }
+                                    lastRow["Associated Value"] = parsedValues[5];
                                 }
-                                else if (element[0] == '/')
+                            }
+                            else if (parsedValues[2].EndsWith("ParseException:"))
+                            {
+                                if (parsedValues[3].ToLower() == "Encountered")
                                 {
-                                    if (LookForIPAddress(element, ipAddress, out lineIPAddress))
+                                    var lastPos = parsedValues.LastIndexOf("line");
+
+                                    lastRow["Associated Value"] = string.Join(" ", parsedValues.GetRange(4, lastPos - 6));                                                                                
+                                }
+                            }
+                            else
+                            {
+                                foreach (var element in parsedValues)
+                                {
+                                    if (element[0] == '(')
                                     {
-                                        lastRow["Associated Value"] = lineIPAddress;
-                                        break;
+                                        if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
+                                        {
+                                            lastRow["Associated Value"] = lineIPAddress;
+                                            break;
+                                        }
+                                    }
+                                    else if (element[0] == '/')
+                                    {
+                                        if (LookForIPAddress(element, ipAddress, out lineIPAddress))
+                                        {
+                                            lastRow["Associated Value"] = lineIPAddress;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -403,6 +479,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     exceptionOccurred = true;
                     continue;
+
+                    #endregion
                 }
                 #endregion
 
@@ -556,6 +634,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region SolrException.java
                         //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
+                        //ERROR [SharedPool-Worker-2] 2016-09-30 09:07:53,224  SolrException.java:150 - org.apache.solr.common.SolrException: org.apache.solr.search.SyntaxError: Cannot parse 'something': Encountered " ")" ") "" at line 1, column 13.
                         if (nCell > 4)
                         {
                             if (dataRow["Exception"] == DBNull.Value && parsedValues[nCell].ToLower().Contains("exception"))
@@ -570,7 +649,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (exceptionInfo.Count == 1)
                                 {
-                                    dataRow["Exception"] = parsedValues[nCell];
+                                    dataRow["Exception"] = "SolrException(" + parsedValues[nCell] + ")";
                                 }
                                 else
                                 {
@@ -590,6 +669,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                         exceptionOccurred = true;
                         #endregion
                     }
+                    else if (parsedValues[4] == "Message.java")
+                    {
+                        #region Message.java
+                        //ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request; channel = [id: 0xc224c650, /10.16.9.33:49634 => /10.12.50.27:9042]
+
+                        if (nCell == itemValuePos)
+                        {
+                            if(parsedValues[nCell] == "channel")
+                            {
+                                var pos = parsedValues[nCell + 2].IndexOf('/');
+
+                                dataRow["Associated Item"] = pos > 0 ? "[" + parsedValues[nCell + 2].Substring(pos) : parsedValues[nCell + 2];
+                            }
+                        }                        
+                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Unexpected" && parsedValues[nCell + 1] == "exception")
+                        {
+                            itemValuePos = nCell + 4;
+                            dataRow["Exception"] = "Unexpected";
+                            dataRow["Exception Description"] = "Unexpected exception";
+                            dataRow["Flagged"] = true;
+                        }
+                        #endregion
+                    }
                     else if (parsedValues[nCell].ToLower().Contains("exception"))
                     {
                         #region exception
@@ -601,9 +703,41 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Exception"] = exceptionClass.Substring(0, exceptionClass.Length - 1);
                             dataRow["Exception Description"] = exceptionLine.Substring(exceptionEndPos + 1).TrimStart();
+                            dataRow["Flagged"] = true;
                             ++nLine;
                         }
                         exceptionOccurred = true;
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
+                    {
+                        #region CqlSolrQueryExecutor.java
+
+                        if (itemPos == nCell)
+                        {
+                            dataRow["Associated Item"] = parsedValues[nCell];
+                        }
+                        if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
+                        {
+                            var firstParan = parsedValues[nCell].IndexOf('(');
+
+                            if (firstParan >= 0)
+                            {
+                                dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
+                            }
+                        }
+
+                        if (parsedValues[nCell].EndsWith("SyntaxError:"))
+                        {
+                            //ERROR [SharedPool-Worker-2] 2016-09-27 12:27:29,012  CqlSolrQueryExecutor.java:375 - org.apache.solr.search.SyntaxError: Cannot parse 'syntax' at line 1, column 13.
+
+                            itemPos = nCell + 3;
+                            dataRow["Flagged"] = true;
+                            dataRow["Exception"] = parsedValues[nCell][parsedValues[nCell].Length - 1] == ':'
+                                                        ? parsedValues[nCell].Substring(0, parsedValues[nCell].Length - 1)
+                                                        : parsedValues[nCell];
+                            exceptionOccurred = true;
+                        }
                         #endregion
                     }
                     else if (parsedValues[4] == "CompactionController.java")
@@ -747,14 +881,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 dataRow["Associated Value"] = nbr;
                             }
-                            
+
                             dataRow["Flagged"] = true;
                             dataRow["Exception"] = "Pause (FailureDetector)";
                         }
-                        
+
                         if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
                         {
-                            itemPos = nCell + 8;                           
+                            itemPos = nCell + 8;
                         }
                         #endregion
                     }
@@ -1035,6 +1169,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region CqlSlowLogWriter.java
                         //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 01:42:34,277  CqlSlowLogWriter.java:151 - Recording statements with duration of 60248 in slow log
+                        //WARN  [CqlSlowLog-Writer-thread-0] 2016-09-26 15:48:23,806  CqlSlowLogWriter.java:245 - Error writing to cql slow log
                         if (nCell == itemValuePos)
                         {
                             var queryTime = int.Parse(parsedValues[nCell]);
@@ -1052,15 +1187,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                             itemValuePos = nCell + 5;
                             dataRow["Associated Item"] = "Slow Query Writing to dse_perf.node_slow_log table";
                         }
+                        else if (parsedValues[nCell] == "Error")
+                        {
+                            dataRow["Associated Item"] = string.Join(" ", parsedValues.GetRange(nCell, parsedValues.Count - nCell));
+                            dataRow["Flagged"] = true;
+                        }
                         #endregion
-                    }                    
+                    }
                     else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
                     {
                         #region CqlSolrQueryExecutor.java
                         //ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
                         if (parsedValues[nCell] == "No" && parsedValues[nCell + 1] == "response" && parsedValues[nCell + 3] == "timeout")
                         {
-                            dataRow["Flagged"] = true;                                                       
+                            dataRow["Flagged"] = true;
                             dataRow["Associated Item"] = "Solr Timeout";
                             dataRow["Associated Value"] = int.Parse(parsedValues[nCell + 4]);
                         }
@@ -1076,10 +1216,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Flagged"] = true;
                             dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell));
 
-                            var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell -1]), null);
+                            var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell - 1]), null);
                             var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
 
                             dataRow["Associated Value"] = ksTableName;
+                        }
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "JVMStabilityInspector.java")
+                    {
+                        #region JVMStabilityInspector.java
+                        //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
+
+                        if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
+                        {
+                            dataRow["Flagged"] = true;
+                            dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));                            
                         }
                         #endregion
                     }
@@ -1471,7 +1623,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java', 'BatchStatement.java') and [Flagged] = true)",
+                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java', 'BatchStatement.java', 'JVMStabilityInspector.java') and [Flagged] = true)",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
@@ -1484,6 +1636,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var statusMemTables = new List<Tuple<string, string, long, decimal>>();
                 var tpSlowQueries = new List<int>();
                 var batchSizes = new List<Tuple<string, string, int>>();
+                var jvmFatalErrors = new List<string>();
 
                 string item;
 
@@ -1907,8 +2060,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (item == "CqlSlowLogWriter.java")
                     {
                         #region CqlSlowLogWriter
+                        var time = vwDataRow["Associated Value"] as int?;
 
-                        tpSlowQueries.Add((int)vwDataRow["Associated Value"]);
+                        if (time.HasValue)
+                        {
+                            tpSlowQueries.Add(time.Value);
+                        }
 
                         #endregion
                     }
@@ -1932,6 +2089,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         batchSizes.Add(new Tuple<string, string, int>(kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
+
+                        #endregion
+                    }                   
+                    else if (item == "JVMStabilityInspector.java")
+                    {
+                        #region JVMStabilityInspector
+                        var exception = vwDataRow["Exception"] as string;
+
+                        if (!string.IsNullOrEmpty(exception))
+                        {
+                            jvmFatalErrors.Add(exception);
+                        }
 
                         #endregion
                     }
@@ -2222,6 +2391,34 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Occurrences"] = pauses.Count;
 
                         dtTPStats.Rows.Add(dataRow);
+                    }
+
+                    #endregion
+
+                    #region JVM
+
+                    if (jvmFatalErrors.Count > 0)
+                    {
+                        var jvmItems = from jvmItem in jvmFatalErrors
+                                        group jvmItem by jvmItem into g
+                                        select new
+                                        {
+                                            item = g.Key,                     
+                                            Count = g.Count()
+                                        };
+
+                        foreach (var jvmGrp in jvmItems)
+                        {
+                            var dataRow = dtTPStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Attribute"] = RemoveNamespace(jvmGrp.item) + " occurrences";
+                            dataRow["Occurrences"] = jvmGrp.Count;
+
+                            dtTPStats.Rows.Add(dataRow);
+                        }                        
                     }
 
                     #endregion

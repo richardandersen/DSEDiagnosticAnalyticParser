@@ -781,8 +781,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "esponseStage occurrences</string>\r\n  <string>Sampler</string>\r\n  <string>Slow Qu" +
             "ery maximum latency</string>\r\n  <string>Slow Query mean latency</string>\r\n  <str" +
             "ing>Slow Query minimum latency</string>\r\n  <string>Slow Query occurrences</strin" +
-            "g>\r\n  <string>ValidationExecutor</string>\r\n  <string>_TRACE</string>\r\n</ArrayOfS" +
-            "tring>")]
+            "g>\r\n  <string>ValidationExecutor</string>\r\n  <string>_TRACE</string>\r\n  <string>" +
+            "OutOfMemoryError occurrences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
