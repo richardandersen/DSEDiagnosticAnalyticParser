@@ -586,7 +586,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("*.cql\"")]
+        [global::System.Configuration.DefaultSettingValueAttribute("*.cql")]
         public string CQLDDLDirFileExt {
             get {
                 return ((string)(this["CQLDDLDirFileExt"]));
@@ -782,7 +782,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ery maximum latency</string>\r\n  <string>Slow Query mean latency</string>\r\n  <str" +
             "ing>Slow Query minimum latency</string>\r\n  <string>Slow Query occurrences</strin" +
             "g>\r\n  <string>ValidationExecutor</string>\r\n  <string>_TRACE</string>\r\n  <string>" +
-            "OutOfMemoryError occurrences</string>\r\n</ArrayOfString>")]
+            "OutOfMemoryError occurrences</string>\r\n  <string>CommitLogFlushFailure occurrenc" +
+            "es</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));

@@ -29,8 +29,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                 workSheet.View.FreezePanes(2, 1);
                                 workSheet.Cells["A1:F1"].AutoFilter = true;
-                                workSheet.Cells["C:D"].Style.Numberformat.Format = "0";
-                                workSheet.Cells["E:E"].Style.Numberformat.Format = "#,###,###,##0";
+                                //workSheet.Cells["C:D"].Style.Numberformat.Format = "TEXT";
+                                //workSheet.Cells["E:E"].Style.Numberformat.Format = "TEXT";
                                 workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###,###,##0.00";
                                 workSheet.Cells.AutoFitColumns();
                             });

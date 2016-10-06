@@ -45,9 +45,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 dtTokenRange.Columns.Add("Data Center", typeof(string));
                 dtTokenRange.Columns.Add("Node IPAddress", typeof(string));
-                dtTokenRange.Columns.Add("Start Token (exclusive)", typeof(long));
-                dtTokenRange.Columns.Add("End Token (inclusive)", typeof(long));
-                dtTokenRange.Columns.Add("Slots", typeof(long));
+                dtTokenRange.Columns.Add("Start Token (exclusive)", typeof(string));
+                dtTokenRange.Columns.Add("End Token (inclusive)", typeof(string));
+                dtTokenRange.Columns.Add("Slots", typeof(string));
                 dtTokenRange.Columns.Add("Load(MB)", typeof(decimal));
             }
 
@@ -117,19 +117,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dataRow["Data Center"] = currentDC;
                             dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Start Token (exclusive)"] = currentStartToken;
+                            dataRow["Start Token (exclusive)"] = currentStartToken.ToString();
                             endToken = long.Parse(parsedLine[7]);
-                            dataRow["End Token (inclusive)"] = endToken;
+                            dataRow["End Token (inclusive)"] = endToken.ToString();
 
                             if (rangeStart)
                             {
                                 rangeStart = false;
-                                dataRow["Slots"] = (endToken - long.MinValue)
-                                                        + (long.MaxValue - currentStartToken.Value);
+                                dataRow["Slots"] = ((endToken - long.MinValue)
+                                                        + (long.MaxValue - currentStartToken.Value)).ToString("###,###,###,###,##0");
                             }
                             else
                             {
-                                dataRow["Slots"] = Math.Abs(endToken - currentStartToken.Value);
+                                dataRow["Slots"] = Math.Abs(endToken - currentStartToken.Value).ToString("###,###,###,###,##0");
                             }
 
                             dataRow["Load(MB)"] = ConvertInToMB(parsedLine[4], parsedLine[5]);

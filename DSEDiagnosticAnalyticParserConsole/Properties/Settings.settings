@@ -212,7 +212,7 @@
       <Value Profile="(Default)">.\cqlsh\describe_schema</Value>
     </Setting>
     <Setting Name="CQLDDLDirFileExt" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">*.cql"</Value>
+      <Value Profile="(Default)">*.cql</Value>
     </Setting>
     <Setting Name="OSMachineFiles" Type="System.Collections.Specialized.StringCollection" Scope="Application">
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
@@ -439,6 +439,7 @@
   &lt;string&gt;ValidationExecutor&lt;/string&gt;
   &lt;string&gt;_TRACE&lt;/string&gt;
   &lt;string&gt;OutOfMemoryError occurrences&lt;/string&gt;
+  &lt;string&gt;CommitLogFlushFailure occurrences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="TableHistogramAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">

@@ -311,9 +311,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request; channel = [id: 0xc224c650, /10.16.9.33:49634 => /10.12.50.27:9042]
                 //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
                 //java.lang.OutOfMemoryError: Java heap space
+                //WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
+                //Failure to flush may cause excessive growth of Cassandra commit log.
 
                 #region Exception Log Info Parsing
-                if(parsedValues[0].Contains("OutOfMemoryError"))
+                if (parsedValues[0].Contains("OutOfMemoryError"))
                 {
                     #region OutOfMemoryError
 
@@ -517,8 +519,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 else
                 {
-                    line.Dump(Logger.DumpType.Warning, "Invalid Log Date/Time File: {0}", clogFilePath.PathResolved);
-                    Program.ConsoleWarnings.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
+                    if (!exceptionOccurred)
+                    {
+                        line.Dump(Logger.DumpType.Warning, "Invalid Log Date/Time File: {0}", clogFilePath.PathResolved);
+                        Program.ConsoleWarnings.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
+                    }
                     continue;
                 }
 
@@ -1227,11 +1232,33 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region JVMStabilityInspector.java
                         //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
+                        //java.lang.OutOfMemoryError: Java heap space
 
                         if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
                         {
                             dataRow["Flagged"] = true;
                             dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));                            
+                        }
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "WorkPool.java")
+                    {
+                        #region WorkPool.java
+                        //WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
+                        //Failure to flush may cause excessive growth of Cassandra commit log.
+
+                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Timeout"
+                                && parsedValues.ElementAtOrDefault(nCell + 4) == "workers"
+                                && parsedValues.ElementAtOrDefault(nCell + 6) == "flushing")
+                        {                            
+                            var nxtLine = fileLines[nLine + 1].Trim();
+                            if (nxtLine.StartsWith("Failure") && nxtLine.Contains("commit log"))
+                            {
+                                dataRow["Flagged"] = true;
+                                dataRow["Associated Item"] = nxtLine;
+                                dataRow["Exception"] = "CommitLogFlushFailure";
+                                ++nLine;
+                            }
                         }
                         #endregion
                     }
@@ -1623,7 +1650,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or ([Item] in ('CompactionController.java', 'SSTableWriter.java', 'SliceQueryFilter.java', 'CqlSlowLogWriter.java', 'FailureDetector.java', 'BatchStatement.java', 'JVMStabilityInspector.java') and [Flagged] = true)",
+                                                        " or ([Item] in ('CompactionController.java'" +
+                                                                            ", 'SSTableWriter.java'" +
+                                                                            ", 'SliceQueryFilter.java'" +
+                                                                            ", 'CqlSlowLogWriter.java'" +
+                                                                            ", 'FailureDetector.java'" +
+                                                                            ", 'BatchStatement.java'" +
+                                                                            ", 'JVMStabilityInspector.java'" +
+                                                                            ", 'WorkPool.java'" +
+                                                                            ") and [Flagged] = true)",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
@@ -1637,6 +1672,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var tpSlowQueries = new List<int>();
                 var batchSizes = new List<Tuple<string, string, int>>();
                 var jvmFatalErrors = new List<string>();
+                var workPoolErrors = new List<string>();
 
                 string item;
 
@@ -1762,7 +1798,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             if (time.HasValue)
                             {
-                                dataRow["GC Time (ms)"] = time.Value;
+                                dataRow["GC Time (ms)"] = time.Value / 1000000L;
                                 pauses.Add(time.Value);
                             }
                             else
@@ -2104,6 +2140,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
+                    else if (item == "WorkPool.java")
+                    {
+                        #region WorkPool
+                        var exception = vwDataRow["Exception"] as string;
+
+                        if (!string.IsNullOrEmpty(exception))
+                        {
+                            workPoolErrors.Add(exception);
+                        }
+
+                        #endregion
+                    }
                     else
                     {
                         processingPool = false;
@@ -2419,6 +2467,34 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtTPStats.Rows.Add(dataRow);
                         }                        
+                    }
+
+                    #endregion
+
+                    #region WorkPool
+
+                    if (workPoolErrors.Count > 0)
+                    {
+                        var wptems = from wpItem in workPoolErrors
+                                       group wpItem by wpItem into g
+                                       select new
+                                       {
+                                           item = g.Key,
+                                           Count = g.Count()
+                                       };
+
+                        foreach (var wpGrp in wptems)
+                        {
+                            var dataRow = dtTPStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Attribute"] = RemoveNamespace(wpGrp.item) + " occurrences";
+                            dataRow["Occurrences"] = wpGrp.Count;
+
+                            dtTPStats.Rows.Add(dataRow);
+                        }
                     }
 
                     #endregion

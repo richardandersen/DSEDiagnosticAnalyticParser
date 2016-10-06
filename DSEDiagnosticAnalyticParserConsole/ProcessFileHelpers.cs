@@ -17,6 +17,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
                                                                 Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
 
+            ipAddress = null;
+
             if (possibleAddress.Count() == 1)
             {
                 if (!IPAddressStr(possibleAddress[0], out ipAddress))
@@ -27,80 +29,62 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                var lastPartName = possibleAddress.Last();
-                var parts = Common.StringFunctions.CountOccurrences(lastPartName, '.');
+                string fileNamePart;
 
-                if(parts == 0)
+                for(int nIndex = 0; nIndex < possibleAddress.Count; ++nIndex)
                 {
-                    var listSize = possibleAddress.Count();
+                    fileNamePart = possibleAddress[nIndex];
 
-                    if (listSize >= 4)
+                    var parts = Common.StringFunctions.CountOccurrences(fileNamePart, '.');
+
+                    if (parts == 0)
                     {
-                        lastPartName = possibleAddress[listSize - 4];
-                        lastPartName += "." + possibleAddress[listSize - 3];
-                        lastPartName += "." + possibleAddress[listSize - 2];
-                        lastPartName += "." + possibleAddress[listSize - 1];
-
-                        if(DetermineIPDCFromFileName(lastPartName, dtRingInfo, out ipAddress, out dcName))
+                       if(fileNamePart.Length <= 3)
                         {
-                            return true;
-                        }
-
-                        lastPartName = possibleAddress[0];
-                        lastPartName += "." + possibleAddress[1];
-                        lastPartName += "." + possibleAddress[2];
-                        lastPartName += "." + possibleAddress[3];
-
-                        if (DetermineIPDCFromFileName(lastPartName, dtRingInfo, out ipAddress, out dcName))
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    }
-                }
-                else if (parts > 3)
-                {
-                    var extPos = lastPartName.LastIndexOf('.');
-                    lastPartName = lastPartName.Substring(0, extPos);
-                }
-
-                //Ip Address is either the first part of the name or the last
-                if (!IPAddressStr(possibleAddress[0], out ipAddress))
-                {
-                    if (!IPAddressStr(lastPartName, out ipAddress))
-                    {
-                        //Might be the only the last address node...
-                        string lastAddressOct = null;
-
-                        if (possibleAddress[0].Length <= 3 && StringFunctions.IsValidNumeric(possibleAddress[0]))
-                        {
-                            lastAddressOct = possibleAddress[0];
-                        }
-                        else if (lastPartName.Length <= 3 && StringFunctions.IsValidNumeric(lastPartName))
-                        {
-                            lastAddressOct = lastPartName;
-                        }
-
-                        if (lastAddressOct != null)
-                        {
-                            var ipView = new DataView(dtRingInfo,
-                                                        string.Format("[Node IPAddress] like '%.{0}'", lastAddressOct),
-                                                        null,
-                                                        DataViewRowState.CurrentRows);
-
-                            if (ipView.Count == 1)
+                            if (Common.StringFunctions.IsValidNumeric(fileNamePart, true))
                             {
-                                ipAddress = (string)ipView[0]["Node IPAddress"];
-                                dcName = ipView[0]["Data Center"] as string;
-                                return true;
+                                if(possibleAddress.Count > nIndex + 3
+                                        && possibleAddress.GetRange(nIndex, 4).TrueForAll(item => item.Length <= 3 && Common.StringFunctions.IsValidNumeric(item, true))
+                                        && IPAddressStr(fileNamePart + "." + possibleAddress[nIndex+1] + "." + possibleAddress[nIndex+2] + "." + possibleAddress[nIndex+3], out ipAddress))
+                                {
+                                    break;
+                                }
+
+                                var ipView = new DataView(dtRingInfo,
+                                                            string.Format("[Node IPAddress] like '%.{0}'", fileNamePart),
+                                                            null,
+                                                            DataViewRowState.CurrentRows);
+
+                                if (ipView.Count == 1)
+                                {
+                                    ipAddress = (string)ipView[0]["Node IPAddress"];
+                                    dcName = ipView[0]["Data Center"] as string;
+                                    return true;
+                                }
                             }
                         }
 
-                        dcName = null;
-                        return false;
+                        continue;
                     }
+                    else if (parts > 3)
+                    {
+                        var extPos = fileNamePart.LastIndexOf('.');
+                        fileNamePart = fileNamePart.Substring(0, extPos);
+                    }
+
+                    if (IPAddressStr(fileNamePart, out ipAddress))
+                    {
+                        break;
+                    }
+
+                    ipAddress = null;
                 }
+                
+                if(string.IsNullOrEmpty(ipAddress))
+                {
+                    dcName = null;
+                    return false;
+                }          
             }
 
             var dcRow = dtRingInfo.Rows.Count == 0 ? null : dtRingInfo.Rows.Find(ipAddress);
