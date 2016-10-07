@@ -137,6 +137,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] CFStatsAttribs = Properties.Settings.Default.CFStatsAttribs.ToArray(false);
         public static string[] NodeStatsAttribs = Properties.Settings.Default.NodeAttribs.ToArray(false);
         public static string[] TablehistogramAttribs = Properties.Settings.Default.TableHistogramAttribs.ToArray(false);
+        public static string[] PerformanceKeyspaces = Properties.Settings.Default.PerformanceKeyspaces.ToArray(false);
 
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {

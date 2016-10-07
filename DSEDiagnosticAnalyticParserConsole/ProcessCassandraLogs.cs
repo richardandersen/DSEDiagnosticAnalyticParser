@@ -491,7 +491,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (lastRow != null && !exceptionOccurred)
                     {
                         line.Dump(Logger.DumpType.Warning, "Invalid Log Line File: {0}", clogFilePath.PathResolved);
-                        Program.ConsoleWarnings.Increment("Invalid Log Line: " + (line.Length <= 10 ? line : line.Substring(0, 10)) + "...");
+                        Program.ConsoleWarnings.Increment("Invalid Log Line:", line);
                     }
                     continue;
                 }
@@ -522,7 +522,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (!exceptionOccurred)
                     {
                         line.Dump(Logger.DumpType.Warning, "Invalid Log Date/Time File: {0}", clogFilePath.PathResolved);
-                        Program.ConsoleWarnings.Increment("Invalid Log Date/Time: " + line.Substring(0, 10) + "...");
+                        Program.ConsoleWarnings.Increment("Invalid Log Date/Time:", line);
                     }
                     continue;
                 }
@@ -1932,14 +1932,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     var msg = string.Format("StatusLogger Invalid Line \"{0}\" for {1}", descr, ipAddress);
                                     Logger.Instance.Warn(msg);
-                                    Program.ConsoleWarnings.Increment(msg.Length > 45 ? msg.Substring(0, 45) : msg);
+                                    Program.ConsoleWarnings.Increment(string.Empty, msg, 45);
                                 }
                             }
                             catch (Exception e)
                             {
                                 var msg = string.Format("StatusLogger Invalid Line \"{0}\" for {1}", descr, ipAddress);
                                 Logger.Instance.Error(msg, e);
-                                Program.ConsoleErrors.Increment(msg.Length > 45 ? msg.Substring(0, 45) : msg);
+                                Program.ConsoleErrors.Increment(string.Empty, msg, 45);
                             }
                         }
                         #endregion

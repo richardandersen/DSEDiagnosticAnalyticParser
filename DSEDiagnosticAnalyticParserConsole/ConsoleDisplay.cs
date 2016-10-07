@@ -56,6 +56,15 @@ namespace DSEDiagnosticAnalyticParserConsole
             return Interlocked.Increment(ref this._counter);
         }
 
+        public long Increment(string preFix, string msg, int maxMsgLength = 15)
+        {
+            return Increment(string.Format("{0} {1}",
+                                            preFix,
+                                            maxMsgLength <= 0 || string.IsNullOrEmpty(msg) || msg.Length < maxMsgLength 
+                                                ? msg
+                                                : msg.Substring(0, maxMsgLength) + "..."));
+        }
+
         public long Increment(Common.IFilePath filePath)
         {
             return this.Increment(filePath?.FileName);

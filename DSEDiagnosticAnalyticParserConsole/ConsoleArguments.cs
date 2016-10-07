@@ -325,7 +325,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// Additional file path that is used to parse CQL/DDL files. Wild cards can be included.
         /// </summary>
-        [Option('2', "AlternativeDDLFilePath", HelpText = "Additional file path that is used to parse CQL/DDL files. Wild cards can be included.",
+        [Option('d', "AlternativeDDLFilePath", HelpText = "Additional file path that is used to parse CQL/DDL files. Wild cards can be included.",
                     Required = false)]
         public string AlternativeDDLFilePath
         {
@@ -338,7 +338,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// A list of keyspaces to ignore during parsing.
         /// </summary>
-        [Option("IgnoreKeySpaces", HelpText = "A list of keyspaces to ignore during parsing.",
+        [Option('I', "IgnoreKeySpaces", HelpText = "A list of keyspaces to ignore during parsing.",
                     Required = false)]
         public string IgnoreKeySpaces
         {
@@ -353,6 +353,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                 ParserSettings.IgnoreKeySpaces = keySpaces?.Select(item => ProcessFileTasks.RemoveQuotes(item).ToLower()).ToList();
             }
         }
+
+        private bool allowPerformanceKeyspaces = false;
+
+        [Option('i', "IncludePerformanceKeyspaces", HelpText = "Performance Keyspaces are included during parsing. The default based on IgnoreKeySpaces are to ignore these keyspaces.",
+                    Required = false)]
+        public bool IncludePerformanceKeyspaces
+        {
+            get { return allowPerformanceKeyspaces; }
+            set
+            {
+                if(allowPerformanceKeyspaces != value)
+                {
+                    allowPerformanceKeyspaces = value;
+                    ParserSettings.IgnoreKeySpaces.RemoveAll(ks => ParserSettings.PerformanceKeyspaces.Contains(ks));
+
+                    if (!allowPerformanceKeyspaces)
+                    {
+                        ParserSettings.IgnoreKeySpaces.AddRange(ParserSettings.PerformanceKeyspaces);
+                    }
+                }
+            }
+        }
+
 
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
@@ -417,9 +440,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--ExcelFile[P]ath \"{13}\" " +
                                     "--DiagnosticNoSubFolders|-O {14} " +
                                     "--[D]iagnosticPath \"{15}\" " +
-                                    "--AlternativeLogFilePath|-1 \"{16}\" " +
-                                    "--AlternativeDDLFilePath|-2 \"{17}\" " +
-                                    "--IgnoreKeySpaces {{{18}}}",
+                                    "--AlternativeLogFilePath|-l \"{16}\" " +
+                                    "--AlternativeDDLFilePath|-d \"{17}\" " +
+                                    "--[I]gnoreKeySpaces {{{18}}} " +
+                                    "--IncludePerformanceKeyspaces|-i {19}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -438,7 +462,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.DiagnosticPath,
                                     this.AlternativeLogFilePath,
                                     this.AlternativeDDLFilePath,
-                                    this.IgnoreKeySpaces);
+                                    this.IgnoreKeySpaces,
+                                    this.IncludePerformanceKeyspaces);
         }
     }
 }

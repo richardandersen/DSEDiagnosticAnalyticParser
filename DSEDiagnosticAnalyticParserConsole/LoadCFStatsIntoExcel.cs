@@ -25,7 +25,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
                                             workSheet.Cells["1:1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                                            workSheet.Cells["I:I"].Style.Numberformat.Format = "#,###,###,##0";
+                                            workSheet.Cells["I:I"].Style.Numberformat.Format = "#,###,###,##0.00";
 
                                             workSheet.Cells["I1"].AddComment("Change Numeric Format to Display Decimals", "Rich Andersen");
                                             workSheet.Cells["I1"].Value = workSheet.Cells["I1"].Text + "(Formatted)";

@@ -101,7 +101,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (ksItem == null)
                             {
                                 line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found/Unknown Keyspace/Table in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
-                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl: " + line.Substring(0, 10) + "...");
+                                Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl:", line);
                                 continue;
                             }
 
@@ -131,7 +131,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (ksItem == null)
                                 {
                                     line.Dump(Logger.DumpType.Warning, "Line Ignored. Invalid line found/unknown keyspace/table in Compaction History File \"{0}\"", cmphistFilePath.PathResolved);
-                                    Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl: " + line.Substring(0, 10) + "...");
+                                    Program.ConsoleWarnings.Increment("Invalid Compaction History Line/Unknown KS/Tbl:", line);
                                     continue;
                                 }
 

@@ -33,9 +33,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Read-Repair Service Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Gossip Enableed", typeof(bool)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Native Transport Enable", typeof(bool)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Key Cache Information", typeof(string)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Row Cache Information", typeof(string)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Counter Cache Information", typeof(string)).AllowDBNull = true;

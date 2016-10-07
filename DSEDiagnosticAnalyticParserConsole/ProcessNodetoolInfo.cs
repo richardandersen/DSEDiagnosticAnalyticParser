@@ -59,13 +59,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                 switch (lineCommand)
                 {
                     case "gossip active":
-                        dataRow["Gossip Enableed"] = bool.Parse(lineValue);
+                        dataRow["Gossip Enabled"] = bool.Parse(lineValue);
                         break;
                     case "thrift active":
                         dataRow["Thrift Enabled"] = bool.Parse(lineValue);
                         break;
                     case "native transport active":
-                        dataRow["Native Transport Enable"] = bool.Parse(lineValue);
+                        dataRow["Native Transport Enabled"] = bool.Parse(lineValue);
                         break;
                     case "load":
                         dataRow["Storage Used (MB)"] = ConvertInToMB(lineValue);
@@ -102,7 +102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         break;
                     default:
                         line.Dump(Logger.DumpType.Warning, "\"nodetool info\" Invalid line found.");
-                        Program.ConsoleWarnings.Increment("nodetool info invalid line: " + line.Substring(0,10) + "...");
+                        Program.ConsoleWarnings.Increment("nodetool info invalid line", line);
                         break;
                 }
             }

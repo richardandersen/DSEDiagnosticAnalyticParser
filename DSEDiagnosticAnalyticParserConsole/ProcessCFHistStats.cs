@@ -102,7 +102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         break;
                     default:
                         var msg = string.Format("CFHist to CFStats invalid attribute \"{0}\" for {1}, {2}, {3}", attr.Attribute, attr.IPAdress, attr.KeySpace, attr.Table);
-                        Program.ConsoleErrors.Increment(msg.Substring(0, 15));
+                        Program.ConsoleErrors.Increment(string.Empty, msg, 45);
                         Logger.Instance.Error(msg);
                         break;
                 }
