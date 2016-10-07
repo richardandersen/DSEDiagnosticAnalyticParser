@@ -1631,10 +1631,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
             }
 
-            bool processingPool = false;
-            bool processingCache = false;
-            bool processingTable = false;
-
             if (dtroCLog.Rows.Count > 0)
             {
                 //		dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
@@ -1688,10 +1684,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (item == "GCInspector.java")
                     {
                         #region GCInspector.java
-                        processingPool = false;
-                        processingCache = false;
-                        processingTable = false;
-
+                       
                         var descr = vwDataRow["Description"] as string;
 
                         if (string.IsNullOrEmpty(descr))
@@ -1823,69 +1816,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         descr = descr.Trim();
 
-                        if (descr.StartsWith("Pool Name"))
+                        if (descr.StartsWith("Pool Name")
+                             || descr.StartsWith("ColumnFamily ")
+                             || descr.StartsWith("Cache Type"))
                         {
-                            processingPool = true;
-                            processingCache = false;
-                            processingTable = false;
+                            
                             continue;
-                        }
-                        else if (descr.StartsWith("ColumnFamily "))
-                        {
-                            processingPool = false;
-                            processingCache = false;
-                            processingTable = true;
-                            continue;
-                        }
-                        else if (descr.StartsWith("Cache Type"))
-                        {
-                            processingPool = false;
-                            processingCache = true;
-                            processingTable = false;
-                            continue;
-                        }
+                        }                       
                         else
                         {
                             try
-                            {
-                                bool localprocessingCache = processingCache;
-                                bool localprocessingPool = processingPool;
-                                bool localprocessingTable = processingTable;
-
-                                //if(localprocessingCache && !RegExCacheLine.Match(descr).Success)
-                                //{
-                                //    localprocessingPool = RegExPoolLine.Match(descr).Success;
-                                //    localprocessingTable = RegExPoolLine.Match(descr).Success
-                                //                                    || RegExPool2Line.Match(descr).Success;
-                                //    localprocessingCache = !(localprocessingPool || localprocessingTable);
-                                //}
-                                //else if(localprocessingPool && !(RegExPoolLine.Match(descr).Success
-                                //                                    || RegExPool2Line.Match(descr).Success))
-                                //{
-                                //    localprocessingCache = RegExCacheLine.Match(descr).Success;
-                                //    localprocessingTable = RegExTblLine.Match(descr).Success;
-                                //    localprocessingPool = !(localprocessingCache || localprocessingTable);
-                                //}
-                                //else if (localprocessingTable && !RegExTblLine.Match(descr).Success)
-                                //{
-                                //    localprocessingPool = RegExPoolLine.Match(descr).Success;
-                                //    localprocessingCache = RegExPoolLine.Match(descr).Success;
-                                //    var localprocessingCache2 = RegExPool2Line.Match(descr).Success;
-
-                                //    if(localprocessingPool && localprocessingCache && localprocessingCache2)
-                                //    {
-                                //        localprocessingCache = false;
-                                //    }
-                                //    else if(localprocessingCache2)
-                                //    {
-                                //        localprocessingCache = true;
-                                //        localprocessingPool = false;
-                                //    }
-                                //        ;
-                                //    localprocessingTable = !(localprocessingPool || localprocessingCache);
-                                //}
-
-                                if (localprocessingCache)
+                            {                                
+                                if (RegExCacheLine.IsMatch(descr))
                                 {
                                     var splits = RegExCacheLine.Split(descr);
                                     var dataRow = dtCStatusLog.NewRow();
@@ -1901,7 +1843,37 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dtCStatusLog.Rows.Add(dataRow);
                                     continue;
                                 }
-                                else if (localprocessingPool)
+                                else if (RegExTblLine.IsMatch(descr))
+                                {
+                                    var splits = RegExTblLine.Split(descr);
+                                    var ksTable = SplitTableName(splits[1], null);
+
+                                    if (ignoreKeySpaces.Contains(ksTable.Item1))
+                                    {
+                                        continue;
+                                    }
+
+                                    var dataRow = dtCStatusLog.NewRow();
+
+                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = "ColumnFamily";
+                                    dataRow["KeySpace"] = ksTable.Item1;
+                                    dataRow["Table"] = ksTable.Item2;
+                                    dataRow["MemTable OPS"] = long.Parse(splits[2]);
+                                    dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
+
+                                    dtCStatusLog.Rows.Add(dataRow);
+
+                                    statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
+                                                                                                    ksTable.Item2,
+                                                                                                    (long)dataRow["MemTable OPS"],
+                                                                                                    (decimal)dataRow["Data (mb)"]));
+                                    continue;
+                                }
+                                else if (RegExPoolLine.IsMatch(descr)
+                                            || RegExPool2Line.IsMatch(descr))
                                 {
                                     var splits = RegExPoolLine.Split(descr);
                                     var dataRow = dtCStatusLog.NewRow();
@@ -1956,45 +1928,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dtCStatusLog.Rows.Add(dataRow);
                                     continue;
                                 }
-                                else if (processingTable)
+                                else
                                 {
-                                    var splits = RegExTblLine.Split(descr);
-                                    var ksTable = SplitTableName(splits[1], null);
-
-                                    if (ignoreKeySpaces.Contains(ksTable.Item1))
-                                    {
-                                        continue;
-                                    }
-
-                                    var dataRow = dtCStatusLog.NewRow();
-
-                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                                    dataRow["Data Center"] = dcName;
-                                    dataRow["Node IPAddress"] = ipAddress;
-                                    dataRow["Pool/Cache Type"] = "ColumnFamily";
-                                    dataRow["KeySpace"] = ksTable.Item1;
-                                    dataRow["Table"] = ksTable.Item2;
-                                    dataRow["MemTable OPS"] = long.Parse(splits[2]);
-                                    dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
-
-                                    dtCStatusLog.Rows.Add(dataRow);
-
-                                    statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
-                                                                                                    ksTable.Item2,
-                                                                                                    (long)dataRow["MemTable OPS"],
-                                                                                                    (decimal)dataRow["Data (mb)"]));
-                                    continue;
+                                    var msg = string.Format("StatusLogger Invalid Line \"{0}\" for {1}", descr, ipAddress);
+                                    Logger.Instance.Warn(msg);
+                                    Program.ConsoleWarnings.Increment(msg.Length > 45 ? msg.Substring(0, 45) : msg);
                                 }
                             }
                             catch (Exception e)
                             {
-                                var msg = string.Format("StatusLogger Invalid Line for Type \"{0}\" with value \"{1}\"",
-                                                                         processingCache ? "Cache"
-                                                                            : (processingPool ? "Pool"
-                                                                                : (processingTable ? "ColumnFamily" : "UnKnown")),
-                                                                         descr);
+                                var msg = string.Format("StatusLogger Invalid Line \"{0}\" for {1}", descr, ipAddress);
                                 Logger.Instance.Error(msg, e);
-                                Program.ConsoleErrors.Increment(msg.Substring(0, 60));
+                                Program.ConsoleErrors.Increment(msg.Length > 45 ? msg.Substring(0, 45) : msg);
                             }
                         }
                         #endregion
@@ -2151,14 +2096,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         #endregion
-                    }
-                    else
-                    {
-                        processingPool = false;
-                        processingCache = false;
-                        processingTable = false;
-                    }
-
+                    }                    
                 }
 
                 #region Add TP/CF Stats Info
