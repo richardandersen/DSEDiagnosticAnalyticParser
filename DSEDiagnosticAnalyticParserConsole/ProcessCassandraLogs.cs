@@ -76,8 +76,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dtTPStatsStack.Push(dtTPStats);
 
                                 Logger.Instance.InfoFormat("Status Log Processing File \"{0}\"", logFilePath.Path);
-                                Program.ConsoleParsingLog.Increment(string.Format("Status {0}", dtLog.TableName));
-                                Program.ConsoleParsingNonLog.Increment(string.Format("Status {0}", dtLog.TableName));
+                                Program.ConsoleParsingLog.Increment(string.Format("Status {0}", dtLog.TableName));                                
 
                                 ParseCassandraLogIntoStatusLogDataTable(dtLog,
                                                                         dtStatusLog,
@@ -89,8 +88,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         ignoreKeySpaces,
                                                                         kstblNames);
 
-                                Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));
-                                Program.ConsoleParsingNonLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));
+                                Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));                               
                             },
                             TaskContinuationOptions.AttachedToParent
                                 | TaskContinuationOptions.LongRunning
@@ -134,16 +132,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                     .ContinueWhenAll(new Task[] { logTask, statusTask, archTask }, tasks => logTask.Result + archTask.Result);
         }
 
-        public static Task<DataTable> ParseCassandraLogIntoSummaryDataTable(Task<DataTable> logTask,
-                                                                    string excelWorkSheetLogCassandra,                                                                    
-                                                                    DateTimeRange maxminLogDate,
-                                                                    Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
-                                                                    Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
-                                                                    string[] logSummaryIndicatorType,
-                                                                    string[] logSummaryTaskItems,
-                                                                    string[] logSummaryIgnoreTaskExceptions)
+        public static Task<Tuple<DataTable, DataTable>> ParseCassandraLogIntoSummaryDataTable(Task<DataTable> logTask,
+                                                                                                string excelWorkSheetLogCassandra,
+                                                                                                DateTimeRange maxminLogDate,
+                                                                                                Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
+                                                                                                Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
+                                                                                                string[] logAggregateAdditionalTaskExceptionItems,                                                                                
+                                                                                                string[] logSummaryIgnoreTaskExceptions)
         {
-            Task<DataTable> summaryTask = Task.FromResult<DataTable>(null);
+            Task<Tuple<DataTable, DataTable>> summaryTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
 
             if ((logSummaryPeriods != null && logSummaryPeriods.Length > 0)
                             || (logSummaryPeriodRanges != null && logSummaryPeriodRanges.Length > 0))
@@ -152,8 +149,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     DataTable dtLog = taskResult.Result;
                                     DataTable dtSummaryLog = new DataTable(dtLog.TableName + "Summary");
+                                    DataTable dtExceptionSummaryLog = new DataTable(dtLog.TableName + "Exception Summary");
 
-                                    Tuple <DateTime,TimeSpan>[] summaryPeriods = logSummaryPeriods;
+                                    Program.ConsoleParsingLog.Increment(string.Format("Summary {0}", dtLog.TableName));
+
+									Tuple <DateTime,TimeSpan>[] summaryPeriods = logSummaryPeriods;
 
                                     if (logSummaryPeriods == null || logSummaryPeriods.Length == 0)
                                     {
@@ -170,20 +170,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         }
 
                                         summaryPeriods = summaryPeriodList.ToArray();
-                                    }
-
-                                    Program.ConsoleParsingLog.Increment(string.Format("Summary {0}", dtLog.TableName));
+                                    }                                    
 
                                     ParseCassandraLogIntoSummaryDataTable(dtLog,
-                                                                            dtSummaryLog,                                                                            
-                                                                            logSummaryIndicatorType,
-                                                                            logSummaryTaskItems,
+                                                                            dtSummaryLog,
+                                                                            dtExceptionSummaryLog,
+                                                                            maxminLogDate,
+																			logAggregateAdditionalTaskExceptionItems,                                                                            
                                                                             logSummaryIgnoreTaskExceptions,
                                                                             summaryPeriods);
 
                                     Program.ConsoleParsingLog.TaskEnd(string.Format("Summary {0}", dtLog.TableName));
 
-                                    return dtSummaryLog;
+                                    return new Tuple<DataTable,DataTable>(dtSummaryLog, dtExceptionSummaryLog);
                                 },
                                 TaskContinuationOptions.AttachedToParent
                                     | TaskContinuationOptions.LongRunning
@@ -200,19 +199,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExCLogTO = new Regex(@".*(?:No response after timeout:|Operation timed out - received only).*\s+(\d+)\s*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static int ReadCassandraLogParseIntoDataTable(IFilePath clogFilePath,
-                                                string ipAddress,
-                                                string dcName,
-                                                DateTime onlyEntriesAfterThisTimeFrame,
-                                                int maxRowWrite,
-                                                System.Data.DataTable dtCLog,
-                                                out DateTime maxTimestamp,
-                                                int gcPausedFlagThresholdInMS,
-                                                int compactionFllagThresholdInMS,
-                                                int slowLogQueryThresholdInMS)
+        static Regex RegExExpErrClassName = new Regex(@"^[^\[\(\']\S+(exception|error)",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
+        //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
+
+        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\;\>)|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:\=\>)|(?:\=)|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:\[|\]|\(|\)))",
+                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
         {
             if (dtCLog.Columns.Count == 0)
             {
+                if (includeGroupIndiator)
+                {
+                    dtCLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true;
+                }
                 dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Node IPAddress", typeof(string));
                 dtCLog.Columns.Add("Timestamp", typeof(DateTime));
@@ -224,8 +227,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 dtCLog.Columns.Add("Description", typeof(string));
-                dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
+                dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;                
             }
+        }
+
+        static int ReadCassandraLogParseIntoDataTable(IFilePath clogFilePath,
+                                                        string ipAddress,
+                                                        string dcName,
+                                                        DateTime onlyEntriesAfterThisTimeFrame,
+                                                        int maxRowWrite,
+                                                        System.Data.DataTable dtCLog,
+                                                        out DateTime maxTimestamp,
+                                                        int gcPausedFlagThresholdInMS,
+                                                        int compactionFllagThresholdInMS,
+                                                        int slowLogQueryThresholdInMS)
+        {
+            CreateCassandraLogDataTable(dtCLog);
 
             var fileLines = clogFilePath.ReadAllLines();
             string line;
@@ -241,6 +258,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             int nbrRows = 0;
             DateTimeRange ignoredTimeRange = new DateTimeRange();
             bool exceptionOccurred = false;
+            bool assertError = false;
+
             //int tableItemValuePos = -1;
 
             maxTimestamp = DateTime.MinValue;
@@ -255,16 +274,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                     continue;
                 }
 
-                if (line.Substring(0, 3).ToLower() == "at "
-                        || line.Substring(0, 4).ToLower() == "... ")
+                if (line.Substring(0, 4).ToLower() == "... "
+                        || (!assertError && line.Substring(0, 3).ToLower() == "at "))
                 {                    
                     continue;
                 }
 
+				Program.ConsoleLogCount.Increment();
+
                 parsedValues = Common.StringFunctions.Split(line,
                                                             ' ',
                                                             Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
-                                                            Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                                                            Common.StringFunctions.SplitBehaviorOptions.Default
+                                                                | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries
+                                                                | StringFunctions.SplitBehaviorOptions.IgnoreMismatchedWithinDelimiters);
 
                 //INFO  [CompactionExecutor:9928] 2016-07-25 04:23:34,819  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/peer_events-59dfeaea8db2334191ef109974d81484/system-peer_events-ka-77,].  35,935 bytes to 35,942 (~100% of original) in 40ms = 0.856924MB/s.  20 total partitions merged to 5.  Partition merge counts were {4:5, }
                 //		INFO [SharedPool-Worker-2] 2016-07-25 04:25:35,919  Message.java:532 - Unexpected exception during request; channel = [id: 0x40c292ba, / 10.160.139.242:42705 :> / <1ocal node>:9042]
@@ -315,168 +338,90 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //Failure to flush may cause excessive growth of Cassandra commit log.
 
                 #region Exception Log Info Parsing
-                if (parsedValues[0].Contains("OutOfMemoryError"))
+
+
+                if (assertError && line.Substring(0, 3).ToLower() == "at ")
                 {
-                    #region OutOfMemoryError
+                    #region assert Error at
+                    //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
+                    //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
+                    //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
+
+                    assertError = false;
 
                     if (lastRow != null)
                     {
-                        lastRow.BeginEdit();
+                        var endFuncPos = parsedValues[1].IndexOf('(');
 
-                        lastRow["Exception"] = parsedValues[0][parsedValues[0].Length - 1] == ':'
+                        if (lastRow["Exception"] == DBNull.Value)
+                        {
+                            lastRow["Exception"] = "java.lang.AssertionError(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                        }
+                        else
+                        {
+                            lastRow["Exception"] = ((string)lastRow["Exception"]) + "(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                        }
+                    }
+
+                    continue;
+                    #endregion
+                }
+                else if (parsedValues[0].ToLower().Contains("assertionerror"))
+                {
+                    #region assertion error
+                    //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
+                    //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
+                    //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
+                    if (lastRow == null)
+                    {
+                        line.Dump(Logger.DumpType.Warning, "assertionerror found but no associated previous line");
+                    }
+                    else
+                    {                       
+                        var exception = parsedValues[0][parsedValues[0].Length - 1] == ':'
                                                 ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
                                                 : parsedValues[0];
+                        
                         lastRow["Exception Description"] = line;
                         lastRow["Flagged"] = true;
-                        lastRow["Associated Item"] = line.Substring(parsedValues[0].Length);
+                        lastRow["Exception"] = exception;
 
-                        lastRow.EndEdit();
-                        lastRow.AcceptChanges();
+                        assertError = true;
+                        exceptionOccurred = true;                       
                     }
-                    exceptionOccurred = true;
                     continue;
-
                     #endregion
                 }
                 else if (parsedValues[0].ToLower().Contains("exception")
-                            || parsedValues[0].ToLower().Contains("assertionerror"))
+                            || parsedValues[0].ToLower().EndsWith("error:"))
                 {
                     #region Exception
 
-                    if (lastRow != null)
+                    if (lastRow == null)
                     {
-                        lastRow.BeginEdit();
-
-                        lastRow["Exception"] = parsedValues[0][parsedValues[0].Length - 1] == ':'
-                                                ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
-                                                : parsedValues[0];
-                        lastRow["Exception Description"] = line;
-                        lastRow["Flagged"] = true;
-
-                        if((string)lastRow["Exception"] == "io.netty.handler.ssl.NotSslRecordException")
-                        {
-                            var lstDescr = lastRow["Description"] as string;
-
-                            if(!string.IsNullOrEmpty(lstDescr))
-                            {
-                                //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
-                                //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
-                                var pos = lstDescr.IndexOf("channel");
-
-                                if(pos > 0)
-                                {
-                                    var channelValue = lstDescr.Substring(pos + 10).Trim();
-                                    var cpos = channelValue.IndexOf('/');
-
-                                    lastRow["Associated Item"] = cpos > 0 ? "[" + channelValue.Substring(cpos) : channelValue;
-                                }
-                            }
-
-                        }
-                        else if (lastRow["Associated Value"] == DBNull.Value)
-                        {
-                            var clMatch = RegExCLogCL.Match(line);
-                            var toMatch = RegExCLogTO.Match(line);
-
-                            if (toMatch.Success)
-                            {
-                                lastRow["Associated Value"] = int.Parse(toMatch.Groups[1].Value);
-                                lastRow["Associated Item"] = "No response|Operation timeout";
-                            }
-                            else if (clMatch.Success)
-                            {
-                                lastRow["Associated Value"] = clMatch.Groups[1].Value;
-                                lastRow["Associated Item"] = "Cannot achieve consistency level";
-                            }
-                            else
-                            {
-                                foreach (var element in parsedValues)
-                                {
-                                    if (element[0] == '(')
-                                    {
-                                        if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
-                                        {
-                                            lastRow["Associated Value"] = lineIPAddress;
-                                            break;
-                                        }
-                                    }
-                                    else if (element[0] == '/')
-                                    {
-                                        if (LookForIPAddress(element, ipAddress, out lineIPAddress))
-                                        {
-                                            lastRow["Associated Value"] = lineIPAddress;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        lastRow.EndEdit();
-                        lastRow.AcceptChanges();
+                        line.Dump(Logger.DumpType.Warning, "exception found but no associated previous line");
                     }
+                    else
+                    {
+                        ParseExceptions(ipAddress, parsedValues[0], lastRow, string.Join(" ", parsedValues.Skip(1)), null);
+                        lastRow.AcceptChanges();                         
+                    }
+
                     exceptionOccurred = true;
                     continue;
-
                     #endregion
                 }
                 else if (parsedValues[0].ToLower() == "caused")
                 {
                     #region caused
 
-                    if (lastRow != null)
+                    if (lastRow == null)
                     {
-                        lastRow.BeginEdit();
-
-                        lastRow["Exception"] = parsedValues[2][parsedValues[2].Length - 1] == ':'
-                                                ? parsedValues[2].Substring(0, parsedValues[2].Length - 1)
-                                                : parsedValues[2];
-                        lastRow["Exception Description"] = line;
-                        lastRow["Flagged"] = true;
-
-                        if (lastRow["Associated Value"] == DBNull.Value)
-                        {
-                            if (parsedValues[2].EndsWith("SyntaxError:"))
-                            {
-                                if(parsedValues[3].ToLower() == "cannot" && parsedValues[4].ToLower() == "parse")
-                                {
-                                    lastRow["Associated Value"] = parsedValues[5];
-                                }
-                            }
-                            else if (parsedValues[2].EndsWith("ParseException:"))
-                            {
-                                if (parsedValues[3].ToLower() == "Encountered")
-                                {
-                                    var lastPos = parsedValues.LastIndexOf("line");
-
-                                    lastRow["Associated Value"] = string.Join(" ", parsedValues.GetRange(4, lastPos - 6));                                                                                
-                                }
-                            }
-                            else
-                            {
-                                foreach (var element in parsedValues)
-                                {
-                                    if (element[0] == '(')
-                                    {
-                                        if (LookForIPAddress(element.Substring(1, element.Length - 2).Trim(), ipAddress, out lineIPAddress))
-                                        {
-                                            lastRow["Associated Value"] = lineIPAddress;
-                                            break;
-                                        }
-                                    }
-                                    else if (element[0] == '/')
-                                    {
-                                        if (LookForIPAddress(element, ipAddress, out lineIPAddress))
-                                        {
-                                            lastRow["Associated Value"] = lineIPAddress;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        lastRow.EndEdit();
+                        line.Dump(Logger.DumpType.Warning, "caused line found but no associated previous line");
+                    }
+                    else
+                    {
+                        ParseExceptions(ipAddress, parsedValues[2], lastRow, string.Join(" ", parsedValues.Skip(2)), null);
                         lastRow.AcceptChanges();
                     }
                     exceptionOccurred = true;
@@ -484,6 +429,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #endregion
                 }
+
+                assertError = false;
+
                 #endregion
 
                 if (parsedValues.Count < 6)
@@ -635,637 +583,635 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                 {
-                    if (parsedValues[4] == "SolrException.java")
+
+					if ((parsedValues[0] == "WARN"
+                            || parsedValues[0] == "ERROR")
+                        && nCell > 4
+                            && (parsedValues[nCell].ToLower().Contains("exception")
+                                    || parsedValues[nCell].ToLower().Contains("error")
+                                    || parsedValues[nCell].ToLower() == "failed")
+                            && !(new char[] { '[', '(', '\'', '/', '"', '\\' }).Contains(parsedValues[nCell][0]))
                     {
-                        #region SolrException.java
-                        //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
-                        //ERROR [SharedPool-Worker-2] 2016-09-30 09:07:53,224  SolrException.java:150 - org.apache.solr.common.SolrException: org.apache.solr.search.SyntaxError: Cannot parse 'something': Encountered " ")" ") "" at line 1, column 13.
-                        if (nCell > 4)
-                        {
-                            if (dataRow["Exception"] == DBNull.Value && parsedValues[nCell].ToLower().Contains("exception"))
-                            {
-                                dataRow["Flagged"] = true;
+						#region exception
+						var subParsedValues = parsedValues.Skip(nCell + 1);
+						var indicatorWord = parsedValues[nCell].ToLower() == "exception"
+												|| parsedValues[nCell].ToLower() == "error"
+												|| parsedValues[nCell].ToLower() == "failed";
 
-                                var startExceptionPos = line.IndexOf(parsedValues[nCell]);
-                                var exceptionInfo = Common.StringFunctions.Split(line.Substring(startExceptionPos),
-                                                                                    ':',
-                                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
-                                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+						//look ahead for a future "real" exception or error
+						if (indicatorWord
+								&& subParsedValues.Any(item => RegExExpErrClassName.IsMatch(item)))
+						{ }
+						else
+						{
+							ParseExceptions(ipAddress,
+												parsedValues[nCell],
+												dataRow,
+												string.Join(" ", indicatorWord
+																	? parsedValues.Skip(startRange + 1)
+																	: subParsedValues),
+												null);
+							exceptionOccurred = true;
+						}
 
-                                if (exceptionInfo.Count == 1)
-                                {
-                                    dataRow["Exception"] = "SolrException(" + parsedValues[nCell] + ")";
-                                }
-                                else
-                                {
-                                    if (exceptionInfo[0] == "org.apache.solr.common.SolrException")
-                                    {
-                                        dataRow["Exception"] = exceptionInfo[0] + " (" + exceptionInfo[1] + ")";
-                                    }
-                                    else
-                                    {
-                                        dataRow["Exception"] = exceptionInfo[0];
-                                    }
+						#endregion
+					}
+					else if (parsedValues[4] == "CompactionController.java")
+					{
+						#region CompactionController.java
+						//Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
 
-                                    dataRow["Exception Description"] = string.Join(": ", exceptionInfo.Skip(1));
-                                }
-                            }
-                        }
-                        exceptionOccurred = true;
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "Message.java")
-                    {
-                        #region Message.java
-                        //ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request; channel = [id: 0xc224c650, /10.16.9.33:49634 => /10.12.50.27:9042]
+						if (itemPos == nCell)
+						{
+							var ksTableName = parsedValues[nCell];
+							var keyDelimatorPos = ksTableName.IndexOf(':');
 
-                        if (nCell == itemValuePos)
-                        {
-                            if(parsedValues[nCell] == "channel")
-                            {
-                                var pos = parsedValues[nCell + 2].IndexOf('/');
+							if (keyDelimatorPos > 0)
+							{
+								ksTableName = ksTableName.Substring(0, keyDelimatorPos);								
+							}
 
-                                dataRow["Associated Item"] = pos > 0 ? "[" + parsedValues[nCell + 2].Substring(pos) : parsedValues[nCell + 2];
-                            }
-                        }                        
-                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Unexpected" && parsedValues[nCell + 1] == "exception")
-                        {
-                            itemValuePos = nCell + 4;
-                            dataRow["Exception"] = "Unexpected";
-                            dataRow["Exception Description"] = "Unexpected exception";
-                            dataRow["Flagged"] = true;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[nCell].ToLower().Contains("exception"))
-                    {
-                        #region exception
-                        var exceptionLine = fileLines[nLine + 1].Trim();
-                        var exceptionEndPos = exceptionLine.IndexOf(' ');
-                        var exceptionClass = exceptionEndPos > 0 ? exceptionLine.Substring(0, exceptionEndPos) : null;
+							var splitItems = SplitTableName(ksTableName);
 
-                        if (!string.IsNullOrEmpty(exceptionClass) && exceptionClass[exceptionClass.Length - 1] == ':')
-                        {
-                            dataRow["Exception"] = exceptionClass.Substring(0, exceptionClass.Length - 1);
-                            dataRow["Exception Description"] = exceptionLine.Substring(exceptionEndPos + 1).TrimStart();
-                            dataRow["Flagged"] = true;
-                            ++nLine;
-                        }
-                        exceptionOccurred = true;
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
-                    {
-                        #region CqlSolrQueryExecutor.java
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
 
-                        if (itemPos == nCell)
-                        {
-                            dataRow["Associated Item"] = parsedValues[nCell];
-                        }
-                        if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
-                        {
-                            var firstParan = parsedValues[nCell].IndexOf('(');
+						}
+						if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
+						{
+							var firstParan = parsedValues[nCell].IndexOf('(');
 
-                            if (firstParan >= 0)
-                            {
-                                dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
-                            }
-                        }
+							if (firstParan >= 0)
+							{
+								dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
+							}
+						}
 
-                        if (parsedValues[nCell].EndsWith("SyntaxError:"))
-                        {
-                            //ERROR [SharedPool-Worker-2] 2016-09-27 12:27:29,012  CqlSolrQueryExecutor.java:375 - org.apache.solr.search.SyntaxError: Cannot parse 'syntax' at line 1, column 13.
+						if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "row")
+						{
+							itemPos = nCell + 2;
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Compacting large row";
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "SSTableWriter.java")
+					{
+						#region SSTableWriter.java
+						//WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
 
-                            itemPos = nCell + 3;
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = parsedValues[nCell][parsedValues[nCell].Length - 1] == ':'
-                                                        ? parsedValues[nCell].Substring(0, parsedValues[nCell].Length - 1)
-                                                        : parsedValues[nCell];
-                            exceptionOccurred = true;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "CompactionController.java")
-                    {
-                        #region CompactionController.java
-                        //Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
+						if (itemPos == nCell)
+						{
+							var ksTableName = parsedValues[nCell];
+							var keyDelimatorPos = ksTableName.IndexOf(':');
 
-                        if (itemPos == nCell)
-                        {
-                            var ksTableName = parsedValues[nCell];
-                            var keyDelimatorPos = ksTableName.IndexOf(':');
+							if (keyDelimatorPos > 0)
+							{
+								ksTableName = ksTableName.Substring(0, keyDelimatorPos);
+							}
 
-                            if (keyDelimatorPos > 0)
-                            {
-                                ksTableName = ksTableName.Substring(0, keyDelimatorPos).Replace('/', '.');
+							var splitItems = SplitTableName(ksTableName);
 
-                                var splitItems = SplitTableName(ksTableName, null);
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
 
-                                ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
-                            }
+						}
+						if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
+						{
+							var firstParan = parsedValues[nCell].IndexOf('(');
 
-                            dataRow["Associated Item"] = ksTableName;
+							if (firstParan >= 0)
+							{
+								dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
+							}
+						}
 
-                        }
-                        if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
-                        {
-                            var firstParan = parsedValues[nCell].IndexOf('(');
+						if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "partition")
+						{
+							itemPos = nCell + 2;
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Compacting large partition";
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "GCInspector.java")
+					{
+						#region GCInspector.java
+						//GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
+						//GCInspector.java (line 119) GC forConcurrentMarkSweep: 15132 ms for 2 collections, 4229845696 used; max is 25125584896
+						// ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
+						//GCInspector.java:258 - G1 Young Generation GC in 264ms.  G1 Eden Space: 3470786560 -> 0; G1 Old Gen: 2689326672 -> 2934172000; G1 Survivor Space: 559939584 -> 35651584; 
+						//WARN [ScheduledTasks:1] 2013-04-10 10:18:14,403 GCInspector.java (line 145) Heap is 0.9610030442856479 full.  You may need to reduce memtable and/or cache sizes.  Cassandra will now flush up to the two largest memtables to free up memory.  Adjust flush_largest_memtables_at threshold in cassandra.yaml if you don't want Cassandra to do this automatically
 
-                            if (firstParan >= 0)
-                            {
-                                dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
-                            }
-                        }
+						if (nCell == itemPos)
+						{
+							var time = DetermineTime(parsedValues[nCell]);
 
-                        if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "row")
-                        {
-                            itemPos = nCell + 2;
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Compacting large row";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "SSTableWriter.java")
-                    {
-                        #region SSTableWriter.java
-                        //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
+							if (time is int && (int)time >= gcPausedFlagThresholdInMS)
+							{
+								dataRow["Flagged"] = true;
+								dataRow["Exception"] = "GC Threshold";
+							}
+							dataRow["Associated Value"] = time;
+						}
+						if (parsedValues[nCell] == "ParNew:"
+								|| parsedValues[nCell] == "forConcurrentMarkSweep:"
+								|| parsedValues[nCell] == "ConcurrentMarkSweep:")
+						{
+							itemPos = nCell + 1;
+						}
+						else if (parsedValues[nCell] == "ConcurrentMarkSweep" && parsedValues[nCell + 1] == "GC")
+						{
+							itemPos = nCell + 3;
+						}
+						else if (parsedValues[nCell] == "Young")
+						{
+							itemPos = nCell + 4;
+						}
+						else if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Heap" && parsedValues[nCell + 3] == "full")
+						{
+							decimal numValue;
 
-                        if (itemPos == nCell)
-                        {
-                            var ksTableName = parsedValues[nCell];
-                            var keyDelimatorPos = ksTableName.IndexOf(':');
+							if (decimal.TryParse(parsedValues[nCell], out numValue))
+							{
+								dataRow["Associated Value"] = numValue;
+							}
 
-                            if (keyDelimatorPos > 0)
-                            {
-                                ksTableName = ksTableName.Substring(0, keyDelimatorPos).Replace('/', '.');
+							//dataRow["Associated Item"] = "Heap Full";
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Heap Full";
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "FailureDetector.java")
+					{
+						#region FailureDetector.java
+						//Not marking nodes down due to local pause of 12817405727 > 5000000000
+						if (itemPos == nCell)
+						{
+							long nbr;
 
-                                var splitItems = SplitTableName(ksTableName, null);
+							if (long.TryParse(parsedValues[nCell], out nbr))
+							{
+								dataRow["Associated Value"] = nbr;
+							}
 
-                                ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
-                            }
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Pause(FailureDetector)";
+						}
 
-                            dataRow["Associated Item"] = ksTableName;
+						if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
+						{
+							itemPos = nCell + 8;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "BatchStatement.java")
+					{
+						#region BatchStatement.java
+						//BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
+						if (nCell == itemPos)
+						{							
+							var splitItems = SplitTableName(parsedValues[nCell]);
 
-                        }
-                        if (nCell >= itemPos && parsedValues[nCell][parsedValues[nCell].Length - 1] == ')')
-                        {
-                            var firstParan = parsedValues[nCell].IndexOf('(');
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+						}
+						if (nCell == itemValuePos)
+						{
+							int batchSize;
 
-                            if (firstParan >= 0)
-                            {
-                                dataRow["Associated Value"] = ConvertInToMB(parsedValues[nCell].Substring(firstParan + 1, parsedValues[nCell].Length - firstParan - 2));
-                            }
-                        }
-
-                        if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "partition")
-                        {
-                            itemPos = nCell + 2;
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Compacting large partition";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "GCInspector.java")
-                    {
-                        #region GCInspector.java
-                        //GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
-                        //GCInspector.java (line 119) GC forConcurrentMarkSweep: 15132 ms for 2 collections, 4229845696 used; max is 25125584896
-                        // ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
-                        //GCInspector.java:258 - G1 Young Generation GC in 264ms.  G1 Eden Space: 3470786560 -> 0; G1 Old Gen: 2689326672 -> 2934172000; G1 Survivor Space: 559939584 -> 35651584; 
-                        //WARN [ScheduledTasks:1] 2013-04-10 10:18:14,403 GCInspector.java (line 145) Heap is 0.9610030442856479 full.  You may need to reduce memtable and/or cache sizes.  Cassandra will now flush up to the two largest memtables to free up memory.  Adjust flush_largest_memtables_at threshold in cassandra.yaml if you don't want Cassandra to do this automatically
-
+							if (int.TryParse(parsedValues[nCell], out batchSize))
+							{
+								dataRow["Associated Value"] = batchSize;
+							}
+						}
+						if (parsedValues[nCell] == "Batch")
+						{
+							itemPos = nCell + 5;
+							itemValuePos = nCell + 9;
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Batch Size Exceeded";
+						}
+						#endregion
+					}
+					else if (parsedValues[0] == "WARN" && parsedValues[4] == "NoSpamLogger.java")
+					{
+                        #region NoSpamLogger.java
+                        //NoSpamLogger.java:94 - Unlogged batch covering 80 partitions detected against table[hlservicing.lvl1_bkfs_invoicechronology]. You should use a logged batch for atomicity, or asynchronous writes for performance.
+                        //NoSpamLogger.java:94 - Unlogged batch covering 94 partitions detected against tables [hl_data_commons.l3_heloc_fraud_score_hist, hl_data_commons.l3_heloc_fraud_score]. You should use a logged batch for atomicity, or asynchronous writes for performance.
+                        //Maximum memory usage reached (536870912 bytes), cannot allocate chunk of 1048576 bytes
+                        //  
                         if (nCell == itemPos)
-                        {
-                            var time = DetermineTime(parsedValues[nCell]);
-
-                            if (time is int && (int)time >= gcPausedFlagThresholdInMS)
+						{
+                            if (parsedValues[nCell] == "table" || parsedValues[nCell] == "tables")
                             {
-                                dataRow["Flagged"] = true;
-                                dataRow["Exception"] = "GC Threshold";
+                                ++itemPos;
                             }
-                            dataRow["Associated Value"] = time;
-                        }
-                        if (parsedValues[nCell] == "ParNew:"
-                                || parsedValues[nCell] == "forConcurrentMarkSweep:"
-                                || parsedValues[nCell] == "ConcurrentMarkSweep:")
-                        {
-                            itemPos = nCell + 1;
-                        }
-                        else if (parsedValues[nCell] == "ConcurrentMarkSweep" && parsedValues[nCell + 1] == "GC")
-                        {
-                            itemPos = nCell + 3;
-                        }
-                        else if (parsedValues[nCell] == "Young")
-                        {
-                            itemPos = nCell + 4;
-                        }
-                        else if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Heap" && parsedValues[nCell + 3] == "full")
-                        {
-                            decimal numValue;
-
-                            if (decimal.TryParse(parsedValues[nCell], out numValue))
+                            else
                             {
-                                dataRow["Associated Value"] = numValue;
+                                var bracketPos = parsedValues[nCell].IndexOf('[');
+                                var ksTblNames = parsedValues[nCell].Substring(bracketPos < 0 ? 0 : bracketPos + 1, parsedValues[nCell].Length - (bracketPos < 0 ? 0 : bracketPos + 3))
+                                                        .Split(',').Select(item => item.Trim()).Sort();
+
+                                dataRow["Associated Item"] = string.Join(", ", ksTblNames);
                             }
-
-                            //dataRow["Associated Item"] = "Heap Full";
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Heap Full";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "FailureDetector.java")
-                    {
-                        #region FailureDetector.java
-                        //Not marking nodes down due to local pause of 12817405727 > 5000000000
-                        if (itemPos == nCell)
-                        {
-                            long nbr;
-
-                            if (long.TryParse(parsedValues[nCell], out nbr))
-                            {
-                                dataRow["Associated Value"] = nbr;
-                            }
-
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Pause (FailureDetector)";
-                        }
-
-                        if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
-                        {
-                            itemPos = nCell + 8;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "BatchStatement.java")
-                    {
-                        #region BatchStatement.java
-                        //BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
-                        if (nCell == itemPos)
-                        {
-                            var ksTableName = parsedValues[nCell];
-
-                            if (ksTableName[0] == '[')
-                            {
-                                ksTableName = ksTableName.Substring(1, ksTableName.Length - 2);
-
-                                var splitItems = SplitTableName(ksTableName, null);
-
-                                ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
-                            }
-
-                            dataRow["Associated Item"] = ksTableName;
-                        }
-                        if (nCell == itemValuePos)
-                        {
+						}
+						if (nCell == itemValuePos)
+						{
+                            var strInt = parsedValues[nCell];
                             int batchSize;
 
-                            if (int.TryParse(parsedValues[nCell], out batchSize))
+                            if(strInt[0] == '(')
                             {
-                                dataRow["Associated Value"] = batchSize;
+                                dataRow["Associated Value"] = strInt.Substring(1, strInt.Length - 2);
                             }
-                        }
-                        if (parsedValues[nCell] == "Batch")
-                        {
-                            itemPos = nCell + 5;
-                            itemValuePos = nCell + 9;
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Batch Size Exceeded";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "SliceQueryFilter.java")
-                    {
-                        #region SliceQueryFilter.java
-                        //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstone cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
-                        // Scanned over 100000 tombstones in capitalonehomeloans.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
-                        if (nCell == itemPos)
-                        {
-                            var splitItems = SplitTableName(parsedValues[nCell], null);
-                            string tableName = splitItems.Item2;
-
-                            if (tableName[tableName.Length - 1] == ';')
-                            {
-                                tableName = tableName.Substring(0, tableName.Length - 1);
-                            }
-
-                            dataRow["Associated Item"] = splitItems.Item1 + '.' + tableName;
-                        }
-                        if (nCell == itemValuePos)
-                        {
-                            object tbNum;
-                            int tombStones = 0;
-                            int reads = 0;
-
-                            if (StringFunctions.ParseIntoNumeric(parsedValues[nCell], out tbNum))
-                            {
-                                tombStones = (int)tbNum;
-                            }
-                            if (StringFunctions.ParseIntoNumeric(parsedValues[nCell - 3], out tbNum))
-                            {
-                                reads = (int)tbNum;
-                            }
-
-                            if (tombStones > reads)
-                            {
-                                dataRow["Associated Value"] = tombStones;
-                                dataRow["Exception"] = "Query Tombstones Warning";
-                            }
-                            else
-                            {
-                                dataRow["Associated Value"] = reads;
-                                dataRow["Exception"] = "Query Reads Warning";
-                            }
-                        }
-                        if (parsedValues[nCell] == "Read")
-                        {
-                            itemPos = nCell + 8;
-                            itemValuePos = nCell + 4;
-                            dataRow["Flagged"] = true;
-                        }
-                        else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
-                        {
-                            itemPos = nCell + 5;
-                            itemValuePos = 2;
-                            dataRow["Flagged"] = true;
-                            dataRow["Exception"] = "Query Tombstones Aborted";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "HintedHandoffMetrics.java")
-                    {
-                        #region HintedHandoffMetrics.java
-                        //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.				
-                        if (parsedValues[nCell] == "dropped")
-                        {
-                            //dataRow["Associated Item"] = "Dropped Hints";
-                            dataRow["Exception"] = "Dropped Hints";
-
-                            if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
-                            {
-                                dataRow["Associated Value"] = lineIPAddress;
-                            }
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "StorageService.java")
-                    {
-                        #region StorageService.java
-                        //	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
-                        if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
-                        {
-                            nCell = -1;
-                            var kstblValues = Common.StringFunctions.Split(parsedValues[nCell],
-                                                                            new char[] { ' ', ',', '=', '(', ')' },
-                                                                            Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                            Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
-                            string ksName = null;
-                            string tblName = null;
-
-                            for (int nIndex = 0; nIndex < kstblValues.Count; ++nIndex)
-                            {
-                                if (kstblValues[nIndex] == "Keyspace")
-                                {
-                                    ksName = kstblValues[++nIndex];
-                                }
-                                else if (kstblValues[nIndex] == "ColumnFamily")
-                                {
-                                    tblName = kstblValues[++nIndex];
-                                }
-                            }
-
-                            dataRow["Associated Value"] = ksName + "." + tblName;
-                        }
-                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Flushing")
-                        {
-                            //dataRow["Associated Item"] = "Flushing CFS";
-                            dataRow["Exception"] = "CFS Flush";
-                            itemValuePos = nCell + 1;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "StatusLogger.java")
-                    {
-                        #region StatusLogger.java
-                        //StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
-                        //StatusLogger.java:66 - MutationStage                     4         0     2383662788         0                 0
-                        //StatusLogger.java:75 - CompactionManager                 2         3
-                        //StatusLogger.java:87 - MessagingService                n/a       0/1
-                        //
-                        //StatusLogger.java:97 - Cache Type                     Size                 Capacity               KeysToSave
-                        //StatusLogger.java:99 - KeyCache                   95002384                104857600                      all
-                        //
-                        //StatusLogger.java:112 - ColumnFamily                Memtable ops,data
-                        //StatusLogger.java:115 - dse_perf.node_slow_log           8150,3374559
-
-                        if (parsedValues[nCell] == "ColumnFamily")
-                        {
-                            tableItem = parsedValues[4];
-                            tableItemPos = nCell;
-                        }
-                        else if (parsedValues[nCell] == "Pool")
-                        {
-                            tableItem = null;
-                            tableItemPos = -1;
-                        }
-                        else if (parsedValues[nCell] == "Cache")
-                        {
-                            tableItem = null;
-                            tableItemPos = -1;
-                        }
-                        else if (nCell == tableItemPos)
-                        {
-                            var splitItems = SplitTableName(parsedValues[nCell], null);
-
-                            dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "MessagingService.java")
-                    {
-                        #region MessagingService.java
-                        //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
-                        if (nCell == itemPos)
-                        {
-                            var valueDR = dataRow["Associated Value"];
-                            int nbrDrops = 0;
-
-                            int.TryParse(parsedValues[nCell], out nbrDrops);
-
-                            if (valueDR == DBNull.Value)
-                            {
-                                dataRow["Associated Value"] = nbrDrops;
-                                itemPos = nCell + 5;
-                            }
-                            else
-                            {
-                                int? currentDrops = valueDR as int?;
-
-                                if (currentDrops.HasValue)
-                                {
-                                    dataRow["Associated Value"] = nbrDrops + currentDrops.Value;
-                                }
-                                else
-                                {
-                                    dataRow["Associated Value"] = nbrDrops;
-                                }
-
-                            }
-                        }
-                        if (parsedValues[nCell] == "MUTATION")
-                        {
-                            //dataRow["Associated Item"] = "Dropped Mutations";
-                            dataRow["Exception"] = "Dropped Mutations";
-                            itemPos = nCell + 8;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "CompactionTask.java")
-                    {
-                        #region CompactionTask.java
-                        //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
-
-                        if (nCell == itemValuePos)
-                        {
-                            var time = DetermineTime(parsedValues[nCell]);
-
-                            if (time is int && (int)time >= compactionFllagThresholdInMS)
-                            {
-                                dataRow["Flagged"] = true;
-                                //dataRow["Associated Item"] = "Compaction Pause";
-                                dataRow["Exception"] = "Compaction Latency Warning";
-                            }
-                            dataRow["Associated Value"] = time;
-                        }
-                        else if (parsedValues[nCell] == "Compacted")
-                        {
-                            itemValuePos = nCell + 11;
-                            dataRow["Associated Item"] = "Compaction";
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "RepairSession.java" || parsedValues[4] == "RepairJob.java")
-                    {
-                        #region RepairSession.java RepairJob.java
-                        //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
-                        //INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
-
-                        if (parsedValues[0] == "ERROR")
-                        {
-                            if (parsedValues[nCell] == "Failed")
-                            {
-                                dataRow["Exception"] = "Read Repair Failed";
-                                dataRow["Flagged"] = true;
-                                itemPos = 0;
-                            }
-                            else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
-                            {
-                                dataRow["Exception"] = "Read Repair Error";
-                            }
-                        }
-
-                        if (parsedValues[nCell].StartsWith("[repair "))
-                        {
-                            dataRow["Associated Value"] = parsedValues[nCell];
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "CqlSlowLogWriter.java")
-                    {
-                        #region CqlSlowLogWriter.java
-                        //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 01:42:34,277  CqlSlowLogWriter.java:151 - Recording statements with duration of 60248 in slow log
-                        //WARN  [CqlSlowLog-Writer-thread-0] 2016-09-26 15:48:23,806  CqlSlowLogWriter.java:245 - Error writing to cql slow log
-                        if (nCell == itemValuePos)
-                        {
-                            var queryTime = int.Parse(parsedValues[nCell]);
-
-                            if (queryTime >= slowLogQueryThresholdInMS)
-                            {
-                                dataRow["Flagged"] = true;
-                                //dataRow["Associated Item"] = "Compaction Pause";
-                                dataRow["Exception"] = "Slow Query";
-                            }
-                            dataRow["Associated Value"] = queryTime;
-                        }
-                        else if (parsedValues[nCell] == "Recording")
-                        {
-                            itemValuePos = nCell + 5;
-                            dataRow["Associated Item"] = "Slow Query Writing to dse_perf.node_slow_log table";
-                        }
-                        else if (parsedValues[nCell] == "Error")
-                        {
-                            dataRow["Associated Item"] = string.Join(" ", parsedValues.GetRange(nCell, parsedValues.Count - nCell));
-                            dataRow["Flagged"] = true;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
-                    {
-                        #region CqlSolrQueryExecutor.java
-                        //ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
-                        if (parsedValues[nCell] == "No" && parsedValues[nCell + 1] == "response" && parsedValues[nCell + 3] == "timeout")
-                        {
-                            dataRow["Flagged"] = true;
-                            dataRow["Associated Item"] = "Solr Timeout";
-                            dataRow["Associated Value"] = int.Parse(parsedValues[nCell + 4]);
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "SolrCore.java")
-                    {
-                        #region SolrCore.java
-                        //WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
-
-                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
-                        {
-                            dataRow["Flagged"] = true;
-                            dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell));
-
-                            var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell - 1]), null);
-                            var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
-
-                            dataRow["Associated Value"] = ksTableName;
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "JVMStabilityInspector.java")
-                    {
-                        #region JVMStabilityInspector.java
-                        //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
-                        //java.lang.OutOfMemoryError: Java heap space
-
-                        if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
-                        {
-                            dataRow["Flagged"] = true;
-                            dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));                            
-                        }
-                        #endregion
-                    }
-                    else if (parsedValues[4] == "WorkPool.java")
-                    {
-                        #region WorkPool.java
-                        //WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
-                        //Failure to flush may cause excessive growth of Cassandra commit log.
-
-                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Timeout"
-                                && parsedValues.ElementAtOrDefault(nCell + 4) == "workers"
-                                && parsedValues.ElementAtOrDefault(nCell + 6) == "flushing")
+                            else if (int.TryParse(strInt, out batchSize))
+							{
+								dataRow["Associated Value"] = batchSize;
+							}
+						}
+						if (parsedValues[nCell].EndsWith("logged") && parsedValues[nCell + 1] == "batch" && parsedValues[nCell + 2] == "covering")
+						{
+							itemPos = nCell + 7;
+							itemValuePos = nCell + 3;							
+							dataRow["Exception"] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parsedValues[nCell]) + " Batch Partitions";
+						}
+                        else if (parsedValues[nCell] == "Maximum" && parsedValues[nCell + 1] == "memory" && parsedValues[nCell + 2] == "reached")
                         {                            
-                            var nxtLine = fileLines[nLine + 1].Trim();
-                            if (nxtLine.StartsWith("Failure") && nxtLine.Contains("commit log"))
-                            {
-                                dataRow["Flagged"] = true;
-                                dataRow["Associated Item"] = nxtLine;
-                                dataRow["Exception"] = "CommitLogFlushFailure";
-                                ++nLine;
-                            }
+                            itemValuePos = nCell + 4;                            
+                            dataRow["Exception"] = "Maximum Memory Reached";
                         }
-                        #endregion
-                    }
-                    else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
-                    {
-                        dataRow["Associated Value"] = lineIPAddress;
-                    }
+						#endregion
+					}
+					else if (parsedValues[4] == "SliceQueryFilter.java")
+					{
+						#region SliceQueryFilter.java
+						//SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstone cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
+						// Scanned over 100000 tombstones in capitalonehomeloans.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
+						if (nCell == itemPos)
+						{
+							var splitItems = SplitTableName(parsedValues[nCell]);
+							string tableName = splitItems.Item2;
+
+							if (tableName[tableName.Length - 1] == ';')
+							{
+								tableName = tableName.Substring(0, tableName.Length - 1);
+							}
+
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + tableName;
+						}
+						if (nCell == itemValuePos)
+						{
+							object tbNum;
+							int tombStones = 0;
+							int reads = 0;
+
+							if (StringFunctions.ParseIntoNumeric(parsedValues[nCell], out tbNum))
+							{
+								tombStones = (int)tbNum;
+							}
+							if (StringFunctions.ParseIntoNumeric(parsedValues[nCell - 3], out tbNum))
+							{
+								reads = (int)tbNum;
+							}
+
+							if (tombStones > reads)
+							{
+								dataRow["Associated Value"] = tombStones;
+								dataRow["Exception"] = "Query Tombstones Warning";
+							}
+							else
+							{
+								dataRow["Associated Value"] = reads;
+								dataRow["Exception"] = "Query Reads Warning";
+							}
+						}
+						if (parsedValues[nCell] == "Read")
+						{
+							itemPos = nCell + 8;
+							itemValuePos = nCell + 4;
+							dataRow["Flagged"] = true;
+						}
+						else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
+						{
+							itemPos = nCell + 5;
+							itemValuePos = 2;
+							dataRow["Flagged"] = true;
+							dataRow["Exception"] = "Query Tombstones Aborted";
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "HintedHandoffMetrics.java")
+					{
+						#region HintedHandoffMetrics.java
+						//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.				
+						if (parsedValues[nCell] == "dropped")
+						{
+							//dataRow["Associated Item"] = "Dropped Hints";
+							dataRow["Exception"] = "Dropped Hints";
+
+							if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
+							{
+								dataRow["Associated Item"] = lineIPAddress;
+							}
+
+							dataRow["Associated Value"] = int.Parse(parsedValues[nCell - 1]);
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "StorageService.java")
+					{
+						#region StorageService.java
+						//	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
+						//INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
+						//INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
+						//INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
+						//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
+						//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
+
+						if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
+						{
+							nCell = -1;
+							var kstblValues = Common.StringFunctions.Split(parsedValues[nCell],
+																			new char[] { ' ', ',', '=', '(', ')' },
+																			Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
+																			Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+							string ksName = null;
+							string tblName = null;
+
+							for (int nIndex = 0; nIndex < kstblValues.Count; ++nIndex)
+							{
+								if (kstblValues[nIndex] == "Keyspace")
+								{
+									ksName = kstblValues[++nIndex];
+								}
+								else if (kstblValues[nIndex] == "ColumnFamily")
+								{
+									tblName = kstblValues[++nIndex];
+								}
+							}
+
+							dataRow["Associated Item"] = ksName + "." + tblName;
+						}
+						else if (nCell == itemValuePos && parsedValues[nCell] == "jump")
+						{
+							var status = parsedValues[nCell + 2];
+
+							if (status.ToLower() == "normal")
+							{
+								dataRow["Exception"] = "Node Startup";
+								dataRow["Flagged"] = true;
+							}
+							else if (status.ToLower() == "shutdown")
+							{
+								dataRow["Exception"] = "Node Shutdown";
+								dataRow["Flagged"] = true;
+							}
+						}
+
+						if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Flushing")
+						{
+							//dataRow["Associated Item"] = "Flushing CFS";
+							dataRow["Exception"] = "CFS Flush";
+							itemValuePos = nCell + 1;
+						}
+						else if (parsedValues[0] == "INFO" && parsedValues[nCell] == "Node")
+						{
+							itemValuePos = nCell + 3;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "StatusLogger.java")
+					{
+						#region StatusLogger.java
+						//StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
+						//StatusLogger.java:66 - MutationStage                     4         0     2383662788         0                 0
+						//StatusLogger.java:75 - CompactionManager                 2         3
+						//StatusLogger.java:87 - MessagingService                n/a       0/1
+						//
+						//StatusLogger.java:97 - Cache Type                     Size                 Capacity               KeysToSave
+						//StatusLogger.java:99 - KeyCache                   95002384                104857600                      all
+						//
+						//StatusLogger.java:112 - ColumnFamily                Memtable ops,data
+						//StatusLogger.java:115 - dse_perf.node_slow_log           8150,3374559
+
+						if (parsedValues[nCell] == "ColumnFamily")
+						{
+							tableItem = parsedValues[4];
+							tableItemPos = nCell;
+						}
+						else if (parsedValues[nCell] == "Pool")
+						{
+							tableItem = null;
+							tableItemPos = -1;
+						}
+						else if (parsedValues[nCell] == "Cache")
+						{
+							tableItem = null;
+							tableItemPos = -1;
+						}
+						else if (nCell == tableItemPos)
+						{
+							var splitItems = SplitTableName(parsedValues[nCell], null);
+
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "MessagingService.java")
+					{
+						#region MessagingService.java
+						//MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
+						if (nCell == itemPos)
+						{
+							var valueDR = dataRow["Associated Value"];
+							int nbrDrops = 0;
+
+							int.TryParse(parsedValues[nCell], out nbrDrops);
+
+							if (valueDR == DBNull.Value)
+							{
+								dataRow["Associated Value"] = nbrDrops;
+								itemPos = nCell + 5;
+							}
+							else
+							{
+								int? currentDrops = valueDR as int?;
+
+								if (currentDrops.HasValue)
+								{
+									dataRow["Associated Value"] = nbrDrops + currentDrops.Value;
+								}
+								else
+								{
+									dataRow["Associated Value"] = nbrDrops;
+								}
+
+							}
+						}
+						if (parsedValues[nCell] == "MUTATION")
+						{
+							//dataRow["Associated Item"] = "Dropped Mutations";
+							dataRow["Exception"] = "Dropped Mutations";
+							itemPos = nCell + 8;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "CompactionTask.java")
+					{
+						#region CompactionTask.java
+						//INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+
+						if (nCell == itemValuePos)
+						{
+							var time = DetermineTime(parsedValues[nCell]);
+
+							if (time is int && (int)time >= compactionFllagThresholdInMS)
+							{
+								dataRow["Flagged"] = true;
+								//dataRow["Associated Item"] = "Compaction Pause";
+								dataRow["Exception"] = "Compaction Latency Warning";
+							}
+							dataRow["Associated Value"] = time;
+						}
+						else if (parsedValues[nCell] == "Compacted")
+						{
+							itemValuePos = nCell + 11;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "RepairSession.java" || parsedValues[4] == "RepairJob.java")
+					{
+						#region RepairSession.java RepairJob.java
+						//ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
+						//INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
+
+						if (parsedValues[0] == "ERROR")
+						{
+							if (parsedValues[nCell] == "Failed")
+							{
+								dataRow["Exception"] = "Read Repair Failed";								
+								itemPos = 0;
+							}
+							else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
+							{
+								dataRow["Exception"] = "Read Repair Error";
+							}
+						}
+
+						if (parsedValues[nCell].StartsWith("[repair "))
+						{
+							dataRow["Associated Value"] = parsedValues[nCell];
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "CqlSlowLogWriter.java")
+					{
+						#region CqlSlowLogWriter.java
+						//INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 01:42:34,277  CqlSlowLogWriter.java:151 - Recording statements with duration of 60248 in slow log
+						//WARN  [CqlSlowLog-Writer-thread-0] 2016-09-26 15:48:23,806  CqlSlowLogWriter.java:245 - Error writing to cql slow log
+						if (nCell == itemValuePos)
+						{
+							var queryTime = int.Parse(parsedValues[nCell]);
+
+							if (queryTime >= slowLogQueryThresholdInMS)
+							{
+								dataRow["Flagged"] = true;
+								//dataRow["Associated Item"] = "Compaction Pause";
+								dataRow["Exception"] = "Slow Query";
+							}
+							dataRow["Associated Value"] = queryTime;
+						}
+						else if (parsedValues[nCell] == "Recording")
+						{
+							itemValuePos = nCell + 5;
+							dataRow["Associated Item"] = "Slow Query Writing to dse_perf.node_slow_log table";
+						}
+						else if (parsedValues[nCell] == "Error")
+						{
+							dataRow["Associated Item"] = string.Join(" ", parsedValues.GetRange(nCell, parsedValues.Count - nCell));
+							dataRow["Flagged"] = true;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
+					{
+						#region CqlSolrQueryExecutor.java
+						//ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
+						if (parsedValues[nCell] == "No" && parsedValues[nCell + 1] == "response" && parsedValues[nCell + 3] == "timeout")
+						{
+							dataRow["Flagged"] = true;
+							dataRow["Associated Item"] = "Solr Timeout";
+							dataRow["Associated Value"] = int.Parse(parsedValues[nCell + 4]);
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "SolrCore.java")
+					{
+						#region SolrCore.java
+						//WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
+
+						if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
+						{							
+							var splitItems = SplitTableName(parsedValues[nCell - 1]);
+							var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
+
+							dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell)) + "-" + ksTableName;
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "JVMStabilityInspector.java")
+					{
+						#region JVMStabilityInspector.java
+						//ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
+						//java.lang.OutOfMemoryError: Java heap space
+
+						if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
+						{
+							dataRow["Flagged"] = true;
+							dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));
+						}
+						#endregion
+					}
+					else if (parsedValues[4] == "WorkPool.java")
+					{
+						#region WorkPool.java
+						//WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
+						//Failure to flush may cause excessive growth of Cassandra commit log.
+
+						if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Timeout"
+								&& parsedValues.ElementAtOrDefault(nCell + 4) == "workers"
+								&& parsedValues.ElementAtOrDefault(nCell + 6) == "flushing")
+						{
+							var nxtLine = fileLines[nLine + 1].Trim();
+							if (nxtLine.StartsWith("Failure") && nxtLine.Contains("commit log"))
+							{
+								dataRow["Flagged"] = true;
+								dataRow["Associated Item"] = nxtLine;
+								dataRow["Exception"] = "CommitLogFlushFailure";
+								++nLine;
+							}
+						}
+						#endregion
+					}					
+					else if (parsedValues[4] == "QueryProcessor.java")
+					{
+						#region QueryProcessor.java
+						////QueryProcessor.java:139 - 21 prepared statements discarded in the last minute because cache limit reached (66270208 bytes)						
+						if (parsedValues[nCell] == "prepared" && parsedValues.ElementAtOrDefault(nCell + 1) == "statements" && parsedValues.ElementAtOrDefault(nCell + 2) == "discarded")
+						{														
+							int preparedSize;
+
+							if (int.TryParse(parsedValues[nCell-1], out preparedSize))
+							{								
+								dataRow["Exception"] = "Prepared Discarded";
+								dataRow["Associated Value"] = preparedSize;
+							}
+						}
+						#endregion
+					}
+					else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
+					{
+						dataRow["Associated Value"] = lineIPAddress;
+					}
 
 
                     logDesc.Append(' ');
@@ -1300,10 +1246,157 @@ namespace DSEDiagnosticAnalyticParserConsole
             return nbrRows;
         }
 
+        static void ParseExceptions(string ipAddress,
+                                        string exceptionClass,
+                                        DataRow dataRow,
+                                        string remindingLine,
+                                        Action<string, bool, DataRow> additionalUpdates)
+        {            
+            if(exceptionClass.StartsWith("error...") && exceptionClass.Length > 8)
+            {
+                exceptionClass = exceptionClass.Substring(9);
+            }
+            else if (exceptionClass.StartsWith("null") && exceptionClass.Length > 4)
+            {
+                exceptionClass = exceptionClass.Substring(5);
+            }
+
+            var lastException = dataRow["Exception"] as string;           
+            var exception = exceptionClass.Trim(new char[] { ' ', '-', '.', ':', ';' });            
+            var exceptionDesc = remindingLine?.Trim(new char[] { ' ', '-', '.', ':', ';' });
+            bool extendedExceptionDesc = false;
+            var exceptionDescSplits = exceptionDesc == null ? new string[0] : RegExExceptionDesc.Split(exceptionDesc);            
+
+            if(lastException == null 
+                    && dataRow["Exception Description"] == null)
+            {
+                ParseExceptions(ipAddress, (string) dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates);
+                lastException = dataRow["Exception"] as string;
+            }
+
+            dataRow.BeginEdit();
+
+            UpdateRowColumn(dataRow, "Exception Description", dataRow["Exception Description"] as string, exception + "(" + exceptionDesc + ")");
+
+            if (exceptionDescSplits.Length == 0)
+            {
+                if (string.IsNullOrEmpty(exceptionDesc))
+                {
+                    UpdateRowColumn(dataRow,
+                                    "Exception",
+                                    lastException,
+                                    exception);                    
+                }
+                else
+                {
+                    var clMatch = RegExCLogCL.Match(exceptionDesc);
+                    var toMatch = RegExCLogTO.Match(exceptionDesc);
+
+                    if (toMatch.Success)
+                    {
+                        dataRow["Associated Value"] = int.Parse(toMatch.Groups[1].Value);
+                        UpdateRowColumn(dataRow, "Exception", lastException, exception + "(No response|Operation timeout)");
+                    }
+                    else if (clMatch.Success)
+                    {
+                        dataRow["Associated Value"] = clMatch.Groups[1].Value;
+                        UpdateRowColumn(dataRow, "Exception", lastException, exception + "(Cannot achieve consistency level)");
+                    }
+                    else
+                    {
+                        UpdateRowColumn(dataRow,
+                                            "Exception",
+                                            lastException,
+                                            exception + "(" + exceptionDesc + ")");
+                    }
+                }
+                extendedExceptionDesc = true;
+            }
+            else for (int nIndex = 0; nIndex < exceptionDescSplits.Length; ++nIndex)
+            {
+                if (exceptionDescSplits[nIndex] == null)
+                {
+                    continue;
+                }
+
+                exceptionDescSplits[nIndex] = exceptionDescSplits[nIndex].Trim();
+
+                if (exceptionDescSplits[nIndex] == string.Empty)
+                {
+                    continue;
+                }
+
+                if (RegExExpErrClassName.IsMatch(exceptionDescSplits[nIndex]))
+                {
+                    continue;
+                }
+
+                if(exceptionDescSplits[nIndex][0] == '/')
+                {
+                    UpdateRowColumn(dataRow,
+                                    "Associated Item",
+                                    dataRow["Associated Item"] as string,
+                                    exceptionDescSplits[nIndex],
+                                    "->");                    
+                }
+
+				if(!extendedExceptionDesc)                
+                {
+					if (!string.IsNullOrEmpty(lastException) && lastException.Contains(exceptionDescSplits[nIndex]))
+					{
+						UpdateRowColumn(dataRow,
+											"Exception",
+											lastException,
+											exception);
+					}
+					else
+					{
+						UpdateRowColumn(dataRow,
+											"Exception",
+											lastException,
+											exception + "(" + string.Join(" ", exceptionDescSplits.GetRange(nIndex, (element, index) => string.IsNullOrEmpty(element))) + ")");
+					}
+
+                    extendedExceptionDesc = true;                    
+                }
+            }
+
+            if(!extendedExceptionDesc)
+            {
+                UpdateRowColumn(dataRow,
+                                "Exception",
+                                lastException,
+                                exception);
+                extendedExceptionDesc = true;
+            }
+
+            additionalUpdates?.Invoke(exception, extendedExceptionDesc, dataRow);
+
+            dataRow.EndEdit();
+        }
+
+        static string UpdateRowColumn(DataRow dataRow, string columnName, string currentValue, string appendValue, string delimitor = "=>")
+        {
+            if (!string.IsNullOrEmpty(currentValue) && currentValue.Contains(appendValue))
+            {
+                return currentValue;
+            }
+            
+            var newValue = string.IsNullOrEmpty(currentValue) ? appendValue : currentValue + delimitor + appendValue;
+            dataRow[columnName] = newValue;
+
+            return newValue;
+        }
+
+        static Regex RegExSummaryLogExceptionNodes = new Regex(@"(.+?)\=\>",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegExSummaryLogExceptionName = new Regex(@"(.+?)\(",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static void ParseCassandraLogIntoSummaryDataTable(DataTable dtroCLog,
-                                                            DataTable dtCSummaryLog,                                                            
-                                                            string[] logAggregateIndicators,
-                                                            string[] logAggregateAdditionalTaskExceptionItems,
+                                                            DataTable dtCSummaryLog,
+                                                            DataTable dtCExceptionSummaryLog,
+															DateTimeRange maxminLogDate,
+															string[] logAggregateAdditionalTaskExceptionItems,
                                                             string[] ignoreTaskExceptionItems,
                                                             IEnumerable<Tuple<DateTime, TimeSpan>> bucketFromAggregatePeriods)
         {
@@ -1314,19 +1407,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCSummaryLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCSummaryLog.Columns.Add("Node IPAddress", typeof(string)).AllowDBNull = true;
                 dtCSummaryLog.Columns.Add("Type", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Value", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Occurrences", typeof(int));
+                dtCSummaryLog.Columns.Add("Key", typeof(string)).AllowDBNull = true;
+                dtCSummaryLog.Columns.Add("Path", typeof(string)).AllowDBNull = true;
+				dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true;
+				dtCSummaryLog.Columns.Add("Occurrences", typeof(int));
+                dtCSummaryLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true;
 
-                dtCSummaryLog.DefaultView.Sort = "[Timestamp Period] DESC, [Data Center], [Associated Item], [Value]";
+                dtCSummaryLog.DefaultView.Sort = "[Timestamp Period] DESC, [Data Center], [Key], [Path]";
             }
+
+            CreateCassandraLogDataTable(dtCExceptionSummaryLog, true);
 
             if (dtroCLog.Rows.Count > 0)
             {
                 var segments = new List<Tuple<DateTime, DateTime, TimeSpan, List<CLogSummaryInfo>>>();
-                DataRow dataSummaryRow;
+               
+				Program.ConsoleParsingLog.Increment("Summary Segment Generation...");
 
-                for (int nIndex = 0; nIndex < bucketFromAggregatePeriods.Count(); ++nIndex)
+				for (int nIndex = 0; nIndex < bucketFromAggregatePeriods.Count(); ++nIndex)
                 {
                     segments.Add(new Tuple<DateTime, DateTime, TimeSpan, List<CLogSummaryInfo>>(bucketFromAggregatePeriods.ElementAt(nIndex).Item1,
                                                                                                     bucketFromAggregatePeriods.ElementAtOrDefault(nIndex + 1) == null
@@ -1336,39 +1434,52 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                     new List<CLogSummaryInfo>()));
                 }
 
-                Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
+				Program.ConsoleParsingLog.TaskEnd("Summary Segment Generation...");
+
+				Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
 
                 Parallel.ForEach(segments, element =>
                 //foreach (var element in segments)
                 {
-                    var dataView = new DataView(dtroCLog,
-                                                string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp]",
-                                                                element.Item1,
-                                                                element.Item2),
-                                                "[Timestamp] DESC",
-                                                DataViewRowState.CurrentRows);
+					Program.ConsoleParsingLog.Increment(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
 
+					var segmentView = (from dr in dtroCLog.AsEnumerable()
+									   let timeStamp = dr.Field<DateTime>("Timestamp")
+									   let flagged = dr.Field<bool?>("Flagged")
+									   let indicator = dr.Field<string>("Indicator")
+									   where element.Item1 >= timeStamp && element.Item2 < timeStamp
+												&& ((flagged.HasValue && flagged.Value)
+														|| !dr.IsNull("Exception")
+														|| indicator == "ERROR"
+														|| indicator == "WARN")
+									   orderby timeStamp descending
+									   select new
+									   {
+										   Timestamp = timeStamp,
+										   Indicator = indicator,
+										   TaskItem = dr.Field<string>("Task"),
+										   Item = dr.Field<string>("Item"),
+										   Exception = dr.Field<string>("Exception"),
+										   Flagged = flagged.HasValue ? flagged.Value : false,
+										   DataCenter = dr.Field<string>("Data Center"),
+										   IpAdress = dr.Field<string>("Node IPAddress"),
+										   AssocItem = dr.Field<string>("Associated Item"),
+                                           DataRowArray = dr.ItemArray
+									   });
+				   
                     var startPeriod = element.Item1;
                     var endPeriod = startPeriod - element.Item3;
 
-                    //			dataView.RowFilter.Dump();
-                    //			element.Dump();
-                    //			if (dataView.ToTable().Rows.Count.Dump() > 0)
-                    //			{				
-                    //				dataView.ToTable().Rows[0].Dump();
-                    //				dataView.ToTable().Rows[dataView.ToTable().Rows.Count - 1].Dump();
-                    //			}
-
-                    foreach (DataRowView dataRow in dataView)
+                    foreach (var dataView in segmentView)
                     {
-                        if ((DateTime)dataRow["Timestamp"] < endPeriod)
+                        if (dataView.Timestamp < endPeriod)
                         {
                             startPeriod = endPeriod;
                             endPeriod = startPeriod - element.Item3;
 
-                            if ((DateTime)dataRow["Timestamp"] < endPeriod)
+                            if (dataView.Timestamp < endPeriod)
                             {
-                                var newBeginPeriod = ((DateTime)dataRow["Timestamp"]).RoundUp(element.Item3);
+                                var newBeginPeriod = (dataView.Timestamp).RoundUp(element.Item3);
 
                                 if (element.Item4.Count > 0)
                                 {
@@ -1384,147 +1495,246 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                         }
 
-                        //		dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-                        //		dtCLog.Columns.Add("Node IPAddress", typeof(string));
-                        //		dtCLog.Columns.Add("Timestamp", typeof(DateTime));
-                        //		dtCLog.Columns.Add("Indicator", typeof(string));
-                        //		dtCLog.Columns.Add("Task", typeof(string));
-                        //		dtCLog.Columns.Add("Item", typeof(string));
-                        //		dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
-                        //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
-                        //		dtCLog.Columns.Add("Description", typeof(string));
-                        //		dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
-
-                        var indicator = (string)dataRow["Indicator"];
-                        var taskItem = (string)dataRow["Task"];
-                        var item = (string)dataRow["Item"];
-                        var exception = dataRow["Exception"] as string;
-
-                        if (ignoreTaskExceptionItems.Contains(taskItem)
-                            || ignoreTaskExceptionItems.Contains(item)
-                            || ignoreTaskExceptionItems.Contains(exception))
+                        if (ignoreTaskExceptionItems.Contains(dataView.TaskItem)
+                            || ignoreTaskExceptionItems.Contains(dataView.Item)
+                            || ignoreTaskExceptionItems.Contains(dataView.Exception))
                         {
                             continue;
                         }
+                       
+                        if (!string.IsNullOrEmpty(dataView.Exception))
+                        {                           
+                            var exceptionName = DetermineExceptionNameFromPath(dataView.Exception);
+							var exceptionPath = dataView.Exception;
 
-                        if (logAggregateAdditionalTaskExceptionItems.Contains(taskItem))
-                        {
-                            var strItem = exception == null ? taskItem : taskItem + " (" + exception + ")";
-                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, "Task", strItem, dataRow));
-
-                            if (summaryInfo == null)
+							if (exceptionPath == exceptionName)
                             {
-                                summaryInfo = new CLogSummaryInfo(startPeriod, element.Item3, "Task", strItem, dataRow);
-                                element.Item4.Add(summaryInfo);
-                            }
-
-                            ++summaryInfo.AggregationCount;
-                        }
-                        else if (logAggregateAdditionalTaskExceptionItems.Contains(item))
-                        {
-                            if (indicator == "INFO")
-                            {
-                                bool? flagged = dataRow["Flagged"] as bool?;
-
-                                if (!flagged.HasValue || !flagged.Value)
+                                if(string.IsNullOrEmpty(dataView.AssocItem))
                                 {
-                                    continue;
+									exceptionPath = null;
+                                }
+                                else
+                                {
+									exceptionPath += string.Format("({0})", dataView.AssocItem);
                                 }
                             }
 
-                            var strItem = exception == null ? item : item + " (" + exception + ")";
-                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, "Item", strItem, dataRow));
+                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod,
+                                                                                "Exception",
+                                                                                exceptionName,
+                                                                                exceptionPath,
+                                                                                dataView.DataCenter,
+                                                                                dataView.IpAdress));
 
                             if (summaryInfo == null)
                             {
-                                summaryInfo = new CLogSummaryInfo(startPeriod, element.Item3, "Item", strItem, dataRow);
+                                summaryInfo = new CLogSummaryInfo(startPeriod,
+                                                                    element.Item3,																	
+                                                                    "Exception",
+                                                                    exceptionName,
+                                                                    exceptionPath,
+                                                                    dataView.DataCenter,
+                                                                    dataView.IpAdress);
                                 element.Item4.Add(summaryInfo);
                             }
 
-                            ++summaryInfo.AggregationCount;
+							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
                         }
-                        else if (logAggregateAdditionalTaskExceptionItems.Contains(exception))
+                        else if (dataView.Flagged)
                         {
-                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, "Exception", exception, dataRow));
+							var item = dataView.Item;
+                            var itemNameSplit = RegExSummaryLogExceptionName.Split(item);
+                            var itemName = itemNameSplit.Length < 2 ? item : itemNameSplit[1];
+
+                            if (string.IsNullOrEmpty(dataView.AssocItem))
+                            {
+                                item = null;
+                            }
+                            else
+                            {
+                                item += string.Format("({0})", dataView.AssocItem);
+                            }
+
+                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod,
+                                                                                "Flagged",
+                                                                                itemName,
+                                                                                item,
+                                                                                dataView.DataCenter,
+                                                                                dataView.IpAdress));
 
                             if (summaryInfo == null)
                             {
-                                summaryInfo = new CLogSummaryInfo(startPeriod, element.Item3, "Exception", exception, dataRow);
+                                summaryInfo = new CLogSummaryInfo(startPeriod, 
+                                                                    element.Item3,																	
+																	"Flagged",
+                                                                    itemName,
+                                                                    item,
+                                                                    dataView.DataCenter,
+                                                                    dataView.IpAdress);
                                 element.Item4.Add(summaryInfo);
                             }
 
-                            ++summaryInfo.AggregationCount;
-                        }
-                        else if (!string.IsNullOrEmpty(exception))
+							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
+						}
+                        else
                         {
-                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, "Exception", exception, dataRow));
+                            string itemType;
+                            string itemPath = null;
+                            string itemName;                     
+
+                            if (logAggregateAdditionalTaskExceptionItems.Contains(dataView.TaskItem) && dataView.AssocItem != null)
+                            {
+                                itemType = "Task";
+                                itemName = dataView.TaskItem;
+                                itemPath = string.Format("{0}({1})", dataView.TaskItem, dataView.AssocItem);
+                            }
+                            else if(logAggregateAdditionalTaskExceptionItems.Contains(dataView.Item) && dataView.AssocItem != null)
+                            {
+                                itemType = "Item";
+                                itemName = dataView.Item;
+                                itemPath = string.Format("{0}({1})", dataView.Item, dataView.AssocItem);
+                            }
+                            else
+                            {
+                                itemType = "Indicator";
+                                itemName = dataView.Indicator;
+                            }
+
+                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, itemType, itemName, itemPath, dataView.DataCenter, dataView.IpAdress));
 
                             if (summaryInfo == null)
                             {
-                                summaryInfo = new CLogSummaryInfo(startPeriod, element.Item3, "Exception", exception, dataRow);
+                                summaryInfo = new CLogSummaryInfo(startPeriod,
+																	element.Item3,																	
+																	itemType,
+																	itemName,
+																	itemPath,
+																	dataView.DataCenter,
+																	dataView.IpAdress);
                                 element.Item4.Add(summaryInfo);
                             }
 
-                            ++summaryInfo.AggregationCount;
-                        }
-                        else if (logAggregateIndicators.Contains(indicator))
-                        {
-                            var summaryInfo = element.Item4.Find(x => x.Equals(startPeriod, "Indicator", indicator, dataRow));
-
-                            if (summaryInfo == null)
-                            {
-                                summaryInfo = new CLogSummaryInfo(startPeriod, element.Item3, "Indicator", indicator, dataRow);
-                                element.Item4.Add(summaryInfo);
-                            }
-
-                            ++summaryInfo.AggregationCount;
-                        }
+							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
+						}
 
                     }
 
-                });//foreach
+					Program.ConsoleParsingLog.TaskEnd(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
+				});//foreach
 
-                foreach (var element in segments)
-                {
-                    if (element.Item4.Count == 0)
-                    {
-                        dataSummaryRow = dtCSummaryLog.NewRow();
+				var sortedSegments = from segment in segments
+									 orderby segment.Item1 descending
+									 select segment;
 
-                        dataSummaryRow["Data Center"] = null;
-                        dataSummaryRow["Node IPAddress"] = null;
+			 Program.ConsoleParsingNonLog.Increment("Summary Generating DataTable...");
 
-                        dataSummaryRow["Timestamp Period"] = element.Item1;
-                        dataSummaryRow["Aggregation Period"] = element.Item3;
-                        dataSummaryRow["Type"] = null;
-                        dataSummaryRow["Value"] = null;
-                        dataSummaryRow["Associated Item"] = null;
-                        dataSummaryRow["Occurrences"] = 0;
+            var summaryDataTableTask = Task.Factory.StartNew(() =>
+                                                {
+                                                    DataRow dataSummaryRow;
 
-                        dtCSummaryLog.Rows.Add(dataSummaryRow);
-                    }
-                    else
-                    {
-                        foreach (var item in element.Item4)
-                        {
-                            dataSummaryRow = dtCSummaryLog.NewRow();
+                                                    foreach (var element in segments)
+                                                    {
+                                                        if (element.Item4.Count == 0)
+                                                        {
+                                                            dataSummaryRow = dtCSummaryLog.NewRow();
 
-                            dataSummaryRow["Data Center"] = item.DataCenter;
-                            dataSummaryRow["Node IPAddress"] = item.IPAddress;
+                                                            dataSummaryRow["Data Center"] = null;
+                                                            dataSummaryRow["Node IPAddress"] = null;
 
-                            dataSummaryRow["Timestamp Period"] = item.Period;
-                            dataSummaryRow["Aggregation Period"] = item.PeriodSpan;
-                            dataSummaryRow["Type"] = item.ItemType;
-                            dataSummaryRow["Value"] = item.ItemValue;
-                            dataSummaryRow["Associated Item"] = item.AssociatedItem;
-                            dataSummaryRow["Occurrences"] = item.AggregationCount;
+                                                            dataSummaryRow["Timestamp Period"] = element.Item1;
+                                                            dataSummaryRow["Aggregation Period"] = element.Item3;
+                                                            dataSummaryRow["Type"] = null;
+                                                            dataSummaryRow["Key"] = null;
+                                                            dataSummaryRow["Path"] = null;
+                                                            dataSummaryRow["Last Occurrence"] = null;
+                                                            dataSummaryRow["Occurrences"] = 0;
 
-                            dtCSummaryLog.Rows.Add(dataSummaryRow);
-                        }
-                    }
-                }
-            }
+                                                            dtCSummaryLog.Rows.Add(dataSummaryRow);
+                                                        }
+                                                        else
+                                                        {
+                                                            foreach (var item in element.Item4)
+                                                            {
+                                                                dataSummaryRow = dtCSummaryLog.NewRow();
+
+                                                                dataSummaryRow["Data Center"] = item.DataCenter;
+                                                                dataSummaryRow["Node IPAddress"] = item.IPAddress;
+
+                                                                dataSummaryRow["Timestamp Period"] = item.Period;
+                                                                dataSummaryRow["Aggregation Period"] = item.PeriodSpan;
+                                                                dataSummaryRow["Type"] = item.ItemType;
+                                                                dataSummaryRow["Key"] = item.ItemKey;
+                                                                dataSummaryRow["Path"] = item.ItemPath;
+                                                                dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp;
+                                                                dataSummaryRow["Occurrences"] = item.AggregationCount;
+                                                                dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+
+                                                                dtCSummaryLog.Rows.Add(dataSummaryRow);
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                             TaskCreationOptions.LongRunning);
+
+                var summaryExceptionDataTableTask = Task.Factory.StartNew(() =>
+                                                    {
+                                                        DataRow dataSummaryRow;
+
+                                                        foreach (var element in segments)
+                                                        {
+                                                            foreach (var item in element.Item4)
+                                                            {
+                                                                foreach (var drArray in item.AssociatedDataArrays)
+                                                                {
+                                                                    dataSummaryRow = dtCExceptionSummaryLog.NewRow();
+                                                                    var itemArray = dataSummaryRow.ItemArray;
+
+                                                                    drArray.CopyTo(ref itemArray, 1);
+                                                                    dataSummaryRow.ItemArray = itemArray;
+                                                                    dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+
+                                                                    dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
+                                                                }
+                                                            }                                                         
+                                                        }
+                                                    },
+                                                TaskCreationOptions.LongRunning);
+
+                summaryDataTableTask.Wait();
+                summaryExceptionDataTableTask.Wait();
+
+                Program.ConsoleParsingNonLog.TaskEnd("Summary Generating DataTable...");
+			}
 
             Logger.Instance.InfoFormat("Summary Log Nbr Rows: {0:###,###,##0}", dtCSummaryLog.Rows.Count);
+        }
+
+        static string DetermineExceptionNameFromPath(string exceptionPath)
+        {            
+            return DetermineExceptionNameFromPath(exceptionPath, RegExSummaryLogExceptionNodes.Split(exceptionPath));
+        }
+
+        static string DetermineExceptionNameFromPath(string exceptionPath, string[] exceptionPathNodes, int posFromEnd = 1)
+        {
+            bool defaultNodes = false;
+
+            var keyNode = (defaultNodes = exceptionPathNodes.Length == 0 || posFromEnd > exceptionPathNodes.Length)
+                                ? exceptionPath
+                                : exceptionPathNodes[exceptionPathNodes.Length - posFromEnd];
+            var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
+            var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
+
+            if (defaultNodes)
+            {
+                return exceptionName;
+            }
+
+            if(ParserSettings.SummaryIgnoreExceptions.Contains(exceptionName.ToLower()))
+            {
+                return DetermineExceptionNameFromPath(exceptionPath, exceptionPathNodes, posFromEnd + 1);
+            }
+
+            return exceptionName;
         }
 
         static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+(\d+)(?:.*Eden Space:\s*(\d+)\s*->\s*(\d+))?(?:.*Old Gen:\s*(\d+)\s*->\s*(\d+))?(?:.*Survivor Space:\s*(\d+)\s*->\s*(\d+).*)?.*",
@@ -1646,15 +1856,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or ([Item] in ('CompactionController.java'" +
-                                                                            ", 'SSTableWriter.java'" +
-                                                                            ", 'SliceQueryFilter.java'" +
-                                                                            ", 'CqlSlowLogWriter.java'" +
-                                                                            ", 'FailureDetector.java'" +
-                                                                            ", 'BatchStatement.java'" +
-                                                                            ", 'JVMStabilityInspector.java'" +
-                                                                            ", 'WorkPool.java'" +
-                                                                            ") and [Flagged] = true)",
+                                                        " or [Flagged] = true",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
@@ -1669,6 +1871,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var batchSizes = new List<Tuple<string, string, int>>();
                 var jvmFatalErrors = new List<string>();
                 var workPoolErrors = new List<string>();
+                var nodeStatus = new List<Tuple<string,string,string>>();
 
                 string item;
 
@@ -1819,8 +2022,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (descr.StartsWith("Pool Name")
                              || descr.StartsWith("ColumnFamily ")
                              || descr.StartsWith("Cache Type"))
-                        {
-                            
+                        {                            
                             continue;
                         }                       
                         else
@@ -2077,10 +2279,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region JVMStabilityInspector
                         var exception = vwDataRow["Exception"] as string;
-
+                        
                         if (!string.IsNullOrEmpty(exception))
                         {
-                            jvmFatalErrors.Add(exception);
+                            var pathNodes = RegExSummaryLogExceptionNodes.Split(exception);
+                            var keyNode = pathNodes.Length == 0 ? exception : pathNodes.Last();
+                            var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
+                            var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
+
+                            jvmFatalErrors.Add(exceptionName);
                         }
 
                         #endregion
@@ -2092,11 +2299,45 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (!string.IsNullOrEmpty(exception))
                         {
-                            workPoolErrors.Add(exception);
+                            var pathNodes = RegExSummaryLogExceptionNodes.Split(exception);
+                            var keyNode = pathNodes.Length == 0 ? exception : pathNodes.Last();
+                            var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
+                            var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
+
+                            workPoolErrors.Add(exceptionName);
                         }
 
                         #endregion
-                    }                    
+                    }
+                    else if (item == "StorageService.java")
+                    {
+                        #region StorageService
+                        var exception = vwDataRow["Exception"] as string;
+
+                        if (!string.IsNullOrEmpty(exception))
+                        {
+                            var kstblName = vwDataRow["Associated Item"] as string;
+                            string ksName = null;
+                            string tblName = null;
+
+                            if (!string.IsNullOrEmpty(kstblName))
+                            {
+                                var kstblSplit = SplitTableName(kstblName, null);
+
+                                ksName = kstblSplit.Item1;
+                                tblName = kstblSplit.Item2;
+
+                                if (ignoreKeySpaces.Contains(ksName))
+                                {
+                                    continue;
+                                }
+                            }
+
+                            nodeStatus.Add(new Tuple<string,string,string>(exception, ksName, tblName));                            
+                        }
+
+                        #endregion
+                    }
                 }
 
                 #region Add TP/CF Stats Info
@@ -2430,6 +2671,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = RemoveNamespace(wpGrp.item) + " occurrences";
                             dataRow["Occurrences"] = wpGrp.Count;
+
+                            dtTPStats.Rows.Add(dataRow);
+                        }
+                    }
+
+                    #endregion
+
+                    #region Node Status
+
+                    if (nodeStatus.Count > 0)
+                    {
+                        var nodeStatusItems = from nodeItem in nodeStatus
+                                                    where string.IsNullOrEmpty(nodeItem.Item2)
+                                                    group nodeItem.Item1 by nodeItem.Item1 into g
+                                                    select new
+                                                    {
+                                                        item = g.Key,
+                                                        Count = g.Count()
+                                                    };
+
+                        foreach (var statusGrp in nodeStatusItems)
+                        {
+                            var dataRow = dtTPStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Attribute"] = statusGrp.item + " occurrences";
+                            dataRow["Occurrences"] = statusGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
                         }
@@ -2990,6 +3260,40 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 dtCFStats.Rows.Add(dataRow);
                             }
+                        }
+
+                        #endregion
+                    }
+                    
+                    if (nodeStatus.Count > 0)
+                    {
+                        #region Node Status
+
+                        var nodeStatusItems = from nodeItem in nodeStatus
+                                              where !string.IsNullOrEmpty(nodeItem.Item2)
+                                              group nodeItem by new { nodeItem.Item1, nodeItem.Item2, nodeItem.Item3 } into g
+                                              select new
+                                              {
+                                                  item = g.Key.Item1,
+                                                  KeySpace = g.Key.Item2,
+                                                  Table = g.Key.Item3,
+                                                  Count = g.Count()
+                                              };
+
+                        foreach (var statusGrp in nodeStatusItems)
+                        {
+                            var dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = statusGrp.item + " occurrences";
+                            dataRow["Value"] = statusGrp.Count;
+                            dataRow["(value)"] = statusGrp.Count;
+
+                            dtCFStats.Rows.Add(dataRow);
                         }
 
                         #endregion

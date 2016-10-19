@@ -129,14 +129,20 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         int _runningCnt = 0;
+        int _displayLine = 0;
+
         public string Line()
         {
             var currCount = this._taskItems.Count;
 
             if(currCount > 1 && currCount == this._runningCnt)
             {
-                var rnd = new Random();
-                return this.Line(rnd.Next(0, currCount - 1));
+                var displayLine = this._displayLine++;
+                if(displayLine >= currCount)
+                {
+                    this._displayLine = 0;
+                }
+                return this.Line(displayLine);
             }
 
             this._runningCnt = currCount;

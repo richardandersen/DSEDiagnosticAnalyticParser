@@ -12,7 +12,7 @@ namespace DSEDiagnosticAnalyticParserConsole
     static public partial class DTLoadIntoExcel
     {
         public static void LoadSummaryLogCFNodeStats(Task<DataTable> runLogParsingTask,
-                                                        Task<DataTable> runSummaryLogTask,
+                                                        Task<Tuple<DataTable,DataTable>> runSummaryLogTask,
                                                         ExcelPackage excelPkg,                                                        
                                                         string excelWorkSheetSummaryLogCassandra,
                                                         DateTimeRange logCassandraMaxMinTimestamp,
@@ -36,7 +36,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             runSummaryLogTask?.Wait();
 
             LoadSummaryLog(excelPkg,
-                            runSummaryLogTask.Result,
+                            runSummaryLogTask.Result.Item1,
                             excelWorkSheetSummaryLogCassandra,
                             logCassandraMaxMinTimestamp,                            
                             logTimeSpanRange,

@@ -39,21 +39,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 && this.KeyValueParams.All(item => compareItem.KeyValueParams.Where(kvp => kvp.Item1 == item.Item1).Count() > 0)));
         }
 
-        public string ProperyName()
+        public string PropertyName()
         {
             return this.Cmd + (this.KeyValueParams == null
                                     ? string.Empty
                                     : "." + string.Join(".", this.KeyValueParams.Select(kvp => kvp.Item1)));
         }
 
-        public string ProperyName(int inxProperty)
+        public string PropertyName(int inxProperty)
         {
             return this.Cmd + (this.KeyValueParams == null || inxProperty == 0
                                     ? string.Empty
                                     : "." + this.KeyValueParams.ElementAt(inxProperty - 1).Item1);
         }
 
-        public object ProperyValue(int inxProperty)
+        public object PropertyValue(int inxProperty)
         {
             string strValue = this.KeyValueParams == null || inxProperty == 0
                                     ? this.CmdParams
@@ -113,11 +113,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return false;
             }
 
+            var propertyName = this.PropertyName(inxProperty);
+            var propertyValue = this.PropertyValue(inxProperty);
+
+            if (propertyName.EndsWith("_password") && propertyValue is string)
+            {
+                propertyValue = new string('*', ((string)propertyValue).Length);
+            }
+            else if (propertyName == "initial_token")
+            {
+                propertyValue = propertyValue.ToString();
+            }
+
             drYama["Yaml Type"] = this.YamlType;
             drYama["Data Center"] = this.DCName;
             drYama["Node IPAddress"] = this.IPAddress;
-            drYama["Property"] = this.ProperyName(inxProperty);
-            drYama["Value"] = this.ProperyValue(inxProperty);
+            drYama["Property"] = propertyName;
+            drYama["Value"] = propertyValue;
 
             return true;
         }

@@ -9,53 +9,35 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     public class CLogSummaryInfo : IEqualityComparer<CLogSummaryInfo>, IEquatable<CLogSummaryInfo>
     {
-        public CLogSummaryInfo(DateTime period, TimeSpan periodSpan, string itemType, string itemValue, DataRowView dataRow)
-        {
-            //		dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-            //		dtCLog.Columns.Add("Node IPAddress", typeof(string));
-            //		dtCLog.Columns.Add("Timestamp", typeof(DateTime));
-            //		dtCLog.Columns.Add("Indicator", typeof(string));
-            //		dtCLog.Columns.Add("Task", typeof(string));
-            //		dtCLog.Columns.Add("Item", typeof(string));
-            //		dtCLog.Columns.Add("Exception", typeof(string)).AllowDBNull = true;
-            //		dtCLog.Columns.Add("Exception Description", typeof(string)).AllowDBNull = true;
-            //		dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
-            //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
-            //		dtCLog.Columns.Add("Description", typeof(string));
-            //		dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
+        static int NextGroupIndicator = 0;
 
-            this.DataCenter = dataRow == null ? null : dataRow["Data Center"] as string;
-            this.IPAddress = dataRow == null ? null : (string)dataRow["Node IPAddress"];
-            this.AssociatedItem = dataRow == null ? null : dataRow["Associated Item"] as string;
+        public CLogSummaryInfo(DateTime period, TimeSpan periodSpan, string itemType, string itemKey, string itemPath, string dataCenter, string ipAdress)
+        {           
+            this.DataCenter = dataCenter;
+            this.IPAddress = ipAdress;
+            this.ItemPath = itemPath;
             this.ItemType = itemType;
-            this.ItemValue = itemValue;
+            this.ItemKey = itemKey;
             this.Period = period;
             this.PeriodSpan = periodSpan;
             this.AggregationCount = 0;
+			this.MaxTimeStamp = null;
+            this.GroupIndicator = System.Threading.Interlocked.Increment(ref NextGroupIndicator);
         }
 
-        public CLogSummaryInfo(DateTime period, TimeSpan periodSpan, string itemType, string itemValue, string AssociatedItem, string ipAddress, string dcName)
-        {
-            this.DataCenter = dcName;
-            this.IPAddress = ipAddress;
-            this.ItemType = itemType;
-            this.ItemValue = itemValue;
-            this.Period = period;
-            this.PeriodSpan = periodSpan;
-            this.AssociatedItem = AssociatedItem;
-            this.AggregationCount = 0;
-        }
-
+        public int GroupIndicator;
         public string DataCenter;
         public string IPAddress;
         public DateTime Period;
-        public TimeSpan PeriodSpan;
+        public TimeSpan PeriodSpan;		
         public string ItemType;
-        public string ItemValue;
-        public string AssociatedItem;
+        public string ItemKey;
+        public string ItemPath;
         public int AggregationCount;
+		public DateTime? MaxTimeStamp;
+        public List<object[]> AssociatedDataArrays = new List<object[]>();
 
-        public bool Equals(CLogSummaryInfo x, CLogSummaryInfo y)
+		public bool Equals(CLogSummaryInfo x, CLogSummaryInfo y)
         {
             if (x == null && y == null)
                 return true;
@@ -65,8 +47,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             return x.IPAddress == y.IPAddress
                     && x.DataCenter == y.DataCenter
                     && x.ItemType == y.ItemType
-                    && x.ItemValue == y.ItemValue
-                    && x.AssociatedItem == y.AssociatedItem
+                    && x.ItemKey == y.ItemKey
+                    && x.ItemPath == y.ItemPath
                     && x.Period == y.Period;
         }
 
@@ -78,20 +60,18 @@ namespace DSEDiagnosticAnalyticParserConsole
             return this.IPAddress == y.IPAddress
                     && this.DataCenter == y.DataCenter
                     && this.ItemType == y.ItemType
-                    && this.ItemValue == y.ItemValue
-                    && this.AssociatedItem == y.AssociatedItem
+                    && this.ItemKey == y.ItemKey
+                    && this.ItemPath == y.ItemPath
                     && this.Period == y.Period;
         }
 
-        public bool Equals(DateTime period, string itemType, string itemValue, DataRowView dataRow)
-        {
-            if (dataRow == null) return false;
-
-            return this.IPAddress == (string)dataRow["Node IPAddress"]
-                    && this.DataCenter == dataRow["Data Center"] as string
+        public bool Equals(DateTime period, string itemType, string itemKey, string itemPath, string dataCenter, string ipAdress)
+        {            
+            return this.IPAddress == ipAdress
+                    && this.DataCenter == dataCenter
                     && this.ItemType == itemType
-                    && this.ItemValue == itemValue
-                    && this.AssociatedItem == dataRow["Associated Item"] as string
+                    && this.ItemKey == itemKey
+                    && this.ItemPath == itemPath
                     && this.Period == period;
         }
 
@@ -99,8 +79,23 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (x == null) return 0;
 
-            return (x.IPAddress + x.DataCenter + x.AssociatedItem + x.ItemType + x.ItemValue + x.Period).GetHashCode();
+            return (x.IPAddress + x.DataCenter + x.ItemType + x.ItemPath + x.Period).GetHashCode();
         }
+
+		public int Increment(DateTime timestamp, object[] datarowItemArray)
+		{
+			if (!this.MaxTimeStamp.HasValue || this.MaxTimeStamp < timestamp)
+			{
+				this.MaxTimeStamp = timestamp;
+			}
+
+            if (datarowItemArray != null)
+            {
+                this.AssociatedDataArrays.Add(datarowItemArray);
+            }
+
+			return ++this.AggregationCount;
+		}
     }
 
 }

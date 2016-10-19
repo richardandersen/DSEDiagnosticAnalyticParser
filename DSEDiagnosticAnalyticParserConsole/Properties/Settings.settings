@@ -26,29 +26,6 @@
     <Setting Name="LogMaxRowsPerNode" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">-1</Value>
     </Setting>
-    <Setting Name="LogSummaryIndicatorType" Type="System.Collections.Specialized.StringCollection" Scope="Application">
-      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
-&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;string&gt;WARN&lt;/string&gt;
-  &lt;string&gt;ERROR&lt;/string&gt;
-&lt;/ArrayOfString&gt;</Value>
-    </Setting>
-    <Setting Name="LogSummaryTaskItems" Type="System.Collections.Specialized.StringCollection" Scope="Application">
-      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
-&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;string&gt;SliceQueryFilter.java&lt;/string&gt;
-  &lt;string&gt;BatchStatement.java&lt;/string&gt;
-  &lt;string&gt;CompactionController.java&lt;/string&gt;
-  &lt;string&gt;HintedHandoffMetrics.java&lt;/string&gt;
-  &lt;string&gt;GCInspector.java&lt;/string&gt;
-  &lt;string&gt;MessagingService.java&lt;/string&gt;
-  &lt;string&gt;CompactionTask.java&lt;/string&gt;
-  &lt;string&gt;RepairSession.java&lt;/string&gt;
-  &lt;string&gt;SSTableWriter.java&lt;/string&gt;
-  &lt;string&gt;CqlSlowLogWriter.java&lt;/string&gt;
-  &lt;string&gt;CqlSolrQueryExecutor.java&lt;/string&gt;
-&lt;/ArrayOfString&gt;</Value>
-    </Setting>
     <Setting Name="LogSummaryIgnoreTaskExceptions" Type="System.Collections.Specialized.StringCollection" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
@@ -458,6 +435,34 @@
   &lt;string&gt;system_traces&lt;/string&gt;
   &lt;string&gt;dse_perf&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="LogSummaryTaskItems" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;SliceQueryFilter.java&lt;/string&gt;
+  &lt;string&gt;BatchStatement.java&lt;/string&gt;
+  &lt;string&gt;CompactionController.java&lt;/string&gt;
+  &lt;string&gt;HintedHandoffMetrics.java&lt;/string&gt;
+  &lt;string&gt;GCInspector.java&lt;/string&gt;
+  &lt;string&gt;MessagingService.java&lt;/string&gt;
+  &lt;string&gt;CompactionTask.java&lt;/string&gt;
+  &lt;string&gt;RepairSession.java&lt;/string&gt;
+  &lt;string&gt;SSTableWriter.java&lt;/string&gt;
+  &lt;string&gt;CqlSlowLogWriter.java&lt;/string&gt;
+  &lt;string&gt;CqlSolrQueryExecutor.java&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="SummaryIgnoreExceptions" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;warn&lt;/string&gt;
+  &lt;string&gt;error&lt;/string&gt;
+  &lt;string&gt;internal_error&lt;/string&gt;
+  &lt;string&gt;failed&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="ExcelWorkSheetExceptionSummaryLogCassandra" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cassandra Exception Summary Log</Value>
     </Setting>
   </Settings>
 </SettingsFile>

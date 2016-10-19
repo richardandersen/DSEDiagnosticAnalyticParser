@@ -272,7 +272,17 @@ namespace DSEDiagnosticAnalyticParserConsole
             return new Tuple<string, string>(RemoveQuotes(nameparts[0]), RemoveQuotes(nameparts[1]));
         }
 
-        static Tuple<string, string> ParseKeyValuePair(string pairKeyValue)
+		static Tuple<string, string> SplitTableName(string cqlTableName)
+		{
+			if (cqlTableName[0] == '[' || cqlTableName[0] == '(')
+			{
+				cqlTableName = cqlTableName.Substring(1, cqlTableName.Length - 2);				
+			}
+			
+			return SplitTableName(cqlTableName.Replace('/', '.'), null);
+		}
+
+		static Tuple<string, string> ParseKeyValuePair(string pairKeyValue)
         {
             var valueList = pairKeyValue.Split('=');
 

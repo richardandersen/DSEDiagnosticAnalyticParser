@@ -165,7 +165,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 workSheet = excelPkg.Workbook.Worksheets.Add("Application");
             }
            
-            workSheet.Cells["A2"].Value = string.Format("Run Timestamp {0}", Program.RunDateTime);
+            workSheet.Cells["A2"].Value = string.Format("Start Timestamp: {0} Duration: {1:hh\\:mm\\:ss\\.ffff}",
+															Program.RunDateTime,
+															DateTime.Now - Program.RunDateTime);
             workSheet.Cells["A3"].Value = string.Format("Program: {0} Version: {1} Directory: {2}",
                                                             Common.Functions.Instance.ApplicationName,
                                                             Common.Functions.Instance.ApplicationVersion,
@@ -182,10 +184,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                workSheet.Cells["A7"].Value = string.Format("Log From {0} ({0:ddd}) to {1} ({1:ddd}) duration {2:d\\ hh\\:mm}",
+                workSheet.Cells["A7"].Value = string.Format("Log From {0} ({0:ddd}) to {1} ({1:ddd}) duration {2:d\\ hh\\:mm} Number of Log items read/processed: {3:###,###,##0}",
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Max,
-                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp.Max - ProcessFileTasks.LogCassandraMaxMinTimestamp.Min);
+                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp.Max - ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
+															Program.ConsoleLogCount.Counter);
             }
         }
     }

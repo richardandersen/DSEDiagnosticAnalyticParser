@@ -18,7 +18,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public ConsoleDisplay ConsoleLogReadFiles = null;
         static public ConsoleDisplay ConsoleParsingNonLog = null;
         static public ConsoleDisplay ConsoleParsingLog = null;
-        static public ConsoleDisplay ConsoleExcelNonLog = null;
+		static public ConsoleDisplay ConsoleLogCount = null;
+		static public ConsoleDisplay ConsoleExcelNonLog = null;
         static public ConsoleDisplay ConsoleExcelLog = null;
         static public ConsoleDisplay ConsoleExcelLogStatus = null;
         static public ConsoleDisplay ConsoleExcel = null;
@@ -72,10 +73,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleLogReadFiles = new ConsoleDisplay("Log Files: {0}  Working: {1} Task: {2}");
             ConsoleParsingNonLog = new ConsoleDisplay("Non-Log Processing: {0}  Working: {1} Task: {2}");
             ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");
-            ConsoleExcel = new ConsoleDisplay("Excel: {0}  Working: {1} WorkSheet: {2}");
+			ConsoleLogCount = new ConsoleDisplay("Log Item Count: {0:###,###,##0}", 2, false);
+			ConsoleExcel = new ConsoleDisplay("Excel: {0}  Working: {1} WorkSheet: {2}");
             ConsoleExcelNonLog = new ConsoleDisplay("Excel Non-Log: {0}  Working: {1} Task: {2}");
             ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Working: {1} Task: {2}");
-            ConsoleExcelLogStatus = new ConsoleDisplay("Excel Status Log: {0}  Working: {1} Task: {2}");
+            ConsoleExcelLogStatus = new ConsoleDisplay("Excel Status/Summary Log: {0}  Working: {1} Task: {2}");
             ConsoleExcelWorkbook = new ConsoleDisplay("Excel Workbooks: {0} File: {2}");
             ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
             ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
@@ -1011,7 +1013,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             | TaskContinuationOptions.OnlyOnRanToCompletion);
 
             Task<DataTable> runLogParsingTask = Task.FromResult((DataTable)null); ;
-            Task<DataTable> runSummaryLogTask = Task.FromResult((DataTable) null);            
+            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);            
             Task<int> runningLogTask = logParsingTasks.Count == 0
                                         ? Task.FromResult(0)
                                         : Task<int>
@@ -1047,8 +1049,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             ParserSettings.ExcelWorkSheetLogCassandra,                                                                                            
                                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                                             ParserSettings.LogSummaryPeriods,
-                                                                                            ParserSettings.LogSummaryPeriodRanges,
-                                                                                            ParserSettings.LogSummaryIndicatorType,
+                                                                                            ParserSettings.LogSummaryPeriodRanges,                                                                                            
                                                                                             ParserSettings.LogSummaryTaskItems,
                                                                                             ParserSettings.LogSummaryIgnoreTaskExceptions);
 
@@ -1149,10 +1150,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             ParserSettings.MaxRowInExcelWorkSheet,
                                                                             ParserSettings.LogExcelWorkbookFilter);
 
-                statusLogToExcel.ContinueWith(action =>
-                                                {
-                                                    Program.ConsoleExcelLogStatus.Terminate();
-                                                });
+                var summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
+                                                                                            ParserSettings.ExcelFilePath,
+                                                                                            ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
+                                                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp);
+               
+                Task.Factory
+                        .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+
 
                 var logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogParsingTask,
                                                                         ParserSettings.ExcelFilePath,
@@ -1164,11 +1169,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 logToExcel.ContinueWith(action =>
                                         {
-                                            Program.ConsoleExcelLogStatus.Terminate();
+                                            Program.ConsoleExcelLog.Terminate();
                                         });
 
                 runLogToExcel = Task.Factory
-                                    .ContinueWhenAll(new Task[] { statusLogToExcel, logToExcel} , tasks => { });
+                                    .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel, logToExcel } , tasks => { });
             }
             #endregion
 

@@ -96,39 +96,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
-            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
-            "tring>WARN</string>\r\n  <string>ERROR</string>\r\n</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection LogSummaryIndicatorType {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["LogSummaryIndicatorType"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
-<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
-  <string>SliceQueryFilter.java</string>
-  <string>BatchStatement.java</string>
-  <string>CompactionController.java</string>
-  <string>HintedHandoffMetrics.java</string>
-  <string>GCInspector.java</string>
-  <string>MessagingService.java</string>
-  <string>CompactionTask.java</string>
-  <string>RepairSession.java</string>
-  <string>SSTableWriter.java</string>
-  <string>CqlSlowLogWriter.java</string>
-  <string>CqlSolrQueryExecutor.java</string>
-</ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection LogSummaryTaskItems {
-            get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["LogSummaryTaskItems"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::System.Collections.Specialized.StringCollection LogSummaryIgnoreTaskExceptions {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["LogSummaryIgnoreTaskExceptions"]));
@@ -814,6 +781,52 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public global::System.Collections.Specialized.StringCollection PerformanceKeyspaces {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["PerformanceKeyspaces"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>SliceQueryFilter.java</string>
+  <string>BatchStatement.java</string>
+  <string>CompactionController.java</string>
+  <string>HintedHandoffMetrics.java</string>
+  <string>GCInspector.java</string>
+  <string>MessagingService.java</string>
+  <string>CompactionTask.java</string>
+  <string>RepairSession.java</string>
+  <string>SSTableWriter.java</string>
+  <string>CqlSlowLogWriter.java</string>
+  <string>CqlSolrQueryExecutor.java</string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection LogSummaryTaskItems {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["LogSummaryTaskItems"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <string>warn</string>
+  <string>error</string>
+  <string>internal_error</string>
+  <string>failed</string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection SummaryIgnoreExceptions {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["SummaryIgnoreExceptions"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Cassandra Exception Summary Log")]
+        public string ExcelWorkSheetExceptionSummaryLogCassandra {
+            get {
+                return ((string)(this["ExcelWorkSheetExceptionSummaryLogCassandra"]));
             }
         }
     }

@@ -17,9 +17,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static TimeSpan LogTimeSpanRange = Properties.Settings.Default.LogTimeSpanRange; //Only import log entries for the past timespan (e.g., the last 5 days) based on LogCurrentDate.
         public static DateTime LogCurrentDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
         public static int LogMaxRowsPerNode = Properties.Settings.Default.LogMaxRowsPerNode; // -1 disabled //If enabled only the current log file is read (no achieves).
-        public static string[] LogSummaryIndicatorType = Properties.Settings.Default.LogSummaryIndicatorType.ToArray();
-        public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray();
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
+        public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray(false);
 
         public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<DateTime, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriods);
         //new Tuple<DateTime, TimeSpan>[] { new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 02), new TimeSpan(0, 0, 30, 0)), //From By date/time and aggregation period
@@ -96,10 +95,11 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkSheetYaml = Properties.Settings.Default.ExcelWorkSheetYaml;
         public static string ExcelWorkSheetOSMachineInfo = Properties.Settings.Default.ExcelWorkSheetOSMachineInfo;
         public static string ExcelWorkSheetSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetSummaryLogCassandra;
-        public static string ExcelWorkSheetStatusLogCassandra = Properties.Settings.Default.ExcelWorkSheetSummaryLogCassandra;
+        public static string ExcelWorkSheetStatusLogCassandra = Properties.Settings.Default.ExcelWorkSheetStatusLogCassandra;
+        public static string ExcelWorkSheetExceptionSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetExceptionSummaryLogCassandra;
         //var excelPivotWorkSheets = new string[] {"Read-Write Counts", "Partitions", "Latency", "Storage-Size"};
 
-        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false, true); //MUST BE IN LOWER CASe
+        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false, true); //MUST BE IN LOWER CASe       
         public static List<string> CFStatsCreateMBColumns = Properties.Settings.Default.CFStatsCreateMBColumns.ToList(false, true); //MUST BE IN LOWER CASE -- CFStats attributes that contains these phrases/words will convert their values from bytes to MB in a separate Excel Column
 
         //Static Directory/File names
@@ -138,6 +138,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] NodeStatsAttribs = Properties.Settings.Default.NodeAttribs.ToArray(false);
         public static string[] TablehistogramAttribs = Properties.Settings.Default.TableHistogramAttribs.ToArray(false);
         public static string[] PerformanceKeyspaces = Properties.Settings.Default.PerformanceKeyspaces.ToArray(false);
+        public static string[] SummaryIgnoreExceptions = Properties.Settings.Default.SummaryIgnoreExceptions.ToArray(false);
 
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {
