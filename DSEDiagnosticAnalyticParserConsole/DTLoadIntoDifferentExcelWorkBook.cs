@@ -56,7 +56,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}{1}",
                                                                         excelTargetFile.Name,
-                                                                        excelTargetFile.FileExtension);
+                                                                        string.IsNullOrEmpty(ParserSettings.ExcelWorkBookFileExtension)
+                                                                            ? excelTargetFile.FileExtension
+                                                                            : ParserSettings.ExcelWorkBookFileExtension);
 
                 var excelFile = ((IFilePath)excelTargetFile.Clone()).ApplyFileNameFormat(new object[] { workSheetName });
 
@@ -66,7 +68,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     workBookActions?.Invoke(WorkBookProcessingStage.PreLoad, orgTargetFile, excelFile, workSheetName, excelPkg, dtExcel, -1);
 
-                    WorkBook(excelPkg,
+                    WorkSheet(excelPkg,
                                 workSheetName,
                                 dtExcel,
                                 worksheetAction,
@@ -107,7 +109,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     newStack.Push(dtSplit);
 
-                    WorkBook(excelPkg,
+                    WorkSheet(excelPkg,
                                 workSheetName,
                                 newStack,
                                 worksheetAction,

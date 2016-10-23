@@ -17,7 +17,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetNodeStats);
 
-            DTLoadIntoExcel.WorkBook(excelPkg,
+            DTLoadIntoExcel.WorkSheet(excelPkg,
                                         excelWorkSheetNodeStats,
                                         dtNodeStatsStack,
                                         workSheet =>

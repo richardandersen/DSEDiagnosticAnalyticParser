@@ -17,7 +17,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetCFStats);
 
-            DTLoadIntoExcel.WorkBook(excelPkg,
+            DTLoadIntoExcel.WorkSheet(excelPkg,
                                         excelWorkSheetCFStats,
                                         dtCFStats,
                                         workSheet =>

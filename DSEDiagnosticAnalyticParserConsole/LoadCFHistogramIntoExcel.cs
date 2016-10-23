@@ -23,7 +23,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 Program.ConsoleExcelNonLog.Increment(excelWorkSheetCFHistogram);
 
-                DTLoadIntoExcel.WorkBook(excelPkg,
+                DTLoadIntoExcel.WorkSheet(excelPkg,
                                             excelWorkSheetCFHistogram,
                                             dtCFHistogram,
                                             workSheet =>

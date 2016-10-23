@@ -141,7 +141,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute(".\\dseTemplate.xlsx")]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\dseTemplate.xlsm")]
         public string ExcelTemplateFilePath {
             get {
                 return ((string)(this["ExcelTemplateFilePath"]));
@@ -150,7 +150,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[DeskTop]\\Test.xlsx")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[DeskTop]\\Test.xlsm")]
         public string ExcelFilePath {
             get {
                 return ((string)(this["ExcelFilePath"]));
@@ -672,11 +672,19 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ead latency maximum</string>\r\n  <string>SSTable Compression Ratio</string>\r\n  <s" +
             "tring>SSTable count</string>\r\n  <string>SSTable read maximum </string>\r\n  <strin" +
             "g>Space used (live)</string>\r\n  <string>Space used (total)</string>\r\n  <string>S" +
-            "pace used by snapshots (total)</string>\r\n  <string>Tombstones warning maximum</s" +
-            "tring>\r\n  <string>Tombstones warning mean</string>\r\n  <string>Tombstones warning" +
-            " minimum</string>\r\n  <string>Tombstones warning occurrences</string>\r\n  <string>" +
-            "Write Count</string>\r\n  <string>Write latency</string>\r\n  <string>Write latency " +
-            "maximum</string>\r\n</ArrayOfString>")]
+            "pace used by snapshots (total)</string>\r\n  <string>Tombstones warning Total</str" +
+            "ing>\r\n  <string>Tombstones warning maximum</string>\r\n  <string>Tombstones warnin" +
+            "g mean</string>\r\n  <string>Tombstones warning minimum</string>\r\n  <string>Tombst" +
+            "ones warning occurrences</string>\r\n  <string>Write Count</string>\r\n  <string>Wri" +
+            "te latency</string>\r\n  <string>Write latency maximum</string>\r\n  <string>Unlogge" +
+            "d Batch Partitions Count Total</string>\r\n  <string>Unlogged Batch Partitions Cou" +
+            "nt maximum</string>\r\n  <string>Unlogged Batch Partitions Count mean</string>\r\n  " +
+            "<string>Unlogged Batch Partitions Count minimum</string>\r\n  <string>Unlogged Bat" +
+            "ch Partitions Count occurrences</string>\r\n  <string>Tombstones query aborted Tot" +
+            "al</string>\r\n  <string>Tombstones query aborted maximum</string>\r\n  <string>Tomb" +
+            "stones query aborted mean</string>\r\n  <string>Tombstones query aborted minimum</" +
+            "string>\r\n  <string>Tombstones query aborted occurences</string>\r\n</ArrayOfString" +
+            ">")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -750,7 +758,17 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ing>Slow Query minimum latency</string>\r\n  <string>Slow Query occurrences</strin" +
             "g>\r\n  <string>ValidationExecutor</string>\r\n  <string>_TRACE</string>\r\n  <string>" +
             "OutOfMemoryError occurrences</string>\r\n  <string>CommitLogFlushFailure occurrenc" +
-            "es</string>\r\n</ArrayOfString>")]
+            "es</string>\r\n  <string>Dropped Hints Total</string>\r\n  <string>Dropped Hints max" +
+            "imum</string>\r\n  <string>Dropped Hints mean</string>\r\n  <string>Dropped Hints mi" +
+            "nimum</string>\r\n  <string>Dropped Hints occurrences</string>\r\n  <string>Allocati" +
+            "on Failed Maximum Memory Reached Total</string>\r\n  <string>Allocation Failed Max" +
+            "imum Memory Reached maximum</string>\r\n  <string>Allocation Failed Maximum Memory" +
+            " Reached minimum</string>\r\n  <string>Allocation Failed Maximum Memory Reached me" +
+            "an</string>\r\n  <string>Allocation Failed Maximum Memory Reached occurrences</str" +
+            "ing>\r\n  <string>Dropped Mutation Total</string>\r\n  <string>Dropped Mutation maxi" +
+            "mum</string>\r\n  <string>Dropped Mutation mean</string>\r\n  <string>Dropped Mutati" +
+            "on minimum</string>\r\n  <string>Dropped Mutation occurrences</string>\r\n</ArrayOfS" +
+            "tring>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
@@ -827,6 +845,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string ExcelWorkSheetExceptionSummaryLogCassandra {
             get {
                 return ((string)(this["ExcelWorkSheetExceptionSummaryLogCassandra"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".xlsx")]
+        public string ExcelWorkBookFileExtension {
+            get {
+                return ((string)(this["ExcelWorkBookFileExtension"]));
             }
         }
     }

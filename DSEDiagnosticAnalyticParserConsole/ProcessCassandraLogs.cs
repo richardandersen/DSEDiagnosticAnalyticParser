@@ -205,7 +205,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
         //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
 
-        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\;\>)|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:\=\>)|(?:\=)|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:\[|\]|\(|\)))",
+        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+))",
                                                         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
@@ -821,9 +821,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             if(strInt[0] == '(')
                             {
-                                dataRow["Associated Value"] = strInt.Substring(1, strInt.Length - 2);
+                               strInt = strInt.Substring(1, strInt.Length - 2);
                             }
-                            else if (int.TryParse(strInt, out batchSize))
+
+                            if (int.TryParse(strInt, out batchSize))
 							{
 								dataRow["Associated Value"] = batchSize;
 							}
@@ -833,11 +834,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemPos = nCell + 7;
 							itemValuePos = nCell + 3;							
 							dataRow["Exception"] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parsedValues[nCell]) + " Batch Partitions";
+                            dataRow["Flagged"] = true;
 						}
                         else if (parsedValues[nCell] == "Maximum" && parsedValues[nCell + 1] == "memory" && parsedValues[nCell + 2] == "reached")
                         {                            
-                            itemValuePos = nCell + 4;                            
-                            dataRow["Exception"] = "Maximum Memory Reached";
+                            itemValuePos = nCell + 9;                            
+                            dataRow["Exception"] = "Maximum Memory Reached cannot Allocate";
+                            dataRow["Flagged"] = true;
                         }
 						#endregion
 					}
@@ -907,6 +910,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							//dataRow["Associated Item"] = "Dropped Hints";
 							dataRow["Exception"] = "Dropped Hints";
+                            dataRow["Flagged"] = true;
 
 							if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
 							{
@@ -1051,6 +1055,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							//dataRow["Associated Item"] = "Dropped Mutations";
 							dataRow["Exception"] = "Dropped Mutations";
+                            dataRow["Flagged"] = true;
 							itemPos = nCell + 8;
 						}
 						#endregion
@@ -1250,7 +1255,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         string exceptionClass,
                                         DataRow dataRow,
                                         string remindingLine,
-                                        Action<string, bool, DataRow> additionalUpdates)
+                                        Action<string, bool, DataRow> additionalUpdates,
+                                        bool checkLastException = true)
         {            
             if(exceptionClass.StartsWith("error...") && exceptionClass.Length > 8)
             {
@@ -1265,12 +1271,13 @@ namespace DSEDiagnosticAnalyticParserConsole
             var exception = exceptionClass.Trim(new char[] { ' ', '-', '.', ':', ';' });            
             var exceptionDesc = remindingLine?.Trim(new char[] { ' ', '-', '.', ':', ';' });
             bool extendedExceptionDesc = false;
-            var exceptionDescSplits = exceptionDesc == null ? new string[0] : RegExExceptionDesc.Split(exceptionDesc);            
-
-            if(lastException == null 
-                    && dataRow["Exception Description"] == null)
+            var exceptionDescSplits = exceptionDesc == null ? new string[0] : RegExExceptionDesc.Split(exceptionDesc);
+            
+            if(checkLastException
+                    && lastException == null 
+                    && dataRow["Exception Description"] == DBNull.Value)
             {
-                ParseExceptions(ipAddress, (string) dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates);
+                ParseExceptions(ipAddress, (string) dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates, false);
                 lastException = dataRow["Exception"] as string;
             }
 
@@ -1285,7 +1292,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     UpdateRowColumn(dataRow,
                                     "Exception",
                                     lastException,
-                                    exception);                    
+                                    exception);
                 }
                 else
                 {
@@ -1312,56 +1319,54 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 extendedExceptionDesc = true;
             }
-            else for (int nIndex = 0; nIndex < exceptionDescSplits.Length; ++nIndex)
+            else
             {
-                if (exceptionDescSplits[nIndex] == null)
+                string currentExceptionDesc = string.Empty;
+
+                for (int nIndex = 0; nIndex < exceptionDescSplits.Length; ++nIndex)
                 {
-                    continue;
+                    if (exceptionDescSplits[nIndex] == null)
+                    {
+                        continue;
+                    }
+
+                    exceptionDescSplits[nIndex] = exceptionDescSplits[nIndex].Trim();
+
+                    if (exceptionDescSplits[nIndex] == string.Empty)
+                    {
+                        continue;
+                    }
+
+                    if (RegExExpErrClassName.IsMatch(exceptionDescSplits[nIndex]))
+                    {
+                        continue;
+                    }
+
+                    if (exceptionDescSplits[nIndex][0] == '/')
+                    {
+                        UpdateRowColumn(dataRow,
+                                        "Associated Item",
+                                        dataRow["Associated Item"] as string,
+                                        exceptionDescSplits[nIndex],
+                                        "->");
+                    }
+                    if(lastException == null || !lastException.Contains(exceptionDescSplits[nIndex]))
+                    {
+                        currentExceptionDesc += " " + exceptionDescSplits[nIndex];                        
+                    }                    
                 }
 
-                exceptionDescSplits[nIndex] = exceptionDescSplits[nIndex].Trim();
-
-                if (exceptionDescSplits[nIndex] == string.Empty)
-                {
-                    continue;
-                }
-
-                if (RegExExpErrClassName.IsMatch(exceptionDescSplits[nIndex]))
-                {
-                    continue;
-                }
-
-                if(exceptionDescSplits[nIndex][0] == '/')
+                if (!string.IsNullOrEmpty(currentExceptionDesc))
                 {
                     UpdateRowColumn(dataRow,
-                                    "Associated Item",
-                                    dataRow["Associated Item"] as string,
-                                    exceptionDescSplits[nIndex],
-                                    "->");                    
-                }
-
-				if(!extendedExceptionDesc)                
-                {
-					if (!string.IsNullOrEmpty(lastException) && lastException.Contains(exceptionDescSplits[nIndex]))
-					{
-						UpdateRowColumn(dataRow,
-											"Exception",
-											lastException,
-											exception);
-					}
-					else
-					{
-						UpdateRowColumn(dataRow,
-											"Exception",
-											lastException,
-											exception + "(" + string.Join(" ", exceptionDescSplits.GetRange(nIndex, (element, index) => string.IsNullOrEmpty(element))) + ")");
-					}
-
-                    extendedExceptionDesc = true;                    
+                                        "Exception",
+                                        lastException,
+                                        exception + "(" + currentExceptionDesc.TrimStart() + ")");
+                    extendedExceptionDesc = true;
                 }
             }
 
-            if(!extendedExceptionDesc)
+            if (!extendedExceptionDesc)
             {
                 UpdateRowColumn(dataRow,
                                 "Exception",
@@ -1392,6 +1397,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExSummaryLogExceptionName = new Regex(@"(.+?)\(",
                                                             RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        static Regex RegExSummaryLogIPAdress = new Regex(@"\/?\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5}(?:\->)?",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegExSummaryLogKSTblName = new Regex(@"([a-z0-9-_$%+=@!?<>^*&]+)(?:\.)([a-z0-9-_$%+=@!?<>^*&]+)",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        
         static void ParseCassandraLogIntoSummaryDataTable(DataTable dtroCLog,
                                                             DataTable dtCSummaryLog,
                                                             DataTable dtCExceptionSummaryLog,
@@ -1402,16 +1413,20 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (dtCSummaryLog.Columns.Count == 0)
             {
-                dtCSummaryLog.Columns.Add("Timestamp Period", typeof(DateTime));
-                dtCSummaryLog.Columns.Add("Aggregation Period", typeof(TimeSpan));
-                dtCSummaryLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Node IPAddress", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Type", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Key", typeof(string)).AllowDBNull = true;
-                dtCSummaryLog.Columns.Add("Path", typeof(string)).AllowDBNull = true;
-				dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true;
-				dtCSummaryLog.Columns.Add("Occurrences", typeof(int));
-                dtCSummaryLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true;
+                dtCSummaryLog.Columns.Add("Timestamp Period", typeof(DateTime)); //A
+                dtCSummaryLog.Columns.Add("Aggregation Period", typeof(TimeSpan)); //B
+                dtCSummaryLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true; //C
+                dtCSummaryLog.Columns.Add("Node IPAddress", typeof(string)).AllowDBNull = true; //D
+                dtCSummaryLog.Columns.Add("Type", typeof(string)).AllowDBNull = true; //E
+                dtCSummaryLog.Columns.Add("Key", typeof(string)).AllowDBNull = true; //F
+                dtCSummaryLog.Columns.Add("Path", typeof(string)).AllowDBNull = true; //G
+                dtCSummaryLog.Columns.Add("Associated Item Type", typeof(string)).AllowDBNull = true; //H
+                dtCSummaryLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true; //I
+                dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true; //J
+				dtCSummaryLog.Columns.Add("Occurrences", typeof(int)); //K
+                dtCSummaryLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true; //L                
+                dtCSummaryLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true; //M
+                dtCSummaryLog.Columns.Add("Table", typeof(string)).AllowDBNull = true; //N
 
                 dtCSummaryLog.DefaultView.Sort = "[Timestamp Period] DESC, [Data Center], [Key], [Path]";
             }
@@ -1538,7 +1553,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
+							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
                         }
                         else if (dataView.Flagged)
                         {
@@ -1574,7 +1589,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
+							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
 						}
                         else
                         {
@@ -1614,7 +1629,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.DataRowArray);
+							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
 						}
 
                     }
@@ -1626,79 +1641,104 @@ namespace DSEDiagnosticAnalyticParserConsole
 									 orderby segment.Item1 descending
 									 select segment;
 
-			 Program.ConsoleParsingNonLog.Increment("Summary Generating DataTable...");
+                Program.ConsoleParsingNonLog.Increment("Summary Generating DataTable...");
 
-            var summaryDataTableTask = Task.Factory.StartNew(() =>
+                var summaryDataTableTask = Task.Factory.StartNew(() =>
+                    {
+                        DataRow dataSummaryRow;
+
+                        foreach (var element in segments)
+                        {
+                            if (element.Item4.Count == 0)
+                            {
+                                dataSummaryRow = dtCSummaryLog.NewRow();
+
+                                dataSummaryRow["Data Center"] = null;
+                                dataSummaryRow["Node IPAddress"] = null;
+
+                                dataSummaryRow["Timestamp Period"] = element.Item1;
+                                dataSummaryRow["Aggregation Period"] = element.Item3;                                                            
+                                dataSummaryRow["Occurrences"] = 0;
+
+                                dtCSummaryLog.Rows.Add(dataSummaryRow);
+                            }
+                            else
+                            {
+                                foreach (var item in element.Item4)
+                                {
+                                    dataSummaryRow = dtCSummaryLog.NewRow();
+
+                                    dataSummaryRow["Data Center"] = item.DataCenter;
+                                    dataSummaryRow["Node IPAddress"] = item.IPAddress;
+
+                                    dataSummaryRow["Timestamp Period"] = item.Period;
+                                    dataSummaryRow["Aggregation Period"] = item.PeriodSpan;
+                                    dataSummaryRow["Type"] = item.ItemType;
+                                    dataSummaryRow["Key"] = item.ItemKey;
+                                    dataSummaryRow["Path"] = item.ItemPath;                                                                
+                                    dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp;
+                                    dataSummaryRow["Occurrences"] = item.AggregationCount;
+                                    dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+
+                                    if(item.AssociatedItems.Count > 0)
+                                    {
+                                        dataSummaryRow["Associated Item"] = string.Join("; ", item.AssociatedItems);
+
+                                        string assocType = "Other";
+
+                                        foreach (var assocItem in item.AssociatedItems)
+                                        {
+                                            if (RegExSummaryLogIPAdress.IsMatch(assocItem))
+                                            {
+                                                assocType = "IPAddress";                                                                            
+                                            }
+                                            else
+                                            {
+                                                var pos = assocItem.IndexOf("->");
+                                                var splits = RegExSummaryLogKSTblName.Split(pos < 0 ? assocItem : assocItem.Substring(0, pos));
+
+                                                if (splits.Length == 4 && splits[3] == string.Empty)
                                                 {
-                                                    DataRow dataSummaryRow;
+                                                    dataSummaryRow["KeySpace"] = splits[1].TrimStart();
+                                                    dataSummaryRow["Table"] = splits[2].TrimEnd();
+                                                    assocType = "Table";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        dataSummaryRow["Associated Item Type"] = assocType;
+                                    }
 
-                                                    foreach (var element in segments)
-                                                    {
-                                                        if (element.Item4.Count == 0)
-                                                        {
-                                                            dataSummaryRow = dtCSummaryLog.NewRow();
-
-                                                            dataSummaryRow["Data Center"] = null;
-                                                            dataSummaryRow["Node IPAddress"] = null;
-
-                                                            dataSummaryRow["Timestamp Period"] = element.Item1;
-                                                            dataSummaryRow["Aggregation Period"] = element.Item3;
-                                                            dataSummaryRow["Type"] = null;
-                                                            dataSummaryRow["Key"] = null;
-                                                            dataSummaryRow["Path"] = null;
-                                                            dataSummaryRow["Last Occurrence"] = null;
-                                                            dataSummaryRow["Occurrences"] = 0;
-
-                                                            dtCSummaryLog.Rows.Add(dataSummaryRow);
-                                                        }
-                                                        else
-                                                        {
-                                                            foreach (var item in element.Item4)
-                                                            {
-                                                                dataSummaryRow = dtCSummaryLog.NewRow();
-
-                                                                dataSummaryRow["Data Center"] = item.DataCenter;
-                                                                dataSummaryRow["Node IPAddress"] = item.IPAddress;
-
-                                                                dataSummaryRow["Timestamp Period"] = item.Period;
-                                                                dataSummaryRow["Aggregation Period"] = item.PeriodSpan;
-                                                                dataSummaryRow["Type"] = item.ItemType;
-                                                                dataSummaryRow["Key"] = item.ItemKey;
-                                                                dataSummaryRow["Path"] = item.ItemPath;
-                                                                dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp;
-                                                                dataSummaryRow["Occurrences"] = item.AggregationCount;
-                                                                dataSummaryRow["Group Indicator"] = item.GroupIndicator;
-
-                                                                dtCSummaryLog.Rows.Add(dataSummaryRow);
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                             TaskCreationOptions.LongRunning);
+                                    dtCSummaryLog.Rows.Add(dataSummaryRow);
+                                }
+                            }
+                        }
+                    },
+                    TaskCreationOptions.LongRunning);
 
                 var summaryExceptionDataTableTask = Task.Factory.StartNew(() =>
-                                                    {
-                                                        DataRow dataSummaryRow;
+                        {
+                            DataRow dataSummaryRow;
 
-                                                        foreach (var element in segments)
-                                                        {
-                                                            foreach (var item in element.Item4)
-                                                            {
-                                                                foreach (var drArray in item.AssociatedDataArrays)
-                                                                {
-                                                                    dataSummaryRow = dtCExceptionSummaryLog.NewRow();
-                                                                    var itemArray = dataSummaryRow.ItemArray;
+                            foreach (var element in segments)
+                            {
+                                foreach (var item in element.Item4)
+                                {
+                                    foreach (var drArray in item.AssociatedDataArrays)
+                                    {
+                                        dataSummaryRow = dtCExceptionSummaryLog.NewRow();
+                                        var itemArray = dataSummaryRow.ItemArray;
 
-                                                                    drArray.CopyTo(ref itemArray, 1);
-                                                                    dataSummaryRow.ItemArray = itemArray;
-                                                                    dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+                                        drArray.CopyTo(ref itemArray, 1);
+                                        dataSummaryRow.ItemArray = itemArray;
+                                        dataSummaryRow["Group Indicator"] = item.GroupIndicator;
 
-                                                                    dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
-                                                                }
-                                                            }                                                         
-                                                        }
-                                                    },
-                                                TaskCreationOptions.LongRunning);
+                                        dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
+                                    }
+                                }                                                         
+                            }
+                        },
+                    TaskCreationOptions.LongRunning);
 
                 summaryDataTableTask.Wait();
                 summaryExceptionDataTableTask.Wait();
@@ -1864,14 +1904,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var compactionLatencies = new List<Tuple<string, string, int>>();
                 var compactionRates = new List<Tuple<string, string, decimal>>();
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
-                var tombstoneCounts = new List<Tuple<string, string, int>>();
+                var tombstoneCounts = new List<Tuple<string, string, string, int>>();
                 var tpStatusCounts = new List<Tuple<string, long, long, long, long, long>>();
                 var statusMemTables = new List<Tuple<string, string, long, decimal>>();
                 var tpSlowQueries = new List<int>();
-                var batchSizes = new List<Tuple<string, string, int>>();
+                var batchSizes = new List<Tuple<string, string, string, int>>();
                 var jvmFatalErrors = new List<string>();
                 var workPoolErrors = new List<string>();
                 var nodeStatus = new List<Tuple<string,string,string>>();
+                var droppedHints = new List<int>();
+                var droppedMutations = new List<int>();
+                var maxMemoryAllocFailed = new List<int>();
 
                 string item;
 
@@ -2224,10 +2267,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                         var partSize = vwDataRow["Associated Value"] as int?;
                         var warningType = vwDataRow["Exception"] as string;
 
-                        if (kstblName == null || !partSize.HasValue || warningType != "Query Tombstones Warning")
+                        if (kstblName == null || !partSize.HasValue || warningType == null)
                         {
                             continue;
                         }
+
+                        //Query Tombstones Warning
+                        //Query Tombstones Aborted
+                        //Query Reads Warning
 
                         var kstblSplit = SplitTableName(kstblName, null);
 
@@ -2236,7 +2283,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
-                        tombstoneCounts.Add(new Tuple<string, string, int>(kstblSplit.Item1, kstblSplit.Item2, partSize.Value));
+                        tombstoneCounts.Add(new Tuple<string, string, string, int>(warningType == "Query Tombstones Warning"
+                                                                                        ? "Tombstones warning"
+                                                                                        : (warningType == "Query Tombstones Aborted" 
+                                                                                                ? "Tombstones query aborted"
+                                                                                                : (warningType == "Query Reads Warning" ? "Query read warning" : warningType)),
+                                                                                    kstblSplit.Item1,
+                                                                                    kstblSplit.Item2,
+                                                                                    partSize.Value));
 
                         #endregion
                     }
@@ -2271,7 +2325,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
-                        batchSizes.Add(new Tuple<string, string, int>(kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
+                        batchSizes.Add(new Tuple<string, string, string, int>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
 
                         #endregion
                     }                   
@@ -2334,6 +2388,130 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
 
                             nodeStatus.Add(new Tuple<string,string,string>(exception, ksName, tblName));                            
+                        }
+
+                        #endregion
+                    }
+                    else if (item == "HintedHandoffMetrics.java")
+                    {
+                        #region HintedHandoffMetrics.java
+                        //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
+                        var exception = vwDataRow["Exception"] as string;
+
+                        if (exception == "Dropped Hints")
+                        {
+                            var nbrDropped = vwDataRow["Associated Value"] as int?;
+
+                            if (nbrDropped.HasValue)
+                            {                                
+                                droppedHints.Add(nbrDropped.Value);
+                            }
+                            else
+                            {
+                                Program.ConsoleWarnings.Increment("Invalid Dropped Hints Value...");
+                                Logger.Dump(string.Format("Invalid Dropped Hints Value of \"{0}\" for {1} => {2}", vwDataRow["Associated Value"], ipAddress, vwDataRow["Associated Item"]), Logger.DumpType.Warning);
+                            }
+                        }
+                        #endregion
+                    }
+                    else if (item == "NoSpamLogger.java")
+                    {
+                        #region NoSpamLogger.java
+                        //NoSpamLogger.java:94 - Unlogged batch covering 80 partitions detected against table[hlservicing.lvl1_bkfs_invoicechronology]. You should use a logged batch for atomicity, or asynchronous writes for performance.
+                        //NoSpamLogger.java:94 - Unlogged batch covering 94 partitions detected against tables [hl_data_commons.l3_heloc_fraud_score_hist, hl_data_commons.l3_heloc_fraud_score]. You should use a logged batch for atomicity, or asynchronous writes for performance.
+                        //Maximum memory usage reached (536,870,912 bytes), cannot allocate chunk of 1,048,576 bytes
+                        var exception = vwDataRow["Exception"] as string;
+                        var assocValue = vwDataRow["Associated Value"] as int?;
+
+                        if (exception.EndsWith("Batch Partitions"))
+                        {
+                            //"Associated Item" -- Tables
+                            //"Associated Value" -- nbr partitions
+                            var strTables = vwDataRow["Associated Item"] as string;
+
+                            if(string.IsNullOrEmpty(strTables) || !assocValue.HasValue)
+                            {
+                                Program.ConsoleWarnings.Increment("Missing Table(s) or invalid partition value...");
+                                Logger.Dump(string.Format("Missing Table(s) \"{0}\" or invalid partition value of \"{1}\" for IP {1}",
+                                                            strTables,
+                                                            vwDataRow["Associated Value"],
+                                                            ipAddress), Logger.DumpType.Warning);
+                            }
+                            else
+                            {
+                                var keyTbls = strTables.Split(',')
+                                                .Select(kytblName => kytblName.Trim())
+                                                .Select(kytblName =>
+                                                    {
+                                                        var kytbl = SplitTableName(kytblName);
+                                                        return new { Keyspace = kytbl.Item1, Table = kytbl.Item2 };
+                                                    });
+
+                                foreach (var keyTbl in keyTbls)
+                                {
+                                    if(ignoreKeySpaces.Contains(keyTbl.Keyspace))
+                                    {
+                                        continue;
+                                    }
+
+                                    batchSizes.Add(new Tuple<string, string, string, int>(exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
+                                }
+                            }
+                        }
+                        else if(exception == "Maximum Memory Reached cannot Allocate")
+                        {
+                            //"Associated Value" -- bytes
+                            var dataRow = dtCStatusLog.NewRow();
+                            
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = "Allocation Failed Maximum Memory Reached";
+
+                            if (assocValue.HasValue)
+                            {
+                                dataRow["Capacity (mb)"] = ((decimal) assocValue.Value) / BytesToMB;
+                                maxMemoryAllocFailed.Add(assocValue.Value);
+                            }
+                            else
+                            {
+                                Program.ConsoleWarnings.Increment("Invalid Allocation Failed Maximum Memory Reached Value...");
+                                Logger.Dump(new DataRow[] { dataRow }, Logger.DumpType.Warning, "Invalid Allocation Failed Maximum Memory Reached Value");
+                            }
+
+                            dtCStatusLog.Rows.Add(dataRow);
+                        }
+
+                        #endregion
+                    }
+                    else if (item == "MessagingService.java")
+                    {
+                        #region MessagingService.java
+                        //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
+                        var exception = vwDataRow["Exception"] as string;
+                       
+                        if(exception == "Dropped Mutations")
+                        {
+                            var assocValue = vwDataRow["Associated Value"] as int?;
+                            //var dataRow = dtCStatusLog.NewRow();
+                            
+                            //dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            //dataRow["Data Center"] = dcName;
+                            //dataRow["Node IPAddress"] = ipAddress;
+                            //dataRow["Pool/Cache Type"] = "Dropped Mutation";
+
+                           // if (assocValue.HasValue)
+                            //{
+                                //dataRow["GC Time (ms)"] = assocValue;
+                                droppedMutations.Add(assocValue.Value);
+                           // }
+                            //else
+                            //{
+                            //    Program.ConsoleWarnings.Increment("Invalid Dropped Mutation Value...");
+                           //     Logger.Dump(new DataRow[] { dataRow }, Logger.DumpType.Warning, "Invalid Dropped Mutation Value");
+                           // }
+
+                            //dtCStatusLog.Rows.Add(dataRow);
                         }
 
                         #endregion
@@ -2706,6 +2884,227 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     #endregion
+
+                    #region Dropped Hints
+
+                    if (droppedHints.Count > 0)
+                    {
+                        var droppedTotalNbr = droppedHints.Sum();
+                        var droppedMaxNbr = droppedHints.Max();
+                        var droppedMinNbr = droppedHints.Min();
+                        var droppedAvgNbr = (int) droppedHints.Average();
+                        var droppedOccurences = droppedHints.Count;
+
+                        //Dropped Hints Total
+                        //Dropped Hints maximum
+                        //Dropped Hints mean
+                        //Dropped Hints minimum
+                        //Dropped Hints occurrences
+
+                        var dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Hints Total";
+                        dataRow["Dropped"] = droppedTotalNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Hints maximum";
+                        dataRow["Dropped"] = droppedMaxNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Hints mean";
+                        dataRow["Dropped"] = droppedAvgNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+                        
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Hints minimum";
+                        dataRow["Dropped"] = droppedMinNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Hints occurrences";
+                        //dataRow["Value"] = droppedMinNbr;
+                        dataRow["Occurrences"] = droppedOccurences;
+
+                        dtTPStats.Rows.Add(dataRow);
+                    }
+
+                    #endregion
+
+                    #region Allocation Failed Maximum Memory Reached
+
+                    if (maxMemoryAllocFailed.Count > 0)
+                    {
+                        var allocTotalMem = maxMemoryAllocFailed.Sum();
+                        var allocMaxMem = maxMemoryAllocFailed.Max();
+                        var allocMinMem = maxMemoryAllocFailed.Min();
+                        var allocAvgMem = (decimal) maxMemoryAllocFailed.Average();
+                        var allocMemOccurences = maxMemoryAllocFailed.Count;
+
+                        //Allocation Failed Maximum Memory Reached Total
+                        //Allocation Failed Maximum Memory Reached maximum
+                        //Allocation Failed Maximum Memory Reached minimum
+                        //Allocation Failed Maximum Memory Reached mean
+                        //Allocation Failed Maximum Memory Reached occurrences
+
+                        var dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached Total";
+                        dataRow["Size (mb)"] = ((decimal) allocTotalMem) / BytesToMB;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached maximum";
+                        dataRow["Size (mb)"] = ((decimal)allocMaxMem) / BytesToMB;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached mean";
+                        dataRow["Size (mb)"] = allocAvgMem/BytesToMB;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached minimum";
+                        dataRow["Size (mb)"] = ((decimal) allocMinMem)/BytesToMB;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached occurrences";                        
+                        dataRow["Occurrences"] = allocMemOccurences;
+
+                        dtTPStats.Rows.Add(dataRow);
+                    }
+
+                    #endregion
+
+                    #region Dropped Mutations
+
+                    if (droppedMutations.Count > 0)
+                    {
+                        var droppedTotalNbr = droppedMutations.Sum();
+                        var droppedMaxNbr = droppedMutations.Max();
+                        var droppedMinNbr = droppedMutations.Min();
+                        var droppedAvgNbr = (int)droppedMutations.Average();
+                        var droppedOccurences = droppedMutations.Count;
+
+                        //Dropped Mutation Total
+                        //Dropped Mutation maximum
+                        //Dropped Mutation mean
+                        //Dropped Mutation minimum
+                        //Dropped Mutation occurrences
+
+                        var dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Mutation Total";
+                        dataRow["Dropped"] = droppedTotalNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Mutation maximum";
+                        dataRow["Dropped"] = droppedMaxNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Mutation mean";
+                        dataRow["Dropped"] = droppedAvgNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Mutation minimum";
+                        dataRow["Dropped"] = droppedMinNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
+
+                        dtTPStats.Rows.Add(dataRow);
+
+                        dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Dropped Mutation occurrences";
+                        //dataRow["Value"] = droppedMinNbr;
+                        dataRow["Occurrences"] = droppedOccurences;
+
+                        dtTPStats.Rows.Add(dataRow);
+                    }
+
+                    #endregion
                 }
 
                 if (dtCFStats != null)
@@ -2963,22 +3362,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         initializeCFStatsDataTable(dtCFStats);
 
-                        tombstoneCounts.RemoveAll(x => x.Item3 <= 0);
+                        tombstoneCounts.RemoveAll(x => x.Item4 <= 0);
 
                         if (tombstoneCounts.Count > 0)
                         {
                             Logger.Instance.InfoFormat("Adding Tombstone Counts ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, tombstoneCounts.Count);
 
                             var compStats = from cmpItem in tombstoneCounts
-                                            group cmpItem by new { cmpItem.Item1, cmpItem.Item2 }
+                                            group cmpItem by new { cmpItem.Item1, cmpItem.Item2, cmpItem.Item3 }
                                               into g
                                             select new
                                             {
-                                                KeySpace = g.Key.Item1,
-                                                Table = g.Key.Item2,
-                                                Max = g.Max(s => s.Item3),
-                                                Min = g.Min(s => s.Item3),
-                                                Avg = (int)g.Average(s => s.Item3),
+                                                Attr = g.Key.Item1,
+                                                KeySpace = g.Key.Item2,
+                                                Table = g.Key.Item3,
+                                                Total = g.Sum(s => s.Item4),
+                                                Max = g.Max(s => s.Item4),
+                                                Min = g.Min(s => s.Item4),
+                                                Avg = (int)g.Average(s => s.Item4),
                                                 Count = g.Count()
                                             };
 
@@ -2991,7 +3392,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Tombstones warning maximum";
+                                dataRow["Attribute"] = statItem.Attr + " Total";
+                                dataRow["Value"] = statItem.Total;
+                                dataRow["(value)"] = statItem.Total;
+                                //dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = statItem.Attr + " maximum";
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(value)"] = statItem.Max;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3005,7 +3420,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Tombstones warning minimum";
+                                dataRow["Attribute"] = statItem.Attr + " minimum";
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3019,7 +3434,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Tombstones warning mean";
+                                dataRow["Attribute"] = statItem.Attr + " mean";
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3033,7 +3448,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Tombstones warning occurrences";
+                                dataRow["Attribute"] = statItem.Attr + " occurrences";
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3183,22 +3598,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         initializeCFStatsDataTable(dtCFStats);
 
-                        batchSizes.RemoveAll(x => x.Item3 <= 0);
+                        batchSizes.RemoveAll(x => x.Item4 <= 0);
 
                         if (batchSizes.Count > 0)
                         {
                             Logger.Instance.InfoFormat("Adding Batch Sizes ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, batchSizes.Count);
 
                             var compStats = from cmpItem in batchSizes
-                                            group cmpItem by new { cmpItem.Item1, cmpItem.Item2 }
+                                            group cmpItem by new { cmpItem.Item1, cmpItem.Item2, cmpItem.Item3 }
                                               into g
                                             select new
                                             {
-                                                KeySpace = g.Key.Item1,
-                                                Table = g.Key.Item2,
-                                                Max = g.Max(s => s.Item3),
-                                                Min = g.Min(s => s.Item3),
-                                                Avg = (int)g.Average(s => s.Item3),
+                                                Attr = g.Key.Item1,
+                                                KeySpace = g.Key.Item2,
+                                                Table = g.Key.Item3,
+                                                Total = g.Sum(s => s.Item4),
+                                                Max = g.Max(s => s.Item4),
+                                                Min = g.Min(s => s.Item4),
+                                                Avg = (int)g.Average(s => s.Item4),
                                                 Count = g.Count()
                                             };
 
@@ -3211,9 +3628,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Batch size maximum";
-                                dataRow["Value"] = statItem.Max;
-                                dataRow["(value)"] = statItem.Max;
+                                dataRow["Attribute"] = statItem.Attr + " Total";
+                                dataRow["Value"] = statItem.Total;
+                                dataRow["(value)"] = statItem.Total;
                                 //dataRow["Unit of Measure"] = "bytes";
 
                                 dtCFStats.Rows.Add(dataRow);
@@ -3225,7 +3642,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Batch size minimum";
+                                dataRow["Attribute"] = statItem.Attr + " maximum";
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3239,7 +3656,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Batch size mean";
+                                dataRow["Attribute"] = statItem.Attr + " minimum";
+                                dataRow["Value"] = statItem.Min;
+                                dataRow["(Value)"] = statItem.Min;
+                                //dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = statItem.Attr + " mean";
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3253,7 +3684,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "Batch size occurrences";
+                                dataRow["Attribute"] = statItem.Attr + " occurrences";
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";

@@ -11,7 +11,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
-        static public ExcelRangeBase WorkBook(ExcelPackage excelPkg,
+        static public ExcelRangeBase WorkSheet(ExcelPackage excelPkg,
                                                 string workSheetName,
                                                 System.Data.DataTable dtExcel,
                                                 Action<ExcelWorksheet> worksheetAction = null,
@@ -78,7 +78,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             return loadRange;
         }
 
-        static public ExcelRangeBase WorkBook(ExcelPackage excelPkg,
+        static public ExcelRangeBase WorkSheet(ExcelPackage excelPkg,
                                                 string workSheetName,
                                                 Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable> dtExcels,
                                                 Action<ExcelWorksheet> worksheetAction = null,
@@ -101,7 +101,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 foreach (var dtSplit in dtSplits)
                 {
-                    excelRange = WorkBook(excelPkg,
+                    excelRange = WorkSheet(excelPkg,
                                             string.Format("{0}-{1:000}", workSheetName, ++splitCnt),
                                             dtSplit,
                                             worksheetAction,
@@ -112,7 +112,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return excelRange;
             }
 
-            return WorkBook(excelPkg,
+            return WorkSheet(excelPkg,
                             workSheetName,
                             dtComplete,
                             worksheetAction,

@@ -17,7 +17,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetCompactionHist);
 
-            DTLoadIntoExcel.WorkBook(excelPkg,
+            DTLoadIntoExcel.WorkSheet(excelPkg,
                                         excelWorkSheetCompactionHist,
                                         dtCompHistStack,
                                         workSheet =>

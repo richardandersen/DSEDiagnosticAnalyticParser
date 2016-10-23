@@ -139,6 +139,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] TablehistogramAttribs = Properties.Settings.Default.TableHistogramAttribs.ToArray(false);
         public static string[] PerformanceKeyspaces = Properties.Settings.Default.PerformanceKeyspaces.ToArray(false);
         public static string[] SummaryIgnoreExceptions = Properties.Settings.Default.SummaryIgnoreExceptions.ToArray(false);
+        public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
 
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {

@@ -27,6 +27,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTPStats.Columns.Add("Dropped", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true;
+                dtTPStats.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;
             }
         }
 

@@ -20,7 +20,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetSummaryLogCassandra);
 
-            DTLoadIntoExcel.WorkBook(excelPkg,
+            DTLoadIntoExcel.WorkSheet(excelPkg,
                                         excelWorkSheetSummaryLogCassandra,
                                         dtLogSummary,
                                         workSheet =>
@@ -29,9 +29,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
-                                            workSheet.Cells["A1:I1"].Style.WrapText = true;
-                                            workSheet.Cells["A1:I1"].Merge = true;
-                                            workSheet.Cells["A1:I1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
+                                            workSheet.Cells["A1:N1"].Style.WrapText = true;
+                                            workSheet.Cells["A1:N1"].Merge = true;
+                                            workSheet.Cells["A1:N1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
                                                                                 ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
                                                                                                     logCassandraMaxMinTimestamp.Min,
                                                                                                     logCassandraMaxMinTimestamp.Max,
@@ -39,19 +39,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                     logCassandraMaxMinTimestamp.Min.DayOfWeek,
                                                                                                     logCassandraMaxMinTimestamp.Max.DayOfWeek)
                                                                                     : logExcelWorkbookFilter;
-                                            workSheet.Cells["A1:I1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                                            workSheet.Cells["A1:N1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
                                             workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm";
-											workSheet.Cells["H:H"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
-											workSheet.Cells["I:I"].Style.Numberformat.Format = "#,###,###,##0";
+											workSheet.Cells["J:J"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
+											workSheet.Cells["K:K"].Style.Numberformat.Format = "#,###,###,##0";
                                             workSheet.Cells["B:B"].Style.Numberformat.Format = "d hh:mm";
 
                                             workSheet.View.FreezePanes(3, 1);
-                                            workSheet.Cells["A2:J2"].AutoFilter = true;
+                                            workSheet.Cells["A2:N2"].AutoFilter = true;
+                                           
+                                            workSheet.Cells["A:E"].AutoFitColumns();
+                                            workSheet.Cells["J:K"].AutoFitColumns();
                                             workSheet.Column(6).Width = 45; //F
                                             workSheet.Column(7).Width = 38; //G
-                                            workSheet.Cells["A:E"].AutoFitColumns();
-                                            workSheet.Cells["H:I"].AutoFitColumns();
+                                            workSheet.Column(8).Width = 5; //H
+                                            workSheet.Column(9).Width = 16; //I
                                         },                                        
                                         new Tuple<string, string, DataViewRowState>(null,
                                                                                        "[Timestamp Period] DESC, [Data Center], [Key], [Path]",

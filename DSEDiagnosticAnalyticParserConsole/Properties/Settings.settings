@@ -42,10 +42,10 @@
       <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="ExcelTemplateFilePath" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">.\dseTemplate.xlsx</Value>
+      <Value Profile="(Default)">.\dseTemplate.xlsm</Value>
     </Setting>
     <Setting Name="ExcelFilePath" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">[DeskTop]\Test.xlsx</Value>
+      <Value Profile="(Default)">[DeskTop]\Test.xlsm</Value>
     </Setting>
     <Setting Name="DiagnosticPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">[MyDocuments]\LINQPad Queries\DataStax\TestData\HL_Statim_Cluster-diagnostics-2016_09_12_14_39_32_UTC</Value>
@@ -286,6 +286,7 @@
   &lt;string&gt;Space used (live)&lt;/string&gt;
   &lt;string&gt;Space used (total)&lt;/string&gt;
   &lt;string&gt;Space used by snapshots (total)&lt;/string&gt;
+  &lt;string&gt;Tombstones warning Total&lt;/string&gt;
   &lt;string&gt;Tombstones warning maximum&lt;/string&gt;
   &lt;string&gt;Tombstones warning mean&lt;/string&gt;
   &lt;string&gt;Tombstones warning minimum&lt;/string&gt;
@@ -293,6 +294,16 @@
   &lt;string&gt;Write Count&lt;/string&gt;
   &lt;string&gt;Write latency&lt;/string&gt;
   &lt;string&gt;Write latency maximum&lt;/string&gt;
+  &lt;string&gt;Unlogged Batch Partitions Count Total&lt;/string&gt;
+  &lt;string&gt;Unlogged Batch Partitions Count maximum&lt;/string&gt;
+  &lt;string&gt;Unlogged Batch Partitions Count mean&lt;/string&gt;
+  &lt;string&gt;Unlogged Batch Partitions Count minimum&lt;/string&gt;
+  &lt;string&gt;Unlogged Batch Partitions Count occurrences&lt;/string&gt;
+  &lt;string&gt;Tombstones query aborted Total&lt;/string&gt;
+  &lt;string&gt;Tombstones query aborted maximum&lt;/string&gt;
+  &lt;string&gt;Tombstones query aborted mean&lt;/string&gt;
+  &lt;string&gt;Tombstones query aborted minimum&lt;/string&gt;
+  &lt;string&gt;Tombstones query aborted occurences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="NodeAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -417,6 +428,21 @@
   &lt;string&gt;_TRACE&lt;/string&gt;
   &lt;string&gt;OutOfMemoryError occurrences&lt;/string&gt;
   &lt;string&gt;CommitLogFlushFailure occurrences&lt;/string&gt;
+  &lt;string&gt;Dropped Hints Total&lt;/string&gt;
+  &lt;string&gt;Dropped Hints maximum&lt;/string&gt;
+  &lt;string&gt;Dropped Hints mean&lt;/string&gt;
+  &lt;string&gt;Dropped Hints minimum&lt;/string&gt;
+  &lt;string&gt;Dropped Hints occurrences&lt;/string&gt;
+  &lt;string&gt;Allocation Failed Maximum Memory Reached Total&lt;/string&gt;
+  &lt;string&gt;Allocation Failed Maximum Memory Reached maximum&lt;/string&gt;
+  &lt;string&gt;Allocation Failed Maximum Memory Reached minimum&lt;/string&gt;
+  &lt;string&gt;Allocation Failed Maximum Memory Reached mean&lt;/string&gt;
+  &lt;string&gt;Allocation Failed Maximum Memory Reached occurrences&lt;/string&gt;
+  &lt;string&gt;Dropped Mutation Total&lt;/string&gt;
+  &lt;string&gt;Dropped Mutation maximum&lt;/string&gt;
+  &lt;string&gt;Dropped Mutation mean&lt;/string&gt;
+  &lt;string&gt;Dropped Mutation minimum&lt;/string&gt;
+  &lt;string&gt;Dropped Mutation occurrences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="TableHistogramAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -463,6 +489,9 @@
     </Setting>
     <Setting Name="ExcelWorkSheetExceptionSummaryLogCassandra" Type="System.String" Scope="Application">
       <Value Profile="(Default)">Cassandra Exception Summary Log</Value>
+    </Setting>
+    <Setting Name="ExcelWorkBookFileExtension" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">.xlsx</Value>
     </Setting>
   </Settings>
 </SettingsFile>

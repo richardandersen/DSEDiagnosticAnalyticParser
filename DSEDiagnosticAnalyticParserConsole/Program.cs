@@ -1111,13 +1111,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             #region Excel Creation/Formatting
 
+            var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
+            bool excelFileExists = excelFile.Exist();
+
             if (!string.IsNullOrEmpty(ParserSettings.ExcelTemplateFilePath))
             {
                 var excelTemplateFile = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
-                var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
-
+                
                 if (excelTemplateFile != null
-                        && !excelFile.Exist()
+                        && !excelFileExists
                         && excelTemplateFile.Exist())
                 {
                     try
@@ -1125,6 +1127,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (excelTemplateFile.Copy(excelFile))
                         {
                             Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
+                            excelFileExists = true;
                         }
                     }
                     catch (System.Exception ex)
@@ -1135,6 +1138,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
 
+            if(!excelFileExists)
+            {
+                excelFile.ReplaceFileExtension(ParserSettings.ExcelWorkBookFileExtension);
+            }
+
             #region Load Logs into Excel
             
             Task runLogToExcel = null;
@@ -1143,24 +1151,29 @@ namespace DSEDiagnosticAnalyticParserConsole
             {                
                 var statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runLogParsingTask,
                                                                             dtLogStatusStack,
-                                                                            ParserSettings.ExcelFilePath,
+                                                                            excelFile.Path,
                                                                             ParserSettings.ExcelWorkSheetStatusLogCassandra,                                                                           
                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                             ParserSettings.MaxRowInExcelWorkBook,
                                                                             ParserSettings.MaxRowInExcelWorkSheet,
                                                                             ParserSettings.LogExcelWorkbookFilter);
 
-                var summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
-                                                                                            ParserSettings.ExcelFilePath,
+                Task summaryLogToExcel = Task.FromResult(0);
+
+                if(ParserSettings.ParseNonLogs)
+                {
+                    summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
+                                                                                            excelFile.Path,
                                                                                             ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
                                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp);
+                }
                
                 Task.Factory
                         .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
 
 
                 var logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogParsingTask,
-                                                                        ParserSettings.ExcelFilePath,
+                                                                        excelFile.Path,
                                                                         ParserSettings.ExcelWorkSheetLogCassandra,                                                                        
                                                                         ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                         ParserSettings.MaxRowInExcelWorkBook,
@@ -1175,12 +1188,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                 runLogToExcel = Task.Factory
                                     .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel, logToExcel } , tasks => { });
             }
+            else
+            {
+                if(ParserSettings.ParseNonLogs)
+                {
+                    var summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
+                                                                                                excelFile.Path,
+                                                                                                ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
+                                                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp);
+                    Task.Factory
+                        .ContinueWhenAll(new Task[] { summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+                }
+            }
             #endregion
 
             //Non-Logs
             if (ParserSettings.ParseNonLogs)
-            {
-                var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
+            {                
                 using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
                 {
                     DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);

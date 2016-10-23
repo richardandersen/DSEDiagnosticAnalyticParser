@@ -19,7 +19,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 Program.ConsoleExcelNonLog.Increment(excelWorkSheetDDLTables);
 
-                DTLoadIntoExcel.WorkBook(excelPkg,
+                DTLoadIntoExcel.WorkSheet(excelPkg,
                                         excelWorkSheetDDLTables,
                                         dtTable,
                                         workSheet =>

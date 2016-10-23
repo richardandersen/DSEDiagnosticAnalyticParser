@@ -11,8 +11,14 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         static int NextGroupIndicator = 0;
 
-        public CLogSummaryInfo(DateTime period, TimeSpan periodSpan, string itemType, string itemKey, string itemPath, string dataCenter, string ipAdress)
-        {           
+        public CLogSummaryInfo(DateTime period,
+                                TimeSpan periodSpan,
+                                string itemType,
+                                string itemKey,
+                                string itemPath,
+                                string dataCenter,
+                                string ipAdress)
+        {
             this.DataCenter = dataCenter;
             this.IPAddress = ipAdress;
             this.ItemPath = itemPath;
@@ -21,7 +27,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             this.Period = period;
             this.PeriodSpan = periodSpan;
             this.AggregationCount = 0;
-			this.MaxTimeStamp = null;
+			this.MaxTimeStamp = null;            
             this.GroupIndicator = System.Threading.Interlocked.Increment(ref NextGroupIndicator);
         }
 
@@ -35,6 +41,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public string ItemPath;
         public int AggregationCount;
 		public DateTime? MaxTimeStamp;
+        public List<string> AssociatedItems = new List<string>();
         public List<object[]> AssociatedDataArrays = new List<object[]>();
 
 		public bool Equals(CLogSummaryInfo x, CLogSummaryInfo y)
@@ -82,7 +89,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             return (x.IPAddress + x.DataCenter + x.ItemType + x.ItemPath + x.Period).GetHashCode();
         }
 
-		public int Increment(DateTime timestamp, object[] datarowItemArray)
+		public int Increment(DateTime timestamp, string assocItem, object[] datarowItemArray)
 		{
 			if (!this.MaxTimeStamp.HasValue || this.MaxTimeStamp < timestamp)
 			{
@@ -92,6 +99,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (datarowItemArray != null)
             {
                 this.AssociatedDataArrays.Add(datarowItemArray);
+            }
+
+            if(!string.IsNullOrEmpty(assocItem))
+            {
+                if(!this.AssociatedItems.Contains(assocItem))
+                {
+                    this.AssociatedItems.Add(assocItem);
+                }
             }
 
 			return ++this.AggregationCount;

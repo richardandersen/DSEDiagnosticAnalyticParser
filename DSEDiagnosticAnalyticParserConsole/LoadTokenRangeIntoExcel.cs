@@ -19,7 +19,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 Program.ConsoleExcelNonLog.Increment(excelWorkSheetRingTokenRanges);
 
-                WorkBook(excelPkg,
+                WorkSheet(excelPkg,
                             excelWorkSheetRingTokenRanges,
                             dtTokenRange,
                             workSheet =>
