@@ -1344,11 +1344,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (exceptionDescSplits[nIndex][0] == '/')
                     {
-                        UpdateRowColumn(dataRow,
-                                        "Associated Item",
-                                        dataRow["Associated Item"] as string,
-                                        exceptionDescSplits[nIndex],
-                                        "->");
+                        string locIpAddress;
+
+                        if (IPAddressStr(exceptionDescSplits[nIndex], out locIpAddress))
+                        {
+                            UpdateRowColumn(dataRow,
+                                               "Associated Item",
+                                               dataRow["Associated Item"] as string,
+                                               locIpAddress,
+                                               "->");
+                        }
+                        else
+                        {
+                            UpdateRowColumn(dataRow,
+                                                "Associated Item",
+                                                dataRow["Associated Item"] as string,
+                                                exceptionDescSplits[nIndex],
+                                                "->");
+                        }
                     }
                     if(lastException == null || !lastException.Contains(exceptionDescSplits[nIndex]))
                     {

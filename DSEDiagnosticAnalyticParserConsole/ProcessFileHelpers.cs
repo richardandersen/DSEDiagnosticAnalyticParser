@@ -198,6 +198,12 @@ namespace DSEDiagnosticAnalyticParserConsole
             // if we do not have 4 quads, return false
             if (!(quads.Length == 4)) return false;
 
+            var portPos = quads[3].IndexOf(':');
+
+            if(portPos > 0)
+            {
+                quads[3] = quads[3].Substring(0, portPos); 
+            }
             // for each quad
             foreach (var quad in quads)
             {
@@ -220,13 +226,33 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         static bool IPAddressStr(string ipAddress, out string formattedAddress)
         {
+            if(ipAddress[0] == '/')
+            {
+                ipAddress = ipAddress.Substring(1);
+            }
+
             if (IsIPv4(ipAddress))
             {
+                var portPos = ipAddress.IndexOf(':');
+                string port = null;
                 System.Net.IPAddress objIP;
 
+                if (portPos > 0)
+                {
+                    port = ipAddress.Substring(portPos);
+                    ipAddress = ipAddress.Substring(0, portPos);                    
+                }
+                
                 if (System.Net.IPAddress.TryParse(ipAddress, out objIP))
                 {
-                    formattedAddress = objIP.ToString();
+                    if (port == null)
+                    {
+                        formattedAddress = objIP.ToString();
+                    }
+                    else
+                    {
+                        formattedAddress = objIP.ToString() + port;
+                    }
                     return true;
                 }
             }
