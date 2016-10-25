@@ -1689,7 +1689,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataSummaryRow["Type"] = item.ItemType;
                                     dataSummaryRow["Key"] = item.ItemKey;
                                     dataSummaryRow["Path"] = item.ItemPath;                                                                
-                                    dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp;
+                                    dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp.HasValue ? (object) item.MaxTimeStamp.Value : DBNull.Value;
                                     dataSummaryRow["Occurrences"] = item.AggregationCount;
                                     dataSummaryRow["Group Indicator"] = item.GroupIndicator;
 
@@ -1739,14 +1739,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     foreach (var drArray in item.AssociatedDataArrays)
                                     {
-                                        dataSummaryRow = dtCExceptionSummaryLog.NewRow();
-                                        var itemArray = dataSummaryRow.ItemArray;
+                                        if (drArray.Length > 0)
+                                        {
+                                            dataSummaryRow = dtCExceptionSummaryLog.NewRow();
+                                            var itemArray = dataSummaryRow.ItemArray;
 
-                                        drArray.CopyTo(ref itemArray, 1);
-                                        dataSummaryRow.ItemArray = itemArray;
-                                        dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+                                            drArray.CopyTo(ref itemArray, 1);
+                                            dataSummaryRow.ItemArray = itemArray;
+                                            dataSummaryRow["Group Indicator"] = item.GroupIndicator;
 
-                                        dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
+                                            dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
+                                        }
                                     }
                                 }                                                         
                             }

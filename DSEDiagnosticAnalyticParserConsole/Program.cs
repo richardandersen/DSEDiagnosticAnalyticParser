@@ -1124,6 +1124,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     try
                     {
+                        excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);
                         if (excelTemplateFile.Copy(excelFile))
                         {
                             Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
@@ -1190,14 +1191,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                if(ParserSettings.ParseNonLogs)
+                if(ParserSettings.ParseNonLogs && ParserSettings.ParseLogs)
                 {
                     var summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
                                                                                                 excelFile.Path,
                                                                                                 ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
                                                                                                 ProcessFileTasks.LogCassandraMaxMinTimestamp);
-                    Task.Factory
-                        .ContinueWhenAll(new Task[] { summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+                    runLogToExcel = Task.Factory
+                                        .ContinueWhenAll(new Task[] { summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
                 }
             }
             #endregion
