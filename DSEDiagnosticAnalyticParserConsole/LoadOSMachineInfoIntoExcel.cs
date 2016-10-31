@@ -59,17 +59,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["AC1:AC2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Dashed;
                                                 workSheet.Cells["AF1:AF2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                workSheet.Cells["AG1:AK1"].Style.WrapText = true;
-                                                workSheet.Cells["AG1:AK1"].Merge = true;
-                                                workSheet.Cells["AG1:AK1"].Value = "Versions";
+                                                workSheet.Cells["AG1:AL1"].Style.WrapText = true;
+                                                workSheet.Cells["AG1:AL1"].Merge = true;
+                                                workSheet.Cells["AG1:AL1"].Value = "Versions";
                                                 workSheet.Cells["AG1:AG2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                workSheet.Cells["AK1:AK2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                workSheet.Cells["AK1:AL2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                workSheet.Cells["AL1:AS1"].Style.WrapText = true;
-                                                workSheet.Cells["AL1:AS1"].Merge = true;
-                                                workSheet.Cells["AL1:AS1"].Value = "NTP";
-                                                workSheet.Cells["AL1:AL2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                workSheet.Cells["AS1:AS2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                workSheet.Cells["AM1:AT1"].Style.WrapText = true;
+                                                workSheet.Cells["AM1:AT1"].Merge = true;
+                                                workSheet.Cells["AM1:AT1"].Value = "NTP";
+                                                workSheet.Cells["AM1:AM2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                workSheet.Cells["AT1:AT2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
                                                 workSheet.Cells["E:E"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###,###,##0";
@@ -79,11 +79,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["Q:Q"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["R:R"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["S:S"].Style.Numberformat.Format = "#,###,###,##0";
-                                                workSheet.Cells["AL:AL"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["AM:AM"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["AN:AN"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["AO:AO"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["AP:AP"].Style.Numberformat.Format = "#,###,###,##0";
+                                                workSheet.Cells["AQ:AQ"].Style.Numberformat.Format = "#,###,###,##0";
 
                                                 workSheet.Cells["J:J"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["K:K"].Style.Numberformat.Format = "#,###,###,##0.00";
@@ -97,11 +97,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["AD:AD"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["AE:AE"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["AF:AF"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                workSheet.Cells["AQ:AQ"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["AR:AR"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["AS:AS"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                workSheet.Cells["AT:AT"].Style.Numberformat.Format = "#,###,###,##0.00";
 
-                                                workSheet.Cells["A2:AS2"].AutoFilter = true;
+                                                workSheet.Cells["A2:AT2"].AutoFilter = true;
                                                 workSheet.Cells.AutoFitColumns();
                                             },
                                             null,

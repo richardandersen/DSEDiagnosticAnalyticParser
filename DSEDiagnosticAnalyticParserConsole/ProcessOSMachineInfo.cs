@@ -65,17 +65,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     dtOSMachineInfo.Columns.Add("Cassandra", typeof(string)).AllowDBNull = true;
                     dtOSMachineInfo.Columns.Add("Search", typeof(string)).AllowDBNull = true;
                     dtOSMachineInfo.Columns.Add("Spark", typeof(string)).AllowDBNull = true;//aj
-                    dtOSMachineInfo.Columns.Add("VNodes", typeof(bool)).AllowDBNull = true; //ak
+                    dtOSMachineInfo.Columns.Add("Agent", typeof(string)).AllowDBNull = true; //ak
+                    dtOSMachineInfo.Columns.Add("VNodes", typeof(bool)).AllowDBNull = true; //al
 
                     //NTP
-                    dtOSMachineInfo.Columns.Add("Correction (ms)", typeof(int)); //al
+                    dtOSMachineInfo.Columns.Add("Correction (ms)", typeof(int)); //am
                     dtOSMachineInfo.Columns.Add("Polling (secs)", typeof(int));
                     dtOSMachineInfo.Columns.Add("Maximum Error (us)", typeof(int));
                     dtOSMachineInfo.Columns.Add("Estimated Error (us)", typeof(int));
-                    dtOSMachineInfo.Columns.Add("Time Constant", typeof(int)); //ap
-                    dtOSMachineInfo.Columns.Add("Precision (us)", typeof(decimal)); //aq
+                    dtOSMachineInfo.Columns.Add("Time Constant", typeof(int)); //aq
+                    dtOSMachineInfo.Columns.Add("Precision (us)", typeof(decimal)); //ar
                     dtOSMachineInfo.Columns.Add("Frequency (ppm)", typeof(decimal));
-                    dtOSMachineInfo.Columns.Add("Tolerance (ppm)", typeof(decimal)); //as
+                    dtOSMachineInfo.Columns.Add("Tolerance (ppm)", typeof(decimal)); //at
                 }
             }
 
@@ -126,6 +127,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else if (fileName.Contains("load_avg"))
                             {
                                 dataRow["Average"] = decimal.Parse(filePath.ReadAllText());
+                            }
+                            else if (fileName.Contains("agent_version"))
+                            {
+                                dataRow["Agent"] = filePath.ReadAllText();
                             }
                             else if (fileName.Contains("memory"))
                             {

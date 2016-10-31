@@ -449,6 +449,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if (lineDateTime < onlyEntriesAfterThisTimeFrame)
                     {
+                        Program.ConsoleLogCount.Decrement();
                         continue;
                     }
 
@@ -461,6 +462,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (--skipLines > 0)
                         {
+                            Program.ConsoleLogCount.Decrement();
                             continue;
                         }
                     }
@@ -923,15 +925,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 					}
 					else if (parsedValues[4] == "StorageService.java")
 					{
-						#region StorageService.java
-						//	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
-						//INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
-						//INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
-						//INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
-						//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
-						//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
-
-						if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
+                        #region StorageService.java
+                        //	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
+                        //INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
+                        //INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
+                        //INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
+                        //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
+                        //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
+                        //INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
+                        
+                        if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
 						{
 							nCell = -1;
 							var kstblValues = Common.StringFunctions.Split(parsedValues[nCell],
@@ -955,22 +958,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							dataRow["Associated Item"] = ksName + "." + tblName;
 						}
-						else if (nCell == itemValuePos && parsedValues[nCell] == "jump")
-						{
-							var status = parsedValues[nCell + 2];
-
-							if (status.ToLower() == "normal")
-							{
-								dataRow["Exception"] = "Node Startup";
-								dataRow["Flagged"] = true;
-							}
-							else if (status.ToLower() == "shutdown")
-							{
-								dataRow["Exception"] = "Node Shutdown";
-								dataRow["Flagged"] = true;
-							}
-						}
-
+						
 						if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Flushing")
 						{
 							//dataRow["Associated Item"] = "Flushing CFS";
@@ -1022,9 +1010,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 					}
 					else if (parsedValues[4] == "MessagingService.java")
 					{
-						#region MessagingService.java
-						//MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
-						if (nCell == itemPos)
+                        #region MessagingService.java
+                        //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
+                        //INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
+
+                        if (nCell == itemPos)
 						{
 							var valueDR = dataRow["Associated Value"];
 							int nbrDrops = 0;
@@ -1058,8 +1048,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Flagged"] = true;
 							itemPos = nCell + 8;
 						}
-						#endregion
-					}
+                        else if (parsedValues[nCell] == "terminated" 
+                                    && parsedValues[nCell + 2].StartsWith("accept")
+                                    && parsedValues[nCell + 3] == "thread")
+                        {
+                            dataRow["Exception"] = "Node Shutdown";
+                            dataRow["Flagged"] = true;
+                        }
+                        #endregion
+                    }
 					else if (parsedValues[4] == "CompactionTask.java")
 					{
 						#region CompactionTask.java
@@ -1142,25 +1139,25 @@ namespace DSEDiagnosticAnalyticParserConsole
 						#region CqlSolrQueryExecutor.java
 						//ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
 						if (parsedValues[nCell] == "No" && parsedValues[nCell + 1] == "response" && parsedValues[nCell + 3] == "timeout")
-						{
-							dataRow["Flagged"] = true;
-							dataRow["Associated Item"] = "Solr Timeout";
+                        { 
+							dataRow["Exception"] = "Solr Timeout";
 							dataRow["Associated Value"] = int.Parse(parsedValues[nCell + 4]);
 						}
 						#endregion
 					}
 					else if (parsedValues[4] == "SolrCore.java")
 					{
-						#region SolrCore.java
-						//WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
-
-						if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
-						{							
-							var splitItems = SplitTableName(parsedValues[nCell - 1]);
-							var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
-
-							dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell)) + "-" + ksTableName;
-						}
+                        #region SolrCore.java
+                        //WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
+                       
+                        if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
+						{
+                            var splitItems = SplitTableName(parsedValues[nCell - 1]);
+                            var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
+                            
+							dataRow["Exception"] = "Solr Performance Warning";
+                            dataRow["Associated Item"] = ksTableName;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "JVMStabilityInspector.java")
@@ -1213,7 +1210,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
 						#endregion
 					}
-					else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
+                    else if (parsedValues[4] == "ThriftServer.java")
+                    {
+                        #region ThriftServer.java
+                        //INFO  [Thread-2] 2016-10-26 22:19:23,040  ThriftServer.java:136 - Listening for thrift clients...
+                        if (parsedValues[nCell] == "Listening"
+                                && parsedValues[nCell + 3].StartsWith("clients"))
+                        {
+                            dataRow["Exception"] = "Node Startup";
+                            dataRow["Flagged"] = true;
+                        }
+                        #endregion
+                    }
+                    else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
 					{
 						dataRow["Associated Value"] = lineIPAddress;
 					}
@@ -3320,7 +3329,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large maximum";
-                                dataRow["Value"] = (int)(statItem.Max * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.Max * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "bytes";
 
@@ -3334,7 +3343,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large minimum";
-                                dataRow["Value"] = (int)(statItem.Min * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.Min * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "bytes";
 
@@ -3348,7 +3357,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large mean";
-                                dataRow["Value"] = (int)(statItem.Avg * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.Avg * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "bytes";
 

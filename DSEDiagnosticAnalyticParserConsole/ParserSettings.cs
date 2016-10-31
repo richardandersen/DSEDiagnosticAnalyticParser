@@ -14,8 +14,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static int CompactionFlagThresholdInMS = Properties.Settings.Default.CompactionFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java) and log worksheets
         public static int SlowLogQueryThresholdInMS = Properties.Settings.Default.SlowLogQueryThresholdInMS;
 
-        public static TimeSpan LogTimeSpanRange = Properties.Settings.Default.LogTimeSpanRange; //Only import log entries for the past timespan (e.g., the last 5 days) based on LogCurrentDate.
-        public static DateTime LogCurrentDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
+       
+        public static DateTime LogStartDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
         public static int LogMaxRowsPerNode = Properties.Settings.Default.LogMaxRowsPerNode; // -1 disabled //If enabled only the current log file is read (no achieves).
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
         public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray(false);
@@ -140,7 +140,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] PerformanceKeyspaces = Properties.Settings.Default.PerformanceKeyspaces.ToArray(false);
         public static string[] SummaryIgnoreExceptions = Properties.Settings.Default.SummaryIgnoreExceptions.ToArray(false);
         public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
-
+        public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {
             if(stringCollection == null)

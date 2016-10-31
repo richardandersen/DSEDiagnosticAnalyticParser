@@ -14,8 +14,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         private static void LoadSummaryLog(ExcelPackage excelPkg,
                                             DataTable dtLogSummary,
                                             string excelWorkSheetSummaryLogCassandra,
-                                            DateTimeRange logCassandraMaxMinTimestamp,                                            
-                                            TimeSpan logTimeSpanRange,
+                                            DateTimeRange logCassandraMaxMinTimestamp,
                                             string logExcelWorkbookFilter)
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetSummaryLogCassandra);

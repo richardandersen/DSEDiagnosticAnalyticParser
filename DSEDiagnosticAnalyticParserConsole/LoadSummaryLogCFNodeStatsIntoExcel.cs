@@ -16,8 +16,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         ExcelPackage excelPkg,                                                        
                                                         string excelWorkSheetSummaryLogCassandra,
                                                         DateTimeRange logCassandraMaxMinTimestamp,
-                                                        DateTimeRange maxminMaxLogDate,
-                                                        TimeSpan logTimeSpanRange,
+                                                        DateTimeRange maxminMaxLogDate,                                                        
                                                         string logExcelWorkbookFilter,
                                                         Task<DataTable> cfMergeTableTask,
                                                         string excelWorkSheetCFStats,
@@ -35,12 +34,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             runSummaryLogTask?.Wait();
 
-            LoadSummaryLog(excelPkg,
-                            runSummaryLogTask.Result.Item1,
-                            excelWorkSheetSummaryLogCassandra,
-                            logCassandraMaxMinTimestamp,                            
-                            logTimeSpanRange,
-                            logExcelWorkbookFilter);          
+            if(runSummaryLogTask?.Result != null)
+            {
+                LoadSummaryLog(excelPkg,
+                                runSummaryLogTask.Result.Item1,
+                                excelWorkSheetSummaryLogCassandra,
+                                logCassandraMaxMinTimestamp,                                
+                                logExcelWorkbookFilter);
+            }        
         }
 
     }

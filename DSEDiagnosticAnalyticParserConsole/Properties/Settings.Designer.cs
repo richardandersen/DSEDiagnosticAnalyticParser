@@ -70,15 +70,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("02:00:00")]
-        public global::System.TimeSpan LogTimeSpanRange {
-            get {
-                return ((global::System.TimeSpan)(this["LogTimeSpanRange"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::System.DateTime LogCurrentDate {
             get {
                 return ((global::System.DateTime)(this["LogCurrentDate"]));
@@ -340,6 +331,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>dse_perf</string>
   <string>dse_security</string>
   <string>solr_admin</string>
+  <string>dse_auth</string>
+  <string>OpsCenter</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection IgnoreKeySpaces {
             get {
@@ -568,6 +561,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>java_system_properties.json</string>
   <string>machine-info.json</string>
   <string>os-info.json</string>
+  <string>agent_version.json</string>
   <string>.\os-metrics\cpu.json</string>
   <string>.\os-metrics\load_avg.json</string>
   <string>.\os-metrics\memory.json</string>
@@ -854,6 +848,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string ExcelWorkBookFileExtension {
             get {
                 return ((string)(this["ExcelWorkBookFileExtension"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TableHistogramDirPath {
+            get {
+                return ((string)(this["TableHistogramDirPath"]));
             }
         }
     }

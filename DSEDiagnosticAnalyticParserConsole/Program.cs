@@ -61,11 +61,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.Console.WriteLine(" ");
             ConsoleDisplay.Console.WriteLine("Diagnostic Source Folder: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.DiagnosticPath)?.PathResolved);
             ConsoleDisplay.Console.WriteLine("Excel Target File: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.ExcelFilePath)?.PathResolved);
-            ConsoleDisplay.Console.WriteLine("Parse Non-Logs: {0} Logs: {1} Archived Logs: {2} Excel Load Logs: {3}",
+            ConsoleDisplay.Console.WriteLine("Parse Non-Logs: {0} Logs: {1} Archived Logs: {2} Excel Load Logs: {3}{4}",
                                                 argResult.Value.ParseNonLogs,
                                                 argResult.Value.ParseLogs,
                                                 argResult.Value.ParseArchivedLogs,
-                                                argResult.Value.LoadLogsIntoExcel);
+                                                argResult.Value.LoadLogsIntoExcel,
+                                                argResult.Value.LogStartDate == DateTime.MinValue 
+                                                    ? string.Empty
+                                                    : string.Format(" From: {0} ({0:ddd})", argResult.Value.LogStartDate));
 
             ConsoleDisplay.Console.WriteLine(" ");
 
@@ -103,7 +106,6 @@ namespace DSEDiagnosticAnalyticParserConsole
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
             var maxminMaxLogDate = new DateTimeRange();
             Task<DataTable> tskdtCFHistogram = Task.FromResult<DataTable>(null);
-            var includeLogEntriesAfterThisTimeFrame = ParserSettings.LogCurrentDate == DateTime.MinValue ? DateTime.MinValue : ParserSettings.LogCurrentDate - ParserSettings.LogTimeSpanRange;
             int nbrNodes = -1;
 
             ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtTable);
@@ -114,9 +116,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             #region Parsing Files
 
-            if (includeLogEntriesAfterThisTimeFrame != DateTime.MinValue)
+            if (ParserSettings.LogStartDate != DateTime.MinValue)
             {
-                Logger.Instance.InfoFormat("Log Entries after \"{0}\" will only be parsed", includeLogEntriesAfterThisTimeFrame);
+                Logger.Instance.InfoFormat("Log Entries after \"{0}\" will only be parsed", ParserSettings.LogStartDate);
             }
             else
             {
@@ -353,7 +355,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                             dcName,
                                                                                             ipAddress,
-                                                                                            includeLogEntriesAfterThisTimeFrame,
+                                                                                            ParserSettings.LogStartDate,
                                                                                             maxminMaxLogDate,
                                                                                             -1,
                                                                                             dtLogsStack,
@@ -420,7 +422,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                         dcName,
                                                                                         ipAddress,
-                                                                                        includeLogEntriesAfterThisTimeFrame,
+                                                                                        ParserSettings.LogStartDate,
                                                                                         maxminMaxLogDate,
                                                                                         -1,
                                                                                         dtLogsStack,
@@ -674,7 +676,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                         dcName,
                                                                                         ipAddress,
-                                                                                        includeLogEntriesAfterThisTimeFrame,
+                                                                                        ParserSettings.LogStartDate,
                                                                                         maxminMaxLogDate,
                                                                                         -1,
                                                                                         dtLogsStack,
@@ -800,7 +802,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                         dcName,
                                                                                         ipAddress,
-                                                                                        includeLogEntriesAfterThisTimeFrame,
+                                                                                        ParserSettings.LogStartDate,
                                                                                         maxminMaxLogDate,
                                                                                         ParserSettings.LogMaxRowsPerNode,
                                                                                         dtLogsStack,
@@ -871,31 +873,63 @@ namespace DSEDiagnosticAnalyticParserConsole
             bool parseCFHistFiles = false;
             IFilePath cfHistogramWildFilePath;
             IFilePath tableHistogramWildFilePath;
+            IDirectoryPath tableHistogramDir = null;
             Task<IEnumerable<IFilePath>> cfhistFilesTask = Task.FromResult( (IEnumerable<IFilePath>) new IFilePath[0]);
 
-            if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.CFHistogramFileName), out cfHistogramWildFilePath))
+            if (!string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath))
             {
-                cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
-                                        {
-                                            var tblMatches = cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+                tableHistogramDir = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.TableHistogramDirPath);
 
-                                            return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
+                if(tableHistogramDir.IsRelativePath)
+                {
+                    IAbsolutePath absPath;
+
+                    if(diagPath.MakePathFrom((IRelativePath)tableHistogramDir, out absPath))
+                    {
+                        tableHistogramDir = (IDirectoryPath) absPath;
+                    }
+                }
+            }
+
+            if(tableHistogramDir != null
+                && tableHistogramDir.Exist())
+            {
+                cfhistFilesTask = cfhistFilesTask.ContinueWith(filesMatchesTask =>
+                                        {
+                                            var files = tableHistogramDir.Children().Where(file => file.IsFilePath).Cast<IFilePath>();
+
+                                            return filesMatchesTask.Result.Append(files.ToArray());
                                         },
-                                    TaskContinuationOptions.AttachedToParent                                        
-                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+                                       TaskContinuationOptions.AttachedToParent
+                                           | TaskContinuationOptions.OnlyOnRanToCompletion);
                 parseCFHistFiles = true;
             }
-            if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.TableHistogramFileName), out tableHistogramWildFilePath))
+            else
             {
-                cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
-                                        {
-                                            var tblMatches = tableHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+                if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.CFHistogramFileName), out cfHistogramWildFilePath))
+                {
+                    cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
+                                            {
+                                                var tblMatches = cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
 
-                                            return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
-                                        },
-                                    TaskContinuationOptions.AttachedToParent                                      
-                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
-                parseCFHistFiles = true;
+                                                return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
+                                            },
+                                        TaskContinuationOptions.AttachedToParent
+                                            | TaskContinuationOptions.OnlyOnRanToCompletion);
+                    parseCFHistFiles = true;
+                }
+                if (diagPath.MakeFile(string.Format("*{0}*", ParserSettings.TableHistogramFileName), out tableHistogramWildFilePath))
+                {
+                    cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
+                                            {
+                                                var tblMatches = tableHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+
+                                                return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
+                                            },
+                                        TaskContinuationOptions.AttachedToParent
+                                            | TaskContinuationOptions.OnlyOnRanToCompletion);
+                    parseCFHistFiles = true;
+                }
             }
 
             if (parseCFHistFiles)
@@ -1226,8 +1260,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 excelPkg,                                                                
                                                                 ParserSettings.ExcelWorkSheetSummaryLogCassandra,
                                                                 ProcessFileTasks.LogCassandraMaxMinTimestamp,
-                                                                maxminMaxLogDate,
-                                                                ParserSettings.LogTimeSpanRange,
+                                                                maxminMaxLogDate,                                                                
                                                                 ParserSettings.LogExcelWorkbookFilter,
                                                                 runUpdateActiveTblStatus,
                                                                 ParserSettings.ExcelWorkSheetCFStats,

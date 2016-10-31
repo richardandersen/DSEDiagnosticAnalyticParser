@@ -54,7 +54,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["DSE"] = dseVersions["dse"];
                                     dataRow["Cassandra"] = dseVersions["cassandra"];
                                     dataRow["Search"] = dseVersions["search"];
-                                    dataRow["Spark"] = ((Dictionary<string, object>)dseVersions["spark"])["version"];
+                                    var searchInfo = ((Dictionary<string, object>)dseVersions["spark"]);
+                                    if (searchInfo != null)
+                                    {
+                                        dataRow["Spark"] = searchInfo["version"];
+                                    }
                                     dataRow["VNodes"] = nodeInfo["vnodes"];
 
                                     dataRow.EndEdit();

@@ -280,7 +280,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                                 else
                                 {
-                                    //look for keyworad Primary Key
+                                    //look for keyword Primary Key
                                     var pkVar = tblColumns.Find(c => c.EndsWith("primary key", StringComparison.OrdinalIgnoreCase));
 
                                     dataRow["Partition Key"] = pkVar.Substring(0, pkVar.Length - 11).TrimEnd();
@@ -315,9 +315,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     {
                                         ++nbrBlobs;
                                     }
-                                    else if (tblColumns[nIndex].EndsWith(" list", StringComparison.OrdinalIgnoreCase)
-                                                || tblColumns[nIndex].EndsWith(" map", StringComparison.OrdinalIgnoreCase)
-                                                || tblColumns[nIndex].EndsWith(" set", StringComparison.OrdinalIgnoreCase))
+                                    else if (tblColumns[nIndex].IndexOf(" list", StringComparison.OrdinalIgnoreCase) > 3
+                                                || tblColumns[nIndex].IndexOf(" map", StringComparison.OrdinalIgnoreCase) > 3
+                                                || tblColumns[nIndex].IndexOf(" set", StringComparison.OrdinalIgnoreCase) > 3)
                                     {
                                         ++nbrCollections;
                                     }

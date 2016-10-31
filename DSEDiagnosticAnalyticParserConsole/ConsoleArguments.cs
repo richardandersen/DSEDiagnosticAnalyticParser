@@ -69,26 +69,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.SlowLogQueryThresholdInMS = value; }
         }
 
+        
         /// <summary>
-        /// Only import log entries for the past time period (e.g., the last 5 days) from the LogCurrentDate
+        /// Import Log entries from this date. MinDate will parse all log entries.
         /// </summary>
-        [Option('R', "LogTimeSpanRange", HelpText = "Only import log entries for the past time period (e.g., the last 5 days) from the LogCurrentDate",
+        [Option('Z', "LogStartDate", HelpText = "Only import log entries from this date/time. MinDate will parse all entries.",
                     Required = false)]
-        public TimeSpan LogTimeSpanRange
+        public DateTime LogStartDate
         {
-            get { return ParserSettings.LogTimeSpanRange; }
-            set { ParserSettings.LogTimeSpanRange = value; }
-        }
-
-        /// <summary>
-        /// Import Log entries from this date based on the LogTimeSpanRange. MinDate will parse all log entries.
-        /// </summary>
-        [Option('Z', "LogCurrentDate", HelpText = "Only import log entries for the past time period (e.g., the last 5 days) from the LogCurrentDate",
-                    Required = false)]
-        public DateTime LogCurrentDate
-        {
-            get { return ParserSettings.LogCurrentDate; }
-            set { ParserSettings.LogCurrentDate = value; }
+            get { return ParserSettings.LogStartDate; }
+            set { ParserSettings.LogStartDate = value; }
         }
 
         /// <summary>
@@ -335,28 +325,53 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.AlternativeDDLFilePath = value; }
         }
 
+        
+        [Option('t', "TableHistogramDirPath", HelpText = "Directory of files that contain the results of a nodetool TableHistogram. The file name must have the node's IP address in the beginning or end of the name. If not provide the DiagnosticPath is searched looking for files with the string \"TableHistogram\" embedded in the name.",
+                    Required = false)]
+        public string TableHistogramDirPath
+        {
+            get
+            {
+                return string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath)
+                            ? null
+                            : Common.Path.PathUtils.BuildFilePath(ParserSettings.TableHistogramDirPath)?.PathResolved;
+            }
+            set
+            {
+                ParserSettings.TableHistogramDirPath = value;
+            }
+        }
+
+
         /// <summary>
-        /// A list of keyspaces to ignore during parsing.
+        /// A list of Keyspaces to ignore during parsing.
         /// </summary>
-        [Option('I', "IgnoreKeySpaces", HelpText = "A list of keyspaces to ignore during parsing.",
+        [Option('I', "IgnoreKeySpaces", HelpText = "A list of Keyspaces to ignore during parsing.",
                     Required = false)]
         public string IgnoreKeySpaces
         {
             get { return string.Join(", ", ParserSettings.IgnoreKeySpaces); }
             set
             {
-                var keySpaces = StringFunctions.Split(value, ',',
+                if (string.IsNullOrEmpty(value))
+                {
+                    ParserSettings.IgnoreKeySpaces.Clear();
+                }
+                else
+                {
+                    var keySpaces = StringFunctions.Split(value, ',',
                                                         StringFunctions.IgnoreWithinDelimiterFlag.Text,
                                                         StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries
                                                             | StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
 
-                ParserSettings.IgnoreKeySpaces = keySpaces?.Select(item => ProcessFileTasks.RemoveQuotes(item).ToLower()).ToList();
+                    ParserSettings.IgnoreKeySpaces = keySpaces?.Select(item => ProcessFileTasks.RemoveQuotes(item).ToLower()).ToList();
+                }
             }
         }
 
         private bool allowPerformanceKeyspaces = false;
 
-        [Option('i', "IncludePerformanceKeyspaces", HelpText = "Performance Keyspaces are included during parsing. The default based on IgnoreKeySpaces are to ignore these keyspaces.",
+        [Option('i', "IncludePerformanceKeyspaces", HelpText = "Performance Keyspaces are included during parsing. The default based on IgnoreKeySpaces are to ignore these Keyspaces.",
                     Required = false)]
         public bool IncludePerformanceKeyspaces
         {
@@ -371,6 +386,28 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (!allowPerformanceKeyspaces)
                     {
                         ParserSettings.IgnoreKeySpaces.AddRange(ParserSettings.PerformanceKeyspaces);
+                    }
+                }
+            }
+        }
+
+        private bool allowOpscenterKeyspaces = false;
+
+        [Option('k', "IncludeOpsCenterKeyspace", HelpText = "Included the OpsCenter Keyspace.",
+                    Required = false)]
+        public bool IncludeOpsCenterKeyspace
+        {
+            get { return allowOpscenterKeyspaces; }
+            set
+            {
+                if (allowOpscenterKeyspaces != value)
+                {
+                    allowOpscenterKeyspaces = value;
+                    ParserSettings.IgnoreKeySpaces.RemoveAll(ks => ks == "OpsCenter");
+
+                    if (!allowOpscenterKeyspaces)
+                    {
+                        ParserSettings.IgnoreKeySpaces.Add("OpsCenter");
                     }
                 }
             }
@@ -391,8 +428,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             var diagnosticPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
             var excelFilePathrentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
             var excelTemplateFilePath = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
+            var tableHistogramDirPath = string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath) ? null : Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.TableHistogramDirPath);
 
-            if(!diagnosticPath.Exist())
+            if (!diagnosticPath.Exist())
             {
                 var msg = string.Format("Diagnostic Directory doesn't exists. Directory is \"{0}\".", diagnosticPath.PathResolved);
 
@@ -417,7 +455,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Console.WriteLine(msg);
                 Logger.Instance.Error(msg);
                 bResult = false;
-            }            
+            }
+
+            if (tableHistogramDirPath != null)
+            {
+                if (tableHistogramDirPath.IsRelativePath)
+                {
+                    IAbsolutePath absPath;
+
+                    if (diagnosticPath.MakePathFrom((IRelativePath)tableHistogramDirPath, out absPath))
+                    {
+                        tableHistogramDirPath = (IDirectoryPath)absPath;
+                    }
+                }
+
+                if (!tableHistogramDirPath.Exist())
+                {
+                    var msg = string.Format("TableHistogram Folder doesn't exists. File is \"{0}\".", tableHistogramDirPath.PathResolved);
+
+                    Console.WriteLine(msg);
+                    Logger.Instance.Error(msg);
+                    bResult = false;
+                }
+            }
 
             return bResult;
         }
@@ -429,8 +489,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[G]CFlagThresholdInMS {2} " +
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
-                                    "--LogTimeSpan[R]ange \"{5}\" " +
-                                    "--LogCurrentDate|-Z \"{6}\" " +
+                                    
+                                    "--LogStartDate|-Z \"{6}\" " +
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
                                     "--LoadLogsInto[E]xcel {8} " +
                                     "--Parse[L]ogs {9} " +
@@ -443,14 +503,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--AlternativeLogFilePath|-l \"{16}\" " +
                                     "--AlternativeDDLFilePath|-d \"{17}\" " +
                                     "--[I]gnoreKeySpaces {{{18}}} " +
-                                    "--IncludePerformanceKeyspaces|-i {19}",
+                                    "--IncludePerformanceKeyspaces|-i {19} " +
+                                    "--IncludeOpsCenterKeyspace|-o {20} " +
+                                    "--TableHistogramDirPath|-t \"{21}\"",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
                                     this.CompactionFlagThresholdInMS,
                                     this.SlowLogQueryThresholdInMS,
-                                    this.LogTimeSpanRange,
-                                    this.LogCurrentDate,
+                                    null,
+                                    this.LogStartDate,
                                     this.LogExcelWorkbookFilter,
                                     this.LoadLogsIntoExcel,
                                     this.ParseLogs,
@@ -463,7 +525,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.AlternativeLogFilePath,
                                     this.AlternativeDDLFilePath,
                                     this.IgnoreKeySpaces,
-                                    this.IncludePerformanceKeyspaces);
+                                    this.IncludePerformanceKeyspaces,
+                                    this.IncludeOpsCenterKeyspace,
+                                    this.TableHistogramDirPath);
         }
     }
 }

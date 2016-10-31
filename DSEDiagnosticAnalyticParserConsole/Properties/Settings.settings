@@ -17,9 +17,6 @@
     <Setting Name="SlowLogQueryThresholdInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">2000</Value>
     </Setting>
-    <Setting Name="LogTimeSpanRange" Type="System.TimeSpan" Scope="Application">
-      <Value Profile="(Default)">02:00:00</Value>
-    </Setting>
     <Setting Name="LogCurrentDate" Type="System.DateTime" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
@@ -114,6 +111,8 @@
   &lt;string&gt;dse_perf&lt;/string&gt;
   &lt;string&gt;dse_security&lt;/string&gt;
   &lt;string&gt;solr_admin&lt;/string&gt;
+  &lt;string&gt;dse_auth&lt;/string&gt;
+  &lt;string&gt;OpsCenter&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="CFStatsCreateMBColumns" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -198,6 +197,7 @@
   &lt;string&gt;java_system_properties.json&lt;/string&gt;
   &lt;string&gt;machine-info.json&lt;/string&gt;
   &lt;string&gt;os-info.json&lt;/string&gt;
+  &lt;string&gt;agent_version.json&lt;/string&gt;
   &lt;string&gt;.\os-metrics\cpu.json&lt;/string&gt;
   &lt;string&gt;.\os-metrics\load_avg.json&lt;/string&gt;
   &lt;string&gt;.\os-metrics\memory.json&lt;/string&gt;
@@ -492,6 +492,9 @@
     </Setting>
     <Setting Name="ExcelWorkBookFileExtension" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.xlsx</Value>
+    </Setting>
+    <Setting Name="TableHistogramDirPath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
