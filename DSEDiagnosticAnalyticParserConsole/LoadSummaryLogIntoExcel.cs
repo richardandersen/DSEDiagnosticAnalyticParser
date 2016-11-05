@@ -14,7 +14,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         private static void LoadSummaryLog(ExcelPackage excelPkg,
                                             DataTable dtLogSummary,
                                             string excelWorkSheetSummaryLogCassandra,
-                                            DateTimeRange logCassandraMaxMinTimestamp,
+                                            DateTimeRange minmaxLogDate,
+                                            DateTimeRange minmaxSummaryDateRange,
                                             string logExcelWorkbookFilter)
         {
             Program.ConsoleExcelNonLog.Increment(excelWorkSheetSummaryLogCassandra);
@@ -28,18 +29,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
-                                            workSheet.Cells["A1:N1"].Style.WrapText = true;
-                                            workSheet.Cells["A1:N1"].Merge = true;
-                                            workSheet.Cells["A1:N1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
-                                                                                ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
-                                                                                                    logCassandraMaxMinTimestamp.Min,
-                                                                                                    logCassandraMaxMinTimestamp.Max,
-                                                                                                    logCassandraMaxMinTimestamp.Max - logCassandraMaxMinTimestamp.Min,
-                                                                                                    logCassandraMaxMinTimestamp.Min.DayOfWeek,
-                                                                                                    logCassandraMaxMinTimestamp.Max.DayOfWeek)
+                                            workSheet.Cells["A1:G1"].Style.WrapText = true;
+                                            workSheet.Cells["A1:G1"].Merge = true;
+                                            workSheet.Cells["A1:G1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
+                                                                                ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).{5}",
+                                                                                                    minmaxSummaryDateRange.Min,
+                                                                                                    minmaxSummaryDateRange.Max,
+                                                                                                    minmaxSummaryDateRange.Max - minmaxSummaryDateRange.Min,
+                                                                                                    minmaxSummaryDateRange.Min.DayOfWeek,
+                                                                                                    minmaxSummaryDateRange.Max.DayOfWeek,
+                                                                                                    minmaxLogDate == minmaxSummaryDateRange ? string.Empty : " Note: Only Overlapping Date Ranges used")
                                                                                     : logExcelWorkbookFilter;
-                                            workSheet.Cells["A1:N1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                                            workSheet.Cells["A1:G1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
+                                            if (minmaxLogDate != minmaxSummaryDateRange || !string.IsNullOrEmpty(logExcelWorkbookFilter))
+                                            {
+                                                workSheet.Cells["H1"].AddComment(string.Format("Complete Log range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
+                                                                                                    minmaxLogDate.Min,
+                                                                                                    minmaxLogDate.Max,
+                                                                                                    minmaxLogDate.Max - minmaxLogDate.Min,
+                                                                                                    minmaxLogDate.Min.DayOfWeek,
+                                                                                                    minmaxLogDate.Max.DayOfWeek), "LogRange");
+                                            }
+                                            
                                             workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm";
 											workSheet.Cells["J:J"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
 											workSheet.Cells["K:K"].Style.Numberformat.Format = "#,###,###,##0";

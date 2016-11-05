@@ -137,10 +137,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 DateTimeRange maxminLogDate,
                                                                                                 Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
                                                                                                 Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
+                                                                                                bool summarizeOnlyOverlappingDateRangesForNodes,
+                                                                                                IDictionary<string, List<Common.DateTimeRange>> nodeLogDateRanges,
                                                                                                 string[] logAggregateAdditionalTaskExceptionItems,                                                                                
                                                                                                 string[] logSummaryIgnoreTaskExceptions)
         {
             Task<Tuple<DataTable, DataTable>> summaryTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
+
+            if(summarizeOnlyOverlappingDateRangesForNodes)
+            {                
+                foreach (var nodeLogRanges in nodeLogDateRanges)
+                {
+                    DateTimeRange nodeInnerRange = new DateTimeRange();
+
+                    nodeLogRanges.Value.ForEach(range =>
+                    {
+                        nodeInnerRange.SetMinMax(range.Min);
+                        nodeInnerRange.SetMinMax(range.Max);
+                    });
+
+                    maxminLogDate.SetMinimal(maxminLogDate.MaximumMinDateTime(nodeInnerRange));
+                    maxminLogDate.SetMaximum(maxminLogDate.MinimalMaxDateTime(nodeInnerRange));
+                }
+            }
 
             if ((logSummaryPeriods != null && logSummaryPeriods.Length > 0)
                             || (logSummaryPeriodRanges != null && logSummaryPeriodRanges.Length > 0))
@@ -166,11 +185,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             summaryPeriodList.Add(new Tuple<DateTime, TimeSpan>(currentRange,
                                                                                                     logSummaryPeriodRanges[nIndex].Item2));
 
-                                            currentRange = currentRange - logSummaryPeriodRanges[nIndex].Item1;
+                                            if (currentRange <= maxminLogDate.Min)
+                                            {
+                                                break;
+                                            }
+
+                                            currentRange = currentRange - logSummaryPeriodRanges[nIndex].Item1;                                            
                                         }
 
                                         summaryPeriods = summaryPeriodList.ToArray();
-                                    }                                    
+                                    }
+                                    else
+                                    {
+                                        maxminLogDate.SetMinimal(DateTime.MinValue);
+                                        maxminLogDate.SetMaximum(logSummaryPeriods[0].Item1);
+                                    }
 
                                     ParseCassandraLogIntoSummaryDataTable(dtLog,
                                                                             dtSummaryLog,
@@ -1465,7 +1494,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     segments.Add(new Tuple<DateTime, DateTime, TimeSpan, List<CLogSummaryInfo>>(bucketFromAggregatePeriods.ElementAt(nIndex).Item1,
                                                                                                     bucketFromAggregatePeriods.ElementAtOrDefault(nIndex + 1) == null
-                                                                                                        ? DateTime.MinValue
+                                                                                                        ? (maxminLogDate.Min == DateTime.MinValue ? DateTime.MinValue : (maxminLogDate.Min - new TimeSpan(1)))
                                                                                                         : bucketFromAggregatePeriods.ElementAt(nIndex + 1).Item1,
                                                                                                     bucketFromAggregatePeriods.ElementAt(nIndex).Item2,
                                                                                                     new List<CLogSummaryInfo>()));

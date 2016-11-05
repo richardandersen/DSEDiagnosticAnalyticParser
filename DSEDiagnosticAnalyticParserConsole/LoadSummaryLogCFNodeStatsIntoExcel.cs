@@ -15,7 +15,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         Task<Tuple<DataTable,DataTable>> runSummaryLogTask,
                                                         ExcelPackage excelPkg,                                                        
                                                         string excelWorkSheetSummaryLogCassandra,
-                                                        DateTimeRange logCassandraMaxMinTimestamp,
+                                                        DateTimeRange minmaxSummaryLogDate,
+                                                        DateTimeRange minmaxLogDate,
                                                         DateTimeRange maxminMaxLogDate,                                                        
                                                         string logExcelWorkbookFilter,
                                                         Task<DataTable> cfMergeTableTask,
@@ -39,7 +40,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 LoadSummaryLog(excelPkg,
                                 runSummaryLogTask.Result.Item1,
                                 excelWorkSheetSummaryLogCassandra,
-                                logCassandraMaxMinTimestamp,                                
+                                minmaxLogDate,
+                                minmaxSummaryLogDate,                                
                                 logExcelWorkbookFilter);
             }        
         }

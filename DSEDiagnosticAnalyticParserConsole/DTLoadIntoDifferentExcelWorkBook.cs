@@ -166,16 +166,20 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 workSheet = excelPkg.Workbook.Worksheets.Add("Application");
             }
-           
+
+            workSheet.Column(1).Width = 150;
+            workSheet.Column(1).Style.WrapText = true;
+
             workSheet.Cells["A2"].Value = string.Format("Start Timestamp: {0} Duration: {1:hh\\:mm\\:ss\\.ffff}",
 															Program.RunDateTime,
-															DateTime.Now - Program.RunDateTime);
+															DateTime.Now - Program.RunDateTime);            
             workSheet.Cells["A3"].Value = string.Format("Program: {0} Version: {1} Directory: {2}",
                                                             Common.Functions.Instance.ApplicationName,
                                                             Common.Functions.Instance.ApplicationVersion,
                                                             Common.Functions.Instance.AssemblyDir);
             workSheet.Cells["A4"].Value = string.Format("Working Directory: {0}", System.Environment.CurrentDirectory);
-            workSheet.Cells["A5"].Value = Program.CommandArgsString;
+            workSheet.Cells["A5"].Value = Program.CommandArgsString.Replace("--", "\r\n\t--");
+
             workSheet.Cells["A6"].Value = string.Format("Warnings: {0} Errors: {1}",
                                                             Program.ConsoleWarnings.Counter > 0,
                                                             Program.ConsoleErrors.Counter > 0);

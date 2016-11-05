@@ -141,6 +141,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] SummaryIgnoreExceptions = Properties.Settings.Default.SummaryIgnoreExceptions.ToArray(false);
         public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
         public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;
+        public static bool SummarizeOnlyOverlappingLogDateRangesForNodes = Properties.Settings.Default.SummarizeOnlyOverlappingLogDateRangesForNodes;
+
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {
             if(stringCollection == null)

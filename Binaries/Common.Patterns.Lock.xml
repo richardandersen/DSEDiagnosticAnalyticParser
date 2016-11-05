@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Common.Patterns.Lock</name>
+    </assembly>
+    <members>
+        <member name="M:Common.Patterns.Lock.ReaderWriter.DowngradeToReadLock">
+            <summary>
+            This method will downgrade an Upgradeable Read Lock to an "standard" read lock without releasing the lock on the object.
+            
+            Warning: DowngradeToReadLock will release all nested locks until the original Upgradeable lock is found!
+            </summary>
+            <returns>True upon success and false otherwise</returns>
+        </member>
+    </members>
+</doc>

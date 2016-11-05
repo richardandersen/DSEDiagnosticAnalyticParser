@@ -52,7 +52,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 workSheet.Cells.Clear();
                 foreach (ExcelComment comment in workSheet.Comments.Cast<ExcelComment>().ToArray())
                 {
-                    workSheet.Comments.Remove(comment);
+                    try
+                    {
+                        workSheet.Comments.Remove(comment);
+                    }
+                    catch { }             
                 }
             }
 

@@ -105,6 +105,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtOSMachineInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetOSMachineInfo);
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
             var maxminMaxLogDate = new DateTimeRange();
+            var minmaxSummaryLogDate = new DateTimeRange();
             Task<DataTable> tskdtCFHistogram = Task.FromResult<DataTable>(null);
             int nbrNodes = -1;
 
@@ -1079,11 +1080,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
+                minmaxSummaryLogDate = new DateTimeRange(ProcessFileTasks.LogCassandraMaxMinTimestamp);
                 runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
-                                                                                            ParserSettings.ExcelWorkSheetLogCassandra,                                                                                            
-                                                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp,
+                                                                                            ParserSettings.ExcelWorkSheetLogCassandra,
+                                                                                            minmaxSummaryLogDate,
                                                                                             ParserSettings.LogSummaryPeriods,
-                                                                                            ParserSettings.LogSummaryPeriodRanges,                                                                                            
+                                                                                            ParserSettings.LogSummaryPeriodRanges,
+                                                                                            ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes,
+                                                                                            ProcessFileTasks.LogCassandraNodeMaxMinTimestamps,
                                                                                             ParserSettings.LogSummaryTaskItems,
                                                                                             ParserSettings.LogSummaryIgnoreTaskExceptions);
 
@@ -1259,8 +1263,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 runSummaryLogTask,
                                                                 excelPkg,                                                                
                                                                 ParserSettings.ExcelWorkSheetSummaryLogCassandra,
+                                                                minmaxSummaryLogDate,
                                                                 ProcessFileTasks.LogCassandraMaxMinTimestamp,
-                                                                maxminMaxLogDate,                                                                
+                                                                maxminMaxLogDate,                                                             
                                                                 ParserSettings.LogExcelWorkbookFilter,
                                                                 runUpdateActiveTblStatus,
                                                                 ParserSettings.ExcelWorkSheetCFStats,

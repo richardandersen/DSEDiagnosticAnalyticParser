@@ -39,17 +39,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTable.Columns.Add("Partition Key", typeof(string));
                 dtTable.Columns.Add("Cluster Key", typeof(string)).AllowDBNull = true;
                 dtTable.Columns.Add("Compaction Strategy", typeof(string)).AllowDBNull = true;
-                dtTable.Columns.Add("Index", typeof(bool)).AllowDBNull = true;
-                dtTable.Columns.Add("Chance", typeof(decimal)).AllowDBNull = true;//g
-                dtTable.Columns.Add("DC Chance", typeof(decimal)).AllowDBNull = true;//h
-                dtTable.Columns.Add("Policy", typeof(string)).AllowDBNull = true;//i
-                dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//j
-                dtTable.Columns.Add("Collections", typeof(int));//k
-                dtTable.Columns.Add("Counters", typeof(int));//l
-                dtTable.Columns.Add("Blobs", typeof(int));//m
-                dtTable.Columns.Add("Total", typeof(int));//n
-                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//o
-                dtTable.Columns.Add("DDL", typeof(string));//p
+                dtTable.Columns.Add("Compression", typeof(string)).AllowDBNull = true; //g
+                dtTable.Columns.Add("Index", typeof(bool)).AllowDBNull = true; //h
+                dtTable.Columns.Add("Chance", typeof(decimal)).AllowDBNull = true;//i
+                dtTable.Columns.Add("DC Chance", typeof(decimal)).AllowDBNull = true;//j
+                dtTable.Columns.Add("Policy", typeof(string)).AllowDBNull = true;//k
+                dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//l
+                dtTable.Columns.Add("Collections", typeof(int));//m
+                dtTable.Columns.Add("Counters", typeof(int));//n
+                dtTable.Columns.Add("Blobs", typeof(int));//o                
+                dtTable.Columns.Add("Static", typeof(int));//p
+                dtTable.Columns.Add("Total", typeof(int));//q
+                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//r
+                dtTable.Columns.Add("DDL", typeof(string));//s
 
                 dtTable.PrimaryKey = new System.Data.DataColumn[] { dtTable.Columns["Keyspace Name"], dtTable.Columns["Name"] };
             }
@@ -189,6 +191,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 //AND compression =
                                 //'sstable_compression': 'LZ4Compressor'
                                 //;					
+                                //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+                                //AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+                                //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
+                                //  s text STATIC,
                                 var startParan = cqlStr.IndexOf('(');
                                 var endParan = cqlStr.LastIndexOf(')');
                                 var strFrtTbl = cqlStr.Substring(0, startParan);
@@ -298,12 +304,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 int nbrCollections = 0;
                                 int nbrCounters = 0;
                                 int nbrBlobs = 0;
+                                int nbrStatic = 0;
 
                                 for (int nIndex = 0; nIndex < endParan; ++nIndex)
                                 {
                                     if (tblColumns[nIndex].EndsWith("primary key", StringComparison.OrdinalIgnoreCase))
                                     {
                                         tblColumns[nIndex] = tblColumns[nIndex].Substring(0, tblColumns[nIndex].Length - 11).TrimEnd();
+                                    }
+                                    else if (tblColumns[nIndex].EndsWith(" static", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        ++nbrStatic;
                                     }
 
                                     if (tblColumns[nIndex].EndsWith(" counter", StringComparison.OrdinalIgnoreCase))
@@ -326,6 +337,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Collections"] = nbrCollections;
                                 dataRow["Counters"] = nbrCounters;
                                 dataRow["Blobs"] = nbrBlobs;
+                                dataRow["Static"] = nbrStatic;
                                 dataRow["Total"] = endParan;
 
                                 //parse options...
@@ -353,6 +365,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         var classSplit = kwOptions.Substring(classPos).Split(new char[] { ':', ',', '}' });
                                         var strategy = classSplit[1].Trim();
                                         dataRow["Compaction Strategy"] = RemoveNamespace(strategy);
+                                    }
+                                    else if (optKeyword.StartsWith("compression", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}                                        
+                                        //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
+                                        var kwOptions = ParseKeyValuePair(optKeyword).Item2;
+                                        var jsonItems = ParseJson(kwOptions);
+
+                                        if(jsonItems.ContainsKey("cipher_algorithm"))
+                                        {
+                                            dataRow["Compression"] = RemoveNamespace((string) jsonItems["cipher_algorithm"]);
+                                        }
+                                        else
+                                        {
+                                            dataRow["Compression"] = RemoveNamespace((string)jsonItems["sstable_compression"]);
+                                        }
                                     }
                                     else if (optKeyword.StartsWith("dclocal_read_repair_chance", StringComparison.OrdinalIgnoreCase))
                                     {

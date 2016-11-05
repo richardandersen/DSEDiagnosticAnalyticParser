@@ -859,5 +859,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((string)(this["TableHistogramDirPath"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool SummarizeOnlyOverlappingLogDateRangesForNodes {
+            get {
+                return ((bool)(this["SummarizeOnlyOverlappingLogDateRangesForNodes"]));
+            }
+        }
     }
 }

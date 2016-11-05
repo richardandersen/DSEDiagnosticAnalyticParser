@@ -117,7 +117,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                    Required = false)]
         public bool DisableLoadLogsIntoExcel
         {
-            get { return ParserSettings.LoadLogsIntoExcel; }
+            get { return !ParserSettings.LoadLogsIntoExcel; }
             set { ParserSettings.LoadLogsIntoExcel = !value; }
         }
 
@@ -136,7 +136,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Required = false)]
         public bool DisableParseLogs
         {
-            get { return ParserSettings.ParseLogs; }
+            get { return !ParserSettings.ParseLogs; }
             set { ParserSettings.ParseLogs = !value; }
         }
 
@@ -155,7 +155,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Required = false)]
         public bool DisableParseNonLogs
         {
-            get { return ParserSettings.ParseNonLogs; }
+            get { return !ParserSettings.ParseNonLogs; }
             set { ParserSettings.ParseNonLogs = !value; }
         }
 
@@ -177,7 +177,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Required = false)]
         public bool DisableParseArchivedLogs
         {
-            get { return ParserSettings.ParseArchivedLogs; }
+            get { return !ParserSettings.ParseArchivedLogs; }
             set { ParserSettings.ParseArchivedLogs = !value; }
         }
 
@@ -413,6 +413,27 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        [Option('U', "SummarizeOnlyOverlappingLogs", HelpText = "Logs are only summarized for overlapping time ranges for all nodes.",
+                    Required = false)]
+        public bool SummarizeOnlyOverlappingLogDateRangesForNodes
+        {
+            get { return ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes; }
+            set
+            {
+                ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes = value;               
+            }
+        }
+
+        [Option('u', "DisableSummarizeOnlyOverlappingLogs", HelpText = "All logs entries are summarized regardless of time ranges.",
+                    Required = false)]
+        public bool DisableSummarizeOnlyOverlappingLogDateRangesForNodes
+        {
+            get { return !ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes; }
+            set
+            {
+                ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes = !value;
+            }
+        }
 
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
@@ -489,7 +510,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[G]CFlagThresholdInMS {2} " +
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
-                                    
+                                    "--SummarizeOnlyOverlappingLogs|-U {5}" +
                                     "--LogStartDate|-Z \"{6}\" " +
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
                                     "--LoadLogsInto[E]xcel {8} " +
@@ -504,14 +525,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--AlternativeDDLFilePath|-d \"{17}\" " +
                                     "--[I]gnoreKeySpaces {{{18}}} " +
                                     "--IncludePerformanceKeyspaces|-i {19} " +
-                                    "--IncludeOpsCenterKeyspace|-o {20} " +
+                                    "--IncludeOpsCenterKeyspace|-k {20} " +
                                     "--TableHistogramDirPath|-t \"{21}\"",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
                                     this.CompactionFlagThresholdInMS,
                                     this.SlowLogQueryThresholdInMS,
-                                    null,
+                                    this.SummarizeOnlyOverlappingLogDateRangesForNodes,
                                     this.LogStartDate,
                                     this.LogExcelWorkbookFilter,
                                     this.LoadLogsIntoExcel,
