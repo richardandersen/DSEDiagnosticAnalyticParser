@@ -243,7 +243,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 if (includeGroupIndiator)
                 {
-                    dtCLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true;
+                    dtCLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
                 }
                 dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Node IPAddress", typeof(string));
@@ -1475,7 +1475,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCSummaryLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true; //I
                 dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true; //J
 				dtCSummaryLog.Columns.Add("Occurrences", typeof(int)); //K
-                dtCSummaryLog.Columns.Add("Group Indicator", typeof(int)).AllowDBNull = true; //L                
+                dtCSummaryLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //L                
                 dtCSummaryLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true; //M
                 dtCSummaryLog.Columns.Add("Table", typeof(string)).AllowDBNull = true; //N
 
@@ -1729,7 +1729,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataSummaryRow["Path"] = item.ItemPath;                                                                
                                     dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp.HasValue ? (object) item.MaxTimeStamp.Value : DBNull.Value;
                                     dataSummaryRow["Occurrences"] = item.AggregationCount;
-                                    dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+                                    dataSummaryRow["Reconciliation Reference"] = item.GroupIndicator;
 
                                     if(item.AssociatedItems.Count > 0)
                                     {
@@ -1784,7 +1784,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                             drArray.CopyTo(ref itemArray, 1);
                                             dataSummaryRow.ItemArray = itemArray;
-                                            dataSummaryRow["Group Indicator"] = item.GroupIndicator;
+                                            dataSummaryRow["Reconciliation Reference"] = item.GroupIndicator;
 
                                             dtCExceptionSummaryLog.Rows.Add(dataSummaryRow);
                                         }
@@ -1931,6 +1931,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ab
                 dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ac
                 dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ad
+                dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
 
                 dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
             }
@@ -1947,7 +1948,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Description", typeof(string));
                 //		dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
-
+                var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
                                                         " or [Flagged] = true",
@@ -2003,6 +2004,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-ParNew";
                             dataRow["GC Time (ms)"] = (long) time;
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
                             dtCStatusLog.Rows.Add(dataRow);
                             gcLatencies.Add((int)time);
@@ -2020,6 +2022,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-CMS";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
                             if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2048,6 +2051,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-G1";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
                             if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2088,6 +2092,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC Pause";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
                             if (time.HasValue)
                             {
@@ -2135,6 +2140,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = splits[1];
+                                    dataRow["Reconciliation Reference"] = groupIndicator;
                                     dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
                                     dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
                                     dataRow["KeysToSave"] = splits[4];
@@ -2160,6 +2166,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Pool/Cache Type"] = "ColumnFamily";
                                     dataRow["KeySpace"] = ksTable.Item1;
                                     dataRow["Table"] = ksTable.Item2;
+                                    dataRow["Reconciliation Reference"] = groupIndicator;
                                     dataRow["MemTable OPS"] = long.Parse(splits[2]);
                                     dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
 
@@ -2186,6 +2193,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = splits[1];
+                                    dataRow["Reconciliation Reference"] = groupIndicator;
 
                                     if (splits.Length == 8)
                                     {
@@ -2272,6 +2280,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Data Center"] = dcName;
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["Pool/Cache Type"] = "Compaction";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
 
                                 dataRow["KeySpace"] = ksItem.KeySpaceName;
                                 dataRow["Table"] = ksItem.TableName;
@@ -2309,6 +2318,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
+                        var dataRow = dtCStatusLog.NewRow();
+                        
+                        dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Pool/Cache Type"] = "Partition Size";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
+
+                        dataRow["KeySpace"] = kstblSplit.Item1;
+                        dataRow["Table"] = kstblSplit.Item2;
+                        dataRow["Size (mb)"] = partSize.Value / BytesToMB;
+
+                        dtCStatusLog.Rows.Add(dataRow);
+
                         partitionLargeSizes.Add(new Tuple<string, string, decimal>(kstblSplit.Item1, kstblSplit.Item2, partSize.Value));
 
                         #endregion
@@ -2337,11 +2360,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
-                        tombstoneCounts.Add(new Tuple<string, string, string, int>(warningType == "Query Tombstones Warning"
-                                                                                        ? "Tombstones warning"
-                                                                                        : (warningType == "Query Tombstones Aborted" 
-                                                                                                ? "Tombstones query aborted"
-                                                                                                : (warningType == "Query Reads Warning" ? "Query read warning" : warningType)),
+                        var dataRow = dtCStatusLog.NewRow();
+                        var indType = warningType == "Query Tombstones Warning"
+                                                            ? "Tombstones warning"
+                                                            : (warningType == "Query Tombstones Aborted"
+                                                                    ? "Tombstones query aborted"
+                                                                    : (warningType == "Query Reads Warning" ? "Query read warning" : warningType));
+
+                        dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Pool/Cache Type"] = indType;
+                        dataRow["Reconciliation Reference"] = groupIndicator;
+
+                        dataRow["KeySpace"] = kstblSplit.Item1;
+                        dataRow["Table"] = kstblSplit.Item2;
+                        dataRow["Completed"] = (long) partSize.Value;
+
+                        dtCStatusLog.Rows.Add(dataRow);
+
+                        tombstoneCounts.Add(new Tuple<string, string, string, int>(indType,
                                                                                     kstblSplit.Item1,
                                                                                     kstblSplit.Item2,
                                                                                     partSize.Value));
@@ -2354,7 +2392,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         var time = vwDataRow["Associated Value"] as int?;
 
                         if (time.HasValue)
-                        {
+                        {                            
+                            var dataRow = dtCStatusLog.NewRow();
+                            
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = "Slow Query latency";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Latency (ms)"] = time.Value;
+
+                            dtCStatusLog.Rows.Add(dataRow);
+
                             tpSlowQueries.Add(time.Value);
                         }
 
@@ -2379,6 +2428,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
+                        var dataRow = dtCStatusLog.NewRow();
+
+                        dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Pool/Cache Type"] = "Batch size";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["KeySpace"] = kstblSplit.Item1;
+                        dataRow["Table"] = kstblSplit.Item2;
+                        dataRow["Completed"] = (long)batchSize.Value;
+
+                        dtCStatusLog.Rows.Add(dataRow);
+
                         batchSizes.Add(new Tuple<string, string, string, int>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
 
                         #endregion
@@ -2394,6 +2456,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                             var keyNode = pathNodes.Length == 0 ? exception : pathNodes.Last();
                             var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
                             var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
+
+                            var dataRow = dtCStatusLog.NewRow();
+
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = exceptionName;
+                            dataRow["Reconciliation Reference"] = groupIndicator;
+
+                            dtCStatusLog.Rows.Add(dataRow);
 
                             jvmFatalErrors.Add(exceptionName);
                         }
@@ -2411,6 +2483,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                             var keyNode = pathNodes.Length == 0 ? exception : pathNodes.Last();
                             var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
                             var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
+
+                            var dataRow = dtCStatusLog.NewRow();
+
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = exceptionName;
+                            dataRow["Reconciliation Reference"] = groupIndicator;
+
+                            dtCStatusLog.Rows.Add(dataRow);
 
                             workPoolErrors.Add(exceptionName);
                         }
@@ -2441,6 +2523,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                             }
 
+                            var dataRow = dtCStatusLog.NewRow();
+
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = exception;
+                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["KeySpace"] = ksName;
+                            dataRow["Table"] = tblName;
+                            
+                            dtCStatusLog.Rows.Add(dataRow);
+
                             nodeStatus.Add(new Tuple<string,string,string>(exception, ksName, tblName));                            
                         }
 
@@ -2457,7 +2551,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                             var nbrDropped = vwDataRow["Associated Value"] as int?;
 
                             if (nbrDropped.HasValue)
-                            {                                
+                            {
+                                var dataRow = dtCStatusLog.NewRow();
+
+                                dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["Pool/Cache Type"] = "Dropped Hints";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Completed"] = (long)nbrDropped.Value;
+
+                                dtCStatusLog.Rows.Add(dataRow);
+
                                 droppedHints.Add(nbrDropped.Value);
                             }
                             else
@@ -2508,6 +2613,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         continue;
                                     }
 
+                                    var dataRow = dtCStatusLog.NewRow();
+
+                                    dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = exception + " Count";
+                                    dataRow["Reconciliation Reference"] = groupIndicator;
+                                    dataRow["KeySpace"] = keyTbl.Keyspace;
+                                    dataRow["Table"] = keyTbl.Table;
+                                    dataRow["Completed"] = (long)assocValue.Value;
+
+                                    dtCStatusLog.Rows.Add(dataRow);
+
                                     batchSizes.Add(new Tuple<string, string, string, int>(exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
                                 }
                             }
@@ -2521,6 +2639,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "Allocation Failed Maximum Memory Reached";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
                             if (assocValue.HasValue)
                             {
@@ -2547,25 +2666,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if(exception == "Dropped Mutations")
                         {
                             var assocValue = vwDataRow["Associated Value"] as int?;
-                            //var dataRow = dtCStatusLog.NewRow();
+                            var dataRow = dtCStatusLog.NewRow();
                             
-                            //dataRow["Timestamp"] = vwDataRow["Timestamp"];
-                            //dataRow["Data Center"] = dcName;
-                            //dataRow["Node IPAddress"] = ipAddress;
-                            //dataRow["Pool/Cache Type"] = "Dropped Mutation";
+                            dataRow["Timestamp"] = vwDataRow["Timestamp"];
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = "Dropped Mutation";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
 
-                           // if (assocValue.HasValue)
-                            //{
-                                //dataRow["GC Time (ms)"] = assocValue;
-                                droppedMutations.Add(assocValue.Value);
-                           // }
-                            //else
-                            //{
-                            //    Program.ConsoleWarnings.Increment("Invalid Dropped Mutation Value...");
-                           //     Logger.Dump(new DataRow[] { dataRow }, Logger.DumpType.Warning, "Invalid Dropped Mutation Value");
-                           // }
-
-                            //dtCStatusLog.Rows.Add(dataRow);
+                            dataRow["Completed"] = (long) assocValue.Value;
+                            droppedMutations.Add(assocValue.Value);
+                           
+                            dtCStatusLog.Rows.Add(dataRow);
                         }
 
                         #endregion
@@ -2596,6 +2708,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC minimum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2606,6 +2719,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC maximum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2616,6 +2730,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC mean latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2626,6 +2741,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Occurrences"] = gcLatencies.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2651,6 +2767,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query minimum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = slowMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2661,6 +2778,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query maximum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = slowMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2671,6 +2789,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query mean latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = slowAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2681,6 +2800,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Occurrences"] = tpSlowQueries.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2737,6 +2857,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " maximum";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Active"] = tpItem.maxItem2;
                             dataRow["Pending"] = tpItem.maxItem3;
                             dataRow["Completed"] = tpItem.maxItem4;
@@ -2751,6 +2872,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " minimum";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Active"] = tpItem.minItem2;
                             dataRow["Pending"] = tpItem.minItem3;
                             dataRow["Completed"] = tpItem.minItem4;
@@ -2765,6 +2887,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " mean";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Active"] = tpItem.avgItem2;
                             dataRow["Pending"] = tpItem.avgItem3;
                             dataRow["Completed"] = tpItem.avgItem4;
@@ -2779,6 +2902,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " Total";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Active"] = tpItem.totItem2;
                             dataRow["Pending"] = tpItem.totItem3;
                             dataRow["Completed"] = tpItem.totItem4;
@@ -2793,6 +2917,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " occurrences";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Occurrences"] = tpItem.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -2817,6 +2942,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause minimum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2827,6 +2953,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause maximum latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2837,6 +2964,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause mean latency";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Latency (ms)"] = gcAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2847,6 +2975,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Occurrences"] = pauses.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -2874,6 +3003,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = RemoveNamespace(jvmGrp.item) + " occurrences";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Occurrences"] = jvmGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -2902,6 +3032,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = RemoveNamespace(wpGrp.item) + " occurrences";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Occurrences"] = wpGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -2931,6 +3062,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = statusGrp.item + " occurrences";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Occurrences"] = statusGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -2961,6 +3093,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints Total";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedTotalNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -2972,6 +3105,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints maximum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedMaxNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -2983,6 +3117,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints mean";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedAvgNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -2994,6 +3129,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints minimum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedMinNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3005,6 +3141,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         //dataRow["Value"] = droppedMinNbr;
                         dataRow["Occurrences"] = droppedOccurences;
 
@@ -3035,6 +3172,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached Total";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Size (mb)"] = ((decimal) allocTotalMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3046,6 +3184,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached maximum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Size (mb)"] = ((decimal)allocMaxMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3057,6 +3196,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached mean";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Size (mb)"] = allocAvgMem/BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3068,6 +3208,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached minimum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Size (mb)"] = ((decimal) allocMinMem)/BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3078,7 +3219,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Source"] = "Cassandra Log";
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached occurrences";                        
+                        dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Occurrences"] = allocMemOccurences;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3108,6 +3250,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation Total";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedTotalNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3119,6 +3262,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation maximum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedMaxNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3130,6 +3274,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation mean";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedAvgNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3141,6 +3286,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation minimum";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         dataRow["Dropped"] = droppedMinNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -3152,6 +3298,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation occurrences";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
                         //dataRow["Value"] = droppedMinNbr;
                         dataRow["Occurrences"] = droppedOccurences;
 
@@ -3198,6 +3345,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction maximum latency";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(Value)"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "ms";
@@ -3212,6 +3360,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction minimum latency";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "ms";
@@ -3226,6 +3375,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction mean latency";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "ms";
@@ -3240,6 +3390,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction occurrences";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "ms";
@@ -3285,6 +3436,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction maximum rate";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(Value)"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -3299,6 +3451,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction minimum rate";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -3313,6 +3466,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction mean rate";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -3358,6 +3512,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large maximum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (long)(statItem.Max * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3372,6 +3527,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large minimum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (long)(statItem.Min * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3386,6 +3542,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large mean";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (long)(statItem.Avg * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3400,6 +3557,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large occurrences";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
 
@@ -3447,6 +3605,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " Total";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Total;
                                 dataRow["(value)"] = statItem.Total;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3461,6 +3620,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " maximum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(value)"] = statItem.Max;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3475,6 +3635,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " minimum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3489,6 +3650,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " mean";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3503,6 +3665,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " occurrences";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3552,6 +3715,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS maximum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.maxItem3;
                                 dataRow["(value)"] = statItem.maxItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -3566,6 +3730,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS minimum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.minItem3;
                                 dataRow["(value)"] = statItem.minItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -3580,6 +3745,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS mean";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.avgItem3;
                                 dataRow["(value)"] = statItem.avgItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -3594,6 +3760,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable occurrences";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
 
@@ -3608,6 +3775,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size maximum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (int)(statItem.maxItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.maxItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3622,6 +3790,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size minimum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (int)(statItem.minItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.minItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3636,6 +3805,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size mean";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = (int)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -3683,6 +3853,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " Total";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Total;
                                 dataRow["(value)"] = statItem.Total;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3697,6 +3868,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " maximum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3711,6 +3883,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " minimum";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3725,6 +3898,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " mean";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3739,6 +3913,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " occurrences";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -3775,6 +3950,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["KeySpace"] = statusGrp.KeySpace;
                             dataRow["Table"] = statusGrp.Table;
                             dataRow["Attribute"] = statusGrp.item + " occurrences";
+                            dataRow["Reconciliation Reference"] = groupIndicator;
                             dataRow["Value"] = statusGrp.Count;
                             dataRow["(value)"] = statusGrp.Count;
 

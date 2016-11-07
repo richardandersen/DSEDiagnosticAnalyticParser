@@ -4,12 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Data;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
     public class CLogSummaryInfo : IEqualityComparer<CLogSummaryInfo>, IEquatable<CLogSummaryInfo>
     {
-        static int NextGroupIndicator = 0;
+        static long NextGroupIndicator = 0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long IncrementGroupInicator()
+        {
+            return System.Threading.Interlocked.Increment(ref NextGroupIndicator);
+        }
 
         public CLogSummaryInfo(DateTime period,
                                 TimeSpan periodSpan,
@@ -31,7 +38,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             this.GroupIndicator = System.Threading.Interlocked.Increment(ref NextGroupIndicator);
         }
 
-        public int GroupIndicator;
+        public long GroupIndicator;
         public string DataCenter;
         public string IPAddress;
         public DateTime Period;

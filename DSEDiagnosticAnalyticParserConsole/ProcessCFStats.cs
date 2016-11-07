@@ -26,7 +26,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCFStats.Columns.Add("Size in MB", typeof(decimal)).AllowDBNull = true;
                 dtCFStats.Columns.Add("Active", typeof(bool)).AllowDBNull = true;
                 dtCFStats.Columns.Add("(Value)", typeof(object));
-                
+                dtCFStats.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+
                 //dtCFStats.PrimaryKey = new System.Data.DataColumn[] { dtFSStats.Columns[0],  dtFSStats.Columns[1],  dtFSStats.Columns[2],  dtFSStats.Columns[3], dtFSStats.Columns[4] };
             }
 

@@ -29,7 +29,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                             WorkSheetLoadColumnDefaults(workSheet, "D", ParserSettings.NodeStatsAttribs);
 
-                                            workSheet.Cells["A1:L1"].AutoFilter = true;
+                                            workSheet.Cells["A1:N1"].AutoFilter = true;
                                             workSheet.Cells.AutoFitColumns();
                                             workSheet.View.FreezePanes(2, 1);
                                         },

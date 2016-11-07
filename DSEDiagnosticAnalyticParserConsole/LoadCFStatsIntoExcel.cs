@@ -30,7 +30,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["I1"].AddComment("Change Numeric Format to Display Decimals", "Rich Andersen");
                                             workSheet.Cells["I1"].Value = workSheet.Cells["I1"].Text + "(Formatted)";
                                             workSheet.View.FreezePanes(2, 1);
-                                            workSheet.Cells["A1:I1"].AutoFilter = true;
+                                            workSheet.Cells["A1:L1"].AutoFilter = true;
                                             //workSheet.Column(10).Hidden = true;
 
                                             WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);

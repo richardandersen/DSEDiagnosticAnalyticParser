@@ -112,7 +112,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["N:R"].Style.Numberformat.Format = "#,###,###,##0";
                                                     workSheet.Cells["V:V"].Style.Numberformat.Format = "#,###,###,##0";
                                                     workSheet.Cells["H:M"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["S:T"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["S:S"].Style.Numberformat.Format = "#,###,###,##0.0000";
+                                                    workSheet.Cells["T:T"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["Y:Y"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["W:W"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["X:X"].Style.Numberformat.Format = "#,###,###,##0";
@@ -125,7 +126,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["X1"].AddComment("Number of SSTables Compacted", "Rich Andersen");
                                                     workSheet.Cells["AC1"].AddComment("Number of Partitions Merged to", "Rich Andersen");
 
-                                                    workSheet.Cells["A2:AD2"].AutoFilter = true;
+                                                    workSheet.Cells["A2:AE2"].AutoFilter = true;
                                                     workSheet.Cells.AutoFitColumns();
                                                 },
                                             maxRowInExcelWorkBook,
