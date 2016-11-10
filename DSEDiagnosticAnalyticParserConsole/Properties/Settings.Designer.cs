@@ -761,8 +761,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "an</string>\r\n  <string>Allocation Failed Maximum Memory Reached occurrences</str" +
             "ing>\r\n  <string>Dropped Mutation Total</string>\r\n  <string>Dropped Mutation maxi" +
             "mum</string>\r\n  <string>Dropped Mutation mean</string>\r\n  <string>Dropped Mutati" +
-            "on minimum</string>\r\n  <string>Dropped Mutation occurrences</string>\r\n</ArrayOfS" +
-            "tring>")]
+            "on minimum</string>\r\n  <string>Dropped Mutation occurrences</string>\r\n  <string>" +
+            "GC Continuous maximum latency</string>\r\n  <string>GC Continuous minimum latency<" +
+            "/string>\r\n  <string>GC Continuous mean latency</string>\r\n  <string>GC Continuous" +
+            " occurrences</string>\r\n  <string>GC Continuous latency</string>\r\n  <string>GC Co" +
+            "ntinuous standard deviation latency</string>\r\n  <string>GC TimeFrame maximum lat" +
+            "ency</string>\r\n  <string>GC TimeFrame minimum latency</string>\r\n  <string>GC Tim" +
+            "eFrame mean latency</string>\r\n  <string>GC TimeFrame occurrences</string>\r\n  <st" +
+            "ring>GC TimeFrame latency</string>\r\n  <string>GC TimeFrame standard deviation la" +
+            "tency</string>\r\n  <string>GC TimeFrame percent</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
@@ -866,6 +873,33 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public bool SummarizeOnlyOverlappingLogDateRangesForNodes {
             get {
                 return ((bool)(this["SummarizeOnlyOverlappingLogDateRangesForNodes"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
+        public int OverlapToleranceContinuousGCInMS {
+            get {
+                return ((int)(this["OverlapToleranceContinuousGCInMS"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("00:05:00")]
+        public global::System.TimeSpan GCTimeFrameDetection {
+            get {
+                return ((global::System.TimeSpan)(this["GCTimeFrameDetection"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.25")]
+        public decimal GCTimeFrameDetectionPercentage {
+            get {
+                return ((decimal)(this["GCTimeFrameDetectionPercentage"]));
             }
         }
     }

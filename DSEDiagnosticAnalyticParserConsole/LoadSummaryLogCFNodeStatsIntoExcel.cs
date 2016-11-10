@@ -13,6 +13,7 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         public static void LoadSummaryLogCFNodeStats(Task<DataTable> runLogParsingTask,
                                                         Task<Tuple<DataTable,DataTable>> runSummaryLogTask,
+                                                        Task<DataTable> runNodeStatsLogTask,
                                                         ExcelPackage excelPkg,                                                        
                                                         string excelWorkSheetSummaryLogCassandra,
                                                         DateTimeRange minmaxSummaryLogDate,
@@ -20,17 +21,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         DateTimeRange maxminMaxLogDate,                                                        
                                                         string logExcelWorkbookFilter,
                                                         Task<DataTable> cfMergeTableTask,
-                                                        string excelWorkSheetCFStats,
-                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
+                                                        string excelWorkSheetCFStats,                                                        
                                                         string excelWorkSheetNodeStats,
                                                         DataTable dtTable,
                                                         string excelWorkSheetDDL)
         {
             runLogParsingTask?.Wait();
             cfMergeTableTask?.Wait();
+            runNodeStatsLogTask?.Wait();
 
-            LoadCFStats(excelPkg, cfMergeTableTask.Result, excelWorkSheetCFStats);
-            LoadNodeStats(excelPkg, dtNodeStatsStack, excelWorkSheetNodeStats);
+            LoadCFStats(excelPkg, cfMergeTableTask?.Result, excelWorkSheetCFStats);
+            LoadNodeStats(excelPkg, runNodeStatsLogTask?.Result, excelWorkSheetNodeStats);
             LoadTableDDL(excelPkg, dtTable, excelWorkSheetDDL);
 
             runSummaryLogTask?.Wait();

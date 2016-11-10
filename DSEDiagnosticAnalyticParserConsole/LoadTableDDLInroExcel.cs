@@ -15,7 +15,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         DataTable dtTable,
                                         string excelWorkSheetDDLTables)
         {
-            if (dtTable.Rows.Count > 0)
+            if (dtTable != null && dtTable.Rows.Count > 0)
             {
                 Program.ConsoleExcelNonLog.Increment(excelWorkSheetDDLTables);
 

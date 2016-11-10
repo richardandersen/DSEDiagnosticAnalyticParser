@@ -92,12 +92,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}-{{1:000}}{1}",
                                                                 excelTargetFile.Name,
-                                                                excelTargetFile.FileExtension);
+                                                                string.IsNullOrEmpty(ParserSettings.ExcelWorkBookFileExtension)
+                                                                            ? excelTargetFile.FileExtension
+                                                                            : ParserSettings.ExcelWorkBookFileExtension);
 
             Parallel.ForEach(dtSplits, dtSplit =>
             //foreach (var dtSplit in dtSplits)
             {
-                var excelFile = ((IFilePath)excelTargetFile.Clone()).ApplyFileNameFormat(new object[] { workSheetName, System.Threading.Interlocked.Increment(ref totalRows) });
+                var excelFile = ((IFilePath)excelTargetFile.Clone())
+                                                .ApplyFileNameFormat(new object[] { workSheetName, System.Threading.Interlocked.Increment(ref totalRows) });
 
                 workBookActions?.Invoke(WorkBookProcessingStage.PrepareFileName, orgTargetFile, excelFile, workSheetName, null, dtSplit, -1);
 

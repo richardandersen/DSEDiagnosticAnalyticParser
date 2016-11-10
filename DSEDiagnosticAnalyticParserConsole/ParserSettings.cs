@@ -142,6 +142,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
         public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;
         public static bool SummarizeOnlyOverlappingLogDateRangesForNodes = Properties.Settings.Default.SummarizeOnlyOverlappingLogDateRangesForNodes;
+        public static int OverlapToleranceContinuousGCInMS = Properties.Settings.Default.OverlapToleranceContinuousGCInMS;
+        public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
+        public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
 
         static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
         {

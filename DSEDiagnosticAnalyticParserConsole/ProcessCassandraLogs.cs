@@ -1848,6 +1848,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime /*Log Timestamp*/, int /*GC Latency*/, long /*Group Indicator*/>>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, int, long>>>();
+
         static void ParseCassandraLogIntoStatusLogDataTable(DataTable dtroCLog,
                                                                 DataTable dtCStatusLog,
                                                                 DataTable dtCFStats,
@@ -1993,21 +1995,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                             continue;
                         }
 
+                        object time = null;
+
                         if (descr.TrimStart().StartsWith("GC for ParNew"))
                         {
                             var splits = RegExGCLine.Split(descr);
                             var dataRow = dtCStatusLog.NewRow();
-                            var time = DetermineTime(splits[1]);
+                            time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-ParNew";
-                            dataRow["GC Time (ms)"] = (long) time;
+                            dataRow["GC Time (ms)"] = (long)((dynamic)time);
                             dataRow["Reconciliation Reference"] = groupIndicator;
 
                             dtCStatusLog.Rows.Add(dataRow);
-                            gcLatencies.Add((int)time);
+                            gcLatencies.Add((int)((dynamic)time));
 
                             dictGCIno.TryAdd((dcName == null ? string.Empty : dcName) + "|" + ipAddress, "GC-ParNew");
                         }
@@ -2015,7 +2019,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             var splits = RegExGCMSLine.Split(descr);
                             var dataRow = dtCStatusLog.NewRow();
-                            var time = DetermineTime(splits[1]);
+                            time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
                             dataRow["Data Center"] = dcName;
@@ -2036,7 +2040,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
 
                             dtCStatusLog.Rows.Add(dataRow);
-                            gcLatencies.Add((int)time);
+                            gcLatencies.Add((int)((dynamic)time));
 
                             dictGCIno.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress, "GC-CMS", (item1, item2) => "GC-CMS");
                         }
@@ -2044,7 +2048,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             var splits = RegExG1Line.Split(descr);
                             var dataRow = dtCStatusLog.NewRow();
-                            var time = DetermineTime(splits[1]);
+                            time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
                             dataRow["Data Center"] = dcName;
@@ -2070,12 +2074,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
 
                             dtCStatusLog.Rows.Add(dataRow);
-                            gcLatencies.Add((int)time);
+                            gcLatencies.Add((int)((dynamic)time));
 
                             dictGCIno.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress, "GC-C1", (item1, item2) => "GC-G1");
                         }
 
-                        continue;
+                        if (time != null)
+                        {
+                            GCOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                                        ignore => { var gcList = new Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, int, long>>();
+                                                                        gcList.Add(new Tuple<DateTime, int, long>((DateTime)vwDataRow["Timestamp"], (int)((dynamic)time), groupIndicator));
+                                                                        return gcList;
+                                                                    },
+                                                        (ignore, gcList) => { gcList.Add(new Tuple<DateTime, int, long>((DateTime) vwDataRow["Timestamp"], (int)((dynamic)time), groupIndicator));
+                                                                                return gcList;
+                                                                            });
+                        }
+
                         #endregion
                     }
                     else if (item == "FailureDetector.java")
@@ -3965,6 +3980,293 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        class GCContinuousInfo
+        {
+            public string Node;
+            public List<int> Latencies;           
+            public List<long> GroupRefIds;
+            public List<DateTime> Timestamps;
+            public string Type;
+            public decimal Percentage;
+        };
 
+        public static void DetectContinuousGCIntoNodeStats(DataTable dtNodeStats,
+                                                                int overlapToleranceInMS,
+                                                                TimeSpan gcTimeframeDetection,
+                                                                decimal gcDetectionPercent)
+        {
+            if (dtNodeStats == null)
+            {
+                return;
+            }
+
+            var gcList = new List<GCContinuousInfo>();
+
+            foreach (var gcInfo in GCOccurrences)
+            {
+                var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.Item1);
+                DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
+                                        ? DateTime.MinValue
+                                        : gcInfoTimeLine.First().Item1 + gcTimeframeDetection;
+                GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
+                                                        ? null
+                                                        : new GCContinuousInfo()
+                                                                    {
+                                                                        Node = gcInfo.Key,
+                                                                        Latencies = new List<int>() { gcInfoTimeLine.First().Item2 },
+                                                                        GroupRefIds = new List<long>() { gcInfoTimeLine.First().Item3 },
+                                                                        Timestamps = new List<DateTime>() { gcInfoTimeLine.First().Item1 },
+                                                                        Type = "TimeFrame"
+                                                                        };
+                bool overLapped = false;
+
+                for (int nIndex = 1; nIndex < gcInfoTimeLine.Count(); ++nIndex)
+                {
+                    #region GC Continous (overlapping)
+
+                    if (overlapToleranceInMS >= 0
+                            && gcInfoTimeLine.ElementAt(nIndex - 1).Item1.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Item2 + overlapToleranceInMS)
+                                        >= gcInfoTimeLine.ElementAt(nIndex).Item1)
+                    {
+                        if (overLapped)
+                        {
+                            var gcItem = gcList.Last();
+                            gcItem.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
+                            gcItem.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
+                        }
+                        else
+                        {
+                            overLapped = true;
+                            gcList.Add(new GCContinuousInfo()
+                                            {
+                                                Node = gcInfo.Key,
+                                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item2, gcInfoTimeLine.ElementAt(nIndex).Item2 },
+                                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item3 },
+                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item1 },
+                                                Type = "Overlap"
+                                            });
+                                        }
+                    }
+                    else
+                    {
+                        overLapped = false;
+                    }
+                    #endregion
+
+                    #region GC TimeFrame
+
+                    if(gcInfoTimeLine.ElementAt(nIndex).Item1 <= timeFrame)
+                    {
+                        detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
+                        detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
+                        detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).Item1);
+                    }
+                    else if(detectionTimeFrame != null)
+                    {
+                        var totalGCLat = detectionTimeFrame.Latencies.Sum();
+                        detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
+
+                        if (detectionTimeFrame.Percentage >= gcDetectionPercent)
+                        {
+                            gcList.Add(detectionTimeFrame);
+                        }
+
+                        timeFrame = gcInfoTimeLine.ElementAt(nIndex).Item1 + gcTimeframeDetection;
+                        detectionTimeFrame = new GCContinuousInfo()
+                                                    {
+                                                        Node = gcInfo.Key,
+                                                        Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Item2 },
+                                                        GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).Item3 },
+                                                        Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).Item1 },
+                                                        Type = "TimeFrame"
+                                                    };
+                    }
+                    #endregion
+                }
+
+                #region GC TimeFrame
+
+                if(detectionTimeFrame != null)
+                {
+                    var totalGCLat = detectionTimeFrame.Latencies.Sum();
+                    detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.Milliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
+
+                    if (detectionTimeFrame.Percentage >= gcDetectionPercent)
+                    {
+                        gcList.Add(detectionTimeFrame);
+                    }
+                }
+                #endregion
+            }
+            
+            if (gcList.Count > 0)
+            {
+                initializeTPStatsDataTable(dtNodeStats);
+
+                Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", gcList.Count);
+
+                foreach (var item in gcList)
+                {                    
+                    var splitName = item.Node.Split('|');
+                    
+                    if (item.Type == "Overlap")
+                    {
+                        #region GC Continous (overlapping)
+
+                        var dataRow = dtNodeStats.NewRow();
+                        var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous maximum latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Max();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous minimum latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Min();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous mean latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Average();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous occurrences";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Occurrences"] = item.Latencies.Count;
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Sum();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC Continuous standard deviation latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+
+                        dtNodeStats.Rows.Add(dataRow);
+                        #endregion
+                    }
+                    else if (item.Type == "TimeFrame")
+                    {
+                        #region GC TimeFrame
+
+                        var dataRow = dtNodeStats.NewRow();
+                        var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame maximum latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Max();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame minimum latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Min();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame mean latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Average();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame occurrences";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Occurrences"] = item.Latencies.Count;
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = item.Latencies.Sum();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame standard deviation latency";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+
+                        dtNodeStats.Rows.Add(dataRow);
+
+                        dataRow = dtNodeStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = splitName[0];
+                        dataRow["Node IPAddress"] = splitName[1];
+                        dataRow["Attribute"] = "GC TimeFrame percent";
+                        dataRow["Reconciliation Reference"] = refIds;
+                        dataRow["Size (mb)"] = item.Percentage;
+
+                        dtNodeStats.Rows.Add(dataRow);
+                        #endregion
+                    }
+                }
+                
+            }
+        }
     }
 }

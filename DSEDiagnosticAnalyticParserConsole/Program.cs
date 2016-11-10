@@ -1048,7 +1048,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             | TaskContinuationOptions.OnlyOnRanToCompletion);
 
             Task<DataTable> runLogParsingTask = Task.FromResult((DataTable)null); ;
-            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);            
+            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
+            Task<DataTable> runNodeStatsLogTask = Task.FromResult<DataTable>(null);
             Task<int> runningLogTask = logParsingTasks.Count == 0
                                         ? Task.FromResult(0)
                                         : Task<int>
@@ -1079,6 +1080,25 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     TaskContinuationOptions.AttachedToParent
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                runNodeStatsLogTask = runningLogTask.ContinueWith(action =>
+                                    {
+                                        Program.ConsoleParsingLog.Increment("Node Stats Updates");
+                                        var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
+                                        dtNodeStatsStack.Push(dtTPStats);
+                                        ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
+                                                                                            ParserSettings.OverlapToleranceContinuousGCInMS,
+                                                                                            ParserSettings.GCTimeFrameDetection,
+                                                                                            ParserSettings.GCTimeFrameDetectionPercentage);
+                                        Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
+                                        Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+                                        var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+                                        Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
+                                        return dtNodeStatslog;
+                                    },
+                                   TaskContinuationOptions.AttachedToParent
+                                       | TaskContinuationOptions.LongRunning
+                                       | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 minmaxSummaryLogDate = new DateTimeRange(ProcessFileTasks.LogCassandraMaxMinTimestamp);
                 runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
@@ -1141,9 +1161,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     | TaskContinuationOptions.OnlyOnRanToCompletion);
 
             Task.Factory
-                   .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus },
+                   .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus, runNodeStatsLogTask },
                                        tasks => Program.ConsoleParsingNonLog.Terminate());
-
 
             #endregion
 
@@ -1261,6 +1280,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     
                     DTLoadIntoExcel.LoadSummaryLogCFNodeStats(runLogParsingTask,
                                                                 runSummaryLogTask,
+                                                                runNodeStatsLogTask,
                                                                 excelPkg,                                                                
                                                                 ParserSettings.ExcelWorkSheetSummaryLogCassandra,
                                                                 minmaxSummaryLogDate,
@@ -1268,8 +1288,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 maxminMaxLogDate,                                                             
                                                                 ParserSettings.LogExcelWorkbookFilter,
                                                                 runUpdateActiveTblStatus,
-                                                                ParserSettings.ExcelWorkSheetCFStats,
-                                                                dtNodeStatsStack,
+                                                                ParserSettings.ExcelWorkSheetCFStats,                                                               
                                                                 ParserSettings.ExcelWorkSheetNodeStats,
                                                                 dtTable,
                                                                 ParserSettings.ExcelWorkSheetDDLTables);

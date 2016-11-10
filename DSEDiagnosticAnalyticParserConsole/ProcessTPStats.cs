@@ -28,7 +28,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTPStats.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;
-                dtTPStats.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+                dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
             }
         }
 

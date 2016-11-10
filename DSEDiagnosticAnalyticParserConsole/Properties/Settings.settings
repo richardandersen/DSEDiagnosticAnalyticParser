@@ -443,6 +443,19 @@
   &lt;string&gt;Dropped Mutation mean&lt;/string&gt;
   &lt;string&gt;Dropped Mutation minimum&lt;/string&gt;
   &lt;string&gt;Dropped Mutation occurrences&lt;/string&gt;
+  &lt;string&gt;GC Continuous maximum latency&lt;/string&gt;
+  &lt;string&gt;GC Continuous minimum latency&lt;/string&gt;
+  &lt;string&gt;GC Continuous mean latency&lt;/string&gt;
+  &lt;string&gt;GC Continuous occurrences&lt;/string&gt;
+  &lt;string&gt;GC Continuous latency&lt;/string&gt;
+  &lt;string&gt;GC Continuous standard deviation latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame maximum latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame minimum latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame mean latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame occurrences&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame standard deviation latency&lt;/string&gt;
+  &lt;string&gt;GC TimeFrame percent&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="TableHistogramAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -498,6 +511,15 @@
     </Setting>
     <Setting Name="SummarizeOnlyOverlappingLogDateRangesForNodes" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="OverlapToleranceContinuousGCInMS" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="GCTimeFrameDetection" Type="System.TimeSpan" Scope="Application">
+      <Value Profile="(Default)">00:05:00</Value>
+    </Setting>
+    <Setting Name="GCTimeFrameDetectionPercentage" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">0.25</Value>
     </Setting>
   </Settings>
 </SettingsFile>

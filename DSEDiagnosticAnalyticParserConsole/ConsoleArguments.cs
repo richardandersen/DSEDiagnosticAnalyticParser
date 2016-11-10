@@ -324,7 +324,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                             : Common.Path.PathUtils.BuildFilePath(ParserSettings.AlternativeDDLFilePath)?.PathResolved; }
             set { ParserSettings.AlternativeDDLFilePath = value; }
         }
-
         
         [Option('t', "TableHistogramDirPath", HelpText = "Directory of files that contain the results of a nodetool TableHistogram. The file name must have the node's IP address in the beginning or end of the name. If not provide the DiagnosticPath is searched looking for files with the string \"TableHistogram\" embedded in the name.",
                     Required = false)]
@@ -341,7 +340,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 ParserSettings.TableHistogramDirPath = value;
             }
         }
-
 
         /// <summary>
         /// A list of Keyspaces to ignore during parsing.
@@ -435,6 +433,34 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        [Option('g', "OverlapToleranceContinuousGCInMS", HelpText = "The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled.",
+                    Required = false)]
+        public int OverlapToleranceContinuousGCInMS
+        {
+            get { return ParserSettings.OverlapToleranceContinuousGCInMS; }
+            set
+            {
+                ParserSettings.OverlapToleranceContinuousGCInMS = value;
+            }
+        }
+
+        [Option('f', "GCTimeFrameDetection", HelpText = "A time frame (00:00:00) used to determine the percent of GC activity based on GCTimeFrameDetectionPercentage. If zero, this feature is disabled.",
+                    Required = false)]
+        public TimeSpan GCTimeFrameDetection
+        {
+            get { return ParserSettings.GCTimeFrameDetection; }
+            set { ParserSettings.GCTimeFrameDetection = value; }
+        }
+
+        [Option('e', "GCTimeFrameDetectionPercentage", HelpText = "A percentage of time used within the time frame (GCTimeFrameDetection) to determine excess GC activity. If -1, this feature is disabled.",
+                    Required = false)]
+        public decimal GCTimeFrameDetectionPercentage
+        {
+            get { return ParserSettings.GCTimeFrameDetectionPercentage; }
+            set { ParserSettings.GCTimeFrameDetectionPercentage = value; }
+        }
+
+
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
@@ -526,7 +552,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[I]gnoreKeySpaces {{{18}}} " +
                                     "--IncludePerformanceKeyspaces|-i {19} " +
                                     "--IncludeOpsCenterKeyspace|-k {20} " +
-                                    "--TableHistogramDirPath|-t \"{21}\"",
+                                    "--TableHistogramDirPath|-t \"{21}\" " +
+                                    "--OverlapToleranceContinuousGCInMS|-g {22} " +
+                                    "--GCTimeFrameDetection|-f {23} " +
+                                    "--GCTimeFrameDetectionPercentage|-f {24}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -548,7 +577,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.IgnoreKeySpaces,
                                     this.IncludePerformanceKeyspaces,
                                     this.IncludeOpsCenterKeyspace,
-                                    this.TableHistogramDirPath);
+                                    this.TableHistogramDirPath,
+                                    this.OverlapToleranceContinuousGCInMS,
+                                    this.GCTimeFrameDetection,
+                                    this.GCTimeFrameDetectionPercentage);
         }
     }
 }

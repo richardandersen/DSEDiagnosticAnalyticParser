@@ -4866,8 +4866,26 @@
             <param name="nIndex">Index used to refrence collection</param>
             <param name="action">action that will be execute on each element within the collection. The first argument is the index and the second is the element.</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:Common.LinqExtensions.For``1(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{System.Int32,``0,System.Boolean},System.Action{System.Int32,``0})" -->
-        <!-- Badly formed XML comment ignored for member "M:Common.LinqExtensions.For``1(System.Collections.Generic.IEnumerable{``0},System.Int32@,System.Func{System.Int32,``0,System.Boolean},System.Action{System.Int32,``0})" -->
+        <member name="M:Common.LinqExtensions.For``1(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{System.Int32,``0,System.Boolean},System.Action{System.Int32,``0})">
+            <summary>
+            Executes action for each iteration of item within collection.
+            </summary>
+            <typeparam name="T">type of Element within the collection</typeparam>
+            <param name="collection">collection that will be iterated over</param>
+            <param name="startIndex">Starting Index</param>
+            <param name="until">A predict that determines when itreation ends (returns true). If index is outside the range of the collection the default value is given. The first argument is the index and the second is the element.</param>
+            <param name="action">action that will be execute on each element within the collection. The first argument is the index and the second is the element (if index is outside the range of the collection, the element&apos;s default value is used).</param>
+        </member>
+        <member name="M:Common.LinqExtensions.For``1(System.Collections.Generic.IEnumerable{``0},System.Int32@,System.Func{System.Int32,``0,System.Boolean},System.Action{System.Int32,``0})">
+            <summary>
+            Executes action for each iteration of item within collection.
+            </summary>
+            <typeparam name="T">type of Element within the collection</typeparam>
+            <param name="collection">collection that will be iterated over</param>
+            <param name="nIndex">Starting Index that is passed as a reference</param>
+            <param name="until">A predict that determines when itreation ends (returns true). If index is outside the range of the collection the default value is given. The first argument is the index and the second is the element.</param>
+            <param name="action">action that will be execute on each element within the collection. The first argument is the index and the second is the element (if index is outside the range of the collection, the element&apos;s default value is used).</param>
+        </member>
         <member name="M:Common.LinqExtensions.ConvertAll``2(System.Collections.Generic.IEnumerable{``0},System.Converter{``0,``1})">
             <summary>
             Covert all items of type T into an element of type U using the converter delegate.
@@ -5357,6 +5375,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Int16}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.Int32},System.Func{System.Int32,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -5439,6 +5466,15 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Int32}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.Int64},System.Func{System.Int64,System.Boolean})">
@@ -5525,6 +5561,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Int64}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.UInt16},System.Func{System.UInt16,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -5607,6 +5652,15 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt16}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.UInt32},System.Func{System.UInt32,System.Boolean})">
@@ -5693,6 +5747,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt32}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.UInt64},System.Func{System.UInt64,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -5775,6 +5838,15 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt64}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.Decimal},System.Func{System.Decimal,System.Boolean})">
@@ -5861,6 +5933,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Decimal}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.Single},System.Func{System.Single,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -5943,6 +6024,15 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Single}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.Double},System.Func{System.Double,System.Boolean})">
@@ -6029,6 +6119,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.Double}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.DateTime},System.Func{System.DateTime,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -6111,6 +6210,15 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.DateTime}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.DateTimeOffset},System.Func{System.DateTimeOffset,System.Boolean})">
@@ -6197,6 +6305,15 @@
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
             </returns>
         </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.DateTimeOffset}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{System.TimeSpan},System.Func{System.TimeSpan,System.Boolean})">
             <summary>
             Returns the Maximum value for the items in the collection that are selected by the selector function.
@@ -6279,6 +6396,425 @@
             </param>
             <returns>
             Returns a Tuple instance where Item1 is the Max value and Item2 is the Min Value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Coalesce(System.Collections.Generic.IEnumerable{System.Nullable{System.TimeSpan}})">
+            <summary>
+            Returns a collection of only valid (non-null) values.
+            </summary>
+            <param name="source"></param> 		        
+            <returns>
+            a collection of only valid (non-null) values.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Variance(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Variance is the measure of the amount of variation of all the scores for a variable (not just the extremes which give the range).
+            </summary>
+            <param name="source">a collection of items where the Variance is the measured.</param>            
+            <returns>
+            The Variance value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.VarianceP(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Computes the VarianceP of a sequence of values.
+            </summary>
+            <param name="source">a collection of items where the VarianceP is the measured.</param>            
+            <returns>
+            The VarianceP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviation(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            The Standard Deviation of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard Deviation is the calculated.</param>            
+            <returns>
+            The Standard Deviation value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviationP(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            The Standard DeviationP of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard DeviationP is the calculated.</param>            
+            <returns>
+            The Standard DeviationP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Median(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Median is the number separating the higher half of a sample, a population, or a probability distribution, from the lower half.
+            </summary>
+            <param name="source">a collection of items where the Median is the calculated.</param>            
+            <returns>
+            The Median value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Mode(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Mode is the value that occurs the most frequently in a data set or a probability distribution.
+            </summary>
+            <param name="source">a collection of items where the Mode is the calculated.</param>            
+            <returns>
+            The Mode value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Histogram(System.Collections.Generic.IEnumerable{System.Int32},System.Int32@,System.Int32@)">
+            <summary>
+            Calculate the optimal bins for the given data
+            </summary>
+            <param name="source">The data you have</param>
+            <param name="xMin">The minimum element</param>
+            <param name="optimalBinWidth">The width between each bin</param>
+            <returns>The bins</returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Covariance(System.Collections.Generic.IEnumerable{System.Int32},System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Covariance is a measure of how much two variables change together.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Pearson(System.Collections.Generic.IEnumerable{System.Int32},System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Pearson's chi square test is used to assess two types of comparisons: tests of goodness of fit, and tests of independence.
+            In other words, it is a measure of how well a sample distribution matches a predicted distribution or the degree of correlation between two sample distributions. Pearson's is often used in scientific applications to test the validity of hypotheses.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Variance(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Variance is the measure of the amount of variation of all the scores for a variable (not just the extremes which give the range).
+            </summary>
+            <param name="source">a collection of items where the Variance is the measured.</param>            
+            <returns>
+            The Variance value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.VarianceP(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Computes the VarianceP of a sequence of values.
+            </summary>
+            <param name="source">a collection of items where the VarianceP is the measured.</param>            
+            <returns>
+            The VarianceP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviation(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            The Standard Deviation of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard Deviation is the calculated.</param>            
+            <returns>
+            The Standard Deviation value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviationP(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            The Standard DeviationP of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard DeviationP is the calculated.</param>            
+            <returns>
+            The Standard DeviationP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Median(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Median is the number separating the higher half of a sample, a population, or a probability distribution, from the lower half.
+            </summary>
+            <param name="source">a collection of items where the Median is the calculated.</param>            
+            <returns>
+            The Median value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Mode(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Mode is the value that occurs the most frequently in a data set or a probability distribution.
+            </summary>
+            <param name="source">a collection of items where the Mode is the calculated.</param>            
+            <returns>
+            The Mode value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Histogram(System.Collections.Generic.IEnumerable{System.Int64},System.Int64@,System.Int64@)">
+            <summary>
+            Calculate the optimal bins for the given data
+            </summary>
+            <param name="source">The data you have</param>
+            <param name="xMin">The minimum element</param>
+            <param name="optimalBinWidth">The width between each bin</param>
+            <returns>The bins</returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Covariance(System.Collections.Generic.IEnumerable{System.Int64},System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Covariance is a measure of how much two variables change together.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Pearson(System.Collections.Generic.IEnumerable{System.Int64},System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Pearson's chi square test is used to assess two types of comparisons: tests of goodness of fit, and tests of independence.
+            In other words, it is a measure of how well a sample distribution matches a predicted distribution or the degree of correlation between two sample distributions. Pearson's is often used in scientific applications to test the validity of hypotheses.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Variance(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Variance is the measure of the amount of variation of all the scores for a variable (not just the extremes which give the range).
+            </summary>
+            <param name="source">a collection of items where the Variance is the measured.</param>            
+            <returns>
+            The Variance value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.VarianceP(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Computes the VarianceP of a sequence of values.
+            </summary>
+            <param name="source">a collection of items where the VarianceP is the measured.</param>            
+            <returns>
+            The VarianceP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviation(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            The Standard Deviation of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard Deviation is the calculated.</param>            
+            <returns>
+            The Standard Deviation value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviationP(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            The Standard DeviationP of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard DeviationP is the calculated.</param>            
+            <returns>
+            The Standard DeviationP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Median(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Median is the number separating the higher half of a sample, a population, or a probability distribution, from the lower half.
+            </summary>
+            <param name="source">a collection of items where the Median is the calculated.</param>            
+            <returns>
+            The Median value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Mode(System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Mode is the value that occurs the most frequently in a data set or a probability distribution.
+            </summary>
+            <param name="source">a collection of items where the Mode is the calculated.</param>            
+            <returns>
+            The Mode value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Histogram(System.Collections.Generic.IEnumerable{System.Decimal},System.Decimal@,System.Decimal@)">
+            <summary>
+            Calculate the optimal bins for the given data
+            </summary>
+            <param name="source">The data you have</param>
+            <param name="xMin">The minimum element</param>
+            <param name="optimalBinWidth">The width between each bin</param>
+            <returns>The bins</returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Covariance(System.Collections.Generic.IEnumerable{System.Decimal},System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Covariance is a measure of how much two variables change together.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Pearson(System.Collections.Generic.IEnumerable{System.Decimal},System.Collections.Generic.IEnumerable{System.Decimal})">
+            <summary>
+            Pearson's chi square test is used to assess two types of comparisons: tests of goodness of fit, and tests of independence.
+            In other words, it is a measure of how well a sample distribution matches a predicted distribution or the degree of correlation between two sample distributions. Pearson's is often used in scientific applications to test the validity of hypotheses.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Variance(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Variance is the measure of the amount of variation of all the scores for a variable (not just the extremes which give the range).
+            </summary>
+            <param name="source">a collection of items where the Variance is the measured.</param>            
+            <returns>
+            The Variance value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.VarianceP(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Computes the VarianceP of a sequence of values.
+            </summary>
+            <param name="source">a collection of items where the VarianceP is the measured.</param>            
+            <returns>
+            The VarianceP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviation(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            The Standard Deviation of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard Deviation is the calculated.</param>            
+            <returns>
+            The Standard Deviation value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviationP(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            The Standard DeviationP of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard DeviationP is the calculated.</param>            
+            <returns>
+            The Standard DeviationP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Median(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Median is the number separating the higher half of a sample, a population, or a probability distribution, from the lower half.
+            </summary>
+            <param name="source">a collection of items where the Median is the calculated.</param>            
+            <returns>
+            The Median value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Mode(System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Mode is the value that occurs the most frequently in a data set or a probability distribution.
+            </summary>
+            <param name="source">a collection of items where the Mode is the calculated.</param>            
+            <returns>
+            The Mode value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Histogram(System.Collections.Generic.IEnumerable{System.Single},System.Single@,System.Single@)">
+            <summary>
+            Calculate the optimal bins for the given data
+            </summary>
+            <param name="source">The data you have</param>
+            <param name="xMin">The minimum element</param>
+            <param name="optimalBinWidth">The width between each bin</param>
+            <returns>The bins</returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Covariance(System.Collections.Generic.IEnumerable{System.Single},System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Covariance is a measure of how much two variables change together.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Pearson(System.Collections.Generic.IEnumerable{System.Single},System.Collections.Generic.IEnumerable{System.Single})">
+            <summary>
+            Pearson's chi square test is used to assess two types of comparisons: tests of goodness of fit, and tests of independence.
+            In other words, it is a measure of how well a sample distribution matches a predicted distribution or the degree of correlation between two sample distributions. Pearson's is often used in scientific applications to test the validity of hypotheses.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Variance(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Variance is the measure of the amount of variation of all the scores for a variable (not just the extremes which give the range).
+            </summary>
+            <param name="source">a collection of items where the Variance is the measured.</param>            
+            <returns>
+            The Variance value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.VarianceP(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Computes the VarianceP of a sequence of values.
+            </summary>
+            <param name="source">a collection of items where the VarianceP is the measured.</param>            
+            <returns>
+            The VarianceP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviation(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            The Standard Deviation of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard Deviation is the calculated.</param>            
+            <returns>
+            The Standard Deviation value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.StandardDeviationP(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            The Standard DeviationP of a statistical population, a data set, or a probability distribution is the square root of its variance.
+            </summary>
+            <param name="source">a collection of items where the Standard DeviationP is the calculated.</param>            
+            <returns>
+            The Standard DeviationP value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Median(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Median is the number separating the higher half of a sample, a population, or a probability distribution, from the lower half.
+            </summary>
+            <param name="source">a collection of items where the Median is the calculated.</param>            
+            <returns>
+            The Median value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Mode(System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Mode is the value that occurs the most frequently in a data set or a probability distribution.
+            </summary>
+            <param name="source">a collection of items where the Mode is the calculated.</param>            
+            <returns>
+            The Mode value.
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Histogram(System.Collections.Generic.IEnumerable{System.Double},System.Double@,System.Double@)">
+            <summary>
+            Calculate the optimal bins for the given data
+            </summary>
+            <param name="source">The data you have</param>
+            <param name="xMin">The minimum element</param>
+            <param name="optimalBinWidth">The width between each bin</param>
+            <returns>The bins</returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Covariance(System.Collections.Generic.IEnumerable{System.Double},System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Covariance is a measure of how much two variables change together.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
+            </returns>
+        </member>
+        <member name="M:Common.LinqExtensions.Pearson(System.Collections.Generic.IEnumerable{System.Double},System.Collections.Generic.IEnumerable{System.Double})">
+            <summary>
+            Pearson's chi square test is used to assess two types of comparisons: tests of goodness of fit, and tests of independence.
+            In other words, it is a measure of how well a sample distribution matches a predicted distribution or the degree of correlation between two sample distributions. Pearson's is often used in scientific applications to test the validity of hypotheses.
+            </summary>
+            <param name="source"></param> 
+            <param name="other"></param>            
+            <returns>       
             </returns>
         </member>
         <member name="M:Common.ListExtensions.RemoveAll``1(System.Collections.Generic.List{``0},System.Collections.Generic.IEnumerable{``0})">
