@@ -176,6 +176,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var keyValues = new List<Tuple<string, string>>();
                 bool optionsFnd = false;
+                bool keywordFnd = false;
                 string subCmd = orgSubCmd;
 
                 for (int nIndex = 0; nIndex < separateParams.Count; ++nIndex)
@@ -218,6 +219,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             break;
                         }
+                        keywordFnd = true;
                     }
                    
                     if (separateParams[nIndex].EndsWith("_options"))
@@ -233,8 +235,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         optionsFnd = false;
 
-                        keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false), DetermineProperFormat(separateParams[++nIndex])));
+                        if (keywordFnd
+                                && separateParams[nIndex][separateParams[nIndex].Length - 1] == 's'
+                                && nIndex + 2 < separateParams.Count)
+                        {
+                            keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
+                                                                        string.Join(",", separateParams.Skip(nIndex + 1))));
+                            break;
+                        }
+                        else
+                        {
+                            keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false), DetermineProperFormat(separateParams[++nIndex])));
+                        }
                     }
+
+                    keywordFnd = false;
                 }
 
                 return new Tuple<string, IEnumerable<Tuple<string, string>>>(null, keyValues.OrderBy(v => v.Item1));

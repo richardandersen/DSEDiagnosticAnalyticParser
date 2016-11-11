@@ -112,8 +112,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string NodetoolCFStatsFile = Properties.Settings.Default.NodetoolCFStatsFile;
         public static string NodetoolTPStatsFile = Properties.Settings.Default.NodetoolTPStatsFile;
         public static string NodetoolInfoFile = Properties.Settings.Default.NodetoolInfoFile;
-        public static string NodetoolCompactionHistFile = Properties.Settings.Default.NodetoolCompactionHistFile;
-        public static string LogCassandraDirSystemLog = Properties.Settings.Default.LogCassandraDirSystemLog;
+        public static string NodetoolCompactionHistFile = Properties.Settings.Default.NodetoolCompactionHistFile;        
+        public static string[] LogCassandraDirSystemLogs = Properties.Settings.Default.LogCassandraDirSystemLogs.ToArray(false);
         public static string LogCassandraSystemLogFile = Properties.Settings.Default.LogCassandraSystemLogFile;
         public static string LogCassandraSystemLogFileArchive = Properties.Settings.Default.LogCassandraSystemLogFileArchive; //system-*.log
         public static string ConfCassandraDir = Properties.Settings.Default.ConfCassandraDir;

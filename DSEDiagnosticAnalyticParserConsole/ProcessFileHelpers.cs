@@ -261,18 +261,18 @@ namespace DSEDiagnosticAnalyticParserConsole
             return false;
         }
 
-        static public string RemoveQuotes(string item)
+        static public string RemoveQuotes(string item, bool checkbrackets = true)
         {
-            RemoveQuotes(item, out item);
+            RemoveQuotes(item, out item, checkbrackets);
             return item;
         }
 
-        static public bool RemoveQuotes(string item, out string newItem)
+        static public bool RemoveQuotes(string item, out string newItem, bool checkbrackets = true)
         {
             if (item.Length > 2
                     && ((item[0] == '\'' && item[item.Length - 1] == '\'')
                             || (item[0] == '"' && item[item.Length - 1] == '"')
-                            || (item[0] == '[' && item[item.Length - 1] == ']')))
+                            || (checkbrackets && item[0] == '[' && item[item.Length - 1] == ']')))
             {
                 newItem = item.Substring(1, item.Length - 2);
                 return true;
@@ -437,7 +437,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
 
-            if (RemoveQuotes(strValue, out strValue))
+            if (RemoveQuotes(strValue, out strValue, false))
             {
                 var splitItems = strValue.Split(',');
 
@@ -579,7 +579,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return jsonValue;
             }
 
-            jsonValue = RemoveQuotes(jsonValue.Trim());
+            jsonValue = RemoveQuotes(jsonValue.Trim(), false);
 
             if (jsonValue == string.Empty)
             {

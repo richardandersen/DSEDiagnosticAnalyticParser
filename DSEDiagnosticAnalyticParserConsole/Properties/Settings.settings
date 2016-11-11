@@ -215,9 +215,6 @@
   &lt;string&gt;repair_service.json&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
-    <Setting Name="LogCassandraDirSystemLog" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">.\cassandra\system.log</Value>
-    </Setting>
     <Setting Name="TableHistogramFileName" Type="System.String" Scope="Application">
       <Value Profile="(Default)">tablehistogram</Value>
     </Setting>
@@ -520,6 +517,12 @@
     </Setting>
     <Setting Name="GCTimeFrameDetectionPercentage" Type="System.Decimal" Scope="Application">
       <Value Profile="(Default)">0.25</Value>
+    </Setting>
+    <Setting Name="LogCassandraDirSystemLogs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;.\cassandra\system.log&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
     </Setting>
   </Settings>
 </SettingsFile>

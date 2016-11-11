@@ -18,8 +18,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             var runLogToExcel = runLogSummaryParsingTask.ContinueWith(logTask =>
             {
                 #region Load Actual Logs into Excel
-
-                DifferentExcelWorkBook(excelFilePath,
+                if (logTask.Result != null)
+                {
+                    DifferentExcelWorkBook(excelFilePath,
                                                 excelWorkSheetLogCassandra,
                                                 logTask.Result.Item2,
                                                 (stage, orgFilePath, targetFilePath, workSheetName, excelPackage, excelDataTable, rowCount) =>
@@ -50,7 +51,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             break;
                                                         default:
                                                             break;
-                                                    }                                                    
+                                                    }
                                                 },
                                                 workSheet =>
                                                 {
@@ -66,7 +67,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                                 logCassandraMaxMinTimestamp.Max - logCassandraMaxMinTimestamp.Min,
                                                                                                                                 logCassandraMaxMinTimestamp.Min.DayOfWeek,
                                                                                                                                 logCassandraMaxMinTimestamp.Max.DayOfWeek);
-                                                                                                               // : logExcelWorkbookFilter;
+                                                    // : logExcelWorkbookFilter;
                                                     workSheet.Cells["A1:M1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
 
@@ -83,6 +84,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     -1,
                                                     null,
                                                     "A2");
+                }
                
                 #endregion
             },

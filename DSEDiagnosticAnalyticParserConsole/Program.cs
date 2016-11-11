@@ -483,6 +483,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     nodeDirs = childrenItems.Where(item => item.IsDirectoryPath).Cast<Common.IDirectoryPath>().ToList();
                 }
 
+                if(nodeDirs.Count == 0)
+                {
+                    throw new System.IO.DirectoryNotFoundException(string.Format("No Node Directories Found within Folder \"{0}\".", diagPath.PathResolved));
+                }
+
                 IFilePath filePath = null;
                 var preFilesProcessed = new bool[3];
 
@@ -788,41 +793,47 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseLogs && element.MakeChild(ParserSettings.LogsDir).MakeFile(ParserSettings.LogCassandraDirSystemLog, out diagFilePath))
+                    if (ParserSettings.ParseLogs)
                     {
-                        if (diagFilePath.Exist())
+                        foreach (var logDir in ParserSettings.LogCassandraDirSystemLogs)
                         {
-                            IFilePath archivedFilePath = null;
-
-                            if (ParserSettings.ParseArchivedLogs)
+                            if (element.MakeChild(ParserSettings.LogsDir).MakeFile(logDir, out diagFilePath))
                             {
-                                diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath);
-                            }
+                                if (diagFilePath.Exist())
+                                {
+                                    IFilePath archivedFilePath = null;
 
-                            logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(diagFilePath,
-                                                                                        ParserSettings.ExcelWorkSheetLogCassandra,
-                                                                                        dcName,
-                                                                                        ipAddress,
-                                                                                        ParserSettings.LogStartDate,
-                                                                                        maxminMaxLogDate,
-                                                                                        ParserSettings.LogMaxRowsPerNode,
-                                                                                        dtLogsStack,
-                                                                                        archivedFilePath,
-                                                                                        ParserSettings.ParseNonLogs,
-                                                                                        ParserSettings.ExcelWorkSheetStatusLogCassandra,
-                                                                                        nodeGCInfo,
-                                                                                        ParserSettings.IgnoreKeySpaces,
-                                                                                        kstblNames,
-                                                                                        dtLogStatusStack,
-                                                                                        dtCFStatsStack,
-                                                                                        dtNodeStatsStack,
-                                                                                        ParserSettings.GCFlagThresholdInMS,
-                                                                                        ParserSettings.CompactionFlagThresholdInMS,
-                                                                                        ParserSettings.SlowLogQueryThresholdInMS));
-                            parsedLogList.TryAdd(ipAddress);
+                                    if (ParserSettings.ParseArchivedLogs)
+                                    {
+                                        diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath);
+                                    }
+
+                                    logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(diagFilePath,
+                                                                                                ParserSettings.ExcelWorkSheetLogCassandra,
+                                                                                                dcName,
+                                                                                                ipAddress,
+                                                                                                ParserSettings.LogStartDate,
+                                                                                                maxminMaxLogDate,
+                                                                                                ParserSettings.LogMaxRowsPerNode,
+                                                                                                dtLogsStack,
+                                                                                                archivedFilePath,
+                                                                                                ParserSettings.ParseNonLogs,
+                                                                                                ParserSettings.ExcelWorkSheetStatusLogCassandra,
+                                                                                                nodeGCInfo,
+                                                                                                ParserSettings.IgnoreKeySpaces,
+                                                                                                kstblNames,
+                                                                                                dtLogStatusStack,
+                                                                                                dtCFStatsStack,
+                                                                                                dtNodeStatsStack,
+                                                                                                ParserSettings.GCFlagThresholdInMS,
+                                                                                                ParserSettings.CompactionFlagThresholdInMS,
+                                                                                                ParserSettings.SlowLogQueryThresholdInMS));
+                                    parsedLogList.TryAdd(ipAddress);
+                                }
+                            }
                         }
                     }
-
+                    
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
@@ -1049,7 +1060,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             Task<DataTable> runLogParsingTask = Task.FromResult((DataTable)null); ;
             Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
-            Task<DataTable> runNodeStatsLogTask = Task.FromResult<DataTable>(null);
+            Task<DataTable> runNodeStatsLogTask;
             Task<int> runningLogTask = logParsingTasks.Count == 0
                                         ? Task.FromResult(0)
                                         : Task<int>
@@ -1115,6 +1126,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         {
                                             Program.ConsoleParsingLog.Terminate();
                                         });
+            }
+            else
+            {
+                runNodeStatsLogTask = Task.Factory.StartNew<DataTable>(() =>
+                                        {                      
+                                            Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+                                            var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+                                            Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
+                                            return dtNodeStatslog;
+                                        },
+                                   TaskCreationOptions.LongRunning);
             }
 
             tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>

@@ -4000,68 +4000,94 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
-            var gcList = new List<GCContinuousInfo>();
+            var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCContinuousInfo>();
 
-            foreach (var gcInfo in GCOccurrences)
-            {
-                var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.Item1);
-                DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
-                                        ? DateTime.MinValue
-                                        : gcInfoTimeLine.First().Item1 + gcTimeframeDetection;
-                GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
-                                                        ? null
-                                                        : new GCContinuousInfo()
-                                                                    {
-                                                                        Node = gcInfo.Key,
-                                                                        Latencies = new List<int>() { gcInfoTimeLine.First().Item2 },
-                                                                        GroupRefIds = new List<long>() { gcInfoTimeLine.First().Item3 },
-                                                                        Timestamps = new List<DateTime>() { gcInfoTimeLine.First().Item1 },
-                                                                        Type = "TimeFrame"
-                                                                        };
-                bool overLapped = false;
-
-                for (int nIndex = 1; nIndex < gcInfoTimeLine.Count(); ++nIndex)
+            System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
+            //foreach (var gcInfo in GCOccurrences)
                 {
-                    #region GC Continous (overlapping)
+                    var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.Item1);
+                    DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
+                                            ? DateTime.MinValue
+                                            : gcInfoTimeLine.First().Item1 + gcTimeframeDetection;
+                    GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
+                                                            ? null
+                                                            : new GCContinuousInfo()
+                                                            {
+                                                                Node = gcInfo.Key,
+                                                                Latencies = new List<int>() { gcInfoTimeLine.First().Item2 },
+                                                                GroupRefIds = new List<long>() { gcInfoTimeLine.First().Item3 },
+                                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.First().Item1 },
+                                                                Type = "TimeFrame"
+                                                            };
+                    GCContinuousInfo currentGCOverlappingInfo = null;
+                    bool overLapped = false;
 
-                    if (overlapToleranceInMS >= 0
-                            && gcInfoTimeLine.ElementAt(nIndex - 1).Item1.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Item2 + overlapToleranceInMS)
-                                        >= gcInfoTimeLine.ElementAt(nIndex).Item1)
+                    for (int nIndex = 1; nIndex < gcInfoTimeLine.Count(); ++nIndex)
                     {
-                        if (overLapped)
+                        #region GC Continous (overlapping)
+
+                        if (overlapToleranceInMS >= 0
+                                && gcInfoTimeLine.ElementAt(nIndex - 1).Item1.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Item2 + overlapToleranceInMS)
+                                            >= gcInfoTimeLine.ElementAt(nIndex).Item1)
                         {
-                            var gcItem = gcList.Last();
-                            gcItem.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
-                            gcItem.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
+                            if (overLapped)
+                            {
+                                currentGCOverlappingInfo.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
+                                currentGCOverlappingInfo.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
+                            }
+                            else
+                            {
+                                overLapped = true;
+                                gcList.Add(currentGCOverlappingInfo = new GCContinuousInfo()
+                                {
+                                    Node = gcInfo.Key,
+                                    Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item2, gcInfoTimeLine.ElementAt(nIndex).Item2 },
+                                    GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item3 },
+                                    Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item1 },
+                                    Type = "Overlap"
+                                });
+                            }
                         }
                         else
                         {
-                            overLapped = true;
-                            gcList.Add(new GCContinuousInfo()
-                                            {
-                                                Node = gcInfo.Key,
-                                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item2, gcInfoTimeLine.ElementAt(nIndex).Item2 },
-                                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item3 },
-                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item1 },
-                                                Type = "Overlap"
-                                            });
-                                        }
+                            overLapped = false;
+                        }
+                        #endregion
+
+                        #region GC TimeFrame
+
+                        if (gcInfoTimeLine.ElementAt(nIndex).Item1 <= timeFrame)
+                        {
+                            detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
+                            detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
+                            detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).Item1);
+                        }
+                        else if (detectionTimeFrame != null)
+                        {
+                            var totalGCLat = detectionTimeFrame.Latencies.Sum();
+                            detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
+
+                            if (detectionTimeFrame.Percentage >= gcDetectionPercent)
+                            {
+                                gcList.Add(detectionTimeFrame);
+                            }
+
+                            timeFrame = gcInfoTimeLine.ElementAt(nIndex).Item1 + gcTimeframeDetection;
+                            detectionTimeFrame = new GCContinuousInfo()
+                            {
+                                Node = gcInfo.Key,
+                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Item2 },
+                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).Item3 },
+                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).Item1 },
+                                Type = "TimeFrame"
+                            };
+                        }
+                        #endregion
                     }
-                    else
-                    {
-                        overLapped = false;
-                    }
-                    #endregion
 
                     #region GC TimeFrame
 
-                    if(gcInfoTimeLine.ElementAt(nIndex).Item1 <= timeFrame)
-                    {
-                        detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
-                        detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
-                        detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).Item1);
-                    }
-                    else if(detectionTimeFrame != null)
+                    if (detectionTimeFrame != null)
                     {
                         var totalGCLat = detectionTimeFrame.Latencies.Sum();
                         detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
@@ -4070,42 +4096,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             gcList.Add(detectionTimeFrame);
                         }
-
-                        timeFrame = gcInfoTimeLine.ElementAt(nIndex).Item1 + gcTimeframeDetection;
-                        detectionTimeFrame = new GCContinuousInfo()
-                                                    {
-                                                        Node = gcInfo.Key,
-                                                        Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Item2 },
-                                                        GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).Item3 },
-                                                        Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).Item1 },
-                                                        Type = "TimeFrame"
-                                                    };
                     }
                     #endregion
                 }
-
-                #region GC TimeFrame
-
-                if(detectionTimeFrame != null)
-                {
-                    var totalGCLat = detectionTimeFrame.Latencies.Sum();
-                    detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.Milliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
-
-                    if (detectionTimeFrame.Percentage >= gcDetectionPercent)
-                    {
-                        gcList.Add(detectionTimeFrame);
-                    }
-                }
-                #endregion
-            }
+            );
             
             if (gcList.Count > 0)
             {
                 initializeTPStatsDataTable(dtNodeStats);
 
-                Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", gcList.Count);
+                Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", gcList.UnSafe.Count);
 
-                foreach (var item in gcList)
+                foreach (var item in gcList.UnSafe)
                 {                    
                     var splitName = item.Node.Split('|');
                     
