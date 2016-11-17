@@ -475,11 +475,11 @@
                                                       returned. For more
                                                       information see <see cref="M:Common.ConfigHelper.NullCheck(System.String)" /> For
                                                       \Example:
-                                                      CheckNull([WorkingDirectory],
+                                                      CheckNotNull([WorkingDirectory],
                                                       [StartUpDirectory],
-                                                      Search([MyDocuments];c:\\docs;\\\\networkhost\\docs
+                                                      [Search([MyDocuments];c:\\docs;\\\\networkhost\\docs
                                                       ,
-                                                      myFile.doc;company.doc),
+                                                      myFile.doc;company.doc)],
                                                       c:\\bin\\). In this
                                                       \example if all the
                                                       inline variables return
@@ -1276,7 +1276,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Int16},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>       
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1286,7 +1287,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Int16}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1296,7 +1298,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Int32},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>       
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1306,7 +1309,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Int32}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1316,7 +1320,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Int64},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>       
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1326,7 +1331,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Int64}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1336,7 +1342,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.UInt16},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1346,7 +1353,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt16}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1356,7 +1364,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.UInt32},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1366,7 +1375,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt32}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1376,7 +1386,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.UInt64},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1386,7 +1397,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.UInt64}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1396,7 +1408,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Decimal},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1406,7 +1419,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Decimal}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1416,7 +1430,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Single},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1426,7 +1441,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Single}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1436,7 +1452,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Double},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>       
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1446,7 +1463,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.Double}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1456,7 +1474,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.DateTime},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1466,7 +1485,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.DateTime}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1476,7 +1496,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.DateTimeOffset},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>       
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1486,7 +1507,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.DateTimeOffset}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1496,7 +1518,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.TimeSpan},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -1506,7 +1529,8 @@
         <member name="M:Common.DataTableExtensions.ConvertToDataTable(System.Collections.Generic.IEnumerable{System.Nullable{System.TimeSpan}},System.String)">
             <summary>
             Converts the source collection to a data table based on the source collection element type&apos;s public properties (not public member variables).
-            </summary>        
+            </summary>
+            <typeparam name="T">source collection element type</typeparam>
             <param name="source">the collection that will be converted</param>
             <param name="dataTableName">Optional name. If null the entityType&apos;s data table name is used</param>
             <returns>
@@ -9339,6 +9363,15 @@
             </summary>
             <param name="testCharacter">Character to test</param>
             <returns>True if character is an Escape character</returns>
+        </member>
+        <member name="M:Common.StringFunctions.ReplaceFirst(System.String,System.String,System.String)">
+            <summary>
+            Replaces the first occurrence of search and replaces it with the replace value
+            </summary>
+            <param name="text">string that will be searched</param>
+            <param name="search">value used to locate the first occurence</param>
+            <param name="replace">new value that willbe used as the replacement</param>
+            <returns>A new string where the seatch value is replaced with the replace value</returns>
         </member>
         <member name="T:Common.TypeHelpers">
             <summary>

@@ -7282,83 +7282,6 @@
             Handels encrypted Excel documents 
             </summary>
         </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.DecryptPackage(System.IO.FileInfo,OfficeOpenXml.ExcelEncryption)">
-            <summary>
-            Read the package from the OLE document and decrypt it using the supplied password
-            </summary>
-            <param name="fi">The file</param>
-            <param name="encryption"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.DecryptPackage(System.IO.MemoryStream,OfficeOpenXml.ExcelEncryption)">
-            <summary>
-            Read the package from the OLE document and decrypt it using the supplied password
-            </summary>
-            <param name="stream">The memory stream. </param>
-            <param name="encryption">The encryption object from the Package</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.EncryptPackage(System.Byte[],OfficeOpenXml.ExcelEncryption)">
-            <summary>
-            Encrypts a package
-            </summary>
-            <param name="package">The package as a byte array</param>
-            <param name="encryption">The encryption info from the workbook</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.CreateEncryptionInfo(System.String,OfficeOpenXml.Encryption.AlgorithmID,System.Byte[]@)">
-            <summary>
-            Create an EncryptionInfo object to encrypt a workbook
-            </summary>
-            <param name="password">The password</param>
-            <param name="algID"></param>
-            <param name="key">The Encryption key</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.DecryptDocument(System.Byte[],OfficeOpenXml.Encryption.EncryptionInfo,System.String)">
-            <summary>
-            Decrypt a document
-            </summary>
-            <param name="data">The Encrypted data</param>
-            <param name="encryptionInfo">Encryption Info object</param>
-            <param name="password">The password</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.IsPasswordValid(System.Byte[],OfficeOpenXml.Encryption.EncryptionInfoBinary)">
-            <summary>
-            Validate the password
-            </summary>
-            <param name="key">The encryption key</param>
-            <param name="encryptionInfo">The encryption info extracted from the ENCRYPTIOINFO stream inside the OLE document</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.IsPasswordValid(System.Security.Cryptography.HashAlgorithm,OfficeOpenXml.Encryption.EncryptionInfoAgile.EncryptionKeyEncryptor)">
-            <summary>
-            Validate the password
-            </summary>
-            <param name="sha">The hash algorithm</param>
-            <param name="encr">The encryption info extracted from the ENCRYPTIOINFO stream inside the OLE document</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.GetPasswordHashBinary(System.String,OfficeOpenXml.Encryption.EncryptionInfoBinary)">
-            <summary>
-            Create the hash.
-            This method is written with the help of Lyquidity library, many thanks for this nice sample
-            </summary>
-            <param name="password">The password</param>
-            <param name="encryptionInfo">The encryption info extracted from the ENCRYPTIOINFO stream inside the OLE document</param>
-            <returns>The hash to encrypt the document</returns>
-        </member>
-        <member name="M:OfficeOpenXml.Encryption.EncryptedPackageHandler.GetPasswordHashAgile(System.String,OfficeOpenXml.Encryption.EncryptionInfoAgile.EncryptionKeyEncryptor,System.Byte[])">
-            <summary>
-            Create the hash.
-            This method is written with the help of Lyquidity library, many thanks for this nice sample
-            </summary>
-            <param name="password">The password</param>
-            <param name="encr">The encryption info extracted from the ENCRYPTIOINFO stream inside the OLE document</param>
-            <param name="blockKey">The block key appended to the hash to obtain the final hash</param>
-            <returns>The hash to encrypt the document</returns>
-        </member>
         <member name="T:OfficeOpenXml.Encryption.EncryptionHeader">
             <summary>
             Encryption Header inside the EncryptionInfo stream
@@ -26484,31 +26407,6 @@
             <param name="argumentName">parameter/argument name</param>
             <exception cref="T:System.ArgumentOutOfRangeException"></exception>
         </member>
-        <member name="M:OfficeOpenXml.Utils.CompoundDocument.CompressPart(System.Byte[])">
-            <summary>
-            Compression using a run length encoding algorithm.
-            See MS-OVBA Section 2.4
-            </summary>
-            <param name="part">Byte array to decompress</param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.CompoundDocument.DecompressPart(System.Byte[],System.Int32)">
-            <summary>
-            Decompression using a run length encoding algorithm.
-            See MS-OVBA Section 2.4
-            </summary>
-            <param name="part">Byte array to decompress</param>
-            <param name="startPos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.Utils.CompoundDocument.GetOleStream(OfficeOpenXml.Utils.CompoundDocument.IStorage,System.Runtime.InteropServices.ComTypes.STATSTG)">
-            <summary>
-            Read the stream and return it as a byte-array
-            </summary>
-            <param name="storage"></param>
-            <param name="statstg"></param>
-            <returns></returns>
-        </member>
         <member name="T:OfficeOpenXml.Utils.IArgument`1">
             <summary>
             An argument
@@ -26788,37 +26686,6 @@
         <member name="P:OfficeOpenXml.VBA.ExcelVbaProject.Protection">
             <summary>
             VBA protection 
-            </summary>
-        </member>
-        <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.Decrypt(System.String)">
-            <summary>
-            2.4.3.3 Decryption
-            </summary>
-            <param name="value">Byte hex string</param>
-            <returns>The decrypted value</returns>
-        </member>
-        <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.Encrypt(System.Byte[])">
-            <summary>
-            2.4.3.2 Encryption
-            </summary>
-            <param name="value"></param>
-            <returns>Byte hex string</returns>
-        </member>
-        <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.CreateVBAProjectStream">
-            <summary>
-            MS-OVBA 2.3.4.1
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.CreateDirStream">
-            <summary>
-            MS-OVBA 2.3.4.1
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.Create">
-            <summary>
-            Create a new VBA Project
             </summary>
         </member>
         <member name="M:OfficeOpenXml.VBA.ExcelVbaProject.Remove">
@@ -31949,6 +31816,25 @@
             <summary>
             The current range when enumerating
             </summary>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.Sort">
+            <summary>
+            Sort the range by value of the first column, Ascending.
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.Sort(System.Int32,System.Boolean)">
+            <summary>
+            Sort the range by value of the supplied column, Ascending.
+            <param name="column">The column to sort by within the range. Zerobased</param>
+            <param name="descending">Descending if true, otherwise Ascending. Default Ascending. Zerobased</param>
+            </summary>
+        </member>
+        <member name="M:OfficeOpenXml.ExcelRangeBase.Sort(System.Int32[],System.Boolean[])">
+            <summary>
+            Sort the range by value
+            </summary>
+            <param name="columns">The column(s) to sort by within the range. Zerobased</param>
+            <param name="descending">Descending if true, otherwise Ascending. Default Ascending. Zerobased</param>
         </member>
         <member name="T:OfficeOpenXml.IRangeID">
             <summary>

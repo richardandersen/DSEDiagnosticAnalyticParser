@@ -251,7 +251,7 @@
             <param name="args"></param>
             <returns></returns>
         </member>
-        <member name="M:Common.ConsoleWriter.ReserveRwWriteConsoleSpace(System.String,System.Int32,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:Common.ConsoleWriter.ReserveRwWriteConsoleSpace(System.String,System.Int32,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             This is used to save or "crave out" an area on the screen for a tagged rewrite. 
             
@@ -273,9 +273,14 @@
             If true (default), the maximum display length is converted to the number of lines based on the current console display. That value is used to reserve to console screen space.
             If false, the total maximum display length is just used which includes any line wrap based on the current console display.
             </param>
+            <param name="autoSizeConsoleWindow">
+            if true (default is false), the console window is resized (only expanded, if possible) based on the following logic:
+                if convertToNewLines is true -- Only the window&apos;s height will be expanded, if required.
+                if convertToNewLines is false -- the window&apos;s height and width will be expanded, if required.
+            </param>
             <returns></returns>
         </member>
-        <member name="M:Common.ConsoleWriter.ReserveRwWriteConsoleSpace(System.String,System.Int32,System.Int32,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:Common.ConsoleWriter.ReserveRwWriteConsoleSpace(System.String,System.Int32,System.Int32,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             This is used to save or "crave out" an area on the screen for a tagged rewrite. 
             
