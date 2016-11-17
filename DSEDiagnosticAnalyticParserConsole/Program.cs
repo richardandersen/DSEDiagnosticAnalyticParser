@@ -106,7 +106,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
             var maxminMaxLogDate = new DateTimeRange();
             var minmaxSummaryLogDate = new DateTimeRange();
-            Task<DataTable> tskdtCFHistogram = Task.FromResult<DataTable>(null);
+			Task<DataTable> tskdtCFHistogram = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             int nbrNodes = -1;
 
             ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtTable);
@@ -886,7 +886,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             IFilePath cfHistogramWildFilePath;
             IFilePath tableHistogramWildFilePath;
             IDirectoryPath tableHistogramDir = null;
-            Task<IEnumerable<IFilePath>> cfhistFilesTask = Task.FromResult( (IEnumerable<IFilePath>) new IFilePath[0]);
+            Task<IEnumerable<IFilePath>> cfhistFilesTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask( (IEnumerable<IFilePath>) new IFilePath[0]);
 
             if (!string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath))
             {
@@ -1058,11 +1058,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             | TaskContinuationOptions.LongRunning
                                             | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-            Task<DataTable> runLogParsingTask = Task.FromResult((DataTable)null); ;
-            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
+			Task<DataTable> runLogParsingTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable>>();
             Task<DataTable> runNodeStatsLogTask;
             Task<int> runningLogTask = logParsingTasks.Count == 0
-                                        ? Task.FromResult(0)
+			                                          ? Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>()
                                         : Task<int>
                                             .Factory
                                             .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
@@ -1238,7 +1238,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             ParserSettings.MaxRowInExcelWorkSheet,
                                                                             ParserSettings.LogExcelWorkbookFilter);
 
-                Task summaryLogToExcel = Task.FromResult(0);
+				Task summaryLogToExcel = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
 
                 if(ParserSettings.ParseNonLogs)
                 {

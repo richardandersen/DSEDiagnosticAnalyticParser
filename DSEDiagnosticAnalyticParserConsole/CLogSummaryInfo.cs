@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Data;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
@@ -12,7 +11,6 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         static long NextGroupIndicator = 0;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long IncrementGroupInicator()
         {
             return System.Threading.Interlocked.Increment(ref NextGroupIndicator);

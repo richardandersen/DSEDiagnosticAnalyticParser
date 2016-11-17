@@ -34,8 +34,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             DateTime maxLogTimestamp = DateTime.MinValue;
             var dtLog = new System.Data.DataTable(excelWorkSheetLogCassandra + "-" + ipAddress);
-            Task statusTask = Task.FromResult<object>(null);
-            Task<int> archTask = Task.FromResult(0);
+			Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+            Task<int> archTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
 
             var logTask = Task.Factory.StartNew(() =>
                                 {
@@ -142,7 +142,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 string[] logAggregateAdditionalTaskExceptionItems,                                                                                
                                                                                                 string[] logSummaryIgnoreTaskExceptions)
         {
-            Task<Tuple<DataTable, DataTable>> summaryTask = Task.FromResult<Tuple<DataTable, DataTable>>(null);
+			Task<Tuple<DataTable, DataTable>> summaryTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable>>();
 
             if(summarizeOnlyOverlappingDateRangesForNodes)
             {                
