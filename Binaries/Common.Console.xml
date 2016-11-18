@@ -303,6 +303,11 @@
             <param name="insertNewLine">
             If true (default), a new line is inserted so that the next write will be on a new line.
             </param>
+            <param name="autoSizeConsoleWindow">
+            if true (default is false), the console window is resized (only expanded, if possible) based on the following logic:
+                if convertToNewLines is true -- Only the window&apos;s height will be expanded, if required.
+                if convertToNewLines is false -- the window&apos;s height and width will be expanded, if required.
+            </param>
             <returns></returns>
         </member>
         <member name="M:Common.ConsoleWriterAsyc.WaitUntilQueueIsEmpty(System.Int32,System.Int32)">
