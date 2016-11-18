@@ -104,7 +104,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["A2:AT2"].AutoFilter = true;
                                                 workSheet.Cells.AutoFitColumns();
                                             },
-                                            null,
+                                            ParserSettings.OSMachineInfoWorksheetFilterSort,
                                             "A2");
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetOSMachineInfo);

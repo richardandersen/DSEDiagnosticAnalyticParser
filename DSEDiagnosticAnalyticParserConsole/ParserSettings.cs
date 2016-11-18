@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Common;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
@@ -145,29 +146,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static int OverlapToleranceContinuousGCInMS = Properties.Settings.Default.OverlapToleranceContinuousGCInMS;
         public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
         public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
-
-        static string[] ToArray(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true)
-        {
-            if(stringCollection == null)
-            {
-                return returnNull ? null : new string[0];
-            }
-
-            var collectionItem = new string[stringCollection.Count];
-
-            stringCollection.CopyTo(collectionItem, 0);
-
-            return collectionItem;
-        }
-
-        static List<string> ToList(this System.Collections.Specialized.StringCollection stringCollection, bool returnNull = true, bool toLowerCase = false)
-        {
-            if (stringCollection == null)
-            {
-                return returnNull ? null : new List<string>(0);
-            }
-
-           return toLowerCase ? stringCollection.Cast<string>().Select(item => item.ToLower()).ToList() : stringCollection.Cast<string>().ToList();
-        }
+       
+        public static Tuple<string,string,System.Data.DataViewRowState> DDLTableWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLTableWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> TokenRangeWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.TokenRangeWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> OSMachineInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.OSMachineInfoWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> YamlSettingsInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.YamlSettingsInfoWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> NodeStatsWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.NodeStatsWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> DDLKeyspaceWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLKeyspaceWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> RingInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.RingInfoWorksheetFilterSort);
+        public static Tuple<string, string, System.Data.DataViewRowState> SummaryLogWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.SummaryLogWorksheetFilterSort);        
     }
 }

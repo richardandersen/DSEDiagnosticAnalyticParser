@@ -67,9 +67,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Column(8).Width = 5; //H
                                             workSheet.Column(9).Width = 16; //I
                                         },                                        
-                                        new Tuple<string, string, DataViewRowState>(null,
-                                                                                       "[Timestamp Period] DESC, [Data Center], [Key], [Path]",
-                                                                                    DataViewRowState.CurrentRows),
+                                        ParserSettings.SummaryLogWorksheetFilterSort,
                                         "A2");
             Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetSummaryLogCassandra);
         }

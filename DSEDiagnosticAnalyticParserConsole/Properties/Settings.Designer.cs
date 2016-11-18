@@ -904,5 +904,82 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((global::System.Collections.Specialized.StringCollection)(this["LogCassandraDirSystemLogs"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Keyspace Name] ASC, [Name] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string DDLTableWorksheetFilterSort {
+            get {
+                return ((string)(this["DDLTableWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Data Center] ASC, [Node IPAddress] ASC, [Start Token (exc" +
+            "lusive)] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string TokenRangeWorksheetFilterSort {
+            get {
+                return ((string)(this["TokenRangeWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Node IPAddress] ASC, [Data Center] ASC\",\"Item3\":\"CurrentR" +
+            "ows\"}")]
+        public string OSMachineInfoWorksheetFilterSort {
+            get {
+                return ((string)(this["OSMachineInfoWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Data Center] ASC, [Node IPAddress] ASC, [Yaml Type] ASC, " +
+            "[Property] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string YamlSettingsInfoWorksheetFilterSort {
+            get {
+                return ((string)(this["YamlSettingsInfoWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Node IPAddress] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string NodeStatsWorksheetFilterSort {
+            get {
+                return ((string)(this["NodeStatsWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Name] ASC, [Data Center] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string DDLKeyspaceWorksheetFilterSort {
+            get {
+                return ((string)(this["DDLKeyspaceWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Node IPAdress] ASC, [Data Center] ASC\",\"Item3\":\"CurrentRo" +
+            "ws\"}")]
+        public string RingInfoWorksheetFilterSort {
+            get {
+                return ((string)(this["RingInfoWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Timestamp Period] DESC, [Data Center], [Key], [Path]\",\"It" +
+            "em3\":\"CurrentRows\"}")]
+        public string SummaryLogWorksheetFilterSort {
+            get {
+                return ((string)(this["SummaryLogWorksheetFilterSort"]));
+            }
+        }
     }
 }

@@ -60,8 +60,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                             workSheet.Cells["A:Q"].AutoFitColumns();
                                         },
-                                            null,
-                                            "A2");
+                                        ParserSettings.DDLTableWorksheetFilterSort,
+                                        "A2");
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetDDLTables);
             }

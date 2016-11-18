@@ -524,5 +524,29 @@
   &lt;string&gt;.\cassandra\system.log&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
+    <Setting Name="DDLTableWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Keyspace Name] ASC, [Name] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="TokenRangeWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center] ASC, [Node IPAddress] ASC, [Start Token (exclusive)] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="OSMachineInfoWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Node IPAddress] ASC, [Data Center] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="YamlSettingsInfoWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center] ASC, [Node IPAddress] ASC, [Yaml Type] ASC, [Property] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="NodeStatsWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Node IPAddress] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="DDLKeyspaceWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Name] ASC, [Data Center] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="RingInfoWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Node IPAddress] ASC, [Data Center] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="SummaryLogWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Timestamp Period] DESC, [Data Center], [Key], [Path]","Item3":"CurrentRows"}</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -34,7 +34,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["A1:N1"].AutoFilter = true;
                                                 workSheet.Cells.AutoFitColumns();
                                                 workSheet.View.FreezePanes(2, 1);
-                                            });
+                                            },
+                                            ParserSettings.NodeStatsWorksheetFilterSort);
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetNodeStats);
             }

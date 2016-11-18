@@ -30,7 +30,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.View.FreezePanes(2, 1);
                                                 workSheet.Cells["A1:E1"].AutoFilter = true;
                                                 workSheet.Cells["A:E"].AutoFitColumns();
-                                            });
+                                            },
+                                            ParserSettings.DDLKeyspaceWorksheetFilterSort);
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetDDLKeyspaces);
             }
