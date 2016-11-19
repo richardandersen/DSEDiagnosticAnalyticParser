@@ -119,7 +119,7 @@ Below settings are used for processing of Excel worksheets/workbooks:
   	  [Timestamp], DateTime    	
 ```
 
-**LoadLogsIntoExcel|DisableLoadLogsIntoExcel** -- If true log entries are loaded into their own separate workbooks. Default is true. Note that if this is disabled (false), logs are still process if ParseLogs is true. If ParseLogs is false this option is ignored and no logs are loaded into Excel. 
+**LoadLogsIntoExcel|DisableLoadLogsIntoExcel** -- If true log entries are loaded into their own separate workbooks. Default is true. Note that if this is disabled (false), logs are still processed, if ParseLogs is true. If ParseLogs is false this option is ignored and no logs are loaded into Excel. 
 
 **ExcelTemplateFilePath** -- The location of the Diagnostic Analytic Excel template workbook file that is used to create the "main" workbook. This can be no value (null), no template will be used. Default is ".\dseTemplate.xlsx" (looks in the current directory for the file).
 
