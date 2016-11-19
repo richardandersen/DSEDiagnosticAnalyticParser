@@ -170,7 +170,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static void End()
         {
             timer.Change(0, 0);
-            consoleWriter.ClearSpinner();
+            consoleWriter.ClearSpinner();                       
             //consoleWriter.DisableSpinner();
         }
 

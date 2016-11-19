@@ -146,7 +146,15 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static int OverlapToleranceContinuousGCInMS = Properties.Settings.Default.OverlapToleranceContinuousGCInMS;
         public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
         public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
-       
+        public static System.Text.RegularExpressions.Regex ExcludePathNamesRegEx = string.IsNullOrEmpty(Properties.Settings.Default.ExcludePathNamesRegEx) ? null : new System.Text.RegularExpressions.Regex(Properties.Settings.Default.ExcludePathNamesRegEx, System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        public static bool ExcludePathName(string name)
+        {
+            return !string.IsNullOrEmpty(name)
+                        && ExcludePathNamesRegEx != null
+                        && ExcludePathNamesRegEx.IsMatch(name);
+        }
+
         public static Tuple<string,string,System.Data.DataViewRowState> DDLTableWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLTableWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> TokenRangeWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.TokenRangeWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> OSMachineInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.OSMachineInfoWorksheetFilterSort);

@@ -469,6 +469,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             set;
         }
 
+        [Option("Debug", HelpText = "Debug",
+                    Required = false)]
+        public bool Debug
+        {
+            get;
+            set;
+        }
+
         public bool CheckArguments()
         {
             bool bResult = true;

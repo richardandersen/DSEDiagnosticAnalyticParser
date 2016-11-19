@@ -964,8 +964,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Node IPAdress] ASC, [Data Center] ASC\",\"Item3\":\"CurrentRo" +
-            "ws\"}")]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Node IPAddress] ASC, [Data Center] ASC\",\"Item3\":\"CurrentR" +
+            "ows\"}")]
         public string RingInfoWorksheetFilterSort {
             get {
                 return ((string)(this["RingInfoWorksheetFilterSort"]));
@@ -979,6 +979,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string SummaryLogWorksheetFilterSort {
             get {
                 return ((string)(this["SummaryLogWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("^\\.")]
+        public string ExcludePathNamesRegEx {
+            get {
+                return ((string)(this["ExcludePathNamesRegEx"]));
             }
         }
     }

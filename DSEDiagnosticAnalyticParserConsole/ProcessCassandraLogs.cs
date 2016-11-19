@@ -19,7 +19,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         DateTimeRange maxminMaxLogDate,
                                                         int maxNbrLinesRead,
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
-                                                        IFilePath archiveFilePath, //null disables archive parsing
+                                                        IFilePath[] archiveFilePaths, //null disables archive parsing
                                                         bool parseNonLogs,
                                                         string excelWorkSheetStatusLogCassandra,
                                                         Common.Patterns.Collections.ThreadSafe.Dictionary<string, string> nodeGCInfo,
@@ -96,9 +96,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 
             if (maxNbrLinesRead <= 0
-                        && archiveFilePath != null)
+                        && archiveFilePaths != null)
             {
-                foreach (IFilePath archiveElement in archiveFilePath.GetWildCardMatches())
+                foreach (IFilePath archiveElement in archiveFilePaths)
                 {
                     if (archiveElement.PathResolved != logFilePath.PathResolved)
                     {
@@ -155,7 +155,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         nodeInnerRange.SetMinMax(range.Min);
                         nodeInnerRange.SetMinMax(range.Max);
                     });
-
+                    
                     maxminLogDate.SetMinimal(maxminLogDate.MaximumMinDateTime(nodeInnerRange));
                     maxminLogDate.SetMaximum(maxminLogDate.MinimalMaxDateTime(nodeInnerRange));
                 }

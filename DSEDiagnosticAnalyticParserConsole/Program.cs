@@ -33,6 +33,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var argResult = CommandLine.Parser.Default.ParseArguments<ConsoleArguments>(args);
 
+            if(argResult.Value.Debug)
+            {
+                Common.ConsoleHelper.Prompt("Attach Debugger and Press Return to Continue", ConsoleColor.Yellow);
+            }
+
             if (argResult.Value.DisplayDefaults)
             {
                 Console.WriteLine(argResult.Value.ToString());
@@ -142,7 +147,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
 
-                var diagChildren = diagPath.Children();
+                var diagChildren = diagPath.Children()
+                                            .Where(c => !ParserSettings.ExcludePathName(c.Path));
 
                 //Need to process nodetool ring files first
                 var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
@@ -183,7 +189,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (ParserSettings.ParseNonLogs && diagPath.MakeFile(ParserSettings.CQLDDLDirFileExt, out cqlFilePath))
                 {
-                    foreach (IFilePath element in cqlFilePath.GetWildCardMatches())
+                    foreach (IFilePath element in cqlFilePath.GetWildCardMatches()
+                                                                .Where(c => !ParserSettings.ExcludePathName(c.Path)))
                     {
                         Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
@@ -216,23 +223,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
-                    List<IFilePath> alterFiles = null;
+                    IEnumerable<IFilePath> alterFiles;
 
                     if (alterPath.HasWildCardPattern())
                     {
-                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = alterPath.GetWildCardMatches()
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = ((IDirectoryPath)alterPath).Children()
+                                                                    .Where(p => p.IsFilePath && ParserSettings.ExcludePathName(p.Path))
+                                                                    .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path) 
+                                            ? Enumerable.Empty<IFilePath>()
+                                            : new IFilePath[] { (IFilePath)alterPath };
                     }
 
                     Logger.Instance.InfoFormat("Queing {0} Alternative CQL Files: {1}",
-                                                alterFiles.Count,
+                                                alterFiles.Count(),
                                                 string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
@@ -263,7 +276,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #endregion
 
                 Logger.Instance.InfoFormat("Queing {0} Files: {1}",
-                                            diagChildren.Count,
+                                            diagChildren.Count(),
                                             string.Join(", ", diagChildren.Select(p => p.Name).Sort()));
 
                 Parallel.ForEach(diagChildren, (diagFile) =>
@@ -388,23 +401,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
-                    List<IFilePath> alterFiles = null;
+                    IEnumerable<IFilePath> alterFiles;
 
                     if (alterPath.HasWildCardPattern())
                     {
-                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = alterPath.GetWildCardMatches()
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = ((IDirectoryPath)alterPath).Children()
+                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                    .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path) 
+                                        ? Enumerable.Empty<IFilePath>()
+                                        : new IFilePath[] { (IFilePath)alterPath };
                     }
 
                     Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
-                                                alterFiles.Count,
+                                                alterFiles.Count(),
                                                 string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
@@ -459,11 +478,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #region Read/Parse -- Files located in separate folders where each folder's name is the IP Address
 
                 var diagNodePath = diagPath.MakeChild(ParserSettings.DiagNodeDir) as Common.IDirectoryPath;
-                List<Common.IDirectoryPath> nodeDirs = null;
+                List<Common.IDirectoryPath> nodeDirs;
 
                 if (diagNodePath != null && (opsCtrDiag = diagNodePath.Exist()))
                 {
-                    var childrenItems = diagNodePath.Children();
+                    var childrenItems = diagNodePath.Children()
+                                                        .Where(c => !ParserSettings.ExcludePathName(c.Path));
                     var files = childrenItems.Where(item => item.IsFilePath).Cast<Common.IFilePath>();
                     
                     if(files.HasAtLeastOneElement())
@@ -474,16 +494,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Program.ConsoleWarnings.Increment("Invalid File(s) Found in OpsCenter Folder");
                     }
 
-                    nodeDirs = childrenItems.Where(item => item.IsDirectoryPath).Cast<Common.IDirectoryPath>().ToList();
+                    nodeDirs = childrenItems.Where(item => item.IsDirectoryPath)
+                                                                    .Cast<Common.IDirectoryPath>()
+                                                                    .ToList();
                 }
                 else
                 {
-                    var childrenItems = diagPath.Children();
-                    
-                    nodeDirs = childrenItems.Where(item => item.IsDirectoryPath).Cast<Common.IDirectoryPath>().ToList();
+                    nodeDirs = diagPath.Children()
+                                        .Where(c => c.IsDirectoryPath && !ParserSettings.ExcludePathName(c.Path))
+                                        .Cast<Common.IDirectoryPath>().ToList();
                 }
 
-                if(nodeDirs.Count == 0)
+                nbrNodes = nodeDirs.Count;
+
+                if (nbrNodes == 0)
                 {
                     throw new System.IO.DirectoryNotFoundException(string.Format("No Node Directories Found within Folder \"{0}\".", diagPath.PathResolved));
                 }
@@ -494,7 +518,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #region preparsing Files
 
                 for (int fileIndex = 0;
-                        fileIndex < nodeDirs.Count && !preFilesProcessed.All(flag => flag);
+                        fileIndex < nbrNodes && !preFilesProcessed.All(flag => flag);
                         ++fileIndex)
                 {
                     if (ParserSettings.ParseNonLogs
@@ -579,23 +603,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
-                    List<IFilePath> alterFiles = null;
+                    IEnumerable<IFilePath> alterFiles;
 
                     if (alterPath.HasWildCardPattern())
                     {
-                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = alterPath.GetWildCardMatches()
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = ((IDirectoryPath)alterPath).Children()
+                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                    .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path)
+                                        ? Enumerable.Empty<IFilePath>()
+                                        : new IFilePath[] { (IFilePath)alterPath };
                     }
 
                     Logger.Instance.InfoFormat("Queing {0} Alternative CQL Files: {1}",
-                                                alterFiles.Count,
+                                                alterFiles.Count(),
                                                 string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
                     foreach (IFilePath element in alterFiles)
                     {
@@ -704,11 +734,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 #endregion
-
-                nbrNodes = nodeDirs.Count;
-
+             
                 Logger.Instance.InfoFormat("Queing {0} Nodes: {1}",
-                                            nodeDirs.Count,
+                                            nbrNodes,
                                             string.Join(", ", nodeDirs.Select(p => p.Name).Sort()));
                 Parallel.ForEach(nodeDirs, (element) =>
                 //foreach (var element in nodeDirs)
@@ -801,11 +829,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 if (diagFilePath.Exist())
                                 {
-                                    IFilePath archivedFilePath = null;
+                                    IFilePath[] archivedFilePaths = null;
 
                                     if (ParserSettings.ParseArchivedLogs)
                                     {
-                                        diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath);
+                                        IFilePath archivedFilePath = null;
+
+                                        if(diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
+                                        {
+                                            if(archivedFilePath.HasWildCardPattern())
+                                            {
+                                                archivedFilePaths = archivedFilePath.GetWildCardMatches()
+                                                                                        .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                        .Cast<IFilePath>()
+                                                                                        .ToArray();
+                                            }
+                                            else
+                                            {
+                                                archivedFilePaths = new IFilePath[] { archivedFilePath };
+                                            }
+                                        }
                                     }
 
                                     logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(diagFilePath,
@@ -816,7 +859,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 maxminMaxLogDate,
                                                                                                 ParserSettings.LogMaxRowsPerNode,
                                                                                                 dtLogsStack,
-                                                                                                archivedFilePath,
+                                                                                                archivedFilePaths,
                                                                                                 ParserSettings.ParseNonLogs,
                                                                                                 ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                                 nodeGCInfo,
@@ -908,7 +951,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 cfhistFilesTask = cfhistFilesTask.ContinueWith(filesMatchesTask =>
                                         {
-                                            var files = tableHistogramDir.Children().Where(file => file.IsFilePath).Cast<IFilePath>();
+                                            var files = tableHistogramDir.Children()
+                                                                            .Where(file => file.IsFilePath && !ParserSettings.ExcludePathName(file.Path))
+                                                                            .Cast<IFilePath>();
 
                                             return filesMatchesTask.Result.Append(files.ToArray());
                                         },
@@ -922,7 +967,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
                                             {
-                                                var tblMatches = cfHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+                                                var tblMatches = cfHistogramWildFilePath.GetWildCardMatches()
+                                                                                            .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                            .Cast<IFilePath>();
 
                                                 return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
                                             },
@@ -934,7 +981,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
                                             {
-                                                var tblMatches = tableHistogramWildFilePath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+                                                var tblMatches = tableHistogramWildFilePath.GetWildCardMatches()
+                                                                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                                .Cast<IFilePath>();
 
                                                 return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
                                             },
@@ -1126,6 +1175,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         {
                                             Program.ConsoleParsingLog.Terminate();
                                         });
+
+                ProcessFileTasks.LogCassandraNodeMaxMinTimestamps.ForEach(nodeLogRanges
+                    => Logger.Instance.InfoFormat("Log IP: {0} Range(s): {1}", 
+                                                    nodeLogRanges.Key,
+                                                    string.Join(", ", nodeLogRanges.Value.OrderBy(s => s))));
             }
             else
             {
@@ -1351,11 +1405,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             nbrNodes,
                                             parsedItemCounts.Where(cnt => cnt > 0).Min());
                 Logger.Instance.Warn(msg);
+                
                 ConsoleDisplay.Console.WriteLine(msg);
             }
            
             ConsoleDisplay.End();
             Logger.Instance.InfoFormat("Completed");
+
+            if (argResult.Value.Debug)
+            {
+                Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Yellow);
+            }
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
