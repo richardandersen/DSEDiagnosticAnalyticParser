@@ -1,8 +1,7 @@
 # DSEDiagnosticAnalyticParser
 DSE Diagnostic Tar Ball Analytic Parser
 
-This application will parse and perform analytics on a DataStax OpsCenter diagnostic tar ball. It will place this information into Excel workbooks for further analysis.
-It optionally can use an Excel template to generate the "main" workbook. One is provided that includes some common analytics. 
+This application will parse and perform analytics on a DataStax OpsCenter diagnostic tar ball. It will place this information into Excel workbooks for further analysis. The maion workbook will contain a set of pivot tables that utilized the aggregated data. This workbook also contains a master filter worksheet and a "refresh" button that will refresh all the pivot tables which is required upon initial opening of the main workbook. There can be optional workbooks that provide detail information that can be used to reconcile the main workbook's worhsheets via the "reconciliation id". These workbooks are tested and targeted for Microsoft Excel 2013. Other spreadsheet applications can be used but they may have limited functionality. 
 
 There are two zip files that contain the required assemblies to run the application. These zip files are:
 
@@ -135,5 +134,6 @@ Alternative Folder Locations. These are additional locations to find additional 
 **TableHistogramDirPath** -- Directory of files that contain the results of a nodetool TableHistogram. The file names must have the node's IP address in the beginning or end of the name. If this argument is not provide, the 'DiagnosticPath' is searched looking for files with the string "TableHistogram" embedded in the name.
 
 
-**Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the enumeration with square brackets, e.g., [DeskTop]\Test.xlsx). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396
+**Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the enumeration with square brackets, e.g., [DeskTop]\Test.xlsx). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396 or https://ibboard.co.uk/Programming/mono-special-folders.html
+
 Also, all command arguments that take a path string (e.g., --ExcelFilePath) will merge the argument against the default value. For example, "[DeskTop]\Test.xlsx" is the default (defined in the application config file) and "myDSEReview" is the argument to --ExcelFilePath, the resulting path used by the application would be "[DeskTop]\myDSEReview.xlsx".
