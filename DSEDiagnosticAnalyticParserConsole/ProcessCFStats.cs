@@ -65,7 +65,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (parsedLine[0] == "Keyspace")
                     {
-                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1].ToLower()))
+                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
                         {
                             currentKS = null;
                         }
@@ -160,7 +160,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (parsedLine[0] == "Keyspace")
                     {
-                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1].ToLower()))
+                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
                         {
                             currentKS = null;
                         }

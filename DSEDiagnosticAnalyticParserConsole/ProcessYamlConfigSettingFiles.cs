@@ -65,7 +65,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 line = fileLines[nIndex].Trim();
 
                 if (string.IsNullOrEmpty(line)
-                    || line[0] == '#'
+                    || line[0] == '#'                    
                     || line.StartsWith("if ")
                     || line == "fi")
                 {
@@ -74,8 +74,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (line[0] == '-')
                 {
-                    parsedValue = RemoveCommentInLine(line.Substring(1).TrimStart().RemoveConsecutiveChar());
-                    yamlList.Last().CmdParams += ' ' + parsedValue;
+                    if (yamlList.Count > 0)
+                    {
+                        parsedValue = RemoveCommentInLine(line.Substring(1).TrimStart().RemoveConsecutiveChar());
+                        if (parsedValue != string.Empty && parsedValue[0] != '-')
+                        {
+                            yamlList.Last().CmdParams += ' ' + parsedValue;
+                        }
+                    }
                     continue;
                 }
                 else if (optionsBrace)

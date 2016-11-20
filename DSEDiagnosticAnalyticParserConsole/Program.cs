@@ -148,7 +148,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
 
                 var diagChildren = diagPath.Children()
-                                            .Where(c => !ParserSettings.ExcludePathName(c.Path));
+                                            .Where(c => !ParserSettings.ExcludePathName(c.Name));
 
                 //Need to process nodetool ring files first
                 var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
@@ -190,7 +190,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (ParserSettings.ParseNonLogs && diagPath.MakeFile(ParserSettings.CQLDDLDirFileExt, out cqlFilePath))
                 {
                     foreach (IFilePath element in cqlFilePath.GetWildCardMatches()
-                                                                .Where(c => !ParserSettings.ExcludePathName(c.Path)))
+                                                                .Where(c => !ParserSettings.ExcludePathName(c.Name)))
                     {
                         Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
@@ -228,18 +228,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (alterPath.HasWildCardPattern())
                     {
                         alterFiles = alterPath.GetWildCardMatches()
-                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                 .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
                         alterFiles = ((IDirectoryPath)alterPath).Children()
-                                                                    .Where(p => p.IsFilePath && ParserSettings.ExcludePathName(p.Path))
+                                                                    .Where(p => p.IsFilePath && ParserSettings.ExcludePathName(p.Name))
                                                                     .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path) 
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name) 
                                             ? Enumerable.Empty<IFilePath>()
                                             : new IFilePath[] { (IFilePath)alterPath };
                     }
@@ -406,18 +406,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (alterPath.HasWildCardPattern())
                     {
                         alterFiles = alterPath.GetWildCardMatches()
-                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                 .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
                         alterFiles = ((IDirectoryPath)alterPath).Children()
-                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                     .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path) 
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name) 
                                         ? Enumerable.Empty<IFilePath>()
                                         : new IFilePath[] { (IFilePath)alterPath };
                     }
@@ -483,7 +483,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (diagNodePath != null && (opsCtrDiag = diagNodePath.Exist()))
                 {
                     var childrenItems = diagNodePath.Children()
-                                                        .Where(c => !ParserSettings.ExcludePathName(c.Path));
+                                                        .Where(c => !ParserSettings.ExcludePathName(c.Name));
                     var files = childrenItems.Where(item => item.IsFilePath).Cast<Common.IFilePath>();
                     
                     if(files.HasAtLeastOneElement())
@@ -501,7 +501,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 else
                 {
                     nodeDirs = diagPath.Children()
-                                        .Where(c => c.IsDirectoryPath && !ParserSettings.ExcludePathName(c.Path))
+                                        .Where(c => c.IsDirectoryPath && !ParserSettings.ExcludePathName(c.Name))
                                         .Cast<Common.IDirectoryPath>().ToList();
                 }
 
@@ -608,18 +608,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (alterPath.HasWildCardPattern())
                     {
                         alterFiles = alterPath.GetWildCardMatches()
-                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                 .Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
                         alterFiles = ((IDirectoryPath)alterPath).Children()
-                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                     .Cast<IFilePath>();
                     }
                     else
                     {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Path)
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name)
                                         ? Enumerable.Empty<IFilePath>()
                                         : new IFilePath[] { (IFilePath)alterPath };
                     }
@@ -840,7 +840,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             if(archivedFilePath.HasWildCardPattern())
                                             {
                                                 archivedFilePaths = archivedFilePath.GetWildCardMatches()
-                                                                                        .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                        .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                                         .Cast<IFilePath>()
                                                                                         .ToArray();
                                             }
@@ -952,7 +952,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 cfhistFilesTask = cfhistFilesTask.ContinueWith(filesMatchesTask =>
                                         {
                                             var files = tableHistogramDir.Children()
-                                                                            .Where(file => file.IsFilePath && !ParserSettings.ExcludePathName(file.Path))
+                                                                            .Where(file => file.IsFilePath && !ParserSettings.ExcludePathName(file.Name))
                                                                             .Cast<IFilePath>();
 
                                             return filesMatchesTask.Result.Append(files.ToArray());
@@ -968,7 +968,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
                                             {
                                                 var tblMatches = cfHistogramWildFilePath.GetWildCardMatches()
-                                                                                            .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                            .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                                             .Cast<IFilePath>();
 
                                                 return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
@@ -982,7 +982,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     cfhistFilesTask = cfhistFilesTask.ContinueWith(wildFileMatchesTask =>
                                             {
                                                 var tblMatches = tableHistogramWildFilePath.GetWildCardMatches()
-                                                                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Path))
+                                                                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                                                 .Cast<IFilePath>();
 
                                                 return wildFileMatchesTask.Result.Append(tblMatches.ToArray());
@@ -1147,7 +1147,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
                                         dtNodeStatsStack.Push(dtTPStats);
                                         ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
-                                                                                            ParserSettings.OverlapToleranceContinuousGCInMS,
+                                                                                            ParserSettings.ToleranceContinuousGCInMS,
+                                                                                            ParserSettings.ContinuousGCNbrInSeries,
                                                                                             ParserSettings.GCTimeFrameDetection,
                                                                                             ParserSettings.GCTimeFrameDetectionPercentage);
                                         Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");

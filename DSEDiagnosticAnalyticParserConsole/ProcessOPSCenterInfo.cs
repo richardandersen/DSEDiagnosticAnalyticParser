@@ -67,17 +67,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (fileName.Contains("repair_service"))
                         {
-                            var infoObject = ParseJson(filePath.ReadAllText());
-                            var nodeInfoDict = (Dictionary<string, object>)infoObject;
+                            var infoText = filePath.ReadAllText();
+                            var definition = new { time_to_completion = 0L, status = "", parallel_tasks = 0, all_tasks = new object[1][] };
+                            var infoObject = Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(infoText, definition);
 
                             foreach (DataRow dataRow in dtRingInfo.Rows)
                             {
-                                if (nodeInfoDict.ContainsKey("all_tasks")
-                                        && ((object[])nodeInfoDict["all_tasks"]).Any(c => (string)((object[])c)[0] == (string)dataRow["Node IPAddress"]))
+                                if (infoObject.all_tasks != null
+                                        && infoObject.all_tasks.Any((c => (string)((object[])c)[0] == (string)dataRow["Node IPAddress"])))
                                 {
                                     dataRow["Read-Repair Service Enabled"] = true;
                                 }
-                            }
+                            }                          
                         }
                     }
                 }

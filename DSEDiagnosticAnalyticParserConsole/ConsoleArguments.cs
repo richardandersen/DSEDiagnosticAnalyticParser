@@ -344,7 +344,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// A list of Keyspaces to ignore during parsing.
         /// </summary>
-        [Option('I', "IgnoreKeySpaces", HelpText = "A list of Keyspaces to ignore during parsing.",
+        [Option('I', "IgnoreKeySpaces", HelpText = "A list of Keyspaces to ignore during parsing. If an empty string, the list is cleared. If the name is prefixed with a '+' or '-', that name is added or removed from the existing list. Names without a prefix will be used to replace the complete list (names with prefixes are ignored). Case-Sensitive",
                     Required = false)]
         public string IgnoreKeySpaces
         {
@@ -361,8 +361,34 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         StringFunctions.IgnoreWithinDelimiterFlag.Text,
                                                         StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries
                                                             | StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
+                    var newList = new List<string>();
 
-                    ParserSettings.IgnoreKeySpaces = keySpaces?.Select(item => ProcessFileTasks.RemoveQuotes(item).ToLower()).ToList();
+                    foreach(var name in keySpaces.Select(item => ProcessFileTasks.RemoveQuotes(item)))
+                    {
+                        if(name[0] == '+')
+                        {
+                            var newItem = name.Substring(1);
+
+                            if(!ParserSettings.IgnoreKeySpaces.Contains(newItem))
+                            {
+                                ParserSettings.IgnoreKeySpaces.Add(newItem);
+                            }
+                        }
+                        else if(name[0] == '-')
+                        {
+                            var newItem = name.Substring(1);
+                            ParserSettings.IgnoreKeySpaces.Remove(newItem);
+                        }
+                        else
+                        {
+                            newList.Add(name);
+                        }
+                    }
+
+                    if (newList.Count > 0)
+                    {
+                        ParserSettings.IgnoreKeySpaces = newList;
+                    }
                 }
             }
         }
@@ -433,15 +459,23 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        [Option('g', "OverlapToleranceContinuousGCInMS", HelpText = "The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled.",
+        [Option('g', "ToleranceContinuousGCInMS", HelpText = "The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled.",
                     Required = false)]
-        public int OverlapToleranceContinuousGCInMS
+        public int ToleranceContinuousGCInMS
         {
-            get { return ParserSettings.OverlapToleranceContinuousGCInMS; }
+            get { return ParserSettings.ToleranceContinuousGCInMS; }
             set
             {
-                ParserSettings.OverlapToleranceContinuousGCInMS = value;
+                ParserSettings.ToleranceContinuousGCInMS = value;
             }
+        }
+
+        [Option('v', "NbrGCInSeriesToConsiderContinuous", HelpText = "The number of GC in a series (row) that will be considered as continuous (back-to-back). This works in conjunction with ToleranceContinuousGCInMS to determine the series.",
+                    Required = false)]
+        public int NbrGCInSeriesToConsiderContinuous
+        {
+            get { return ParserSettings.ContinuousGCNbrInSeries; }
+            set { ParserSettings.ContinuousGCNbrInSeries = value; }
         }
 
         [Option('f', "GCTimeFrameDetection", HelpText = "A time frame (00:00:00) used to determine the percent of GC activity based on GCTimeFrameDetectionPercentage. If zero, this feature is disabled.",
@@ -561,9 +595,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--IncludePerformanceKeyspaces|-i {19} " +
                                     "--IncludeOpsCenterKeyspace|-k {20} " +
                                     "--TableHistogramDirPath|-t \"{21}\" " +
-                                    "--OverlapToleranceContinuousGCInMS|-g {22} " +
+                                    "--ToleranceContinuousGCInMS|-g {22} " +
+                                    "--NbrGCInSeriesToConsiderContinuous|-v {25} " +
                                     "--GCTimeFrameDetection|-f {23} " +
-                                    "--GCTimeFrameDetectionPercentage|-f {24}",
+                                    "--GCTimeFrameDetectionPercentage|-e {24}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -586,9 +621,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.IncludePerformanceKeyspaces,
                                     this.IncludeOpsCenterKeyspace,
                                     this.TableHistogramDirPath,
-                                    this.OverlapToleranceContinuousGCInMS,
+                                    this.ToleranceContinuousGCInMS,
                                     this.GCTimeFrameDetection,
-                                    this.GCTimeFrameDetectionPercentage);
+                                    this.GCTimeFrameDetectionPercentage,
+                                    this.NbrGCInSeriesToConsiderContinuous);
         }
     }
 }

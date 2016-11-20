@@ -869,10 +869,10 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("500")]
-        public int OverlapToleranceContinuousGCInMS {
+        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        public int ToleranceContinuousGCInMS {
             get {
-                return ((int)(this["OverlapToleranceContinuousGCInMS"]));
+                return ((int)(this["ToleranceContinuousGCInMS"]));
             }
         }
         
@@ -988,6 +988,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string ExcludePathNamesRegEx {
             get {
                 return ((string)(this["ExcludePathNamesRegEx"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int ContinuousGCNbrInSeries {
+            get {
+                return ((int)(this["ContinuousGCNbrInSeries"]));
             }
         }
     }

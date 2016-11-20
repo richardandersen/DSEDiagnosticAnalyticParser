@@ -100,7 +100,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkSheetExceptionSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetExceptionSummaryLogCassandra;
         //var excelPivotWorkSheets = new string[] {"Read-Write Counts", "Partitions", "Latency", "Storage-Size"};
 
-        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false, true); //MUST BE IN LOWER CASe       
+        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);      
         public static List<string> CFStatsCreateMBColumns = Properties.Settings.Default.CFStatsCreateMBColumns.ToList(false, true); //MUST BE IN LOWER CASE -- CFStats attributes that contains these phrases/words will convert their values from bytes to MB in a separate Excel Column
 
         //Static Directory/File names
@@ -130,7 +130,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] OSMachineFiles = Properties.Settings.Default.OSMachineFiles.ToArray(false); //Referenced from the node directory
         public static string OPSCenterDir = Properties.Settings.Default.OPSCenterDir;
         public static string[] OPSCenterFiles = Properties.Settings.Default.OPSCenterFiles.ToArray(false);
-
+        
         public static string TableHistogramFileName = Properties.Settings.Default.TableHistogramFileName;
         public static string CFHistogramFileName = Properties.Settings.Default.CFHistogramFileName;
         public static string ExcelCFHistogramWorkSheet = Properties.Settings.Default.ExcelCFHistogramWorkSheet;
@@ -143,7 +143,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
         public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;
         public static bool SummarizeOnlyOverlappingLogDateRangesForNodes = Properties.Settings.Default.SummarizeOnlyOverlappingLogDateRangesForNodes;
-        public static int OverlapToleranceContinuousGCInMS = Properties.Settings.Default.OverlapToleranceContinuousGCInMS;
+        public static int ToleranceContinuousGCInMS = Properties.Settings.Default.ToleranceContinuousGCInMS;
+        public static int ContinuousGCNbrInSeries = Properties.Settings.Default.ContinuousGCNbrInSeries;
         public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
         public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
         public static System.Text.RegularExpressions.Regex ExcludePathNamesRegEx = string.IsNullOrEmpty(Properties.Settings.Default.ExcludePathNamesRegEx) ? null : new System.Text.RegularExpressions.Regex(Properties.Settings.Default.ExcludePathNamesRegEx, System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);

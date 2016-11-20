@@ -23,7 +23,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         bool parseNonLogs,
                                                         string excelWorkSheetStatusLogCassandra,
                                                         Common.Patterns.Collections.ThreadSafe.Dictionary<string, string> nodeGCInfo,
-                                                        List<string> ignoreKeySpaces,
+                                                        IEnumerable<string> ignoreKeySpaces,
                                                         List<CKeySpaceTableNames> kstblNames,                                                        
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
@@ -350,6 +350,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
                 //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
                 //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
+                //WARN  [CompactionExecutor:705441] 2016-10-05 13:09:40,934 SSTableWriter.java:241 - Compacting large partition handled_exception1/summary_pt1h:5670561a6c33dc0f00f11443:2016-10-01-14-00-00:total (280256103 bytes)
                 //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 17:11:16,429  CqlSlowLogWriter.java:151 - Recording statements with duration of 60001 in slow log
                 //ERROR [SharedPool-Worker-15] 2016-08-16 17:11:16,831  SolrException.java:150 - org.apache.solr.common.SolrException: No response after timeout: 60000
                 //WARN  [CqlSlowLog-Writer-thread-0] 2016-08-17 00:21:05,698  CqlSlowLogWriter.java:245 - Error writing to cql slow log
@@ -606,6 +607,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 var logDesc = new StringBuilder();
                 var startRange = parsedValues[5] == "-" ? 6 : 5;
+                bool handled = false;
 
                 if (parsedValues[startRange][0] == '(')
                 {
@@ -614,40 +616,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                 {
-
-					if ((parsedValues[0] == "WARN"
-                            || parsedValues[0] == "ERROR")
-                        && nCell > 4
-                            && (parsedValues[nCell].ToLower().Contains("exception")
-                                    || parsedValues[nCell].ToLower().Contains("error")
-                                    || parsedValues[nCell].ToLower() == "failed")
-                            && !(new char[] { '[', '(', '\'', '/', '"', '\\' }).Contains(parsedValues[nCell][0]))
-                    {
-						#region exception
-						var subParsedValues = parsedValues.Skip(nCell + 1);
-						var indicatorWord = parsedValues[nCell].ToLower() == "exception"
-												|| parsedValues[nCell].ToLower() == "error"
-												|| parsedValues[nCell].ToLower() == "failed";
-
-						//look ahead for a future "real" exception or error
-						if (indicatorWord
-								&& subParsedValues.Any(item => RegExExpErrClassName.IsMatch(item)))
-						{ }
-						else
-						{
-							ParseExceptions(ipAddress,
-												parsedValues[nCell],
-												dataRow,
-												string.Join(" ", indicatorWord
-																	? parsedValues.Skip(startRange + 1)
-																	: subParsedValues),
-												null);
-							exceptionOccurred = true;
-						}
-
-						#endregion
-					}
-					else if (parsedValues[4] == "CompactionController.java")
+					
+					if (parsedValues[4] == "CompactionController.java")
 					{
 						#region CompactionController.java
 						//Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
@@ -682,15 +652,17 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemPos = nCell + 2;
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Compacting large row";
+                            handled = true;
 						}
 						#endregion
 					}
 					else if (parsedValues[4] == "SSTableWriter.java")
 					{
-						#region SSTableWriter.java
-						//WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
-
-						if (itemPos == nCell)
+                        #region SSTableWriter.java
+                        //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
+                        //WARN  [CompactionExecutor:705441] 2016-10-05 13:09:40,934 SSTableWriter.java:241 - Compacting large partition handled_exception1/summary_pt1h:5670561a6c33dc0f00f11443:2016-10-01-14-00-00:total (280256103 bytes)
+                        
+                        if (itemPos == nCell)
 						{
 							var ksTableName = parsedValues[nCell];
 							var keyDelimatorPos = ksTableName.IndexOf(':');
@@ -720,7 +692,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemPos = nCell + 2;
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Compacting large partition";
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "GCInspector.java")
@@ -740,7 +713,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							{
 								dataRow["Flagged"] = true;
 								dataRow["Exception"] = "GC Threshold";
-							}
+                                handled = true;
+                            }
 							dataRow["Associated Value"] = time;
 						}
 						if (parsedValues[nCell] == "ParNew:"
@@ -769,7 +743,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//dataRow["Associated Item"] = "Heap Full";
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Heap Full";
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "FailureDetector.java")
@@ -787,7 +762,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Pause(FailureDetector)";
-						}
+                            handled = true;
+                        }
 
 						if (parsedValues[nCell] == "marking" && parsedValues.ElementAtOrDefault(nCell + 2) == "down" && parsedValues.ElementAtOrDefault(nCell + 6) == "pause")
 						{
@@ -820,7 +796,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemValuePos = nCell + 9;
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Batch Size Exceeded";
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[0] == "WARN" && parsedValues[4] == "NoSpamLogger.java")
@@ -866,12 +843,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemValuePos = nCell + 3;							
 							dataRow["Exception"] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parsedValues[nCell]) + " Batch Partitions";
                             dataRow["Flagged"] = true;
-						}
+                            handled = true;
+                        }
                         else if (parsedValues[nCell] == "Maximum" && parsedValues[nCell + 1] == "memory" && parsedValues[nCell + 2] == "reached")
                         {                            
                             itemValuePos = nCell + 9;                            
                             dataRow["Exception"] = "Maximum Memory Reached cannot Allocate";
                             dataRow["Flagged"] = true;
+                            handled = true;
                         }
 						#endregion
 					}
@@ -923,14 +902,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 							itemPos = nCell + 8;
 							itemValuePos = nCell + 4;
 							dataRow["Flagged"] = true;
-						}
+                            handled = true;
+                        }
 						else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
 						{
 							itemPos = nCell + 5;
 							itemValuePos = 2;
 							dataRow["Flagged"] = true;
 							dataRow["Exception"] = "Query Tombstones Aborted";
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "HintedHandoffMetrics.java")
@@ -942,8 +923,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//dataRow["Associated Item"] = "Dropped Hints";
 							dataRow["Exception"] = "Dropped Hints";
                             dataRow["Flagged"] = true;
+                            handled = true;
 
-							if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
+                            if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
 							{
 								dataRow["Associated Item"] = lineIPAddress;
 							}
@@ -993,7 +975,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//dataRow["Associated Item"] = "Flushing CFS";
 							dataRow["Exception"] = "CFS Flush";
 							itemValuePos = nCell + 1;
-						}
+                            handled = true;
+                        }
 						else if (parsedValues[0] == "INFO" && parsedValues[nCell] == "Node")
 						{
 							itemValuePos = nCell + 3;
@@ -1034,7 +1017,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							var splitItems = SplitTableName(parsedValues[nCell], null);
 
 							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "MessagingService.java")
@@ -1075,7 +1059,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//dataRow["Associated Item"] = "Dropped Mutations";
 							dataRow["Exception"] = "Dropped Mutations";
                             dataRow["Flagged"] = true;
-							itemPos = nCell + 8;
+                            handled = true;
+                            itemPos = nCell + 8;
 						}
                         else if (parsedValues[nCell] == "terminated" 
                                     && parsedValues[nCell + 2].StartsWith("accept")
@@ -1083,6 +1068,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Exception"] = "Node Shutdown";
                             dataRow["Flagged"] = true;
+                            handled = true;
                         }
                         #endregion
                     }
@@ -1100,7 +1086,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Flagged"] = true;
 								//dataRow["Associated Item"] = "Compaction Pause";
 								dataRow["Exception"] = "Compaction Latency Warning";
-							}
+                                handled = true;
+                            }
 							dataRow["Associated Value"] = time;
 						}
 						else if (parsedValues[nCell] == "Compacted")
@@ -1146,8 +1133,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							if (queryTime >= slowLogQueryThresholdInMS)
 							{
 								dataRow["Flagged"] = true;
-								//dataRow["Associated Item"] = "Compaction Pause";
-								dataRow["Exception"] = "Slow Query";
+                                handled = true;
+                                //dataRow["Associated Item"] = "Compaction Pause";
+                                dataRow["Exception"] = "Slow Query";
 							}
 							dataRow["Associated Value"] = queryTime;
 						}
@@ -1160,7 +1148,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							dataRow["Associated Item"] = string.Join(" ", parsedValues.GetRange(nCell, parsedValues.Count - nCell));
 							dataRow["Flagged"] = true;
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
@@ -1186,6 +1175,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             
 							dataRow["Exception"] = "Solr Performance Warning";
                             dataRow["Associated Item"] = ksTableName;
+                            handled = true;
                         }
 						#endregion
 					}
@@ -1199,7 +1189,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							dataRow["Flagged"] = true;
 							dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));
-						}
+                            handled = true;
+                        }
 						#endregion
 					}
 					else if (parsedValues[4] == "WorkPool.java")
@@ -1216,7 +1207,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							if (nxtLine.StartsWith("Failure") && nxtLine.Contains("commit log"))
 							{
 								dataRow["Flagged"] = true;
-								dataRow["Associated Item"] = nxtLine;
+                                handled = true;
+                                dataRow["Associated Item"] = nxtLine;
 								dataRow["Exception"] = "CommitLogFlushFailure";
 								++nLine;
 							}
@@ -1235,7 +1227,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 							{								
 								dataRow["Exception"] = "Prepared Discarded";
 								dataRow["Associated Value"] = preparedSize;
-							}
+                                handled = true;
+                            }
 						}
 						#endregion
 					}
@@ -1248,14 +1241,49 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Exception"] = "Node Startup";
                             dataRow["Flagged"] = true;
+                            handled = true;
                         }
                         #endregion
                     }
-                    else if (LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
+                    else if (dataRow["Associated Value"] == DBNull.Value
+                                && LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
 					{
 						dataRow["Associated Value"] = lineIPAddress;
 					}
 
+                    if (!handled
+                        && (parsedValues[0] == "WARN"
+                                || parsedValues[0] == "ERROR")
+                        && nCell > 4
+                            && (parsedValues[nCell].ToLower().Contains("exception")
+                                    || parsedValues[nCell].ToLower().Contains("error")
+                                    || parsedValues[nCell].ToLower() == "failed")
+                            && !(new char[] { '[', '(', '\'', '/', '"', '\\' }).Contains(parsedValues[nCell][0]))
+                    {
+                        #region exception
+                        var subParsedValues = parsedValues.Skip(nCell + 1);
+                        var indicatorWord = parsedValues[nCell].ToLower() == "exception"
+                                                || parsedValues[nCell].ToLower() == "error"
+                                                || parsedValues[nCell].ToLower() == "failed";
+
+                        //look ahead for a future "real" exception or error
+                        if (indicatorWord
+                                && subParsedValues.Any(item => RegExExpErrClassName.IsMatch(item)))
+                        { }
+                        else
+                        {
+                            ParseExceptions(ipAddress,
+                                                parsedValues[nCell],
+                                                dataRow,
+                                                string.Join(" ", indicatorWord
+                                                                    ? parsedValues.Skip(startRange + 1)
+                                                                    : subParsedValues),
+                                                null);
+                            exceptionOccurred = true;
+                        }
+
+                        #endregion
+                    }
 
                     logDesc.Append(' ');
                     logDesc.Append(parsedValues[nCell]);
@@ -1857,7 +1885,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 Common.Patterns.Collections.ThreadSafe.Dictionary<string, string> dictGCIno,
                                                                 string ipAddress,
                                                                 string dcName,
-                                                                List<string> ignoreKeySpaces,
+                                                                IEnumerable<string> ignoreKeySpaces,
                                                                 List<CKeySpaceTableNames> kstblExists)
         {
             //GCInspector.java:258 - G1 Young Generation GC in 691ms.  G1 Eden Space: 4,682,940,416 -> 0; G1 Old Gen: 2,211,450,256 -> 2,797,603,280; G1 Survivor Space: 220,200,960 -> 614,465,536; 
@@ -3988,10 +4016,12 @@ namespace DSEDiagnosticAnalyticParserConsole
             public List<DateTime> Timestamps;
             public string Type;
             public decimal Percentage;
+            public bool Deleted = false;
         };
 
         public static void DetectContinuousGCIntoNodeStats(DataTable dtNodeStats,
                                                                 int overlapToleranceInMS,
+                                                                int overlapContinuousGCNbrInSeries,
                                                                 TimeSpan gcTimeframeDetection,
                                                                 decimal gcDetectionPercent)
         {
@@ -4084,7 +4114,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         #endregion
                     }
-
+                   
                     #region GC TimeFrame
 
                     if (detectionTimeFrame != null)
@@ -4097,177 +4127,207 @@ namespace DSEDiagnosticAnalyticParserConsole
                             gcList.Add(detectionTimeFrame);
                         }
                     }
-                    #endregion
+                    #endregion                    
                 }
             );
             
             if (gcList.Count > 0)
             {
+                #region GC Continous Check nbr occurrences
+
+                if (overlapContinuousGCNbrInSeries > 0)
+                {
+                    gcList.UnSafe
+                            .Where(i => !i.Deleted && i.Type == "Overlap" && i.Latencies.Count < overlapContinuousGCNbrInSeries)
+                            .ForEach(i => i.Deleted = true);
+                }
+
+                #endregion
+
                 initializeTPStatsDataTable(dtNodeStats);
-
-                Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", gcList.UnSafe.Count);
-
+                int nbrAdded = 0;
+                int nbrRemoved = 0;
+               
                 foreach (var item in gcList.UnSafe)
                 {                    
-                    var splitName = item.Node.Split('|');
-                    
-                    if (item.Type == "Overlap")
+                    if (item.Deleted)
                     {
-                        #region GC Continous (overlapping)
-
-                        var dataRow = dtNodeStats.NewRow();
-                        var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous maximum latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Max();
-
-                        dtNodeStats.Rows.Add(dataRow);
-
-                        dataRow = dtNodeStats.NewRow();
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous minimum latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Min();
-
-                        dtNodeStats.Rows.Add(dataRow);
-
-                        dataRow = dtNodeStats.NewRow();
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous mean latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Average();
-
-                        dtNodeStats.Rows.Add(dataRow);
-
-                        dataRow = dtNodeStats.NewRow();
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous occurrences";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Occurrences"] = item.Latencies.Count;
-
-                        dtNodeStats.Rows.Add(dataRow);
-
-                        dataRow = dtNodeStats.NewRow();
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Sum();
-
-                        dtNodeStats.Rows.Add(dataRow);
-
-                        dataRow = dtNodeStats.NewRow();
-
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC Continuous standard deviation latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
-
-                        dtNodeStats.Rows.Add(dataRow);
-                        #endregion
+                        ++nbrRemoved;
                     }
-                    else if (item.Type == "TimeFrame")
+                    else
                     {
-                        #region GC TimeFrame
+                        var splitName = item.Node.Split('|');
 
-                        var dataRow = dtNodeStats.NewRow();
-                        var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
+                        if (item.Type == "Overlap")
+                        {
+                            #region GC Continous (overlapping)
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame maximum latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Max();
+                            var dataRow = dtNodeStats.NewRow();
+                            var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous maximum latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Max();
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame minimum latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Min();
+                            dataRow = dtNodeStats.NewRow();
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous minimum latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Min();
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame mean latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Average();
+                            dataRow = dtNodeStats.NewRow();
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous mean latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Average();
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame occurrences";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Occurrences"] = item.Latencies.Count;
+                            dataRow = dtNodeStats.NewRow();
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous occurrences";
+                            dataRow["Reconciliation Reference"] = "[" + string.Join(", ", item.GroupRefIds
+                                                                                            .SelectWithIndex((refId, idx)
+                                                                                                => string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+                                                                                                                    refId,
+                                                                                                                    item.Timestamps.ElementAtOrDefault(idx)))) + "]";
+                            dataRow["Occurrences"] = item.Latencies.Count;
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = item.Latencies.Sum();
+                            dataRow = dtNodeStats.NewRow();
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Sum();
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame standard deviation latency";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+                            dataRow = dtNodeStats.NewRow();
 
-                        dtNodeStats.Rows.Add(dataRow);
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC Continuous standard deviation latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
 
-                        dataRow = dtNodeStats.NewRow();
+                            dtNodeStats.Rows.Add(dataRow);
+                            #endregion
+                        }
+                        else if (item.Type == "TimeFrame")
+                        {
+                            #region GC TimeFrame
 
-                        dataRow["Source"] = "Cassandra Log";
-                        dataRow["Data Center"] = splitName[0];
-                        dataRow["Node IPAddress"] = splitName[1];
-                        dataRow["Attribute"] = "GC TimeFrame percent";
-                        dataRow["Reconciliation Reference"] = refIds;
-                        dataRow["Size (mb)"] = item.Percentage;
+                            var dataRow = dtNodeStats.NewRow();
+                            var refIds = string.Join(",", item.GroupRefIds.DuplicatesRemoved(id => id));
 
-                        dtNodeStats.Rows.Add(dataRow);
-                        #endregion
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame maximum latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Max();
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame minimum latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Min();
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame mean latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Average();
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame occurrences";
+                            dataRow["Reconciliation Reference"] = "[" + string.Join(", ", item.GroupRefIds
+                                                                                           .SelectWithIndex((refId, idx)
+                                                                                               => string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+                                                                                                                   refId,
+                                                                                                                   item.Timestamps.ElementAtOrDefault(idx)))) + "]";
+                            dataRow["Occurrences"] = item.Latencies.Count;
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = item.Latencies.Sum();
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame standard deviation latency";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+
+                            dtNodeStats.Rows.Add(dataRow);
+
+                            dataRow = dtNodeStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = splitName[0];
+                            dataRow["Node IPAddress"] = splitName[1];
+                            dataRow["Attribute"] = "GC TimeFrame percent";
+                            dataRow["Reconciliation Reference"] = refIds;
+                            dataRow["Size (mb)"] = item.Percentage;
+
+                            dtNodeStats.Rows.Add(dataRow);
+                            #endregion
+                        }
+
+                        ++nbrAdded;
                     }
                 }
-                
+
+                Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", nbrAdded);
+
             }
         }
     }

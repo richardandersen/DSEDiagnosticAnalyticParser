@@ -26,7 +26,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtRingInfo.Columns.Add("Cluster Name", typeof(string)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
-                //dtRingInfo.Columns.Add("Number of Restarts", typeof(int)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
