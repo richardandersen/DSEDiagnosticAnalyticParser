@@ -1,0 +1,2466 @@
+Keyspace: backuptests
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 5
+	Write Latency: 0.0436 ms.
+	Pending Flushes: 0
+		Table: table1
+		SSTable count: 2
+		Space used (live): 9917
+		Space used (total): 9917
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 224
+		SSTable Compression Ratio: 0.8600358422939067
+		Number of keys (estimate): 4
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 192
+		Bloom filter off heap memory used: 176
+		Index summary off heap memory used: 32
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 25
+		Compacted partition maximum bytes: 35
+		Compacted partition mean bytes: 33
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: table2
+		SSTable count: 2
+		Space used (live): 10014
+		Space used (total): 10014
+		Space used by snapshots (total): 4956
+		Off heap memory used (total): 240
+		SSTable Compression Ratio: 0.6948595004460303
+		Number of keys (estimate): 7
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 5
+		Local write latency: 0.052 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 200
+		Bloom filter off heap memory used: 184
+		Index summary off heap memory used: 32
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 25
+		Compacted partition maximum bytes: 35
+		Compacted partition mean bytes: 33
+		Average live cells per slice (last five minutes): 1.1111111111111112
+		Maximum live cells per slice (last five minutes): 3
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+----------------
+Keyspace: OpsCenter
+	Read Count: 11317
+	Read Latency: 0.11872775470531059 ms.
+	Write Count: 33185648
+	Write Latency: 0.018426260141130888 ms.
+	Pending Flushes: 0
+		Table: backup_reports
+		SSTable count: 2
+		Space used (live): 14245
+		Space used (total): 14245
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 388
+		SSTable Compression Ratio: 0.3483500419033626
+		Number of keys (estimate): 2
+		Memtable cell count: 1
+		Memtable data size: 3109
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 19
+		Local read latency: 0.443 ms
+		Local write count: 1
+		Local write latency: 0.379 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 352
+		Bloom filter off heap memory used: 336
+		Index summary off heap memory used: 36
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 3312
+		Compacted partition maximum bytes: 4768
+		Compacted partition mean bytes: 4370
+		Average live cells per slice (last five minutes): 2.526315789473684
+		Maximum live cells per slice (last five minutes): 4
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: bestpractice_results
+		SSTable count: 1
+		Space used (live): 20283
+		Space used (total): 20283
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 120
+		SSTable Compression Ratio: 0.14493046185229652
+		Number of keys (estimate): 86
+		Memtable cell count: 1818
+		Memtable data size: 1156975
+		Memtable off heap memory used: 0
+		Memtable switch count: 2
+		Local read count: 267
+		Local read latency: 0.124 ms
+		Local write count: 1905
+		Local write latency: 0.022 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 72
+		Bloom filter off heap memory used: 64
+		Index summary off heap memory used: 32
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 447
+		Compacted partition maximum bytes: 9887
+		Compacted partition mean bytes: 2372
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: events
+		SSTable count: 4
+		Space used (live): 29957
+		Space used (total): 29957
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 216
+		SSTable Compression Ratio: 0.5762391244640578
+		Number of keys (estimate): 134
+		Memtable cell count: 78
+		Memtable data size: 25910
+		Memtable off heap memory used: 0
+		Memtable switch count: 3
+		Local read count: 21
+		Local read latency: 0.117 ms
+		Local write count: 114
+		Local write latency: 0.040 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 104
+		Bloom filter off heap memory used: 72
+		Index summary off heap memory used: 112
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 104
+		Compacted partition maximum bytes: 310
+		Compacted partition mean bytes: 272
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 5.428571428571429
+		Maximum tombstones per slice (last five minutes): 7
+
+		Table: events_timeline
+		SSTable count: 3
+		Space used (live): 15867
+		Space used (total): 15867
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 430
+		SSTable Compression Ratio: 0.9121496759457995
+		Number of keys (estimate): 4
+		Memtable cell count: 78
+		Memtable data size: 3526
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 1044
+		Local read latency: 0.027 ms
+		Local write count: 79
+		Local write latency: 0.030 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 368
+		Bloom filter off heap memory used: 344
+		Index summary off heap memory used: 62
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 43
+		Compacted partition maximum bytes: 1109
+		Compacted partition mean bytes: 410
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: pdps
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: rollup_state
+		SSTable count: 1
+		SSTables in each level: [1, 0, 0, 0, 0, 0, 0, 0, 0]
+		Space used (live): 146084
+		Space used (total): 146084
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 105
+		SSTable Compression Ratio: 0.27116284586056116
+		Number of keys (estimate): 4
+		Memtable cell count: 152987
+		Memtable data size: 1063240
+		Memtable off heap memory used: 0
+		Memtable switch count: 6
+		Local read count: 85
+		Local read latency: 3.255 ms
+		Local write count: 7896059
+		Local write latency: 0.021 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 16
+		Bloom filter off heap memory used: 8
+		Index summary off heap memory used: 25
+		Compression metadata off heap memory used: 72
+		Compacted partition minimum bytes: 219343
+		Compacted partition maximum bytes: 263210
+		Compacted partition mean bytes: 263210
+		Average live cells per slice (last five minutes): 456.01176470588234
+		Maximum live cells per slice (last five minutes): 535
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: rollups300
+		SSTable count: 1
+		Space used (live): 67005393
+		Space used (total): 67005393
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 21846
+		SSTable Compression Ratio: 0.5464357814445294
+		Number of keys (estimate): 5149
+		Memtable cell count: 665166
+		Memtable data size: 34543684
+		Memtable off heap memory used: 0
+		Memtable switch count: 6
+		Local read count: 3
+		Local read latency: 0.190 ms
+		Local write count: 4175634
+		Local write latency: 0.019 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 5112
+		Bloom filter off heap memory used: 5104
+		Index summary off heap memory used: 1822
+		Compression metadata off heap memory used: 14920
+		Compacted partition minimum bytes: 104
+		Compacted partition maximum bytes: 182785
+		Compacted partition mean bytes: 42683
+		Average live cells per slice (last five minutes): 2.3333333333333335
+		Maximum live cells per slice (last five minutes): 3
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: rollups60
+		SSTable count: 1
+		Space used (live): 323375665
+		Space used (total): 323375665
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 72725
+		SSTable Compression Ratio: 0.6008198985114247
+		Number of keys (estimate): 5170
+		Memtable cell count: 1271094
+		Memtable data size: 57593088
+		Memtable off heap memory used: 0
+		Memtable switch count: 16
+		Local read count: 6258
+		Local read latency: 0.125 ms
+		Local write count: 20928321
+		Local write latency: 0.021 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 5328
+		Bloom filter off heap memory used: 5320
+		Index summary off heap memory used: 1805
+		Compression metadata off heap memory used: 65600
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 943127
+		Compacted partition mean bytes: 188156
+		Average live cells per slice (last five minutes): 5.521169515897109
+		Maximum live cells per slice (last five minutes): 5722
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: rollups7200
+		SSTable count: 1
+		Space used (live): 701928
+		Space used (total): 701928
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 5663
+		SSTable Compression Ratio: 0.45214541880495784
+		Number of keys (estimate): 5044
+		Memtable cell count: 150995
+		Memtable data size: 7954951
+		Memtable off heap memory used: 0
+		Memtable switch count: 2
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 167117
+		Local write latency: 0.018 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 3736
+		Bloom filter off heap memory used: 3728
+		Index summary off heap memory used: 1791
+		Compression metadata off heap memory used: 144
+		Compacted partition minimum bytes: 216
+		Compacted partition maximum bytes: 1597
+		Compacted partition mean bytes: 391
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: rollups86400
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 2067
+		Memtable cell count: 6695
+		Memtable data size: 373758
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 6695
+		Local write latency: 0.016 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: settings
+		SSTable count: 6
+		Space used (live): 100356
+		Space used (total): 100356
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 501
+		SSTable Compression Ratio: 0.7694321288578215
+		Number of keys (estimate): 28
+		Memtable cell count: 8369
+		Memtable data size: 78976
+		Memtable off heap memory used: 0
+		Memtable switch count: 3
+		Local read count: 3620
+		Local read latency: 0.097 ms
+		Local write count: 9723
+		Local write latency: 0.039 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 264
+		Bloom filter off heap memory used: 216
+		Index summary off heap memory used: 237
+		Compression metadata off heap memory used: 48
+		Compacted partition minimum bytes: 43
+		Compacted partition maximum bytes: 17084
+		Compacted partition mean bytes: 3760
+		Average live cells per slice (last five minutes): 1.3864640883977901
+		Maximum live cells per slice (last five minutes): 50
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+----------------
+Keyspace: system_traces
+	Read Count: 6
+	Read Latency: 0.4583333333333333 ms.
+	Write Count: 41
+	Write Latency: 0.08139024390243903 ms.
+	Pending Flushes: 0
+		Table: events
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 2
+		Local read count: 3
+		Local read latency: 0.203 ms
+		Local write count: 35
+		Local write latency: 0.033 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 11.666666666666666
+		Maximum live cells per slice (last five minutes): 14
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: sessions
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 2
+		Local read count: 3
+		Local read latency: 0.769 ms
+		Local write count: 6
+		Local write latency: 0.396 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+----------------
+Keyspace: system
+	Read Count: 6051
+	Read Latency: 0.1484686828623368 ms.
+	Write Count: 243203
+	Write Latency: 0.035950333671870824 ms.
+	Pending Flushes: 0
+		Table: IndexInfo
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: available_ranges
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: batches
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: batchlog
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: built_views
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: compaction_history
+		SSTable count: 3
+		Space used (live): 90718
+		Space used (total): 90718
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 1756
+		SSTable Compression Ratio: 0.4475622454899577
+		Number of keys (estimate): 1053
+		Memtable cell count: 1
+		Memtable data size: 201
+		Memtable off heap memory used: 0
+		Memtable switch count: 174
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 1132
+		Local write latency: 0.520 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 1424
+		Bloom filter off heap memory used: 1400
+		Index summary off heap memory used: 308
+		Compression metadata off heap memory used: 48
+		Compacted partition minimum bytes: 87
+		Compacted partition maximum bytes: 179
+		Compacted partition mean bytes: 142
+		Average live cells per slice (last five minutes): 1109.0
+		Maximum live cells per slice (last five minutes): 1109
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: hints
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: local
+		SSTable count: 1
+		Space used (live): 7051
+		Space used (total): 7051
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 41
+		SSTable Compression Ratio: 0.9194001874414246
+		Number of keys (estimate): 1
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 37
+		Local read count: 2371
+		Local read latency: 0.282 ms
+		Local write count: 5868
+		Local write latency: 0.024 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 16
+		Bloom filter off heap memory used: 8
+		Index summary off heap memory used: 17
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 925
+		Compacted partition maximum bytes: 1109
+		Compacted partition mean bytes: 1109
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0198757763975155
+		Maximum tombstones per slice (last five minutes): 7
+
+		Table: paxos
+		SSTable count: 0
+		SSTables in each level: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: peer_events
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: peers
+		SSTable count: 3
+		Space used (live): 16437
+		Space used (total): 16437
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 104
+		SSTable Compression Ratio: 0.9872994652406417
+		Number of keys (estimate): 1
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 30
+		Local read count: 22
+		Local read latency: 0.946 ms
+		Local write count: 11761
+		Local write latency: 0.022 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 48
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 73
+		Compacted partition maximum bytes: 1109
+		Compacted partition mean bytes: 427
+		Average live cells per slice (last five minutes): 1.6048951048951048
+		Maximum live cells per slice (last five minutes): 2
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: range_xfers
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: size_estimates
+		SSTable count: 1
+		Space used (live): 16350
+		Space used (total): 16350
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 63
+		SSTable Compression Ratio: 0.13538233660433252
+		Number of keys (estimate): 18
+		Memtable cell count: 988
+		Memtable data size: 117354
+		Memtable off heap memory used: 0
+		Memtable switch count: 175
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 106961
+		Local write latency: 0.053 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 24
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 23
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 2300
+		Compacted partition maximum bytes: 42510
+		Compacted partition mean bytes: 9570
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: sstable_activity
+		SSTable count: 3
+		Space used (live): 31914
+		Space used (total): 31914
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 568
+		SSTable Compression Ratio: 0.32235274788524165
+		Number of keys (estimate): 170
+		Memtable cell count: 110
+		Memtable data size: 4962
+		Memtable off heap memory used: 0
+		Memtable switch count: 174
+		Local read count: 3658
+		Local read latency: 0.082 ms
+		Local write count: 117481
+		Local write latency: 0.026 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 392
+		Bloom filter off heap memory used: 368
+		Index summary off heap memory used: 168
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 43
+		Compacted partition maximum bytes: 103
+		Compacted partition mean bytes: 86
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: views_builds_in_progress
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: system_distributed
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 0
+	Write Latency: NaN ms.
+	Pending Flushes: 0
+		Table: parent_repair_history
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: repair_history
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: system_schema
+	Read Count: 4807
+	Read Latency: 0.07273268150613689 ms.
+	Write Count: 314
+	Write Latency: 0.7681783439490446 ms.
+	Pending Flushes: 0
+		Table: aggregates
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 107
+		Local read latency: 0.017 ms
+		Local write count: 2
+		Local write latency: 0.094 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: columns
+		SSTable count: 1
+		Space used (live): 16633
+		Space used (total): 16633
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 63
+		SSTable Compression Ratio: 0.28984754434719373
+		Number of keys (estimate): 11
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 82
+		Local read count: 831
+		Local read latency: 0.172 ms
+		Local write count: 99
+		Local write latency: 0.895 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 23
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 216
+		Compacted partition maximum bytes: 17084
+		Compacted partition mean bytes: 3698
+		Average live cells per slice (last five minutes): 40.30168776371308
+		Maximum live cells per slice (last five minutes): 535
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: dropped_columns
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 752
+		Local read latency: 0.030 ms
+		Local write count: 2
+		Local write latency: 0.097 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: functions
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 107
+		Local read latency: 0.017 ms
+		Local write count: 2
+		Local write latency: 0.102 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: indexes
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 828
+		Local read latency: 0.018 ms
+		Local write count: 2
+		Local write latency: 0.102 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: keyspaces
+		SSTable count: 1
+		Space used (live): 5748
+		Space used (total): 5748
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 63
+		SSTable Compression Ratio: 0.3579192546583851
+		Number of keys (estimate): 11
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 85
+		Local read count: 207
+		Local read latency: 0.251 ms
+		Local write count: 102
+		Local write latency: 0.868 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 23
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 87
+		Compacted partition maximum bytes: 149
+		Compacted partition mean bytes: 130
+		Average live cells per slice (last five minutes): 4.385542168674699
+		Maximum live cells per slice (last five minutes): 12
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: tables
+		SSTable count: 1
+		Space used (live): 11541
+		Space used (total): 11541
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 63
+		SSTable Compression Ratio: 0.14158823529411765
+		Number of keys (estimate): 11
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 82
+		Local read count: 929
+		Local read latency: 0.132 ms
+		Local write count: 99
+		Local write latency: 0.889 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 23
+		Compression metadata off heap memory used: 16
+		Compacted partition minimum bytes: 771
+		Compacted partition maximum bytes: 11864
+		Compacted partition mean bytes: 3372
+		Average live cells per slice (last five minutes): 6.817399617590822
+		Maximum live cells per slice (last five minutes): 86
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: triggers
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 760
+		Local read latency: 0.017 ms
+		Local write count: 2
+		Local write latency: 0.094 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: types
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 109
+		Local read latency: 0.041 ms
+		Local write count: 2
+		Local write latency: 0.097 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: views
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 1
+		Local read count: 177
+		Local read latency: 0.057 ms
+		Local write count: 2
+		Local write latency: 0.097 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+----------------
+Keyspace: dse_perf
+	Read Count: 80165
+	Read Latency: 0.03799703112330818 ms.
+	Write Count: 3358130
+	Write Latency: 0.051989058791648925 ms.
+	Pending Flushes: 0
+		Table: cell_count_histograms
+		SSTable count: 2
+		Space used (live): 234205
+		Space used (total): 234205
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 256
+		SSTable Compression Ratio: 0.24525751244040622
+		Number of keys (estimate): 14
+		Memtable cell count: 2886
+		Memtable data size: 199190
+		Memtable off heap memory used: 0
+		Memtable switch count: 162
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 325091
+		Local write latency: 0.056 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 128
+		Compacted partition minimum bytes: 150
+		Compacted partition maximum bytes: 654949
+		Compacted partition mean bytes: 72221
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: cell_count_histograms_summary
+		SSTable count: 2
+		Space used (live): 44957
+		Space used (total): 44957
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 168
+		SSTable Compression Ratio: 0.22863259215159284
+		Number of keys (estimate): 14
+		Memtable cell count: 224
+		Memtable data size: 51352
+		Memtable off heap memory used: 0
+		Memtable switch count: 162
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 325117
+		Local write latency: 0.027 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 40
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 14232
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: key_cache
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: net_stats
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: node_slow_log
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 80165
+		Local read latency: 0.043 ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: partition_size_histograms
+		SSTable count: 2
+		Space used (live): 333874
+		Space used (total): 333874
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 296
+		SSTable Compression Ratio: 0.26638725434878063
+		Number of keys (estimate): 14
+		Memtable cell count: 3866
+		Memtable data size: 266810
+		Memtable off heap memory used: 0
+		Memtable switch count: 162
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 324734
+		Local write latency: 0.060 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 168
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 654949
+		Compacted partition mean bytes: 90304
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: partition_size_histograms_summary
+		SSTable count: 2
+		Space used (live): 45009
+		Space used (total): 45009
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 168
+		SSTable Compression Ratio: 0.238247493582535
+		Number of keys (estimate): 14
+		Memtable cell count: 224
+		Memtable data size: 51352
+		Memtable off heap memory used: 0
+		Memtable switch count: 162
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 324757
+		Local write latency: 0.027 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 40
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 14232
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: range_latency_histograms
+		SSTable count: 3
+		Space used (live): 456726
+		Space used (total): 456726
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 374
+		SSTable Compression Ratio: 0.2585164520783771
+		Number of keys (estimate): 8
+		Memtable cell count: 18560
+		Memtable data size: 1280672
+		Memtable off heap memory used: 0
+		Memtable switch count: 149
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 211942
+		Local write latency: 0.080 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 126
+		Compression metadata off heap memory used: 224
+		Compacted partition minimum bytes: 1110
+		Compacted partition maximum bytes: 315852
+		Compacted partition mean bytes: 159147
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: range_latency_histograms_global
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: range_latency_histograms_ks
+		SSTable count: 2
+		Space used (live): 17410
+		Space used (total): 17410
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 102
+		SSTable Compression Ratio: 0.6143415220494328
+		Number of keys (estimate): 2
+		Memtable cell count: 44
+		Memtable data size: 3044
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 61464
+		Local write latency: 0.026 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 62
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 14237
+		Compacted partition mean bytes: 7193
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: range_latency_histograms_summary
+		SSTable count: 3
+		Space used (live): 64807
+		Space used (total): 64807
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 214
+		SSTable Compression Ratio: 0.22077807933630264
+		Number of keys (estimate): 8
+		Memtable cell count: 1160
+		Memtable data size: 265672
+		Memtable off heap memory used: 0
+		Memtable switch count: 149
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 211942
+		Local write latency: 0.030 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 24
+		Index summary off heap memory used: 126
+		Compression metadata off heap memory used: 64
+		Compacted partition minimum bytes: 311
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 23740
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: read_latency_histograms
+		SSTable count: 2
+		Space used (live): 464921
+		Space used (total): 464921
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 328
+		SSTable Compression Ratio: 0.2811272028517859
+		Number of keys (estimate): 8
+		Memtable cell count: 4802
+		Memtable data size: 331370
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 202122
+		Local write latency: 0.103 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 216
+		Compacted partition minimum bytes: 1110
+		Compacted partition maximum bytes: 785939
+		Compacted partition mean bytes: 218932
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: read_latency_histograms_global
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: read_latency_histograms_ks
+		SSTable count: 2
+		Space used (live): 208896
+		Space used (total): 208896
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 174
+		SSTable Compression Ratio: 0.3087836610428236
+		Number of keys (estimate): 2
+		Memtable cell count: 2068
+		Memtable data size: 142700
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 61489
+		Local write latency: 0.148 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 62
+		Compression metadata off heap memory used: 96
+		Compacted partition minimum bytes: 4769
+		Compacted partition maximum bytes: 654949
+		Compacted partition mean bytes: 330335
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: read_latency_histograms_summary
+		SSTable count: 2
+		Space used (live): 29667
+		Space used (total): 29667
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 144
+		SSTable Compression Ratio: 0.3027877489268802
+		Number of keys (estimate): 8
+		Memtable cell count: 93
+		Memtable data size: 21329
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 202137
+		Local write latency: 0.025 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 12934
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: sstables_per_read_histograms
+		SSTable count: 2
+		Space used (live): 48767
+		Space used (total): 48767
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 144
+		SSTable Compression Ratio: 0.40556637679491514
+		Number of keys (estimate): 8
+		Memtable cell count: 274
+		Memtable data size: 18938
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 189848
+		Local write latency: 0.027 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 61214
+		Compacted partition mean bytes: 14220
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: sstables_per_read_histograms_ks
+		SSTable count: 2
+		Space used (live): 30831
+		Space used (total): 30831
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 102
+		SSTable Compression Ratio: 0.3953267073660229
+		Number of keys (estimate): 2
+		Memtable cell count: 176
+		Memtable data size: 12152
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 61489
+		Local write latency: 0.036 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 62
+		Compression metadata off heap memory used: 24
+		Compacted partition minimum bytes: 447
+		Compacted partition maximum bytes: 61214
+		Compacted partition mean bytes: 30874
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: sstables_per_read_histograms_summary
+		SSTable count: 2
+		Space used (live): 27741
+		Space used (total): 27741
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 144
+		SSTable Compression Ratio: 0.25905589402674634
+		Number of keys (estimate): 8
+		Memtable cell count: 92
+		Memtable data size: 21100
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 189860
+		Local write latency: 0.026 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 32
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 11482
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: thread_pool
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: thread_pool_messages
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: write_latency_histograms
+		SSTable count: 2
+		Space used (live): 733970
+		Space used (total): 733970
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 456
+		SSTable Compression Ratio: 0.2848700378110637
+		Number of keys (estimate): 12
+		Memtable cell count: 10028
+		Memtable data size: 691980
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 302315
+		Local write latency: 0.140 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 328
+		Compacted partition minimum bytes: 87
+		Compacted partition maximum bytes: 1358102
+		Compacted partition mean bytes: 217748
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: write_latency_histograms_global
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: write_latency_histograms_ks
+		SSTable count: 2
+		Space used (live): 428979
+		Space used (total): 428979
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 262
+		SSTable Compression Ratio: 0.3010729144868657
+		Number of keys (estimate): 2
+		Memtable cell count: 4444
+		Memtable data size: 306644
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 61489
+		Local write latency: 0.256 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 32
+		Bloom filter off heap memory used: 16
+		Index summary off heap memory used: 62
+		Compression metadata off heap memory used: 184
+		Compacted partition minimum bytes: 9888
+		Compacted partition maximum bytes: 1358102
+		Compacted partition mean bytes: 684983
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: write_latency_histograms_summary
+		SSTable count: 2
+		Space used (live): 39855
+		Space used (total): 39855
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 168
+		SSTable Compression Ratio: 0.26547811572874336
+		Number of keys (estimate): 12
+		Memtable cell count: 180
+		Memtable data size: 41268
+		Memtable off heap memory used: 0
+		Memtable switch count: 173
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 302334
+		Local write latency: 0.027 ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 48
+		Bloom filter off heap memory used: 32
+		Index summary off heap memory used: 96
+		Compression metadata off heap memory used: 40
+		Compacted partition minimum bytes: 125
+		Compacted partition maximum bytes: 35425
+		Compacted partition mean bytes: 13621
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: dse_system
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 0
+	Write Latency: NaN ms.
+	Pending Flushes: 0
+		Table: encrypted_keys
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: leases
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: dse_security
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 0
+	Write Latency: NaN ms.
+	Pending Flushes: 0
+		Table: digest_tokens
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: role_options
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: spark_security
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: dse_leases
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 0
+	Write Latency: NaN ms.
+	Pending Flushes: 0
+		Table: leases
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+		Table: logs
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+----------------
+Keyspace: system_auth
+	Read Count: 0
+	Read Latency: NaN ms.
+	Write Count: 0
+	Write Latency: NaN ms.
+	Pending Flushes: 0
+		Table: resource_role_permissons_index
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: role_members
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: role_permissions
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): NaN
+		Maximum live cells per slice (last five minutes): 0
+		Average tombstones per slice (last five minutes): NaN
+		Maximum tombstones per slice (last five minutes): 0
+
+		Table: roles
+		SSTable count: 0
+		Space used (live): 0
+		Space used (total): 0
+		Space used by snapshots (total): 0
+		Off heap memory used (total): 0
+		SSTable Compression Ratio: 0.0
+		Number of keys (estimate): 0
+		Memtable cell count: 0
+		Memtable data size: 0
+		Memtable off heap memory used: 0
+		Memtable switch count: 0
+		Local read count: 0
+		Local read latency: NaN ms
+		Local write count: 0
+		Local write latency: NaN ms
+		Pending flushes: 0
+		Bloom filter false positives: 0
+		Bloom filter false ratio: 0.00000
+		Bloom filter space used: 0
+		Bloom filter off heap memory used: 0
+		Index summary off heap memory used: 0
+		Compression metadata off heap memory used: 0
+		Compacted partition minimum bytes: 0
+		Compacted partition maximum bytes: 0
+		Compacted partition mean bytes: 0
+		Average live cells per slice (last five minutes): 1.0
+		Maximum live cells per slice (last five minutes): 1
+		Average tombstones per slice (last five minutes): 1.0
+		Maximum tombstones per slice (last five minutes): 1
+
+----------------

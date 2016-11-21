@@ -1,0 +1,777 @@
+Compaction History: 
+id                                       keyspace_name      columnfamily_name            compacted_at              bytes_in       bytes_out      rows_merged
+250e43a0-96ce-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1476972281050             36094631       21105          {1:17}
+619f8410-9a1a-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477334877905             22661          22586          {1:73}
+e2370b40-9743-11e6-8ab5-71e7251f2ea8     system             local                        1477022849524             844            658            {4:1}
+2a846a40-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477339080420             238063         60782          {4:2}
+374f0190-98c6-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477188778025             411            147            {1:1, 2:1}
+29c6be90-9a2f-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477343803641             95549          95321          {1:305}
+c3aa6b20-9a47-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477354369746             509            173            {1:1, 2:2}
+ea85d4f0-9786-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477051639743             11161          2264           {4:8}
+705d06a0-95db-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476868039690             11405          2286           {4:8}
+a97b9820-95fe-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476883167906             514            42             {1:1, 2:2}
+3f61b960-9919-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477224439798             11205          2188           {4:8}
+bb50f8a0-9a3c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477349631274             407            42             {2:2}
+2b566040-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339081796             422            172            {1:1, 2:1}
+1f313070-99b0-11e6-8ab5-71e7251f2ea8     system             peers                        1477289239799             2308           1531           {4:11}
+9402fde0-9a3f-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477350853822             6022522        5735427        {2:1843, 3:33, 6:3}
+32a499c0-9a2e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477343389020             406            0              {2:2}
+63439e80-9a17-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333592168             471            42             {2:3}
+8491f080-9730-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477014531976             30895712       21654          {1:17}
+8bb37db0-96d7-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476976318731             446            182            {1:1, 2:1}
+f6dd6260-9a4a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477355744134             563            324            {1:3}
+f9f00660-9996-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477278439878             138919         34039          {1:61, 2:10, 3:6, 4:712}
+933c6440-9a18-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334102148             490            161            {1:2, 2:2}
+f7c22f60-95b0-11e6-ac3c-71e7251f2ea8     system             hints                        1476849798486             203            203            {1:1}
+17c975e0-9a32-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477345061950             35137705       28487          {1:16}
+09d1e2f0-99b1-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477289633439             334293577      333156869      {1:1212797, 2:3272}
+2cfd3040-9a15-11e6-8ab5-71e7251f2ea8     OpsCenter          bestpractice_results         1477332642116             16373          13607          {3:2, 4:1}
+fdf7e4b0-9a33-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345877627             452            42             {1:1, 2:2}
+9787d3b0-95b1-11e6-8ab5-71e7251f2ea8     OpsCenter          events                       1476850066539             4638           3346           {1:21}
+18011420-95b2-11e6-8ab5-71e7251f2ea8     system             hints                        1476850282082             6075           5720           {1:2, 2:1}
+8f288fe0-99fb-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477321639902             139302         34958          {1:28, 2:8, 3:2, 4:717}
+3a497720-9869-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477148839826             139609         34750          {1:27, 2:2, 3:5, 4:718}
+bb4e87a0-9a3c-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477349631258             238353         58814          {4:2}
+109db3e0-9838-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477127724574             32473246       25751          {1:14}
+116167f0-9599-11e6-ac3c-71e7251f2ea8     dse_perf           write_latency_histograms     1476839533551             41460440       37741          {1:17}
+01124ca0-9a4b-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477355761258             44321002       44297331       {1:155, 2:1262, 3:403, 4:59}
+c6ea5c10-9a14-11e6-8ab5-71e7251f2ea8     prod_fcra          ifps_inquiry                 1477332470865             83527663       83532533       {1:362452}
+21926040-9a24-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477339065411             56047          55748          {1:179}
+300cbda0-9709-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476997639802             138713         34535          {1:17, 2:2, 3:1, 4:718}
+6cc5f4d0-95e9-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1476874046621             27280832       12822          {1:10}
+8cdeb740-96d7-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1476976320692             34270417       22848          {1:17}
+c7fad520-9a29-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341492082             407            162            {1:1, 2:1}
+2ae0a540-9659-11e6-8ab5-71e7251f2ea8     system             peers                        1476922039700             2327           1533           {4:11}
+833e3010-9990-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477275663761             599            241            {1:2, 2:1}
+2a85f0e0-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339080430             407            42             {2:2}
+385efba0-996e-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477260935258             31742145       29955          {1:16}
+16dd84c0-996d-11e6-8ab5-71e7251f2ea8     system             local                        1477260449548             844            658            {4:1}
+69ce86a0-99e2-11e6-8ab5-71e7251f2ea8     system             peers                        1477310839818             2331           1524           {4:11}
+14974910-98cf-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477192585249             164161177      164160988      {1:516434}
+7e54e890-9a4a-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477355541913             107249         106995         {1:343}
+83cd9d90-9a3a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477348679145             664742         588273         {1:1869, 2:9, 5:1}
+2de205c0-98c7-11e6-8ab5-71e7251f2ea8     prod_fcra          ifps_inquiry                 1477189191708             83560578       83491982       {1:362178, 2:180}
+314ad3f0-9a1f-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336944303             428            42             {2:2}
+9ae5e051-9a26-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477340127957             489            161            {1:1, 2:2}
+4f19ca40-9627-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476900625636             450            181            {1:1, 2:1}
+89ff36a0-994b-11e6-8ab5-71e7251f2ea8     system             peers                        1477246039818             2314           1545           {4:11}
+57464f30-9939-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477238223779             490            168            {1:2, 2:2}
+58f3e920-987e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477157910706             448            42             {2:2}
+31494d50-9a1f-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477336944293             43085984       42977463       {2:1873, 3:4, 6:2}
+de3c5760-9569-11e6-ac3c-71e7251f2ea8     system             local                        1476819261398             835            649            {4:1}
+8e593c40-95b9-11e6-8ab5-71e7251f2ea8     system             schema_columns               1476853487108             82550          66835          {1:7, 2:1, 3:1}
+f703af10-9a4a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477355744385             525543         344755         {1:13, 4:2}
+0086ae40-9a26-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339868964             45586568       45509789       {2:1866, 3:13}
+a084b820-957a-11e6-ac3c-71e7251f2ea8     system             sstable_activity             1476826459297             133993         33543          {1:23, 2:2, 3:4, 4:713}
+6178df20-999f-11e6-8ab5-71e7251f2ea8     system             local                        1477282049554             844            658            {4:1}
+554f4740-9722-11e6-8ab5-71e7251f2ea8     system             peers                        1477008439732             2328           1539           {4:11}
+83360bc0-9a2a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341806204             416            42             {1:1, 2:2}
+2b50e200-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339081760             1342108        909777         {5:5}
+f516aaf0-9a30-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477344574239             406            42             {2:2}
+44b47e00-9894-11e6-8ab5-71e7251f2ea8     prod_fcra          ifps_inquiry                 1477167325664             83595937       83492149       {1:362006, 2:352}
+81a76c40-9908-11e6-8ab5-71e7251f2ea8     system             local                        1477217249540             844            658            {4:1}
+a5c60690-9674-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1476933842297             1683914461     1665404952     {1:6476780, 2:37647, 3:6}
+64b1d790-9932-11e6-8ab5-71e7251f2ea8     system             peers                        1477235239817             2320           1527           {4:11}
+462649d0-959c-11e6-ac3c-71e7251f2ea8     prod_fcra          rtics_inquiry                1476840910573             148652434      134280366      {1:390718, 2:41725}
+389b7560-966e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476931082166             437            171            {1:1, 2:1}
+9a641810-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339268113             425            42             {2:3}
+d690f350-993c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477239725829             466            42             {1:1, 2:2}
+36d70460-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339101094             44084944       44035150       {3:1844, 4:35}
+92fd1be0-9a19-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334531230             428            170            {1:1, 2:1}
+3fac52e0-9a09-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477327519502             449            184            {1:1, 2:1}
+0fd57df0-97a0-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477062439759             11221          2192           {4:8}
+03843830-9583-11e6-ac3c-71e7251f2ea8     system             local                        1476830061363             835            649            {4:1}
+e5663fb0-96d6-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476976039723             11231          2221           {4:8}
+bb058060-960d-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476889639782             133251         32995          {1:52, 2:6, 3:3, 4:712}
+d6513890-98f7-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477210090137             446            178            {1:1, 2:1}
+bfa642a0-97c3-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477077767114             39088246       28009          {1:15}
+a654ddd0-994d-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477246946349             40747739       31955          {1:17}
+eb164e81-95ac-11e6-ac3c-71e7251f2ea8     system             size_estimates               1476848059240             11351          2202           {4:8}
+5f2b71a0-9a2c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477342604730             407            162            {1:1, 2:1}
+c969c760-9658-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1476921876182             37224787       18427          {1:17}
+af528920-9964-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477256839858             138306         34531          {1:28, 2:7, 3:2, 4:712}
+7c8b8080-9858-11e6-8ab5-71e7251f2ea8     system             local                        1477141649544             844            658            {4:1}
+d40d8010-9a29-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341512337             514            171            {1:2, 2:2}
+24a1f550-95b2-11e6-8ab5-71e7251f2ea8     system             hints                        1476850303269             13017          6718           {1:1, 2:2}
+e84c8880-959e-11e6-ac3c-71e7251f2ea8     prod_fcra          bics_inquiry                 1476842041608             165912083      150215201      {1:478136, 2:46071}
+8493c540-9730-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477014531988             443            42             {2:2}
+63da96e0-9770-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477041964878             33788383       28808          {1:15}
+0ab0b250-9a42-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477351911925             453            42             {1:1, 2:2}
+1a11c240-9900-11e6-8ab5-71e7251f2ea8     system             peers                        1477213639780             2329           1530           {4:11}
+2e09b657-99a9-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286258229             104451264      104680017      {1:1501944, 2:753}
+8a07e930-994b-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477246039875             139780         34067          {1:108, 2:43, 3:14, 4:702}
+5a6d07c0-97d2-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477084039740             11184          2214           {4:8}
+cafe6ce0-9994-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477277502126             21911675       22052479       {1:311388}
+2fae7050-95b1-11e6-8ab5-71e7251f2ea8     system             local                        1476849892309             947            666            {4:1}
+ba651930-9a14-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477332449859             118871855      119035190      {1:1714195, 2:482}
+b12eae00-9a26-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477340165344             46446066       46312108       {2:1860, 3:19}
+0264ae00-96ad-11e6-8ab5-71e7251f2ea8     system             local                        1476958049504             844            658            {4:1}
+7a6f9fb6-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477285956907             50943584       51358480       {1:720973, 2:863}
+369428c0-9894-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477167301964             35284200       36109468       {3:1335, 4:544}
+a98cdd30-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850096771             1277           772            {1:1, 2:2}
+952feb30-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477238327651             165652411      165622814      {1:2326501, 2:9353}
+5618c8a0-97ad-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477068141098             427            161            {1:1, 2:1}
+d7d392d0-98f7-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477210092668             36405868       20164          {1:17}
+05947eb1-9640-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476911239707             11276          2224           {4:8}
+2b5c3ec0-9a47-11e6-8ab5-71e7251f2ea8     OpsCenter          bestpractice_results         1477354114220             15431          13911          {1:2, 4:1}
+05cd0200-9aad-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477397859872             39138027       21533          {1:17}
+489c89c0-99a9-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286302812             112987445      113195254      {1:1627733, 2:748}
+bddd0fb0-96e4-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_contribution           1476981986347             62614238       59504472       {1:109845, 2:4744}
+1baac960-9a1f-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477336908022             37775          37475          {1:121}
+7fd37770-9a38-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477347813479             104255         104004         {1:333}
+926a9fe0-9a19-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477334530270             15374          3619           {3:1, 4:1, 8:3}
+aa329310-95b1-11e6-8ab5-71e7251f2ea8     prod_fcra          ifps_inquiry                 1476850097857             83452707       83139312       {1:360694, 2:820}
+0ca0a430-980d-11e6-8ab5-71e7251f2ea8     system             local                        1477109249523             844            658            {4:1}
+d67ebcd0-9a9a-11e6-8ab5-71e7251f2ea8     system             local                        1477390049565             844            658            {4:1}
+441feb10-9663-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1476926377025             33416925       18046          {1:12}
+0c701890-9a21-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477337741465             43409          42801          {1:137, 2:1}
+77b3cf10-9a2c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477342645889             48364698       48319536       {2:1875, 3:4}
+9180a250-9a4b-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477356003573             11237537       11198365       {2:1863, 3:16}
+1c4dd740-979a-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477059883700             33353573       18837          {1:17}
+2bb64900-9a70-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477371724176             407            157            {1:1, 2:1}
+0ab57380-96f0-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476986839736             11276          2293           {4:8}
+c20004f0-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850137791             881            0              {2:1}
+66ffde30-9a4e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477357220755             427            42             {2:2}
+842c24c0-9a9c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477390770444             445            42             {2:2}
+5f8dae70-9882-11e6-8ab5-71e7251f2ea8     system             peers                        1477159639767             2322           1535           {4:11}
+cafff380-9994-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477277502136             456            42             {1:1, 2:2}
+9c276b90-9a27-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477340559561             489            161            {1:1, 2:2}
+fa9d4cd0-9766-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477037922845             433            167            {1:1, 2:1}
+9ad4d060-96a4-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476954439782             132379         33027          {1:22, 2:1, 3:1, 4:715}
+2168df40-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339065140             406            161            {1:1, 2:1}
+6b3988c0-9968-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477258443596             422            42             {2:2}
+ded9e290-9add-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477418839865             11199          2236           {4:8}
+09d9fd50-98c1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477186554277             409            42             {2:2}
+0fd0dce0-9599-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476839530926             447            181            {1:1, 2:1}
+7a9fb390-973b-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477019239753             11304          2213           {4:8}
+21bba4f3-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477238133951             31778814       31882361       {1:106177}
+b8fe91a0-95b1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476850122682             490            165            {1:2, 2:3}
+c98c0c60-9a3d-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477350084646             431            161            {1:1, 2:1}
+0ab54c70-96f0-11e6-8ab5-71e7251f2ea8     system             peers                        1476986839735             2323           1536           {4:11}
+a15d9960-9953-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477249514998             448            182            {1:1, 2:1}
+a5c98900-9674-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476933842320             465            42             {2:2}
+b1614a00-9a16-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477333293727             1846804766     1840420828     {1:6149312, 2:13971, 3:8}
+c379deb0-9a1a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477335042075             737937         481620         {7:3}
+2ae16890-9659-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476922039705             11212          2221           {4:8}
+9c243f30-95b1-11e6-8ab5-71e7251f2ea8     dse_perf           solr_merge_latency_snapshot  1476850074275             21106569       20177846       {1:21, 2:21}
+eb118440-9a25-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339832964             406            161            {1:1, 2:1}
+bce8e8e0-972a-11e6-8ab5-71e7251f2ea8     system             local                        1477012049518             844            658            {4:1}
+b45e6f50-9a14-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1477332439749             28652649       28560802       {1:83205, 2:452}
+bafde470-986c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477150344247             448            42             {2:2}
+7066f1b0-95db-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476868039755             134064         33386          {1:26, 2:1, 3:3, 4:718}
+cfc7e790-99af-11e6-8ab5-71e7251f2ea8     dse_perf           solr_index_stats             1477289106569             4731470        3652011        {1:52}
+3c927a90-9acb-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477410836665             452            42             {2:2}
+c0a0fbb0-9a47-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477354364651             557            248            {1:3, 2:1}
+b478d520-9a14-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477332439922             140246         34761          {1:38, 2:5, 3:4, 4:717}
+17f69b30-9a44-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477352793187             414            42             {2:2}
+f5e98140-98f1-11e6-8ab5-71e7251f2ea8     dse_perf           solr_merge_latency_snapshot  1477207566164             31581790       25140706       {1:46, 2:6, 3:10}
+a5079ed0-9804-11e6-8ab5-71e7251f2ea8     system             peers                        1477105639741             2330           1531           {4:11}
+0071c480-9a17-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333426376             558            237            {1:3, 2:1}
+9cb838e0-97c1-11e6-8ab5-71e7251f2ea8     system             local                        1477076849518             844            658            {4:1}
+c5638200-9874-11e6-8ab5-71e7251f2ea8     dse_perf           solr_update_latency_snapshot 1477153797664             38413436       33281829       {1:41, 2:6, 3:10}
+d4989530-997d-11e6-8ab5-71e7251f2ea8     system             peers                        1477267639811             2346           1522           {4:11}
+29039060-9894-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477167279206             421            160            {1:1, 2:1}
+c68f1fd0-95fa-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1476881498701             149162954      135751742      {1:1831059, 2:28843, 3:47074, 4:6083, 5:5}
+baf97270-960d-11e6-8ab5-71e7251f2ea8     system             peers                        1476889639703             2325           1536           {4:11}
+632b35b0-9a31-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477344758923             422            42             {2:2}
+dee2e340-9add-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477418839924             140098         35331          {1:33, 2:7, 3:6, 4:719}
+05947eb0-9640-11e6-8ab5-71e7251f2ea8     system             peers                        1476911239706             2325           1540           {4:11}
+083fbcb0-9a1e-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477336445947             33064          32480          {1:104, 2:1}
+4690df20-9894-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477167328786             440            42             {1:1, 2:3}
+9acba8a0-96a4-11e6-8ab5-71e7251f2ea8     system             peers                        1476954439722             2330           1536           {4:11}
+a1ddd050-95fa-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1476881437141             128733785      128722925      {1:1837288, 2:6, 3:80}
+ada07c00-9a17-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477333716928             1088111        1032265        {4:6}
+fbce65d0-9ab3-11e6-8ab5-71e7251f2ea8     system             local                        1477400849581             844            658            {4:1}
+ce397cc0-9a1a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477335060108             43404098       43369356       {1:21, 2:1158, 3:640, 4:60}
+6c26ef50-95e1-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1476870609605             36829551       19823          {1:17}
+a0f7d214-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477286021553             598            288            {1:3, 2:1}
+63284f80-9a31-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477344758904             49575307       49473008       {3:1876, 4:3}
+ff0e8a30-9a46-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477354039891             147209         34933          {1:417, 2:36, 3:8, 4:707}
+eeb22240-9a33-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477345852004             235852         59114          {4:2}
+9b1cced0-9a26-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477340128317             67259          67276          {1:216}
+e81b3a90-9a18-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477334244537             17785          17488          {1:57}
+ac157200-99d1-11e6-8ab5-71e7251f2ea8     system             local                        1477303649568             844            658            {4:1}
+e1f06100-98d2-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477194218256             38267999       27974          {1:16}
+b9894f30-9ac4-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477408039843             11362          2260           {4:8}
+adb28460-99ca-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477300645798             450            42             {2:2}
+3003e400-9709-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476997639744             11335          2215           {4:8}
+f1915e30-9953-11e6-8ab5-71e7251f2ea8     system             local                        1477249649555             844            658            {4:1}
+1e124d50-9a3c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477349367461             885510         820851         {3:1865, 4:14}
+9f569d60-9a25-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477339705910             63982          63281          {1:203, 2:1}
+448bd5f0-99c9-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477300039887             140112         33980          {1:42, 2:72, 3:32, 4:694}
+6a929a50-9a2c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477342623860             462100         463059         {4:3}
+af3142d0-95b1-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1476850106237             63478614       64243215       {3:1874, 4:5}
+7aa04fd0-973b-11e6-8ab5-71e7251f2ea8     system             peers                        1477019239757             2327           1537           {4:11}
+c6704ec0-965e-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1476924448172             163350426      161188892      {1:548114, 2:7256}
+601c1f30-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477285912739             41424279       41978385       {1:586192, 2:857}
+bfa7f280-9a43-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477352645032             452            162            {1:1, 2:1}
+55b57850-9a31-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477344736341             412            167            {1:1, 2:1}
+09e95230-9a17-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333442259             629            345            {1:3, 2:1}
+7bf2be10-9978-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477265343600             393            42             {2:2}
+9acb3370-96a4-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476954439719             11245          2233           {4:8}
+7fbcb0c0-97eb-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477094839756             11315          2260           {4:8}
+95aa65b0-95f4-11e6-8ab5-71e7251f2ea8     system             peers                        1476878839691             2325           1534           {4:11}
+053c8c20-966b-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1476929707490             36387585       19641          {1:17}
+8e52ac90-95b9-11e6-8ab5-71e7251f2ea8     system             schema_columnfamilies        1476853487065             33553          25542          {1:7, 2:1, 3:1}
+cf838740-98cd-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477192039860             138287         33886          {1:46, 2:5, 3:3, 4:714}
+14f5fd90-9850-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477138039785             11129          2260           {4:8}
+58f066b0-987e-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477157910683             30407681       31007          {1:16}
+8bc44150-9a1e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336666597             423            42             {2:2}
+566ba8f0-9a31-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477344737535             745830         481777         {1:14, 4:3}
+1f3cc930-99b0-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477289239875             140893         35969          {1:150, 2:4, 3:3, 4:718}
+86c72890-99b8-11e6-8ab5-71e7251f2ea8     system             local                        1477292849561             844            658            {4:1}
+2d211f50-971d-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477006224837             412            42             {2:2}
+84dfa160-989b-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477170439798             11254          2187           {4:8}
+61a21c20-9a1a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334877922             415            42             {1:1, 2:2}
+9c469440-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074499             1109           1109           {1:3}
+821715f0-9a24-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477339227343             56917          56654          {1:182}
+4d00a4a0-96df-11e6-8ab5-71e7251f2ea8     system             local                        1476979649514             844            658            {4:1}
+933264b0-99c1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477296735867             451            185            {1:1, 2:1}
+cc4d9c10-993a-11e6-8ab5-71e7251f2ea8     system             hints                        1477238849617             203            203            {1:1}
+f4e9d760-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286162390             87104382       87366473       {1:1246979, 2:795}
+707a3dc0-9a1c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477335761820             218704         143705         {1:3, 6:1}
+11d1d200-9883-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477159938848             32645061       20026          {1:17}
+c7ecb310-9a23-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477338915009             54939          54589          {1:175}
+c01adc70-96bd-11e6-8ab5-71e7251f2ea8     system             peers                        1476965239735             2320           1524           {4:11}
+c7250620-988a-11e6-8ab5-71e7251f2ea8     system             local                        1477163249538             844            658            {4:1}
+c3a7ac00-9a47-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477354369728             9700820        9632457        {2:26, 3:1850, 4:3}
+c5cb3960-9593-11e6-ac3c-71e7251f2ea8     system             peers                        1476837259254             2337           1550           {4:11}
+e7565260-97f3-11e6-8ab5-71e7251f2ea8     system             local                        1477098449542             844            658            {4:1}
+921d7500-9a3f-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477350850640             236023         57752          {4:2}
+cae96dc0-9a22-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477338490524             506            161            {1:1, 2:2}
+2544ac20-9a1f-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477336924130             237817         57449          {4:2}
+9c2b4410-95b1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476850074321             1459           579            {1:7, 2:3}
+97f22180-95a1-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476843195288             387            42             {2:2}
+ad6c5d60-978a-11e6-8ab5-71e7251f2ea8     dse_perf           solr_update_latency_snapshot 1477053255222             37155487       30985970       {1:36, 2:19}
+956fe770-9a57-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477361164135             433            171            {1:1, 2:1}
+ca60e4c0-981d-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477116439820             137951         33891          {1:37, 2:4, 3:6, 4:713}
+4b123fa0-95c2-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476857239706             11251          2252           {4:8}
+a07c7ac0-957a-11e6-ac3c-71e7251f2ea8     system             peers                        1476826459244             2331           1551           {4:11}
+86cab4c0-99e9-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477313894924             26028452       30511          {1:16}
+782e7820-9a3e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477350377634             5151674        5112190        {2:1874, 7:5}
+d9b9ff30-9a2d-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477343239843             11192          2185           {4:8}
+ad5127e0-9a35-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477346601310             102461         102239         {1:327}
+15c32e50-9a21-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477337757109             6188           3641           {1:1, 2:1, 7:1, 8:2}
+0a22b1b0-9a17-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477333442635             560270         505477         {7:3}
+d2f0df50-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850166213             3302           3302           {1:3}
+a7ba8fc0-9615-11e6-8ab5-71e7251f2ea8     dse_perf           solr_update_latency_snapshot 1476893043388             29981538       28628981       {1:30, 2:6, 3:6}
+b2133fa0-9a3c-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477349615770             106388         106115         {1:340}
+71ba2dd0-9a8a-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477383008557             43215279       34070          {1:17}
+80c43ee0-97ad-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477068212686             157074136      157139785      {1:496037, 2:659}
+9fe8f3f0-9754-11e6-8ab5-71e7251f2ea8     system             peers                        1477030039727             2324           1529           {4:11}
+a4fe1ad0-9a26-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477340144893             494903         480300         {4:3}
+b8fb3640-95b1-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1476850122659             134904371      134290552      {1:430644, 2:1799}
+8df5f7f0-9a2a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341824239             437            167            {1:1, 2:1}
+49a26a80-9a79-11e6-8ab5-71e7251f2ea8     system             peers                        1477375639848             2323           1536           {4:11}
+7a34cc40-9a3a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477348663044             427            42             {2:2}
+f4d07120-98e6-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477202839858             136698         33864          {1:37, 2:6, 3:8, 4:710}
+64bbe9b0-9932-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477235239883             135161         33344          {1:30, 2:1, 3:2, 4:713}
+1e6b2d30-95d2-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476864036739             430            42             {1:1, 2:2}
+bafc36c0-986c-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477150344236             30997335       18141          {1:17}
+9444f0d0-9aab-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477397239901             140896         34937          {1:26, 2:4, 3:6, 4:718}
+35828fd0-9722-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477008386381             28926212       23614          {1:13}
+1e3b5920-9a3c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477349367730             549            265            {1:2, 2:1}
+cb046fd0-9a22-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477338490701             50789          50626          {1:161, 2:1}
+ff489f40-9a41-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477351892788             106987         106721         {1:342}
+5035cc80-9672-11e6-8ab5-71e7251f2ea8     system             peers                        1476932839752             2323           1536           {4:11}
+f9e494b0-9996-11e6-8ab5-71e7251f2ea8     system             peers                        1477278439803             2322           1520           {4:11}
+e5641cd0-96d6-11e6-8ab5-71e7251f2ea8     system             peers                        1476976039709             2312           1531           {4:11}
+6eeff0a0-9a92-11e6-8ab5-71e7251f2ea8     system             peers                        1477386439850             2324           1537           {4:11}
+b2dfa4b0-99aa-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477286910587             1790276227     1773445193     {1:6398275, 2:62072, 3:59}
+1460d070-97b6-11e6-8ab5-71e7251f2ea8     dse_perf           solr_commit_latency_snapshot 1477071896311             20635843       16678325       {1:36, 2:19}
+1efab180-9a3c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477349368984             2624229        1999088        {1:1872, 5:7}
+a4d58430-9a26-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477340144627             537            244            {1:2, 2:1}
+6fbd2550-9a8a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477383005221             445            181            {1:1, 2:1}
+e0471fa0-9626-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476900439706             11265          2180           {4:8}
+f2f2e220-95b2-11e6-8ab5-71e7251f2ea8     system             hints                        1476850649410             8743           0              {2:1, 3:1}
+15a6d840-9a17-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477333461956             39076584       39002013       {2:1867, 3:12}
+e0517fe0-9626-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476900439774             132944         33172          {1:22, 2:4, 3:2, 4:714}
+d416b7c0-9a3d-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477350102332             427            42             {2:2}
+b9018a30-9a17-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477333736019             42942886       43297588       {2:348, 3:1085, 4:446}
+370e38b0-996e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477260933051             449            161            {1:1, 2:1}
+5c5a8260-98ef-11e6-8ab5-71e7251f2ea8     system             local                        1477206449542             844            658            {4:1}
+d8041342-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286113908             78275028       78551790       {1:1117696, 2:801}
+7fc03330-97eb-11e6-8ab5-71e7251f2ea8     system             peers                        1477094839779             2340           1526           {4:11}
+08265df0-9a42-11e6-8ab5-71e7251f2ea8     OpsCenter          events                       1477351907663             8050           6550           {1:46}
+efb102f0-9836-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477127239839             137872         34565          {1:21, 2:2, 3:1, 4:715}
+bf6ac170-9a4e-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477357369095             107839         107793         {1:345}
+6ef03ec0-9a92-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477386439852             11307          2299           {4:8}
+370cae20-98d6-11e6-8ab5-71e7251f2ea8     system             local                        1477195649538             844            658            {4:1}
+7fe760d0-98c8-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477189758813             164161829      164160646      {1:516433}
+d7f98e70-95e3-11e6-8ab5-71e7251f2ea8     system             local                        1476871649495             844            658            {4:1}
+b46d3c60-9a14-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477332439846             11198          2220           {4:8}
+82187580-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339227352             417            42             {1:1, 2:2}
+a31ad9b0-9a17-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477333699275             12988          12700          {1:41}
+459a3bb3-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477285868267             479            182            {1:1, 2:2}
+6a696770-9a2c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477342623591             538            240            {1:2, 2:1}
+21dd5d10-9570-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476821951841             443            178            {1:1, 2:1}
+5d257c70-96df-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1476979676599             39969079       24644          {1:14}
+23945be0-9570-11e6-ac3c-71e7251f2ea8     dse_perf           cell_count_histograms        1476821954718             42597613       22347          {1:17}
+8a18b090-95b2-11e6-8ab5-71e7251f2ea8     system             hints                        1476850473497             6718           6718           {1:2}
+efa67ba0-9836-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477127239770             11352          2216           {4:8}
+0406c360-9a1d-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477336009366             30437          30281          {1:98}
+554fbc70-9722-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477008439735             11340          2192           {4:8}
+7a336cb0-9a3a-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477348663035             104834         104593         {1:335}
+a1a68f00-99b0-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477289458672             4953886071     4880587451     {1:17505193, 2:268645}
+3bd15e70-979f-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477062084055             33986435       19157          {1:17}
+75d37120-9a3e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477350373682             438            188            {1:1, 2:1}
+b8b4cb90-976b-11e6-8ab5-71e7251f2ea8     dse_perf           solr_query_latency_snapshot  1477039959753             24401470       20294666       {1:46, 2:3, 3:6}
+e2a65c00-98fd-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477212687808             443            42             {2:2}
+700730a0-9a1c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335761066             419            173            {1:1, 2:1}
+b2dff2d1-99aa-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477286910589             477            42             {1:1, 2:2}
+b0091ed0-992b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477232359741             431            180            {1:1, 2:1}
+cf768ef0-98cd-11e6-8ab5-71e7251f2ea8     system             peers                        1477192039775             2333           1541           {4:11}
+94124f40-9812-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477111624244             436            181            {1:1, 2:1}
+a4cfc593-9a2b-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477342292073             86127          85969          {1:276}
+dd1700d0-9693-11e6-8ab5-71e7251f2ea8     system             local                        1476947249501             844            658            {4:1}
+f988ac40-9a4a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477355748612             10847615       10778115       {2:94, 3:1784, 4:1}
+faa466a0-99b4-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477291325962             1805669042     1741461522     {1:6126032, 2:241771}
+cf65a0b0-9a1a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477335062075             41265676       41199141       {2:1834, 3:45}
+d6629c80-98dd-11e6-8ab5-71e7251f2ea8     dse_perf           node_slow_log                1477198923336             952            447            {1:2}
+f51376a0-9a30-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477344574218             99014          98201          {1:312, 2:2}
+7b99f640-99a5-11e6-8ab5-71e7251f2ea8     dse_perf           solr_filter_cache_stats      1477284670372             12411741       9638651        {1:52}
+d68fbad0-993c-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477239725821             1818542048     1753263794     {1:18722308, 2:940528, 3:4981}
+c5d3c4e0-9593-11e6-ac3c-71e7251f2ea8     system             sstable_activity             1476837259310             135464         33877          {1:24, 2:1, 3:3, 4:718}
+059fc950-9640-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476911239781             133962         33310          {1:33, 2:4, 3:3, 4:714}
+1bfd4110-9a1d-11e6-8ab5-71e7251f2ea8     system             local                        1477336049569             844            658            {4:1}
+bbff5350-9a37-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477347484933             448            42             {2:2}
+ebbd98c0-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850207820             7330           5942           {1:1, 2:3}
+838c4ed0-9a3a-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477348678717             238067         60216          {4:2}
+8030b170-9a1e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336647175             412            167            {1:1, 2:1}
+9c5929f0-9a27-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477340559887             70354          70127          {1:225}
+9c386370-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074407             1186           1109           {1:2, 2:1}
+3a41aef0-9869-11e6-8ab5-71e7251f2ea8     system             peers                        1477148839775             2323           1526           {4:11}
+ac916b20-96e4-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476981957330             431            166            {1:1, 2:1}
+162ad9b0-9a35-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477346347723             427            182            {1:1, 2:1}
+77b1b490-9a1e-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477336632921             35838          35328          {1:113, 2:1}
+3000afb0-9709-11e6-8ab5-71e7251f2ea8     system             peers                        1476997639723             2327           1543           {4:11}
+1ba24bd0-9a49-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477354946829             10378147       10338983       {2:1860, 3:19}
+4e40e400-9767-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477038063168             420            42             {2:2}
+a978d900-95fe-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1476883167888             145095849      135458205      {1:407354, 2:28258}
+8f101780-9a4b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477355999480             433            170            {1:1, 2:1}
+30223e00-9a15-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477332647392             231684         59309          {4:2}
+b1ef63f0-9a3c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477349615535             510            161            {1:2, 2:2}
+bf28d640-9a29-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477341477284             79267          79063          {1:254}
+e56f1950-96d6-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476976039781             134599         33373          {1:27, 2:2, 3:4, 4:719}
+a1d81c40-9871-11e6-8ab5-71e7251f2ea8     system             local                        1477152449540             844            658            {4:1}
+0d457420-9767-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477037954146             64232464       65734112       {4:1879}
+ca5720c0-981d-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477116439756             11353          2273           {4:8}
+09d67ae0-98c1-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1477186554254             20708342       20646525       {1:60118, 2:379}
+c2dadf90-9a1a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335041033             412            149            {1:1, 2:1}
+75809380-968b-11e6-8ab5-71e7251f2ea8     system             peers                        1476943639736             2333           1531           {4:11}
+8a297970-95b2-11e6-8ab5-71e7251f2ea8     system             hints                        1476850473607             6718           6718           {1:2}
+8d09f6a0-977f-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477048476426             445            42             {2:2}
+4d2a9490-9a31-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477344722009             99728          99221          {1:316, 2:1}
+8397c080-9a3a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477348678792             423            195            {1:1, 2:1}
+4aaeedb0-9635-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476906631179             425            42             {2:2}
+b16b5c20-9a16-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333293794             555            193            {1:2, 2:2}
+aa347a80-98b4-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477181239848             138113         34292          {1:23, 2:1, 3:4, 4:712}
+c14eeef0-9a47-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477354365791             535126         512997         {1:15, 5:3}
+0fdf41f0-97a0-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477062439823             136112         33330          {1:33, 2:5, 3:1, 4:712}
+bd5dae50-98d8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477196733877             446            182            {1:1, 2:1}
+352a5710-97b9-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477073239809             135951         34207          {1:32, 2:1, 3:3, 4:710}
+3b42fc60-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477285850918             525            227            {1:2, 2:1}
+08416a60-9a1e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336445958             413            42             {2:2}
+1da42230-9a3c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477349366739             413            168            {1:1, 2:1}
+c6782d00-998a-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477273199568             35918550       38420          {1:17}
+2a4a6840-9894-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477167281348             696            416            {1:4}
+d809b890-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477286113945             537            223            {1:1, 2:2}
+a6f4f260-9921-11e6-8ab5-71e7251f2ea8     system             local                        1477228049542             844            658            {4:1}
+f9e5cd30-9996-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477278439811             11175          2267           {4:8}
+d4636c70-9a22-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477338506423             429            42             {2:2}
+b73c9b20-9a37-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477347476946             43974810       43935345       {2:1377, 3:401, 4:101}
+ea220970-9a4c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477356581767             13770413       13157727       {2:1869, 3:4, 5:1, 6:5}
+af4ac0f0-9964-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477256839807             11302          2247           {4:8}
+6ef806f0-9a92-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477386439903             142139         35089          {1:28, 2:5, 3:3, 4:718}
+a1e83090-95fa-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476881437209             511            269            {1:1, 2:1}
+757e97b0-968b-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476943639723             11218          2203           {4:8}
+5f906d90-9882-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477159639785             11122          2204           {4:8}
+a37a4c70-95b1-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_contribution           1476850086583             62782523       52648707       {1:89979, 2:14806}
+c80869b0-9a29-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477341492171             238255         59246          {4:2}
+d4984710-997d-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477267639809             11185          2186           {4:8}
+6fcfe860-9879-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477155801573             453            184            {1:1, 2:1}
+44cf2380-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477285866936             31376101       32382351       {1:450068, 2:826}
+0d331740-9a1d-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336024756             415            168            {1:1, 2:1}
+02e80910-98c1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477186542624             430            165            {1:1, 2:1}
+f1079f40-9a18-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477334259508             237151         60336          {4:2}
+092bdd60-96dc-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476978247222             427            42             {2:2}
+018c0750-9818-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477113955397             39047525       19297          {1:17}
+391d39f0-9a1b-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477335239439             26521          26259          {1:85}
+0aaedd90-9a42-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477351911913             7728875        7692639        {1:17, 2:1854, 3:6, 7:2}
+18f5c970-9a49-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477354942343             196907         177643         {4:1}
+51ea8a70-9a2d-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477343011991             485            161            {1:1, 2:2}
+0abe9b40-96f0-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476986839796             137814         34558          {1:38, 2:6, 3:6, 4:712}
+81a2eee0-9949-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477245166798             709            42             {1:1, 2:2}
+977b5090-95b1-11e6-8ab5-71e7251f2ea8     dse_perf           solr_commit_latency_snapshot 1476850066457             15052543       14105465       {1:21, 2:21}
+8c5a7f20-9a24-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339244562             544            299            {1:3}
+ab87a090-9a37-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477347457305             422            177            {1:1, 2:1}
+25145e20-96ce-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476972281090             443            42             {2:2}
+7af054b0-99e5-11e6-8ab5-71e7251f2ea8     dse_perf           solr_commit_latency_snapshot 1477312157051             24014501       15891911       {1:47, 2:21}
+6d2ee3a0-9648-11e6-8ab5-71e7251f2ea8     system             local                        1476914849498             844            658            {4:1}
+c3dfa090-9594-11e6-ac3c-71e7251f2ea8     dse_perf           read_latency_histograms      1476837685528             35388720       33797          {1:15}
+705eb450-95db-11e6-8ab5-71e7251f2ea8     system             peers                        1476868039701             2334           1534           {4:11}
+14999300-98cf-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477192585264             406            42             {2:2}
+49a2dfb0-9a79-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477375639851             11389          2230           {4:8}
+302d5b60-9a32-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477345102870             50104042       50014508       {2:1859, 3:20}
+6b37b400-9968-11e6-8ab5-71e7251f2ea8     prod_fcra          avlo_inquiry                 1477258443584             7173           6426           {1:28}
+c50e9431-9a35-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477346641139             52218571       52115019       {2:1867, 3:10, 7:2}
+6340df60-9a17-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477333592150             668865679      666231928      {1:2278564, 2:5255}
+167e5230-98c7-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477189152467             513            235            {1:2, 2:1}
+8c537a70-9a49-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477355135895             493            169            {1:1, 2:2}
+e67ecb00-9a4c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477356575664             529            182            {1:1, 2:2}
+45930fc0-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477285868220             87936521       88406054       {1:307367}
+c37bb370-9a1a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335042087             540            238            {1:2, 2:1}
+aa2c6430-98b4-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477181239795             11107          2230           {4:8}
+a3d1dc90-9a36-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477347014873             446            42             {2:2}
+cfcaf4d0-99af-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477289106589             547            310            {1:1, 2:1}
+c44071c0-9a14-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_contribution           1477332466396             65070481       64989084       {1:122404, 2:115}
+ca560f50-981d-11e6-8ab5-71e7251f2ea8     system             peers                        1477116439749             2324           1546           {4:11}
+af478ca0-9964-11e6-8ab5-71e7251f2ea8     system             peers                        1477256839786             2332           1545           {4:11}
+288bada0-985a-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477142367610             34029666       30276          {1:15}
+fdf54ca0-9a33-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477345877610             51023436       50890810       {2:1875, 3:3, 6:1}
+5a77b620-97d2-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477084039810             137189         34060          {1:22, 2:2, 3:5, 4:709}
+309c7710-9a15-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477332648193             713826         465520         {6:3}
+758accb0-968b-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476943639803             132662         32833          {1:31, 2:12, 3:13, 4:704}
+485da0e0-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477238198766             145123405      145252600      {1:2036047, 2:8587}
+c81254c0-9a29-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341492236             539            263            {1:2, 2:1}
+b98864d0-9ac4-11e6-8ab5-71e7251f2ea8     system             peers                        1477408039837             2314           1535           {4:11}
+b85d7fe0-9944-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477243111134             167427855      167489615      {1:566588}
+96727de0-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286003902             60223317       60556541       {1:854580, 2:802}
+64aca770-9932-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477235239783             11250          2233           {4:8}
+8be3b090-9a68-11e6-8ab5-71e7251f2ea8     system             local                        1477368449561             844            658            {4:1}
+802447d0-9a3e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477350390989             44081621       44062275       {1:298, 2:1045, 3:536}
+4aac2e90-9635-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1476906631161             162477336      150323914      {1:488409, 2:35798}
+24bc6750-9a35-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477346372165             52201342       51686768       {2:1866, 3:9, 6:4}
+9b183e20-9a2a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341846274             418            42             {2:2}
+321afcb0-9894-11e6-8ab5-71e7251f2ea8     dse_perf           solr_filter_cache_stats      1477167294459             15555454       12411741       {1:48, 2:13}
+eb272f20-9a25-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477339833106             63815          63607          {1:205}
+11bf2800-98bd-11e6-8ab5-71e7251f2ea8     system             local                        1477184849536             844            658            {4:1}
+9c3c3400-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074432             1109           1109           {1:3}
+0113d340-9a4b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477355761268             450            42             {2:3}
+c2071e90-97da-11e6-8ab5-71e7251f2ea8     system             local                        1477087649529             844            658            {4:1}
+2eb47d30-9a15-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups7200                  1477332644995             104944         104864         {1:1877, 2:2}
+4e3dd6c0-9767-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477038063148             251431189      208020712      {4:1879}
+4b3904f0-9a09-11e6-8ab5-71e7251f2ea8     dse_perf           solr_query_latency_snapshot  1477327538879             27894903       18834854       {1:46, 2:17}
+5f680570-9a2c-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477342605127             88113          88104          {1:282}
+32a50ef0-9a2e-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477343389023             94053          93763          {1:300}
+c9a057b0-9a3d-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477350084779             106659         106451         {1:341}
+24535dc0-9a60-11e6-8ab5-71e7251f2ea8     system             peers                        1477364839836             2332           1536           {4:11}
+6ef90d21-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477238263538             155475892      155503198      {1:2181021, 2:9349}
+253b5d50-9a1f-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477336924069             408            162            {1:1, 2:1}
+af8521e0-9a14-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332431614             779            472            {1:5}
+e61bc370-9a4c-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477356575015             228438         55504          {4:2}
+55573680-9722-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477008439784             138948         34455          {1:28, 2:1, 3:2, 4:722}
+24569210-9a60-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477364839857             11285          2253           {4:8}
+fcd3ad10-9990-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477275867745             503342448      483002679      {1:1691170, 2:73293}
+27b28240-96c6-11e6-8ab5-71e7251f2ea8     system             local                        1476968849508             844            658            {4:1}
+7aa61c30-973b-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477019239795             138935         34431          {1:33, 2:5, 3:5, 4:715}
+3a530e50-980c-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477108896693             34808715       19865          {1:17}
+9e692230-978a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477053230035             453            166            {1:1, 2:1}
+bf0b1030-98d8-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477196736691             35567884       19516          {1:17}
+8f0edf00-9a4b-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477355999472             742144         721789         {7:4}
+7b920df0-9a1c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477335780431             41992243       41881628       {2:3, 3:1873, 4:3}
+d1b2f2d0-9a6c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477370284669             439            42             {2:2}
+28539920-98c7-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_contribution            1477189182386             97544320       97446373       {1:327792, 2:292}
+17f562b0-9a44-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477352793179             44203739       44170875       {1:279, 2:1030, 3:570}
+16a440b0-9a3b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477348925499             441            42             {1:1, 2:2}
+40381130-9992-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477276410307             1166758599     1012865632     {1:3132531, 2:562636}
+ff4a4cf0-9a41-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477351892799             416            42             {1:1, 2:2}
+eeb381d0-9a33-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345852013             414            186            {1:1, 2:1}
+b1324820-9a81-11e6-8ab5-71e7251f2ea8     system             local                        1477379249570             844            658            {4:1}
+9c4e0e50-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074548             1109           1109           {1:3}
+47e26ef0-962f-11e6-8ab5-71e7251f2ea8     system             local                        1476904049503             844            658            {4:1}
+c8ec53b0-9a6e-11e6-8ab5-71e7251f2ea8     dse_perf           solr_filter_cache_stats      1477371128939             9638651        7407338        {1:40}
+f4c5c2c0-98e6-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477202839788             11082          2199           {4:8}
+ff0402e0-9a46-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477354039822             11297          2239           {4:8}
+e047e2f0-9626-11e6-8ab5-71e7251f2ea8     system             peers                        1476900439711             2331           1534           {4:11}
+6bd94400-9990-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477275624512             1804450131     1787957695     {1:6421597, 2:70743, 3:36}
+d9b8c6b0-9a2d-11e6-8ab5-71e7251f2ea8     system             peers                        1477343239835             2334           1542           {4:11}
+84e63110-989b-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477170439841             139259         34441          {1:50, 2:5, 3:2, 4:714}
+17163800-9a1d-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477336041344             43422595       43406747       {1:768, 2:781, 3:330}
+f2e7ab10-9a32-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345429569             492            161            {1:1, 2:2}
+14f6c0e0-9850-11e6-8ab5-71e7251f2ea8     system             peers                        1477138039790             2327           1527           {4:11}
+c8a40d70-9a29-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477341493191             992708         640355         {3:1, 4:3}
+2b8f8e90-99a9-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477286254073             537            228            {1:1, 2:2}
+1a1bfb70-9900-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477213639847             136236         33556          {1:33, 2:1, 3:4, 4:715}
+69d7fc80-99e2-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477310839880             138074         34413          {1:28, 2:8, 3:2, 4:717}
+d9cebfb0-9a2d-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477343239978             148790         34744          {1:500, 2:56, 3:23, 4:690}
+72e130a0-99e5-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477312143530             447            185            {1:1, 2:1}
+a3cf4480-9a36-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477347014856             103415         103125         {1:330}
+d4a120b0-997d-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477267639867             137795         34064          {1:36, 2:6, 3:5, 4:710}
+cf78fff0-98cd-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477192039791             11241          2163           {4:8}
+0929ba80-96dc-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1476978247208             147991829      146431512      {1:461129, 2:5372}
+f3615710-99b2-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477290454785             643            229            {1:1, 2:2}
+084caaa0-9a42-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477351907914             200599         57940          {3:1, 4:1}
+e583d290-9a33-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477345836601             101676         101408         {1:324}
+230a2ad0-9a32-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477345080829             487759         485885         {4:3}
+926a2ab0-9a19-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334530267             431            42             {2:2}
+b7cb4f70-967a-11e6-8ab5-71e7251f2ea8     system             local                        1476936449511             844            658            {4:1}
+e81ce840-9a18-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334244548             406            42             {2:2}
+a291c9a0-99c1-11e6-8ab5-71e7251f2ea8     dse_perf           solr_update_latency_snapshot 1477296761658             40987497       30688270       {1:52, 2:6, 3:5}
+35241580-97b9-11e6-8ab5-71e7251f2ea8     system             peers                        1477073239768             2327           1534           {4:11}
+97b0b7e0-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477339263582             43597403       43557239       {1:68, 2:1039, 3:772}
+8c8d7600-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339244896             473463         474536         {4:3}
+03704360-9a57-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477360919190             41715235       17222          {1:17}
+d2de9d30-9a4e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477357401731             44393728       44360545       {1:13, 2:1528, 3:338}
+31ef1b60-993c-11e6-8ab5-71e7251f2ea8     system             hints                        1477239449622             287            0              {2:1}
+61f71c20-9a29-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477341320930             78216          77780          {1:250}
+573d3710-983f-11e6-8ab5-71e7251f2ea8     system             local                        1477130849537             844            658            {4:1}
+b6b26e70-9a35-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477346617047             470            200            {1:1, 2:1}
+a079bba0-957a-11e6-ac3c-71e7251f2ea8     system             size_estimates               1476826459226             11303          2288           {4:8}
+ec717ad0-98a3-11e6-8ab5-71e7251f2ea8     system             local                        1477174049533             844            658            {4:1}
+9d373480-9990-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477275707336             78229361       78268172       {1:267647}
+88383700-99b3-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477290704496             33317395       28048          {1:16}
+42a89dc0-9a1b-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477335255452             208575         60349          {3:1, 4:1}
+8f1b7080-99fb-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477321639816             11015          2171           {4:8}
+fb895910-97eb-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477095047457             42695943       22597          {1:14}
+a50ea3b0-9804-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477105639787             11109          2207           {4:8}
+7eaf0e70-9684-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1476940648663             40832396       28424          {1:14}
+ad528770-9a35-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477346601319             427            42             {2:2}
+9af664f0-965e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476924375231             422            160            {1:1, 2:1}
+321e7f20-9894-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477167294482             667            314            {1:3, 2:2}
+124c3d20-9a7b-11e6-8ab5-71e7251f2ea8     dse_perf           solr_index_stats             1477376406002             3652011        2827395        {1:40}
+adb124d0-99ca-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477300645789             38182633       33878          {1:17}
+01176f40-99a7-11e6-8ab5-71e7251f2ea8     dse_perf           node_slow_log                1477285323828             447            264            {1:2}
+c019cb00-96bd-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476965239728             11214          2290           {4:8}
+b46c03e0-9a14-11e6-8ab5-71e7251f2ea8     system             peers                        1477332439838             2328           1534           {4:11}
+3523a050-97b9-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477073239765             11269          2226           {4:8}
+66fb4a50-9a4e-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477357220725             107531         107291         {1:344}
+9fe9b740-9754-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477030039732             11283          2284           {4:8}
+677a9f30-9a1c-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477335746723             28961          28374          {1:91, 2:1}
+9d7af600-9a19-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477334548832             40916015       40734672       {3:1873, 4:6}
+f9be5d10-97eb-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477095044449             446            180            {1:1, 2:1}
+76c91460-9a41-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477351663782             7421476        7302750        {2:1846, 3:29, 7:4}
+75600940-98a6-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477175138260             36391163       27272          {1:15}
+b2ac5670-95ca-11e6-8ab5-71e7251f2ea8     system             local                        1476860849495             867            658            {4:1}
+2d1f4a90-971d-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477006224825             230390         57355          {4:2}
+9c5142a0-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074570             1109           1109           {1:3}
+bc4b2490-95b1-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_inquiry                 1476850128217             161392040      150280713      {1:491326, 2:32881}
+3c542760-9a2e-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477343405270             236754         59370          {4:2}
+1e675ca0-95d2-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1476864036714             28535655       28214          {1:14}
+49ab9241-9a79-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477375639908             142080         35440          {1:32, 2:2, 3:7, 4:715}
+6ff87c55-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477285939349             121713083      122981630      {1:443882, 2:39}
+8e48d2e0-9a2a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477341824782             173470         173980         {4:1}
+1c877300-9949-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477244997167             9431481637     9351032009     {1:96897130, 2:1215095}
+6b5092e0-95e9-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476874044174             442            180            {1:1, 2:1}
+3c4b74d0-9a2e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477343405213             560            250            {1:2, 2:1}
+8bc0e5f0-9a1e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477336666575             42395468       42317783       {3:1875, 4:4}
+ea900e20-9786-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477051639810             137830         34025          {1:33, 2:4, 3:2, 4:716}
+15a39860-9a21-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477337756902             413            168            {1:1, 2:1}
+6697ff30-9a4f-11e6-8ab5-71e7251f2ea8     system             local                        1477357649571             844            658            {4:1}
+5f992020-9882-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477159639842             139767         34470          {1:37, 2:5, 3:8, 4:715}
+a2b70ee0-9953-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477249517262             39553179       21574          {1:17}
+f35a0410-99b2-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477290454737             1858054066     1834777869     {1:6686385, 2:103726}
+88dccb10-9a19-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477334514241             407            161            {1:1, 2:1}
+c3e1c370-9594-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476837685543             442            42             {2:2}
+b9d637f0-9a1a-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477335025903             23744          23514          {1:76}
+ec79d1b0-98c3-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477187793483             164057288      164160986      {1:515982, 2:449}
+22938940-9616-11e6-8ab5-71e7251f2ea8     system             local                        1476893249492             844            658            {4:1}
+9d5df260-99bc-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477294605446             32335465       19435          {1:17}
+6ce7e270-9ad0-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477413065239             39580925       16617          {1:17}
+fd471490-95fc-11e6-8ab5-71e7251f2ea8     system             local                        1476882449497             844            658            {4:1}
+21bd79b0-9939-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477238133963             412            169            {1:1, 2:1}
+9a2c6e90-95f8-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1476880565241             31529100       20661          {1:17}
+35e1ad80-9727-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477010534488             32303212       25083          {1:15}
+fcd92b50-9990-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477275867781             513            207            {1:1, 2:2}
+af295390-95b1-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_contribution            1476850106185             97466711       97089494       {1:325997, 2:1103}
+1462a530-97b6-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477071896323             430            42             {2:2}
+58ada760-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477238226134             79571574       79157627       {1:265881}
+ecbfa1d0-9ac7-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477409414253             446            180            {1:1, 2:1}
+d413aa80-9a3d-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477350102312             4555477        4212994        {2:1867, 3:8, 6:4}
+502fb200-9672-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476932839712             11340          2191           {4:8}
+8f1fb640-99fb-11e6-8ab5-71e7251f2ea8     system             peers                        1477321639844             2317           1543           {4:11}
+a6d8fa80-9a14-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332417064             603            293            {1:2, 2:1}
+81a07de0-9949-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477245166782             503358683      498067099      {1:5131628, 2:86644}
+34aadb30-9727-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477010532451             444            181            {1:1, 2:1}
+61f8f0e0-9a29-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477341320942             413            42             {2:2}
+3a3eefd0-9869-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477148839757             11385          2234           {4:8}
+ac759090-9a17-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333714969             413            168            {1:1, 2:1}
+7ea36cd0-9a41-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477351676957             44172969       44122160       {1:77, 2:760, 3:923, 4:119}
+69ced4c0-99e2-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477310839820             11256          2179           {4:8}
+d0dceae0-959a-11e6-ac3c-71e7251f2ea8     prod_fcra          bics_inquiry                 1476840284302             162171522      150261335      {1:489084, 2:35123}
+4ab758c0-9a80-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477378648140             38306395       30731          {1:16}
+ada277d0-9a17-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477333716941             544            245            {1:2, 2:1}
+d664bf60-98dd-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477198923350             422            42             {2:2}
+c02563c0-96bd-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476965239804             133639         33407          {1:21, 2:1, 3:1, 4:719}
+38e009e0-9a1b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335239038             483            142            {1:2, 2:2}
+503927e0-9672-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476932839774             133770         33005          {1:36, 2:3, 3:4, 4:716}
+26383080-9785-11e6-8ab5-71e7251f2ea8     dse_perf           solr_merge_latency_snapshot  1477050880904             28285428       23558426       {1:39, 2:10, 3:6}
+9268d5e0-9a3f-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477350851134             428            182            {1:1, 2:1}
+6effeaf0-9939-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477238263583             547            257            {1:3, 2:1}
+9ff32d20-9754-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477030039794             138507         34681          {1:22, 2:1, 3:2, 4:718}
+9c313780-95b1-11e6-8ab5-71e7251f2ea8     system             local                        1476850074360             1197           647            {4:1}
+89fff9f0-994b-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477246039823             11384          2277           {4:8}
+d0df82f0-959a-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476840284319             425            42             {2:2}
+2cfeb6e0-9a15-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332642126             696            308            {1:3, 2:2}
+124fbf90-9a7b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477376406025             400            42             {2:2}
+42323051-998e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477274695637             477            212            {1:1, 2:1}
+c440e6f0-9a14-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332466399             598            275            {1:2, 2:3}
+d1b081d0-9a6c-11e6-8ab5-71e7251f2ea8     dse_perf           solr_merge_latency_snapshot  1477370284653             32556891       22737603       {1:57, 2:5, 3:6}
+927c90d0-9661-11e6-8ab5-71e7251f2ea8     system             local                        1476925649501             844            658            {4:1}
+b586ba30-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477238381907             159005200      158599534      {1:536363}
+7a8c6380-9597-11e6-ac3c-71e7251f2ea8     dse_perf           partition_size_histograms    1476838851000             38058614       21817          {1:17}
+629d5bf0-9770-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477041962799             449            181            {1:1, 2:1}
+b99228d0-9ac4-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477408039901             138866         34656          {1:23, 2:4, 3:2, 4:723}
+8c58f8b0-9a49-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477355135931             201453         58955          {3:1, 4:1}
+655e2b30-9a45-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477353352547             444            42             {1:1, 2:2}
+655c0850-9a45-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477353352533             8675555        8609047        {3:1876, 4:3}
+c5cac430-9593-11e6-ac3c-71e7251f2ea8     system             size_estimates               1476837259251             11400          2295           {4:8}
+9530d590-9939-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477238327657             508            168            {1:2, 2:2}
+1c4fac00-979a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477059883712             428            42             {2:2}
+8d069b40-977f-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477048476404             35543024       22896          {1:13}
+e288eca0-9a34-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477346261098             102262         101932         {1:326}
+bafa83e0-960d-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476889639710             11440          2288           {4:8}
+cc433bd0-993a-11e6-8ab5-71e7251f2ea8     system             local                        1477238849549             844            658            {4:1}
+309dfdb0-9a15-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332648203             605            300            {1:3, 2:1}
+890d29e0-9a19-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477334514558             19875          19587          {1:64}
+86cc3b60-99e9-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477313894934             449            42             {2:2}
+46474db0-9a2e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477343421963             43769188       43732462       {2:994, 3:879, 4:6}
+e5855930-9a33-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345836611             406            42             {2:2}
+f773b690-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477286166649             594            288            {1:3, 2:1}
+08441f20-9a42-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477351907858             430            182            {1:1, 2:1}
+7fcae190-97eb-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477094839849             136816         34091          {1:17, 2:2, 3:1, 4:714}
+4422d140-9663-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476926377044             424            42             {2:2}
+194a7090-9a32-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477345064473             100091         99864          {1:319}
+76cbd380-9a41-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477351663800             439            171            {1:1, 2:1}
+776c8780-97a8-11e6-8ab5-71e7251f2ea8     system             local                        1477066049528             844            658            {4:1}
+bcc2b110-9a3c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477349633697             3568578        3486595        {2:1864, 3:7, 7:8}
+aa37c330-95b1-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476850097891             705            364            {1:5, 2:3}
+31eeeda0-9826-11e6-8ab5-71e7251f2ea8     system             local                        1477120049530             844            658            {4:1}
+62d07b70-9a45-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477353348263             5081           3616           {1:2, 8:3}
+2f066dc0-9a15-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477332645532             554            219            {1:2, 2:2}
+272518c0-985a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477142365260             445            181            {1:1, 2:1}
+917c0ac0-9914-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477222430060             63680959       65349666       {4:1879}
+97f0e900-95a1-11e6-ac3c-71e7251f2ea8     OpsCenter          pdps                         1476843195280             234311         58406          {4:2}
+c3763200-9a16-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477333324064             9681           9352           {1:30}
+468f0a60-9894-11e6-8ab5-71e7251f2ea8     prod_fcra          bics_contribution            1477167328774             97631896       97446561       {1:327451, 2:633}
+c7fad830-96d3-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1476974701875             37018312       23988          {1:12}
+2dfee4c0-9894-11e6-8ab5-71e7251f2ea8     dse_perf           solr_index_stats             1477167287564             5930598        4731470        {1:47, 2:14}
+7b7ccca0-9879-11e6-8ab5-71e7251f2ea8     dse_perf           solr_query_latency_snapshot  1477155821162             26180815       21787664       {1:41, 2:6, 3:10}
+6d827340-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477285935220             553            234            {1:3, 2:1}
+faa88550-99b4-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477291325989             494            42             {1:1, 2:2}
+937a7eb0-9a18-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477334102555             16645          16292          {1:53}
+83326240-9a2a-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477341806180             81513          81286          {1:261}
+70d4e540-9a3a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477348647316             427            182            {1:1, 2:1}
+f9f0db60-9a33-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477345870870             43918988       43865258       {2:264, 3:1345, 4:270}
+7a72d403-99a8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477285956928             540            226            {1:1, 2:2}
+c006c7a0-959e-11e6-ac3c-71e7251f2ea8     system             compactions_in_progress      1476841974042             405            141            {1:1, 2:1}
+22defc20-9a32-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345080546             543            247            {1:2, 2:1}
+9c4e3560-95b1-11e6-8ab5-71e7251f2ea8     dse_perf           solr_query_latency_snapshot  1476850074550             19135909       17916282       {1:27, 2:9, 3:6}
+c1a485d0-9a43-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477352648365             41735891       33915          {1:17}
+5216a380-9a2d-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477343012280             91824          91609          {1:293}
+c5396040-976d-11e6-8ab5-71e7251f2ea8     system             peers                        1477040839748             2329           1523           {4:11}
+ee2c2a20-9ac7-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477409416642             35093742       29774          {1:16}
+3c9030a0-9acb-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477410836650             39628965       37336          {1:17}
+23af5430-9a21-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477337780467             43625852       43551275       {2:1875, 3:2, 6:2}
+521d7ac0-978f-11e6-8ab5-71e7251f2ea8     system             local                        1477055249516             844            658            {4:1}
+956d9980-9812-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477111626520             37315633       28859          {1:15}
+7b95de80-9a1c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335780456             439            42             {2:2}
+28d0d3f0-959c-11e6-ac3c-71e7251f2ea8     system             local                        1476840861359             835            649            {4:1}
+30ae1bc0-9a40-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477351116668             458            42             {2:2}
+3b1c12e2-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477238176526             52039345       51846869       {1:173494}
+4b110720-95c2-11e6-8ab5-71e7251f2ea8     system             peers                        1476857239698             4166           1542           {2:1, 4:11}
+b86017f0-9944-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477243111151             697            454            {1:1, 2:1}
+724e51d0-96f8-11e6-8ab5-71e7251f2ea8     system             local                        1476990449517             844            658            {4:1}
+d161bfa0-99ea-11e6-8ab5-71e7251f2ea8     system             local                        1477314449562             844            658            {4:1}
+842965a0-9a9c-11e6-8ab5-71e7251f2ea8     system_auth        credentials                  1477390770426             827            222            {4:2}
+7d155ba0-9684-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476940645978             437            181            {1:1, 2:1}
+49556aa0-98c6-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_contribution           1477188808266             62529187       62462347       {1:118612, 2:207}
+2af0aad0-9659-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476922039805             133825         33182          {1:21, 2:1, 3:2, 4:718}
+92fb9540-9a19-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477334531220             314992         315589         {1:7, 5:2}
+83f2eca0-9939-11e6-8ab5-71e7251f2ea8     account_owner      ew_account_owners            1477238298730             125743179      124898985      {1:421472}
+943b05c0-9aab-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477397239836             11409          2299           {4:8}
+6380b8a0-9a45-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477353349418             1052994        689116         {4:4}
+f47255a0-9a25-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477339848698             537            244            {1:2, 2:1}
+ff03b4c0-9a46-11e6-8ab5-71e7251f2ea8     system             peers                        1477354039820             2332           1533           {4:11}
+9a629170-9a24-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339268103             45016444       44866328       {1:328, 2:1546, 3:5}
+42aa2460-9a1b-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477335255462             388            42             {2:2}
+0112b450-99a7-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477285323797             406            156            {1:1, 2:1}
+f6ae0d40-9a03-11e6-8ab5-71e7251f2ea8     system             local                        1477325249556             844            658            {4:1}
+d40bd260-9a29-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477341512326             43697345       43649588       {2:766, 3:934, 4:179}
+ea8538b0-9786-11e6-8ab5-71e7251f2ea8     system             peers                        1477051639739             2315           1524           {4:11}
+9b131a00-9735-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477016717216             30128782       22361          {1:17}
+1c9f0310-95ae-11e6-ac3c-71e7251f2ea8     prod_fcra          rtics_inquiry                1476848571841             148585832      134290331      {1:390930, 2:41513}
+c7e2e080-9a4e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477357383304             413            168            {1:1, 2:1}
+e2a43920-98fd-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477212687794             42108993       24765          {1:15}
+d476a650-9a22-11e6-8ab5-71e7251f2ea8     OpsCenter          events                       1477338506549             6671           4946           {1:35}
+d6d3a4f0-9a29-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477341516991             47275914       47202148       {2:1866, 3:13}
+84dd5770-989b-11e6-8ab5-71e7251f2ea8     system             peers                        1477170439783             2335           1532           {4:11}
+eb164e80-95ac-11e6-ac3c-71e7251f2ea8     system             peers                        1476848059240             2340           1546           {4:11}
+1f337a60-99b0-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477289239814             11369          2312           {4:8}
+aa2ab680-98b4-11e6-8ab5-71e7251f2ea8     system             peers                        1477181239784             2340           1540           {4:11}
+62ea6c10-9a45-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477353348433             445            191            {1:1, 2:1}
+14fd9eb0-9850-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477138039835             139177         34948          {1:19, 2:4, 3:2, 4:716}
+1627e390-9a21-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477337757769             577            261            {1:2, 2:1}
+979bd7f0-9711-11e6-8ab5-71e7251f2ea8     system             local                        1477001249519             844            658            {4:1}
+eb1dc890-95ac-11e6-ac3c-71e7251f2ea8     system             sstable_activity             1476848059289             136651         34027          {1:50, 2:16, 3:7, 4:710}
+16a29300-9a3b-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477348925488             105146         104920         {1:336}
+ded8aa10-9add-11e6-8ab5-71e7251f2ea8     system             peers                        1477418839857             2323           1534           {4:11}
+9b14e2c0-9a2a-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477341846252             47985805       47882151       {2:1872, 3:7}
+217b0f10-9a21-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477337776769             43538484       43484767       {1:12, 2:805, 3:938, 4:124}
+95b78510-95f4-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476878839777             133668         33019          {1:27, 2:4, 3:4, 4:714}
+0095c740-9a17-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477333426612             10512          10256          {1:33}
+95ae0f30-95f4-11e6-8ab5-71e7251f2ea8     system             size_estimates               1476878839714             11439          2298           {4:8}
+efa4cdf0-9836-11e6-8ab5-71e7251f2ea8     system             peers                        1477127239759             2343           1532           {4:11}
+cb15ae10-9a47-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477354382193             44268257       44227590       {1:95, 2:1150, 3:583, 4:51}
+3f6bcb80-9919-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477224439864             135149         33630          {1:22, 2:1, 3:1, 4:713}
+fb7b7170-99cf-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477302923783             28951365       17280          {1:17}
+80bf5ce0-9a1e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477336648110             308475         277450         {1:2, 4:2}
+211c8830-9acd-11e6-8ab5-71e7251f2ea8     system             local                        1477411649587             844            658            {4:1}
+738a6850-9a3a-11e6-8ab5-71e7251f2ea8     dse_perf           partition_size_histograms    1477348651861             40196619       17070          {1:17}
+3b23b400-9939-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477238176576             540            241            {1:3, 2:1}
+5a6e4040-97d2-11e6-8ab5-71e7251f2ea8     system             peers                        1477084039748             2333           1545           {4:11}
+943a9090-9aab-11e6-8ab5-71e7251f2ea8     system             peers                        1477397239833             2332           1521           {4:11}
+040538e0-98c1-11e6-8ab5-71e7251f2ea8     prod_fcra          ifps_contribution            1477186544494             3009358        3008367        {1:10865}
+e314dd30-9969-11e6-8ab5-71e7251f2ea8     dse_perf           cell_count_histograms        1477259074179             33921115       15857          {1:17}
+1a112600-9900-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477213639776             11267          2260           {4:8}
+2b7fa540-9a47-11e6-8ab5-71e7251f2ea8     OpsCenter          pdps                         1477354114452             229271         56614          {4:2}
+105a60a2-99a9-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286208426             95826512       96068482       {1:1375134, 2:773}
+d2dffcc0-9a4e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477357401740             434            42             {2:2}
+9c418b30-95b1-11e6-8ab5-71e7251f2ea8     system             hints                        1476850074466             1109           1109           {1:3}
+a514be30-9804-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477105639827             138372         34606          {1:27, 2:4, 3:2, 4:715}
+44819cc0-99c9-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477300039820             11343          2300           {4:8}
+509e2050-9627-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1476900628181             36608184       28434          {1:14}
+3c2bce30-9986-11e6-8ab5-71e7251f2ea8     system             local                        1477271249554             844            658            {4:1}
+414a2af0-9a36-11e6-8ab5-71e7251f2ea8     system             local                        1477346849567             844            658            {4:1}
+cc9a4e10-9a4e-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477357391217             14219157       13913070       {2:1872, 3:4, 6:3}
+f4c52680-98e6-11e6-8ab5-71e7251f2ea8     system             peers                        1477202839784             2341           1534           {4:11}
+f2fb0c00-9a32-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477345429696             100397         100165         {1:320}
+a4b8d810-99b0-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477289463825             804            350            {1:3, 2:1}
+686fe9f0-9a43-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477352498703             8421580        8329995        {2:1870, 3:6, 7:3}
+9a2f2db0-95f8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1476880565259             446            42             {2:2}
+75d48290-9a3e-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477350373689             6229           3615           {1:1, 2:1, 8:3}
+2ccfa680-9776-11e6-8ab5-71e7251f2ea8     system             local                        1477044449512             844            658            {4:1}
+c5408c30-976d-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477040839795             139077         34236          {1:33, 2:1, 3:2, 4:723}
+07837ff0-975d-11e6-8ab5-71e7251f2ea8     system             local                        1477033649519             844            658            {4:1}
+192b01b0-9a32-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477345064267             425            161            {1:1, 2:1}
+3c0ee100-9a2e-11e6-8ab5-71e7251f2ea8     OpsCenter          bestpractice_results         1477343404816             15325          13775          {1:2, 4:1}
+18e1f350-9a49-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477354942213             549            240            {1:3, 2:1}
+30acbc30-9a40-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477351116659             6489409        6448544        {2:1874, 3:1, 8:4}
+3a550a20-980c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477108896706             446            42             {2:2}
+3c534660-9a15-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477332667846             37394094       38311478       {3:1816, 4:63}
+bbfae680-9a37-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477347484904             52900624       52812483       {2:1868, 3:8, 7:3}
+147e8510-9a3c-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477349351393             105444         105219         {1:337}
+29921a00-9a2f-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477343803296             495            161            {1:1, 2:2}
+447e8f80-99c9-11e6-8ab5-71e7251f2ea8     system             peers                        1477300039800             2326           1534           {4:11}
+e613d430-9a4c-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477356574963             560            263            {1:3, 2:1}
+c53a98c0-976d-11e6-8ab5-71e7251f2ea8     system             size_estimates               1477040839756             11296          2247           {4:8}
+018d66e0-9818-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477113955406             443            42             {2:2}
+f4bbbab0-9a25-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477339849179             890143         800623         {3:1, 4:4}
+0fd52fd0-97a0-11e6-8ab5-71e7251f2ea8     system             peers                        1477062439757             2315           1537           {4:11}
+064f3b60-992e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477233363478             435            42             {2:2}
+1a08e6c0-99ff-11e6-8ab5-71e7251f2ea8     dse_perf           write_latency_histograms     1477323161388             31735340       40932          {1:17}
+b96295f0-9a17-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups60                    1477333736655             39636383       39542690       {2:1874, 3:5}
+8dc264d0-9a2a-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477341823901             6301           3626           {2:2, 8:3}
+50c3f700-98c8-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477189679728             480            161            {1:1, 2:2}
+b1e46e80-992b-11e6-8ab5-71e7251f2ea8     dse_perf           read_latency_histograms      1477232362856             42079196       29326          {1:16}
+b633c890-9a35-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477346616217             7278           3631           {1:1, 3:1, 7:2, 8:1}
+8025a760-9a3e-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477350390998             454            42             {1:1, 2:2}
+2b765670-9a47-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477354114391             424            180            {1:1, 2:1}
+b25fb130-99a8-11e6-8ab5-71e7251f2ea8     account_owner      ew_owner_accounts            1477286050755             69352566       69654161       {1:986871, 2:794}
+7e555dc0-9a4a-11e6-8ab5-71e7251f2ea8     system             compactions_in_progress      1477355541916             413            42             {2:2}
+281949c0-9a3c-11e6-8ab5-71e7251f2ea8     OpsCenter          rollups300                   1477349384284             44059953       44004960       {2:825, 3:857, 4:197}
+4b1cee00-95c2-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1476857239776             136196         33398          {1:84, 2:26, 3:23, 4:697}
+a267a8c0-9a37-11e6-8ab5-71e7251f2ea8     prod_fcra          rtics_inquiry                1477347441996             103992         103722         {1:332}
+e61051c0-9a4c-11e6-8ab5-71e7251f2ea8     OpsCenter          settings                     1477356574940             6214           3624           {1:1, 2:1, 8:3}
+245de510-9a60-11e6-8ab5-71e7251f2ea8     system             sstable_activity             1477364839905             143517         35053          {1:164, 2:14, 3:17, 4:704}
+3f6032c0-9919-11e6-8ab5-71e7251f2ea8     system             peers                        1477224439788             2322           1526           {4:11}

@@ -1,0 +1,2585 @@
+
+CREATE KEYSPACE sparse_annotator WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '3'}  AND durable_writes = true;
+
+CREATE TABLE sparse_annotator.crash (
+    app_id text,
+    object_key text,
+    comments list<text>,
+    custom_name text,
+    issue_links list<text>,
+    regressed_version text,
+    status text,
+    status_version text,
+    PRIMARY KEY (app_id, object_key)
+) WITH CLUSTERING ORDER BY (object_key ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+CREATE INDEX crash_regressed_version_idx ON sparse_annotator.crash (regressed_version);
+CREATE INDEX crash_status_idx ON sparse_annotator.crash (status);
+
+CREATE TABLE sparse_annotator.handled_exception (
+    app_id text,
+    object_key text,
+    comments list<text>,
+    custom_name text,
+    issue_links list<text>,
+    regressed_version text,
+    status text,
+    status_version text,
+    PRIMARY KEY (app_id, object_key)
+) WITH CLUSTERING ORDER BY (object_key ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+CREATE INDEX handled_exception_regressed_version_idx ON sparse_annotator.handled_exception (regressed_version);
+CREATE INDEX handled_exception_status_idx ON sparse_annotator.handled_exception (status);
+
+CREATE KEYSPACE crash2 WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '2'}  AND durable_writes = true;
+
+CREATE TABLE crash2.trends_p1d (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.summary_pt1h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.details_pt4h (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.trends_pt1h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.summary_pt4h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.details_pt1h (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.summary_p1d (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.trends_pt4h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash2.details_p1d (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 604800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE "OpsCenter" WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'}  AND durable_writes = true;
+
+CREATE TABLE "OpsCenter".events_timeline (
+    key text,
+    column1 bigint,
+    value blob,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '4', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '8'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".settings (
+    key blob,
+    column1 blob,
+    value blob,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '8', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '12'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 1.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".rollups60 (
+    key text,
+    timestamp varint,
+    value blob,
+    PRIMARY KEY (key, timestamp)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (timestamp ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '4', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".backup_reports (
+    week text,
+    event_time timestamp,
+    backup_id text,
+    type text,
+    destination text,
+    deleted_at timestamp,
+    full_status text,
+    keyspaces text,
+    status text,
+    PRIMARY KEY (week, event_time, backup_id, type, destination)
+) WITH CLUSTERING ORDER BY (event_time DESC, backup_id ASC, type ASC, destination ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".rollups86400 (
+    key text,
+    timestamp varint,
+    value blob,
+    PRIMARY KEY (key, timestamp)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (timestamp ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '2', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '8'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".bestpractice_results (
+    key text,
+    column1 varint,
+    value blob,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '4', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".pdps (
+    key text,
+    column1 text,
+    value blob,
+    PRIMARY KEY (key, column1)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (column1 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '4', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".rollups7200 (
+    key text,
+    timestamp varint,
+    value blob,
+    PRIMARY KEY (key, timestamp)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (timestamp ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '2', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '8'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".events (
+    key text PRIMARY KEY,
+    action bigint,
+    api_source_ip text,
+    column_family text,
+    event_source text,
+    "keyspace" text,
+    level bigint,
+    message text,
+    source_node text,
+    success boolean,
+    target_node text,
+    time bigint,
+    user text
+) WITH COMPACT STORAGE
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '8', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '12'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE "OpsCenter".rollups300 (
+    key text,
+    timestamp varint,
+    value blob,
+    PRIMARY KEY (key, timestamp)
+) WITH COMPACT STORAGE
+    AND CLUSTERING ORDER BY (timestamp ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = '{"info": "OpsCenter management data.", "version": [5, 2, 1]}'
+    AND compaction = {'min_threshold': '4', 'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '16'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.25
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE handled_exception_stream1 WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '2'}  AND durable_writes = true;
+
+CREATE TABLE handled_exception_stream1.summary_pt1m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.trends_pt1m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.summary_pt1h (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.trends_pt1h (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.live_stats_pt10s (
+    app_id text,
+    app_version text,
+    time_window_begin text,
+    count int,
+    PRIMARY KEY ((app_id, app_version), time_window_begin)
+) WITH CLUSTERING ORDER BY (time_window_begin ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 600
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.details_pt1m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.summary_pt5m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.details_pt1h (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.trends_pt15m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.details_pt5m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.details_pt15m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.trends_pt5m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception_stream1.summary_pt15m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE job WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '3'}  AND durable_writes = true;
+
+CREATE TABLE job.batch_status (
+    job_type text,
+    job_status text,
+    last_updated_time text,
+    latest_processed_at text,
+    PRIMARY KEY ((job_type, job_status))
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE crash_stream2 WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '2'}  AND durable_writes = true;
+
+CREATE TABLE crash_stream2.summary_pt1m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.trends_pt1m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.summary_pt1h (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.trends_pt1h (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.live_stats_pt10s (
+    app_id text,
+    app_version text,
+    time_window_begin text,
+    count int,
+    PRIMARY KEY ((app_id, app_version), time_window_begin)
+) WITH CLUSTERING ORDER BY (time_window_begin ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 600
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.details_pt1m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.summary_pt5m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.details_pt1h (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 86400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.trends_pt15m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.details_pt5m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.details_pt15m (
+    group_hash text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    app_id text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, spark_ingest_time_window_begin, app_version), app_id, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_id ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.trends_pt5m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    time_window_begin text,
+    last_updated_time text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin), app_version, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (app_version ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE crash_stream2.summary_pt15m (
+    app_id text,
+    spark_ingest_time_window_begin text,
+    app_version text,
+    group_hash text,
+    time_window_begin text,
+    last_updated_time text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, spark_ingest_time_window_begin, app_version), group_hash, time_window_begin, last_updated_time)
+) WITH CLUSTERING ORDER BY (group_hash ASC, time_window_begin ASC, last_updated_time ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 10800
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE handled_exception1 WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '2'}  AND durable_writes = true;
+
+CREATE TABLE handled_exception1.trends_p1d (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.summary_pt1h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.details_pt4h (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.trends_pt1h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.summary_pt4h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.details_pt1h (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.summary_p1d (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    group_hash text,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    last_occurred text,
+    num_occurred int,
+    num_unique_hll blob,
+    suspect_line text,
+    PRIMARY KEY ((app_id, time_window_begin, app_version), group_hash)
+) WITH CLUSTERING ORDER BY (group_hash ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.trends_pt4h (
+    app_id text,
+    time_window_begin text,
+    app_version text,
+    count_by_app_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_model map<text, int>,
+    count_by_os_version map<text, int>,
+    num_unique_hll blob,
+    PRIMARY KEY ((app_id, time_window_begin), app_version)
+) WITH CLUSTERING ORDER BY (app_version ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE handled_exception1.details_p1d (
+    group_hash text,
+    time_window_begin text,
+    app_version text,
+    app_id text,
+    count_by_activity map<text, int>,
+    count_by_app_version map<text, int>,
+    count_by_browser map<text, int>,
+    count_by_browser_version map<text, int>,
+    count_by_carrier map<text, int>,
+    count_by_form_factor map<text, int>,
+    count_by_locale map<text, int>,
+    count_by_model map<text, int>,
+    count_by_on_cellular_data map<text, int>,
+    count_by_on_wifi map<text, int>,
+    count_by_online map<text, int>,
+    count_by_orientation map<text, int>,
+    count_by_os_version map<text, int>,
+    count_by_status_bar_orientation map<text, int>,
+    count_by_windows_orientation map<text, int>,
+    device_ids list<text>,
+    exception_name text,
+    exception_reason text,
+    first_occurred text,
+    geo_counts blob,
+    granularity int,
+    histogram_for_memory_usage blob,
+    instance_hashes list<text>,
+    last_occurred text,
+    num_mobile_network_available int,
+    num_mobile_network_connected int,
+    num_mobile_network_connecting int,
+    num_mobile_network_failover int,
+    num_mobile_network_roaming int,
+    num_occurred int,
+    num_unique_hll blob,
+    num_wifi_available int,
+    num_wifi_connected int,
+    num_wifi_failover int,
+    stats_for_battery_level_count int,
+    stats_for_battery_level_max double,
+    stats_for_battery_level_min double,
+    stats_for_battery_level_sum double,
+    stats_for_disk_space_free_count int,
+    stats_for_disk_space_free_max bigint,
+    stats_for_disk_space_free_min bigint,
+    stats_for_disk_space_free_sum bigint,
+    stats_for_disk_space_total_count int,
+    stats_for_disk_space_total_max bigint,
+    stats_for_disk_space_total_min bigint,
+    stats_for_disk_space_total_sum bigint,
+    stats_for_memory_usage_count int,
+    stats_for_memory_usage_max bigint,
+    stats_for_memory_usage_min bigint,
+    stats_for_memory_usage_peak_count int,
+    stats_for_memory_usage_peak_max bigint,
+    stats_for_memory_usage_peak_min bigint,
+    stats_for_memory_usage_peak_sum bigint,
+    stats_for_memory_usage_sum bigint,
+    stats_for_sd_space_free_count int,
+    stats_for_sd_space_free_max bigint,
+    stats_for_sd_space_free_min bigint,
+    stats_for_sd_space_free_sum bigint,
+    stats_for_sd_space_total_count int,
+    stats_for_sd_space_total_max bigint,
+    stats_for_sd_space_total_min bigint,
+    stats_for_sd_space_total_sum bigint,
+    stats_for_total_memory_count int,
+    stats_for_total_memory_max bigint,
+    stats_for_total_memory_min bigint,
+    stats_for_total_memory_sum bigint,
+    stats_for_windows_battery_level_count int,
+    stats_for_windows_battery_level_max float,
+    stats_for_windows_battery_level_min float,
+    stats_for_windows_battery_level_sum float,
+    suspect_line text,
+    PRIMARY KEY ((group_hash, time_window_begin, app_version), app_id)
+) WITH CLUSTERING ORDER BY (app_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 2246400
+    AND gc_grace_seconds = 0
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE dse_perf WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
+
+CREATE TABLE dse_perf.node_slow_log (
+    node_ip inet,
+    date timestamp,
+    start_time timeuuid,
+    commands list<text>,
+    duration bigint,
+    parameters map<text, text>,
+    source_ip inet,
+    table_names set<text>,
+    username text,
+    PRIMARY KEY ((node_ip, date), start_time)
+) WITH CLUSTERING ORDER BY (start_time DESC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE dense_annotator WITH replication = {'class': 'NetworkTopologyStrategy', 'prod-us-west-1': '3'}  AND durable_writes = true;
+
+CREATE TABLE dense_annotator.crash (
+    object_key text,
+    annotation_id text,
+    annotation_value list<text>,
+    PRIMARY KEY ((object_key, annotation_id))
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE dense_annotator.handled_exception (
+    object_key text,
+    annotation_id text,
+    annotation_value list<text>,
+    PRIMARY KEY ((object_key, annotation_id))
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE KEYSPACE dse_system WITH replication = {'class': 'EverywhereStrategy'}  AND durable_writes = true;
+
+CREATE TABLE dse_system.encrypted_keys (
+    key_file text,
+    cipher text,
+    strength int,
+    key_id timeuuid,
+    key text,
+    PRIMARY KEY (key_file, cipher, strength, key_id)
+) WITH CLUSTERING ORDER BY (cipher ASC, strength ASC, key_id ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE dse_system.leases (
+    lease_id text PRIMARY KEY,
+    duration int,
+    generation bigint,
+    owner uuid,
+    ts timestamp
+) WITH bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE dse_system.registered_leaders (
+    army text,
+    datacenter text,
+    candidates map<text, inet>,
+    required text,
+    PRIMARY KEY (army, datacenter)
+) WITH CLUSTERING ORDER BY (datacenter ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+
+CREATE TABLE dse_system.real_leaders (
+    army text,
+    datacenter text,
+    address inet,
+    PRIMARY KEY (army, datacenter)
+) WITH CLUSTERING ORDER BY (datacenter ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = '{"keys":"ALL", "rows_per_partition":"NONE"}'
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+    AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99.0PERCENTILE';
+

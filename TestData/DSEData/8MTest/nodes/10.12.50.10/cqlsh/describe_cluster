@@ -1,0 +1,7 @@
+/opt/dse-4.8.10/resources/cassandra/bin/cqlsh --username=svc_admin --password=***** 10.12.50.10 9042 :in describe cluster;
+quit;
+
+exit status: 1
+
+stderr:
+Connection error: ('Unable to connect to any servers', {'10.12.50.10': ConnectionShutdown('Connection <AsyncoreConnection(18624784) 10.12.50.10:9042 (closed)> is already closed',)})

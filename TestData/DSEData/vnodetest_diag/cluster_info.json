@@ -1,0 +1,82 @@
+{
+    "avg_token_count": 32, 
+    "bdp_version": [
+        "5.0.1"
+    ], 
+    "cassandra_versions": [
+        "3.0.7.1159"
+    ], 
+    "cluster_cores": 2, 
+    "cluster_instance_types": [
+        "m3.large"
+    ], 
+    "cluster_os": [
+        [
+            "linux", 
+            "Ubuntu", 
+            "14.04", 
+            "amd64"
+        ]
+    ], 
+    "cluster_ram": 7985, 
+    "columnfamily_count": 31, 
+    "config_diff": {
+        "agents": [
+            "tmp_dir"
+        ], 
+        "authentication": [
+            [
+                "enabled", 
+                "True"
+            ]
+        ], 
+        "cassandra": [
+            "seed_hosts", 
+            "password", 
+            "username"
+        ], 
+        "labs": [
+            "live_routes"
+        ], 
+        "webserver": [
+            "interface"
+        ]
+    }, 
+    "cql3_cf_count": 31, 
+    "dc_count": 1, 
+    "free_space": 43, 
+    "is_enterprise": true, 
+    "keyspace_count": 4, 
+    "node_count": 2, 
+    "opscenter_arch": "", 
+    "opscenter_cores": null, 
+    "opscenter_instance_type": "m3.large", 
+    "opscenter_os": "linux", 
+    "opscenter_os_sub": "debian", 
+    "opscenter_os_version": "jessie/sid", 
+    "opscenter_ram": 7985, 
+    "opscenter_version": "6.0.2", 
+    "opscenterd_install_type": "archive", 
+    "partitioner": "org.apache.cassandra.dht.Murmur3Partitioner", 
+    "python_version": "jython-2.7.1", 
+    "rack_map": {
+        "dc1.rack1": 2
+    }, 
+    "separate_storage": false, 
+    "snitch": null, 
+    "strategy_options": [
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=1}", 
+        "{class=org.apache.cassandra.locator.LocalStrategy}", 
+        "{class=org.apache.cassandra.locator.EverywhereStrategy}", 
+        "{class=org.apache.cassandra.locator.NetworkTopologyStrategy, dc1=3}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=2}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=3}", 
+        "{class=org.apache.cassandra.locator.LocalStrategy}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=1}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=2}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=1}", 
+        "{class=org.apache.cassandra.locator.SimpleStrategy, replication_factor=1}"
+    ], 
+    "used_space": 19, 
+    "user": "anonymous"
+}

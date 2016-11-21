@@ -1,0 +1,350 @@
+Connected to: "DCW Entity Resolution" on 10.12.49.17/9160
+Welcome to Cassandra CLI version 2.1.15.1423
+
+The CLI is deprecated and will be removed in Cassandra 2.2.  Consider migrating to cqlsh.
+CQL is fully backwards compatible with Thrift data; see http://www.datastax.com/dev/blog/thrift-to-cql3
+
+Type 'help;' or '?' for help.
+Type 'quit;' or 'exit;' to quit.
+
+[svc_admin@unknown] show keyspaces;
+Keyspace: OpsCenter:
+  Replication Strategy: org.apache.cassandra.locator.SimpleStrategy
+  Durable Writes: true
+    Options: [replication_factor:2]
+  Column Families:
+    ColumnFamily: bestpractice_results
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.ReversedType(org.apache.cassandra.db.marshal.IntegerType)
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 4
+        max_threshold: 32
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: events
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.UTF8Type
+      GC grace seconds: 864000
+      Compaction min/max thresholds: 8/12
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Column Metadata:
+        Column Name: message
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: action
+          Validation Class: org.apache.cassandra.db.marshal.LongType
+        Column Name: api_source_ip
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: target_node
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: event_source
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: time
+          Validation Class: org.apache.cassandra.db.marshal.LongType
+        Column Name: success
+          Validation Class: org.apache.cassandra.db.marshal.BooleanType
+        Column Name: keyspace
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: level
+          Validation Class: org.apache.cassandra.db.marshal.LongType
+        Column Name: user
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: column_family
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: source_node
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 8
+        max_threshold: 12
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: events_timeline
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.LongType
+      GC grace seconds: 864000
+      Compaction min/max thresholds: 4/8
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 4
+        max_threshold: 8
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: pdps
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.UTF8Type
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 4
+        max_threshold: 32
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: rollups300
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.IntegerType
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/16
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 4
+        max_threshold: 16
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: rollups60
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.IntegerType
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 4
+        max_threshold: 32
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: rollups7200
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.IntegerType
+      GC grace seconds: 0
+      Compaction min/max thresholds: 2/8
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 2
+        max_threshold: 8
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: rollups86400
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.IntegerType
+      GC grace seconds: 0
+      Compaction min/max thresholds: 2/8
+      Read repair chance: 0.25
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 2
+        max_threshold: 8
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: settings
+    "{"info": "OpsCenter management data.", "version": [5, 2, 1]}"
+      Key Validation Class: org.apache.cassandra.db.marshal.BytesType
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.BytesType
+      GC grace seconds: 864000
+      Compaction min/max thresholds: 8/12
+      Read repair chance: 1.0
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        min_threshold: 8
+        max_threshold: 12
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+Keyspace: account_owner:
+  Replication Strategy: org.apache.cassandra.locator.NetworkTopologyStrategy
+  Durable Writes: true
+    Options: [DCW:3]
+  Column Families:
+    ColumnFamily: ew_owner_accounts
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type)
+      GC grace seconds: 864000
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.0
+      DC Local Read repair chance: 0.1
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.1
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.LeveledCompactionStrategy
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+Keyspace: dse_perf:
+  Replication Strategy: org.apache.cassandra.locator.SimpleStrategy
+  Durable Writes: true
+    Options: [replication_factor:1]
+  Column Families:
+Keyspace: dse_system:
+  Replication Strategy: org.apache.cassandra.locator.EverywhereStrategy
+  Durable Writes: true
+    Options: []
+  Column Families:
+Keyspace: prod_fcra:
+  Replication Strategy: org.apache.cassandra.locator.NetworkTopologyStrategy
+  Durable Writes: true
+    Options: [DCW:3]
+  Column Families:
+Keyspace: solr_admin:
+  Replication Strategy: org.apache.cassandra.locator.EverywhereStrategy
+  Durable Writes: true
+    Options: []
+  Column Families:
+Keyspace: system:
+  Replication Strategy: org.apache.cassandra.locator.LocalStrategy
+  Durable Writes: true
+    Options: []
+  Column Families:
+    ColumnFamily: IndexInfo
+    "indexes that have been completed"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.UTF8Type
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.0
+      DC Local Read repair chance: 0.0
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: hints
+    "hints awaiting delivery"
+      Key Validation Class: org.apache.cassandra.db.marshal.UUIDType
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.TimeUUIDType,org.apache.cassandra.db.marshal.Int32Type)
+      GC grace seconds: 0
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.0
+      DC Local Read repair chance: 0.0
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compaction Strategy Options:
+        enabled: false
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+    ColumnFamily: schema_keyspaces
+    "keyspace definitions"
+      Key Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Default column value validator: org.apache.cassandra.db.marshal.BytesType
+      Cells sorted by: org.apache.cassandra.db.marshal.UTF8Type
+      GC grace seconds: 604800
+      Compaction min/max thresholds: 4/32
+      Read repair chance: 0.0
+      DC Local Read repair chance: 0.0
+      Caching: KEYS_ONLY
+      Default time to live: 0
+      Bloom Filter FP chance: 0.01
+      Index interval: default
+      Speculative Retry: 99.0PERCENTILE
+      Built indexes: []
+      Column Metadata:
+        Column Name: durable_writes
+          Validation Class: org.apache.cassandra.db.marshal.BooleanType
+        Column Name: strategy_options
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+        Column Name: strategy_class
+          Validation Class: org.apache.cassandra.db.marshal.UTF8Type
+      Compaction Strategy: org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy
+      Compression Options:
+        sstable_compression: org.apache.cassandra.io.compress.LZ4Compressor
+Keyspace: system_auth:
+  Replication Strategy: org.apache.cassandra.locator.NetworkTopologyStrategy
+  Durable Writes: true
+    Options: [DCW:3]
+  Column Families:
+Keyspace: system_traces:
+  Replication Strategy: org.apache.cassandra.locator.SimpleStrategy
+  Durable Writes: true
+    Options: [replication_factor:2]
+  Column Families:
+[svc_admin@unknown] quit;

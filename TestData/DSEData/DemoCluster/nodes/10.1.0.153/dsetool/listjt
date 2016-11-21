@@ -1,0 +1,6 @@
+/usr/bin/dsetool --host=127.0.0.1 --jmxport=7199 listjt
+exit status: 3
+
+stderr:
+One or more JMX beans have not been registered. Has this node finished starting up?
+javax.management.InstanceNotFoundException: com.datastax.bdp:type=core,name=JobTrackerManager

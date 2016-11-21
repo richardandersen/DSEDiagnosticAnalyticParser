@@ -1,0 +1,96 @@
+{
+    "avg_token_count": 16, 
+    "bdp_version": [
+        "4.8.9"
+    ], 
+    "cassandra_versions": [
+        "2.1.15.1403"
+    ], 
+    "cluster_cores": 16, 
+    "cluster_instance_types": [
+        "m4.4xlarge"
+    ], 
+    "cluster_os": [
+        [
+            "linux", 
+            null, 
+            null, 
+            "amd64"
+        ]
+    ], 
+    "cluster_ram": 64410, 
+    "columnfamily_count": 695, 
+    "config_diff": {
+        "cassandra": [
+            "conf_location", 
+            "seed_hosts", 
+            "username", 
+            "password"
+        ], 
+        "jmx": [
+            "port"
+        ], 
+        "logging": [
+            "log_path"
+        ], 
+        "repair_service": [
+            "single_repair_timeout", 
+            "max_err_threshold", 
+            "log_directory", 
+            "max_parallel_repairs"
+        ], 
+        "ui": [
+            "default_api_timeout"
+        ], 
+        "webserver": [
+            "log_path", 
+            "interface"
+        ]
+    }, 
+    "cql3_cf_count": 695, 
+    "dc_count": 2, 
+    "free_space": 10303, 
+    "is_enterprise": true, 
+    "keyspace_count": 10, 
+    "node_count": 10, 
+    "opscenter_arch": "x86_64", 
+    "opscenter_cores": 1, 
+    "opscenter_instance_type": "m3.medium", 
+    "opscenter_os": "linux", 
+    "opscenter_os_sub": "Red Hat Enterprise Linux Server", 
+    "opscenter_os_version": "6.8", 
+    "opscenter_ram": 3641, 
+    "opscenter_version": "5.2.4", 
+    "opscenterd_install_type": "archive", 
+    "partitioner": "org.apache.cassandra.dht.Murmur3Partitioner", 
+    "python_version": "2.6", 
+    "rack_map": {
+        "us-east_01.1c": 2, 
+        "us-east_01.1d": 2, 
+        "us-east_01.1e": 2, 
+        "us-west-2_02.2a": 2, 
+        "us-west-2_02.2b": 1, 
+        "us-west-2_02.2c": 1
+    }, 
+    "separate_storage": false, 
+    "snitch": null, 
+    "strategy_options": [
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{\"us-east_01\":\"6\",\"us-west-2_02\":\"4\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{}", 
+        "{\"us-east_01\":\"1\",\"us-west-2_02\":\"1\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{}", 
+        "{\"us-east_01\":\"1\",\"us-west-2_02\":\"1\"}", 
+        "{\"us-east_01\":\"3\",\"us-west-2_02\":\"3\"}", 
+        "{\"replication_factor\":\"2\"}"
+    ], 
+    "used_space": 8830, 
+    "user": "anonymous"
+}

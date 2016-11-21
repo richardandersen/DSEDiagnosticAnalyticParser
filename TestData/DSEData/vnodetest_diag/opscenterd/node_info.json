@@ -1,0 +1,122 @@
+{
+    "10.200.178.74": {
+        "agent_jvm_version": "1.8.0_102", 
+        "alias": null, 
+        "data_held": 394836716, 
+        "dc": "dc1", 
+        "devices": {
+            "commitlog": "vda", 
+            "data": [
+                "vda"
+            ], 
+            "other": [], 
+            "saved_caches": "vda"
+        }, 
+        "ec2": {
+            "ami-id": "ami-00000039", 
+            "instance-id": "i-00096890", 
+            "instance-type": "m3.large", 
+            "placement": "availability-zone"
+        }, 
+        "graph_enabled": false, 
+        "has_jna": true, 
+        "hostname": "avnodetest-41c3f58-1", 
+        "inmemory": {
+            "max": 10737418240, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 1.600000023841858, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "eth0", 
+            "lo"
+        ], 
+        "node_ip": "10.200.178.74", 
+        "node_version": {
+            "cassandra": "3.0.7.1159", 
+            "dse": "5.0.1", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": null, 
+            "tasktracker": null
+        }, 
+        "num_procs": 2, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/vda1", 
+            "data": [
+                "/dev/vda1"
+            ], 
+            "other": [], 
+            "saved_caches": "/dev/vda1"
+        }, 
+        "rack": "rack1", 
+        "rpc_ip": "10.200.178.74", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-1083373865952184847", 
+        "vnodes": true
+    }, 
+    "10.200.178.76": {
+        "agent_jvm_version": "1.8.0_102", 
+        "alias": null, 
+        "data_held": 426292977, 
+        "dc": "dc1", 
+        "devices": {
+            "commitlog": "vda", 
+            "data": [
+                "vda"
+            ], 
+            "other": [], 
+            "saved_caches": "vda"
+        }, 
+        "ec2": {
+            "ami-id": "ami-00000039", 
+            "instance-id": "i-00096893", 
+            "instance-type": "m3.large", 
+            "placement": "availability-zone"
+        }, 
+        "graph_enabled": false, 
+        "has_jna": true, 
+        "hostname": "avnodetest-41c3f58-2", 
+        "inmemory": {
+            "max": 10737418240, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 1.0199999809265137, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "eth0", 
+            "lo"
+        ], 
+        "node_ip": "10.200.178.76", 
+        "node_version": {
+            "cassandra": "3.0.7.1159", 
+            "dse": "5.0.1", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": null, 
+            "tasktracker": null
+        }, 
+        "num_procs": 2, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/vda1", 
+            "data": [
+                "/dev/vda1"
+            ], 
+            "other": [], 
+            "saved_caches": "/dev/vda1"
+        }, 
+        "rack": "rack1", 
+        "rpc_ip": "10.200.178.76", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-1368626044486952009", 
+        "vnodes": true
+    }
+}

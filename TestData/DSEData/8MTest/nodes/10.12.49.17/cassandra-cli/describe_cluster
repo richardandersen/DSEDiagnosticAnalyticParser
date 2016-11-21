@@ -1,0 +1,18 @@
+Connected to: "DCW Entity Resolution" on 10.12.49.17/9160
+Welcome to Cassandra CLI version 2.1.15.1423
+
+The CLI is deprecated and will be removed in Cassandra 2.2.  Consider migrating to cqlsh.
+CQL is fully backwards compatible with Thrift data; see http://www.datastax.com/dev/blog/thrift-to-cql3
+
+Type 'help;' or '?' for help.
+Type 'quit;' or 'exit;' to quit.
+
+[svc_admin@unknown] describe cluster;
+Cluster Information:
+   Name: DCW Entity Resolution
+   Snitch: com.datastax.bdp.snitch.DseDelegateSnitch
+   Partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+   Schema versions: 
+	ba5aa0b3-a80e-3d32-a89b-aad0ab738e2a: [10.12.52.28, 10.12.51.29, 10.12.52.13, 10.12.52.25, 10.12.49.10, 10.12.50.10, 10.12.49.11, 10.12.50.11, 10.12.51.20, 10.12.50.16, 10.12.51.32, 10.12.49.17]
+
+[svc_admin@unknown] quit;

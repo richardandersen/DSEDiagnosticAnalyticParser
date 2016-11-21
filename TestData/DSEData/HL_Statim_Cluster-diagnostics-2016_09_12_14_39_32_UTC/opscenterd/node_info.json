@@ -1,0 +1,712 @@
+{
+    "10.185.0.249": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 164651100783.0, 
+        "dc": "us-west-2_02", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-951cdbf5", 
+            "instance-id": "i-dc4fb548", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-west-2a"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-185-0-249.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 3.52, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.185.0.249", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "2a", 
+        "rpc_ip": "10.185.0.245", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "99296680769561675", 
+        "vnodes": true
+    }, 
+    "10.185.0.250": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 238492362778.0, 
+        "dc": "us-west-2_02", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-951cdbf5", 
+            "instance-id": "i-2b4fb5bf", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-west-2a"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-185-0-250.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 9.7699999999999996, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.185.0.250", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "2a", 
+        "rpc_ip": "10.185.0.251", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-1219544861731736544", 
+        "vnodes": true
+    }, 
+    "10.185.2.202": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 357617996632.0, 
+        "dc": "us-west-2_02", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-951cdbf5", 
+            "instance-id": "i-6b70f0c4", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-west-2b"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-185-2-202.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 2.1699999999999999, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.185.2.202", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "2b", 
+        "rpc_ip": "10.185.2.196", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "5052857124452674575", 
+        "vnodes": true
+    }, 
+    "10.185.2.222": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 380022306963.0, 
+        "dc": "us-west-2_02", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-951cdbf5", 
+            "instance-id": "i-722d4eaf", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-west-2c"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-185-2-222.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 6.1500000000000004, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.185.2.222", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "2c", 
+        "rpc_ip": "10.185.2.220", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-5085536782197562872", 
+        "vnodes": true
+    }, 
+    "10.201.0.247": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 243227915597.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-f7f44a0f", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1e"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-0-247.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 3.7999999999999998, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.0.247", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1e", 
+        "rpc_ip": "10.201.0.251", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "8787813311292370439", 
+        "vnodes": true
+    }, 
+    "10.201.0.252": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 106206559116.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdo", 
+                "xvdd", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-63f44a9b", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1e"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-0-252.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 5.1299999999999999, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.0.252", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1e", 
+        "rpc_ip": "10.201.0.248", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-8127585652745696757", 
+        "vnodes": true
+    }, 
+    "10.201.2.196": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 212485531698.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-d0d88e56", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1c"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-2-196.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 8.9100000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.2.196", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1c", 
+        "rpc_ip": "10.201.2.200", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-3532113850351600121", 
+        "vnodes": true
+    }, 
+    "10.201.2.201": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 163545491354.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-c6db8d40", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1c"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-2-201.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 3.3700000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.2.201", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1c", 
+        "rpc_ip": "10.201.2.199", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "2820981591406959620", 
+        "vnodes": true
+    }, 
+    "10.201.2.218": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 184327290287.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdd", 
+                "xvdo", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-b091f620", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1d"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-2-218.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 4.5300000000000002, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.2.218", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1d", 
+        "rpc_ip": "10.201.2.221", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-546611519717441178", 
+        "vnodes": true
+    }, 
+    "10.201.2.222": {
+        "agent_jvm_version": "1.8.0_51", 
+        "alias": null, 
+        "data_held": 198330616649.0, 
+        "dc": "us-east_01", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "xvdo", 
+                "xvdd", 
+                "xvda"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": "ami-dd5a97b0", 
+            "instance-id": "i-8092f510", 
+            "instance-type": "m4.4xlarge", 
+            "placement": "us-east-1d"
+        }, 
+        "has_jna": true, 
+        "hostname": "ip-201-2-222.kdc.capitalone.com", 
+        "inmemory": {
+            "max": 13507756032, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 4.4100000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0"
+        ], 
+        "node_ip": "10.201.2.222", 
+        "node_version": {
+            "cassandra": "2.1.15.1403", 
+            "dse": "4.8.9", 
+            "jobtracker": null, 
+            "search": null, 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 16, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/datavg_datalv", 
+            "data": [
+                "/dev/mapper/datavg_datalv"
+            ], 
+            "other": [
+                "/dev/mapper/backupvg_backuplv", 
+                "/dev/xvda1"
+            ], 
+            "saved_caches": "/dev/mapper/datavg_datalv"
+        }, 
+        "rack": "1d", 
+        "rpc_ip": "10.201.2.214", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-4924937065647673343", 
+        "vnodes": true
+    }
+}

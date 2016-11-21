@@ -1,0 +1,100 @@
+{
+    "avg_token_count": 256, 
+    "bdp_version": [
+        null, 
+        "4.8.6"
+    ], 
+    "cassandra_versions": [
+        "2.1.13.1218", 
+        null
+    ], 
+    "cluster_cores": 16, 
+    "cluster_instance_types": [
+        null, 
+        "c3.4xlarge"
+    ], 
+    "cluster_os": [
+        [
+            null, 
+            null, 
+            null, 
+            null
+        ], 
+        [
+            "linux", 
+            "Ubuntu", 
+            "14.04", 
+            "amd64"
+        ]
+    ], 
+    "cluster_ram": 30147, 
+    "columnfamily_count": 50, 
+    "config_diff": {
+        "authentication": [
+            [
+                "enabled", 
+                "True"
+            ]
+        ], 
+        "cassandra": [
+            "seed_hosts"
+        ], 
+        "jmx": [
+            "port"
+        ], 
+        "logging": [
+            "level"
+        ], 
+        "repair_service": [
+            "single_repair_timeout", 
+            "max_parallel_repairs"
+        ], 
+        "ui": [
+            "default_api_timeout"
+        ], 
+        "webserver": [
+            "ssl_certfile", 
+            "ssl_keyfile", 
+            "interface"
+        ]
+    }, 
+    "cql3_cf_count": 50, 
+    "dc_count": 1, 
+    "free_space": null, 
+    "is_enterprise": true, 
+    "keyspace_count": 8, 
+    "node_count": 16, 
+    "opscenter_arch": "x86_64", 
+    "opscenter_cores": 1, 
+    "opscenter_instance_type": "m3.medium", 
+    "opscenter_os": "linux", 
+    "opscenter_os_sub": "Ubuntu", 
+    "opscenter_os_version": "14.04", 
+    "opscenter_ram": 3764, 
+    "opscenter_version": "5.2.4", 
+    "opscenterd_install_type": "package", 
+    "partitioner": "org.apache.cassandra.dht.Murmur3Partitioner", 
+    "python_version": "2.7", 
+    "rack_map": {
+        "prod-us-west-1.RackA": 8, 
+        "prod-us-west-1.RackC": 8
+    }, 
+    "separate_storage": false, 
+    "snitch": null, 
+    "strategy_options": [
+        "{\"prod-us-west-1\":\"2\"}", 
+        "{\"replication_factor\":\"3\"}", 
+        "{}", 
+        "{\"prod-us-west-1\":\"2\"}", 
+        "{\"replication_factor\":\"2\"}", 
+        "{\"prod-us-west-1\":\"3\"}", 
+        "{}", 
+        "{\"prod-us-west-1\":\"2\"}", 
+        "{\"replication_factor\":\"1\"}", 
+        "{\"replication_factor\":\"2\"}", 
+        "{\"prod-us-west-1\":\"2\"}", 
+        "{\"prod-us-west-1\":\"3\"}"
+    ], 
+    "used_space": null, 
+    "user": "anonymous"
+}

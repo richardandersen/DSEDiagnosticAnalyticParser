@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+
+<configuration>
+
+  <!-- JobTracker security configuration -->
+  <!-- 
+  <property>
+    <name>mapreduce.jobtracker.kerberos.principal</name>
+    <value>dse/_HOST@EXAMPLE.COM</value>
+  </property>
+
+  <property>
+    <name>mapreduce.jobtracker.kerberos.https.principal</name>
+    <value>dse/_HOST@EXAMPLE.COM</value>
+  </property>
+
+  <property>
+    <name>mapreduce.jobtracker.keytab.file</name>
+    <value>/path/to/dse.keytab</value>
+  </property>
+  -->
+ 
+  <!-- TaskTracker security configuration -->
+  <!-- 
+  <property>
+    <name>mapreduce.tasktracker.kerberos.principal</name>
+    <value>dse/_HOST@REALM</value>
+  </property>
+
+  <property>
+    <name>mapreduce.tasktracker.kerberos.https.principal</name>
+    <value>dse/_HOST@REALM</value>
+  </property>
+
+  <property>
+    <name>mapreduce.tasktracker.keytab.file</name>
+    <value>/path/to/dse.keytab</value>
+  </property>
+  --> 
+  
+  <!-- Location of intermediate map output on local machine
+       If security is enabled this must be a fixed list of paths
+  -->
+  <!-- 
+  <property>
+    <name>mapred.local.dir</name>
+    <value>/tmp/mapredlocal</value>
+  </property>
+  -->
+
+  <!-- TaskController settings -->
+  <!-- 
+  <property>
+    <name>mapred.task.tracker.task-controller</name>
+    <value>org.apache.hadoop.mapred.LinuxTaskController</value>
+  </property>
+
+  <property>
+    <name>mapreduce.tasktracker.task-controller.exe</name>
+    <value>_HADOOP_DIR/bin/path/task-controller</value>
+  </property>
+  -->
+
+  <!-- Cassandra record readers/writers transport config, required by e.g. PIG demos. -->
+  <property>
+    <name>cassandra.client.transport.factory</name>
+    <value>com.datastax.bdp.transport.client.TDseClientTransportFactory</value>
+  </property>
+
+  <!-- Performance improvement
+       The inode can be saved once per block 
+       or once per job and whe the file is closed.
+       The latter will offer fast performance at expense or more risk.
+    
+       Options:
+            SYNC (one save per block)   (Default)
+            ONCE (inode is saved at the end)
+     
+  -->
+  <property>
+    <name>mapred.job.inode.mode</name>
+    <value>SYNC</value>
+  </property>
+
+  <!-- performance defaults (not required) -->
+  <property>
+    <name>mapred.job.reuse.jvm.num.tasks</name>
+    <value>24</value>
+  </property>
+
+  <!-- Compress intermediate files for better performance -->
+  <property>
+    <name>mapred.compress.map.output</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>mapred.map.output.compression.codec</name>
+    <value>com.datastax.bdp.hadoop.compression.SnappyCodec</value>         
+  </property>
+
+  <!-- Enable Thrift JobTracker plugin -->
+  <property>
+    <name>mapred.jobtracker.plugins</name>
+    <value>com.datastax.bdp.hadoop.thriftfs.ThriftJobTrackerPlugin</value>
+    <description>Comma-separated list of jobtracker plug-ins to be activated</description>
+  </property>
+
+  <property>
+    <name>jobtracker.thrift.address</name>
+    <value>0.0.0.0:9290</value>
+  </property>
+
+  <property>
+    <name>mapreduce.tasktracker.outofband.heartbeat</name>
+    <value>false</value>
+    <description>
+      Expert: Set this to true to let the tasktracker send an 
+      out-of-band heartbeat on task-completion for better latency
+    </description>
+  </property>
+
+  <!-- FairScheduler is included. Uncomment to enable. -->
+  <!-- 
+  <property> 
+    <name>mapred.jobtracker.taskScheduler</name> 
+    <value>org.apache.hadoop.mapred.FairScheduler</value> 
+  </property>
+
+  <property> 
+    <name>mapred.fairscheduler.poolnameproperty</name> 
+    <value>mapred.job.queue.name</value> 
+  </property>
+  -->
+
+  <!-- If setting an alternative allocation file for FairScheduler,  please use an absolute path -->
+  <!--
+  <property> 
+    <name>mapred.fairscheduler.allocation.file</name> 
+    <value>/path/to/allocations.xml</value> 
+  </property>
+  -->
+ 
+  <!-- real world cluster configuration  checket http://hadoop.apache.org/docs/r1.0.3/cluster_setup.html-->
+  <!-- 
+    // Larger heap-size for child jvms of maps. 
+  <property>
+    <name>mapred.map.child.java.opts</name>
+    <value>-Xmx512M</value> 
+  </property>
+
+  // Larger heap-size for child jvms of reduces. 
+  <property>
+    <name>mapred.reduce.child.java.opts</name>
+    <value>-Xmx512M</value>
+  </property>
+
+  // Higher number of parallel copies run by reduces to fetch outputs from very large number of maps. 
+  <property>
+    <name>mapred.reduce.parallel.copies</name>
+    <value>20</value>
+  </property>
+  -->
+</configuration>

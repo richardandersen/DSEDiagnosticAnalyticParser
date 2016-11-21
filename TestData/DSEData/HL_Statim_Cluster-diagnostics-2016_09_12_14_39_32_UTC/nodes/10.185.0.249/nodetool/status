@@ -1,0 +1,22 @@
+Datacenter: us-east_01
+======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address       Load       Tokens  Owns    Host ID                               Rack
+UN  10.201.2.201  152.31 GB  16      ?       5dc36517-a57b-4053-8aa1-a5eeebc0aa1d  1c
+UN  10.201.2.218  171.65 GB  16      ?       5439a991-0b63-445d-8a2c-3c18ebc00f59  1d
+UN  10.201.0.252  98.91 GB   16      ?       367eca67-17eb-4774-86c6-661d995611c2  1e
+UN  10.201.2.222  184.71 GB  16      ?       198962fb-12a6-435e-afb0-2542df292e4d  1d
+UN  10.201.2.196  197.88 GB  16      ?       718c9d98-ab4e-45e2-b47d-a5d82bcddb20  1c
+UN  10.201.0.247  226.52 GB  16      ?       ddc31cc4-4f3a-4635-94c3-20b44ce1f929  1e
+Datacenter: us-west-2_02
+========================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address       Load       Tokens  Owns    Host ID                               Rack
+UN  10.185.0.249  153.34 GB  16      ?       7f285ed1-fd8b-43db-b25f-ba4b04e0224b  2a
+UN  10.185.2.202  333.05 GB  16      ?       8eae476d-8055-4cd6-9986-db360956be78  2b
+UN  10.185.0.250  222.1 GB   16      ?       12a8fb69-2a53-4e4e-b5a5-e173d7bb1bec  2a
+UN  10.185.2.222  353.92 GB  16      ?       55f124d7-47a7-4626-af53-0d37e80fe213  2c
+
+Note: Non-system keyspaces don't have the same replication settings, effective ownership information is meaningless

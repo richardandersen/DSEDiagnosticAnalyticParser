@@ -1,0 +1,20 @@
+Connected to: "prod-us-west-1-errmon" on 10.1.0.152/9160
+Welcome to Cassandra CLI version 2.1.13.1218
+
+The CLI is deprecated and will be removed in Cassandra 2.2.  Consider migrating to cqlsh.
+CQL is fully backwards compatible with Thrift data; see http://www.datastax.com/dev/blog/thrift-to-cql3
+
+Type 'help;' or '?' for help.
+Type 'quit;' or 'exit;' to quit.
+
+[default@unknown] describe cluster;
+Cluster Information:
+   Name: prod-us-west-1-errmon
+   Snitch: com.datastax.bdp.snitch.DseDelegateSnitch
+   Partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+   Schema versions: 
+	6aeab10b-abe3-37e0-aea9-3eba8231b044: [10.1.78.194, 10.1.70.7, 10.1.4.202, 10.1.6.237, 10.1.64.174, 10.1.2.80, 10.1.0.149, 10.1.0.151, 10.1.0.150, 10.1.0.153, 10.1.0.152, 10.1.72.93, 10.1.72.92, 10.1.72.95, 10.1.72.94]
+
+	UNREACHABLE: [10.1.69.78, 10.1.72.91]
+
+[default@unknown] quit;

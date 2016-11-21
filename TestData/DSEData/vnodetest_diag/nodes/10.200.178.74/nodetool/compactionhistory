@@ -1,0 +1,1052 @@
+Compaction History: 
+id                                       keyspace_name      columnfamily_name            compacted_at              bytes_in       bytes_out      rows_merged
+8d35e260-69fd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472044839814             66771          440            {1:4}
+6d89ec40-6732-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471737696516             2092758        5995           {1:6}
+727244e0-67e2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471813296174             16189          119            {1:1}
+2fcb55a0-6576-11e6-b7db-d361fd368e17     system             size_estimates               1471546896378             48252          10952          {4:9}
+f8383880-6636-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471629696008             81675          543            {1:6}
+a8baee20-6554-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471532496386             202533         1464           {1:1}
+1d991f90-6650-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471640496137             16268          119            {1:1}
+562d7290-675c-11e6-b7db-d361fd368e17     system             sstable_activity             1471755696185             7106           1563           {1:50, 2:36, 3:18, 4:29}
+2e17c630-670b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471720839699             66939          432            {1:4}
+63050630-65d2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471586496019             128290         465            {1:6}
+188871a0-6654-11e6-b7db-d361fd368e17     system_traces      events                       1471642205626             1084           0              {}
+31fb12f0-6910-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471942896031             94920          551            {1:7}
+b817b210-6764-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471759296433             660636         1862           {1:7}
+b95d1ce0-6931-11e6-b7db-d361fd368e17     system             size_estimates               1471957296558             48240          11021          {4:9}
+ad5e7c10-6966-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471980039761             66914          441            {1:4}
+9cc48540-68ab-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471899696020             97149          642            {1:7}
+0cc27460-68f7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471932096166             1236669        3322           {1:1}
+e7b32fc0-68dd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471921296572             1279518        3737           {1:4}
+5a8131c0-64ea-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471486838492             1611554        4287           {1:6}
+a1e88750-695b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471975296069             109952         533            {1:4}
+ec856850-698d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471996896085             95579          441            {1:7}
+a8abd2f0-6554-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471532496287             28288          365            {1:7}
+97a405a0-67fb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471824095994             51973          449            {1:4}
+3535a770-64d1-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471476038503             88719          545            {1:6}
+11cfba20-69a7-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472007696066             98202          498            {1:7}
+8fcfaed0-6515-11e6-b7db-d361fd368e17     system             local                        1471505396285             1232           980            {4:1}
+12571290-69a7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472007696953             2167872        5717           {1:6}
+5279e2f0-6879-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471878096543             2122641        6114           {1:6}
+481fdd70-6719-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471726896327             562699         1534           {1:1}
+3201c9b0-6910-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471942896075             80139          566            {1:6}
+92a34300-674b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471748496176             16305          119            {1:1}
+04168690-6964-11e6-b7db-d361fd368e17     system             size_estimates               1471978896761             48351          11181          {4:9}
+18605d00-65a0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471564895952             133297         758            {1:10}
+1d7eb9c1-6650-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471640495964             99240          646            {1:7}
+27bad700-67b0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471791695984             50668          469            {1:4}
+1dc586c0-6650-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471640496428             56558          209            {1:1}
+c72e9360-6974-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471986096022             51694          396            {1:4}
+fd6a1d40-66e6-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471705296148             1202385        3211           {1:1}
+928b7540-674b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471748496020             101080         461            {1:4}
+c212a7a0-68c4-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471910496026             99685          627            {1:7}
+07d2c8c0-6847-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471856496460             1180201        3199           {1:4}
+68218e30-6682-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471662096019             97822          539            {1:7}
+6ec0b110-68ff-11e6-b7db-d361fd368e17     system             size_estimates               1471935696545             48818          11208          {4:9}
+a8788df0-6554-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471532495951             43424          717            {1:11}
+c86c8990-681f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471839639721             67034          433            {1:4}
+05573fb0-654d-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1471529215787             60148729       60881735       {1:1878, 3:24, 4:1200}
+d9330820-6578-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471548039586             558020         1637           {1:3}
+8da89ae0-669b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471672896398             631795         1993           {1:7}
+d34db9f0-661d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471618896655             57233          210            {1:1}
+ec982d00-698d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471996896208             936977         2571           {1:7}
+f8368ad0-6636-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471629695997             97376          448            {1:4}
+cafd9fb0-6535-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471519239467             78719          338            {1:6}
+fd7540d0-66e6-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471705296221             49696          327            {1:4}
+b7d92270-6764-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471759296023             99597          414            {1:4}
+e8912ba0-6788-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471774839642             652442         1944           {1:4}
+fe84acf0-6591-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471558839615             613259         1941           {1:4}
+e27e8be0-682d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471845696413             1230355        3285           {1:1}
+0272a810-6797-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471780896017             52099          463            {1:4}
+a6234dc0-651c-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471508440220             16103          117            {1:1}
+cd8010e0-68cf-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471915239662             652438         1944           {1:4}
+57469d40-6929-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471953696020             98912          620            {1:7}
+d828a510-66cd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471694496225             16203          119            {1:1}
+b8045120-6764-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471759296306             565410         1547           {1:1}
+a8d728b0-6554-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471532496571             16046          209            {1:1}
+480fb0d0-6719-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471726896221             956314         2888           {1:7}
+4d4f5130-67c9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471802496451             642082         1994           {1:7}
+b30b56b0-66b4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471683696539             557183         1530           {1:1}
+d35a6420-661d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471618896738             2029971        5527           {1:6}
+7fd14ff0-6503-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471497638511             1549122        4077           {1:6}
+ca6641b0-6535-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471519238475             84762          495            {1:6}
+07ec3fe0-64f4-11e6-b7db-d361fd368e17     system             sstable_activity             1471490994910             3221           603            {1:40, 2:20, 3:20, 4:2}
+cf391e90-673a-11e6-b7db-d361fd368e17     system             size_estimates               1471741296377             48309          11007          {4:9}
+6d80eb90-6732-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471737696457             1204499        3425           {1:4}
+10dd7dd0-64b8-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471465240109             21098          119            {1:1}
+a70a3f70-6a0b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472050896103             81177          566            {1:6}
+a767c8c0-6a0b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472050896716             2153772        6133           {1:6}
+b7e57e80-6764-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471759296104             1221367        3267           {1:1}
+bd0c18a0-6814-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471834896170             101034         462            {1:4}
+324a1d50-6910-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471942896549             1301428        3853           {1:4}
+62b58d20-6934-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471958439666             652326         1943           {1:4}
+2d62af10-6860-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471867296897             56555          209            {1:1}
+dd56e050-677d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471770096341             564199         1548           {1:1}
+a8777c80-6554-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471532495944             30562          554            {1:7}
+4d229be0-67c9-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471802496158             16288          119            {1:1}
+2cda9350-6860-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471867296005             50974          478            {1:4}
+a746fa50-6a0b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472050896501             1370557        3722           {1:4}
+124140a0-69a7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472007696810             55092          209            {1:1}
+0cc4be50-68f7-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471932096181             900889         2506           {1:7}
+0798f410-6847-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471856496081             80109          516            {1:6}
+cc4cc910-6a24-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472061696033             50446          442            {1:4}
+dfdfe1e0-69fe-11e6-b7db-d361fd368e17     system_schema      views                        1472045407998             51             0              {}
+5273a160-6879-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471878096502             56458          210            {1:1}
+0cc42210-68f7-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471932096177             16161          120            {1:1}
+7caeb040-6942-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471964496196             16218          119            {1:1}
+7ce577b0-6942-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471964496555             56710          209            {1:1}
+2bb97960-6693-11e6-b7db-d361fd368e17     system             sstable_activity             1471669296118             7269           1647           {1:50, 2:35, 3:20, 4:29}
+028d8310-6797-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471780896193             1217178        3252           {1:1}
+ca6b71d0-6535-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471519238509             1569033        4045           {1:6}
+da662730-6547-11e6-b7db-d361fd368e17     system             local                        1471526996259             1233           979            {4:1}
+6d630350-6732-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471737696261             960272         2870           {1:7}
+522c8640-6879-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471878096036             96717          624            {1:7}
+cc6421a0-6a24-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472061696186             1239131        3311           {1:1}
+a8a28420-6554-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471532496226             430044         3065           {1:1}
+02bfddb0-6797-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471780896523             661978         1939           {1:7}
+c735e660-6974-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471986096070             117186         341            {1:4}
+1237cac0-69a7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472007696748             1380968        3632           {1:4}
+d9388660-6578-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471548039622             51496          331            {1:3}
+18cd0180-65a0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471564896664             890753         2716           {1:10}
+dd452d10-677d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471770096225             953776         2643           {1:7}
+889adff0-65eb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471597296495             1200179        3036           {1:4}
+b911e880-660f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471612839688             66860          436            {1:4}
+6825ace0-6682-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471662096046             81747          508            {1:6}
+35c7ae40-64d1-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471476039460             83338          369            {1:6}
+105c3fe0-64b8-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471465239262             117215         467            {1:6}
+5b800420-64ea-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471486840162             16226          120            {1:1}
+9cce7050-68ab-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471899696085             81051          591            {1:6}
+f388a320-6586-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471554096722             3262472        8852           {1:9}
+d80369d0-66cd-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471694495981             96661          485            {1:7}
+35595c10-64d1-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471476038737             78175          435            {1:5}
+43048df0-6669-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471651296335             1181581        3192           {1:4}
+bd0f9b10-6814-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471834896193             83587          605            {1:6}
+d3008450-661d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471618896149             16307          120            {1:1}
+188b8bb0-65a0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471564896235             1196938        3572           {1:10}
+1d8a2b70-6650-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471640496039             83680          596            {1:6}
+c7363480-6974-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471986096072             98651          444            {1:7}
+5b8cf2b0-64b9-11e6-b7db-d361fd368e17     system             peers                        1471465794907             2056           1645           {4:2}
+cdc6b050-656d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471543295956             73653          455            {1:6}
+0cf4f610-68f7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471932096497             569416         1570           {1:1}
+e7b552a0-68dd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471921296586             56572          209            {1:1}
+42d0fad0-6669-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471651295997             96820          573            {1:7}
+02776300-6797-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471780896048             100410         574            {1:7}
+80995570-6825-11e6-b7db-d361fd368e17     system             sstable_activity             1471842096199             7590           1657           {1:46, 2:32, 3:26, 4:32}
+2d04feb0-6860-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471867296283             1231185        3268           {1:1}
+23d34480-65ab-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471569639624             67039          437            {1:4}
+9fc63780-65c1-11e6-b7db-d361fd368e17     system             size_estimates               1471579296504             48661          11219          {4:9}
+12fa7670-6852-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471861239639             652618         1946           {1:4}
+8801b3b0-694d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471969239659             652348         1944           {1:4}
+9299cd20-674b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471748496114             1217287        3266           {1:1}
+80c96b90-6503-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471497640137             1110529        2984           {1:1}
+6838e6c5-6682-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471662096172             1182841        3178           {1:1}
+b81c1ee0-6764-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471759296462             2116243        5593           {1:6}
+5cab51d0-69d9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472029296493             583129         1597           {1:1}
+6858a3c0-6682-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471662096380             1189996        3042           {1:4}
+82e1f760-689d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471893639638             652197         1937           {1:4}
+fd455c80-654c-11e6-b7db-d361fd368e17     OpsCenter          rollups7200                  1471529202248             483601         482173         {1:2976}
+9cef65d0-68ab-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471899696301             953888         2881           {1:7}
+add68bc0-6604-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471608096380             554461         1519           {1:1}
+dd385bd0-677d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471770096141             16337          119            {1:1}
+cce40000-6a24-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472061697024             2165385        6131           {1:6}
+67d2b160-69e4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472034039670             652572         1940           {1:4}
+404e1580-6953-11e6-b7db-d361fd368e17     system             sstable_activity             1471971696344             7520           1694           {1:54, 2:40, 3:15, 4:29}
+c7507340-6974-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471986096244             47682          214            {1:4}
+6d78d540-6732-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471737696404             564182         1548           {1:1}
+4808abf0-6719-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471726896175             16190          120            {1:1}
+f32155d0-6586-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471554096045             116013         623            {1:9}
+c26cae80-68c4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471910496616             2160994        6130           {1:6}
+22ddf010-6700-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471716096401             56821          209            {1:1}
+5a7c9de0-64ea-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471486838462             89080          579            {1:6}
+f37c2000-6586-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471554096640             57627          209            {1:1}
+4d080f00-67c9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471802495984             50889          470            {1:4}
+526cc390-6879-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471878096457             559243         1528           {1:1}
+8217f8b0-69f2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472040096699             657285         2061           {1:7}
+725f0b00-67e2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471813296048             98024          450            {1:4}
+1869d2e0-65a0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471564896014             118821         785            {1:9}
+992c1ec0-69c8-11e6-b7db-d361fd368e17     system             size_estimates               1472022096556             48319          11108          {4:9}
+5b4a96d0-680c-11e6-b7db-d361fd368e17     system             sstable_activity             1471831296189             7421           1649           {1:49, 2:34, 3:22, 4:31}
+b6b681e0-6597-11e6-b7db-d361fd368e17     system             sstable_activity             1471561296126             7231           1570           {1:44, 2:32, 3:30, 4:26}
+23ced7b0-65ab-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471569639594             652353         1943           {1:4}
+681f9260-6682-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471662096006             99003          409            {1:4}
+cdcfff20-656d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471543296018             131639         465            {1:6}
+10af6380-67da-11e6-b7db-d361fd368e17     system             sstable_activity             1471809696184             7208           1662           {1:52, 2:36, 3:19, 4:29}
+8846f390-65eb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471597295945             49755          369            {1:4}
+55459110-658f-11e6-b7db-d361fd368e17     system             size_estimates               1471557696673             48080          11047          {4:9}
+d2ee5be0-661d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471618896029             80417          549            {1:6}
+120e70d0-69a7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472007696477             584015         1596           {1:1}
+ce093790-656d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471543296393             16137          119            {1:1}
+37a07a00-69c0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472018496928             650991         1892           {1:7}
+c26163e0-68c4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471910496542             1351276        3597           {1:4}
+63761780-65d2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471586496760             3296422        8910           {1:9}
+1d7eb9c0-6650-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471640495964             51570          459            {1:4}
+c0f0f170-66f7-11e6-b7db-d361fd368e17     system             sstable_activity             1471712496135             7102           1564           {1:49, 2:35, 3:20, 4:28}
+a1ee0590-695b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471975296105             80463          596            {1:6}
+2cddc7a0-6860-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471867296026             98842          658            {1:7}
+332951b0-67bb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471796439627             652377         1944           {1:4}
+49d82240-654c-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1471528901220             35634183       36519166       {1:41, 2:39, 4:1776}
+a3203bf0-6806-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471828839727             66813          430            {1:4}
+4d202ae0-67c9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471802496142             1217670        3262           {1:1}
+04ee7bb0-6561-11e6-b7db-d361fd368e17     system_traces      events                       1471537805035             880            0              {}
+0cc61de0-68f7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471932096190             41553          214            {1:4}
+6819c600-6682-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471662095968             97741          534            {1:7}
+588779a1-67d4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471807239738             67156          437            {1:4}
+8212efa0-69f2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472040096666             54805          210            {1:1}
+777be120-6892-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471888896050             112229         340            {1:4}
+ccda14f0-6a24-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472061696959             665861         1994           {1:7}
+35a9c600-64d1-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471476039264             86975          384            {1:6}
+97da09c0-67fb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471824096348             1224900        3275           {1:1}
+1fe4d280-64ca-11e6-b7db-d361fd368e17     system             local                        1471472996264             1235           978            {4:1}
+2818ae70-67b0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471791696599             1190148        3580           {1:4}
+5da476d0-6884-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471882839741             67142          444            {1:4}
+725b6180-67e2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471813296024             98829          609            {1:7}
+0795bfc0-6847-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471856496060             95774          533            {1:7}
+b2fc3b80-66b4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471683696440             16290          119            {1:1}
+8e47e010-6546-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471526439057             205677         723            {1:2}
+0ca8d1e1-68f7-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471932095998             92005          478            {1:7}
+4d462970-67c9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471802496391             1190343        3558           {1:4}
+078fa540-6847-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471856496020             95921          557            {1:7}
+cb19b131-654b-11e6-b7db-d361fd368e17     system_schema      tables                       1471528688579             5495           4791           {1:10, 3:1}
+a61e92d0-651c-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471508440189             16092          119            {1:1}
+2f1c5f80-654b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471528426872             13876          119            {1:1}
+b906ec00-660f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471612839616             652465         1939           {1:4}
+92861e10-674b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471748495985             100842         615            {1:7}
+d84ef1c0-66cd-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471694496476             643026         1754           {1:7}
+22bc5e50-6700-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471716096181             1209035        3245           {1:1}
+c8629e80-681f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471839639656             652430         1938           {1:4}
+77f6dd80-6892-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471888896856             649733         1784           {1:7}
+32531e00-6910-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471942896608             2136044        6154           {1:6}
+52717e80-6879-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471878096488             1261741        3756           {1:4}
+1865db40-65a0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471564895988             130531         588            {1:6}
+f358b980-6586-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471554096408             536379         1514           {1:1}
+16130250-6537-11e6-b7db-d361fd368e17     system             size_estimates               1471519794933             51086          11734          {4:8}
+9cc56fa1-68ab-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471899696026             50028          466            {1:4}
+43111110-6669-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471651296417             56582          209            {1:1}
+8d6cca60-669b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471672896006             96992          488            {1:4}
+debeee50-694a-11e6-b7db-d361fd368e17     system             size_estimates               1471968096693             48129          11016          {4:9}
+52539640-6879-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471878096292             46400          343            {1:4}
+3f3204a0-6786-11e6-b7db-d361fd368e17     system             size_estimates               1471773696490             48263          11023          {4:9}
+97b98970-67fb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471824096135             100215         428            {1:4}
+a8426940-68b6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471904439764             67180          434            {1:4}
+385ae850-686b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471872039765             67123          437            {1:4}
+30e73f70-6743-11e6-b7db-d361fd368e17     system             sstable_activity             1471744896231             7119           1567           {1:50, 2:35, 3:20, 4:28}
+80d9b580-64d2-11e6-b7db-d361fd368e17     system             peers                        1471476594904             2038           1649           {4:2}
+e11ee250-6660-11e6-b7db-d361fd368e17     system             sstable_activity             1471647696117             7400           1608           {1:51, 2:36, 3:20, 4:28}
+e3c5cb70-69fa-11e6-b7db-d361fd368e17     system             size_estimates               1472043696551             48258          10992          {4:9}
+02762a80-6797-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471780896040             100410         645            {1:7}
+c7887330-6974-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471986096611             2173044        5645           {1:6}
+ce02cef0-656d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471543296351             1152044        3090           {1:1}
+a5ad8180-651c-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471508439448             72777          374            {1:6}
+c778bbc0-6974-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471986096508             574332         1623           {1:1}
+b2bdd2f0-66b4-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471683696031             95470          634            {1:7}
+c73b64a0-6974-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471986096106             82384          446            {1:6}
+f8720d30-6636-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471629696387             56588          210            {1:1}
+ce1a9cb0-656d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471543296507             1198289        3270           {1:10}
+a71b0850-6a0b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472050896213             46251          321            {1:4}
+b03680d0-699e-11e6-b7db-d361fd368e17     system             sstable_activity             1472004096349             7622           1760           {1:53, 2:39, 3:12, 4:31}
+ecc6de20-698d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471996896514             589754         1610           {1:1}
+27ece380-67b0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471791696312             924427         2816           {1:7}
+88802c00-65eb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471597296320             555441         1527           {1:1}
+7777e980-6892-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471888896024             98204          490            {1:7}
+dfdfbad0-69fe-11e6-b7db-d361fd368e17     system_schema      triggers                     1472045407997             51             0              {}
+7388b5e0-668d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471666839614             652373         1942           {1:4}
+fdaaf6d0-66e6-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471705296573             646576         1983           {1:7}
+b5191640-652e-11e6-b7db-d361fd368e17     system             local                        1471516196260             1235           980            {4:1}
+e89dd5d0-6788-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471774839725             67014          440            {1:4}
+6d41bfb0-6732-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471737696043             99030          455            {1:4}
+8d34f800-69fd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472044839808             652388         1940           {1:4}
+0cb2e400-68f7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471932096064             101632         343            {1:4}
+cb215251-654b-11e6-b7db-d361fd368e17     system_schema      columns                      1471528688629             11328          11136          {1:10, 3:1}
+d2e1d8c1-661d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471618895948             49436          391            {1:4}
+22c58610-6700-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471716096241             943245         2826           {1:7}
+a1e41a80-695b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471975296040             96507          651            {1:7}
+51074da0-66ac-11e6-b7db-d361fd368e17     system             sstable_activity             1471680096122             7410           1634           {1:49, 2:35, 3:20, 4:30}
+2ef3a1d1-654b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471528426605             1362401        4169           {1:6}
+97de0160-67fb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471824096374             50743          312            {1:4}
+d3550cf0-661d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471618896703             630309         1873           {1:7}
+42d603e0-6669-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471651296030             81186          550            {1:6}
+69a67300-684f-11e6-b7db-d361fd368e17     system             size_estimates               1471860096560             48306          11140          {4:9}
+0292da40-6797-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471780896228             16205          120            {1:1}
+1d47aab0-69b2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472012439771             66619          434            {1:4}
+53652540-6724-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471731639700             67021          436            {1:4}
+c74d17e0-6974-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471986096222             16232          120            {1:1}
+130b1840-6852-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471861239748             66862          439            {1:4}
+726e7450-67e2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471813296149             1218405        3276           {1:1}
+f487b620-6753-11e6-b7db-d361fd368e17     system             size_estimates               1471752096386             48168          11074          {4:9}
+44487220-6836-11e6-b7db-d361fd368e17     system             size_estimates               1471849296450             48298          11040          {4:9}
+15d70f10-688a-11e6-b7db-d361fd368e17     system             sstable_activity             1471885296257             7412           1639           {1:49, 2:35, 3:20, 4:30}
+6866ad80-6682-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471662096472             2088343        5542           {1:6}
+be306c50-66bf-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471688439701             66818          423            {1:4}
+a75b1e90-6a0b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472050896633             661100         1983           {1:7}
+42ebaec0-6669-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471651296172             1184099        3160           {1:1}
+3788fa60-69c0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472018496774             583091         1596           {1:1}
+5c73c710-69d9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472029296129             94616          449            {1:7}
+6840aef0-6682-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471662096223             48447          253            {1:4}
+ec856851-698d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471996896085             111032         340            {1:4}
+a8dbbc90-6554-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471532496601             305205         2568           {1:11}
+483ba2d0-6719-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471726896509             649379         2027           {1:7}
+ec94f8b0-698d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471996896187             1232707        3300           {1:1}
+f2cf6bc0-68e8-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471926039676             652330         1937           {1:4}
+8e351b60-6546-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471526438934             34684          219            {1:2}
+fd566e30-66e6-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471705296019             99030          617            {1:7}
+80cdff70-6503-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471497640167             16249          119            {1:1}
+659b9ba0-696c-11e6-b7db-d361fd368e17     system             sstable_activity             1471982496346             7338           1687           {1:53, 2:39, 3:12, 4:30}
+0ce493e0-685e-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1471866383390             88239717       91933054       {4:2068}
+72612de0-67e2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471813296062             82470          591            {1:6}
+cadc0df0-6535-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471519239247             82651          360            {1:6}
+7272ba11-67e2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471813296177             941397         2878           {1:7}
+187cbea0-65a0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471564896138             1159399        3077           {1:1}
+1b01c7e0-693a-11e6-b7db-d361fd368e17     system             sstable_activity             1471960896350             7525           1729           {1:53, 2:39, 3:12, 4:32}
+683c1b10-6682-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471662096193             16276          119            {1:1}
+46db0ee0-654c-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471528896206             38395          2379           {1:9}
+5c7a2fb0-69d9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472029296171             107641         338            {1:4}
+18d4c9b0-65a0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471564896715             3298671        9418           {1:9}
+72a67440-67e2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471813296516             2130604        6094           {1:6}
+ec7e3c60-698d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471996896038             95443          438            {1:7}
+78b62dd0-673d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471742439725             66717          429            {1:4}
+b2f7ceb0-66b4-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471683696411             922995         2858           {1:7}
+81d0b680-69f2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472040096232             16200          120            {1:1}
+72777500-67e2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471813296208             49907          326            {1:4}
+c263add0-68c4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471910496557             56960          209            {1:1}
+cb6c4000-6535-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471519240192             16350          117            {1:1}
+d2b3f170-697f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471990839815             67026          424            {1:4}
+6862dcf0-6682-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471662096447             638210         1797           {1:7}
+4d523760-67c9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471802496470             2127316        6090           {1:6}
+281d4250-67b0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471791696629             57076          209            {1:1}
+cb684860-6535-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471519240166             16195          119            {1:1}
+2699e420-65e3-11e6-b7db-d361fd368e17     system             sstable_activity             1471593696098             7533           1606           {1:44, 2:30, 3:30, 4:29}
+372bbf30-69c0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472018496163             94730          537            {1:7}
+97e83a90-67fb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471824096441             564940         1542           {1:1}
+43aef6b0-6514-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471504839067             180537         632            {1:2}
+633739c0-65d2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471586496348             1264826        3505           {1:10}
+2ef2b770-654b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471528426599             14508          117            {1:1}
+373d9980-69c0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472018496280             79019          502            {1:6}
+2e0b4310-670b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471720839617             652388         1941           {1:4}
+5c6dfab0-69d9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472029296091             94507          447            {1:7}
+eb63d930-67c0-11e6-b7db-d361fd368e17     system             sstable_activity             1471798896195             7208           1601           {1:49, 2:35, 3:20, 4:30}
+42ca1d00-6669-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471651295952             50322          384            {1:4}
+77d54bc0-6892-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471888896636             556412         1528           {1:1}
+295c4480-697d-11e6-b7db-d361fd368e17     system             size_estimates               1471989696712             48348          11066          {4:9}
+8d9c8cf0-669b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471672896319             560148         1536           {1:1}
+7ceb1d00-6942-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471964496592             658405         1817           {1:7}
+57a9f2f0-6929-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471953696671             57037          209            {1:1}
+bd37e390-6814-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471834896457             51280          334            {1:4}
+caac2450-6535-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471519238933             3574841        8991           {1:6}
+6d417190-6732-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471737696041             99511          638            {1:7}
+d83f3a50-66cd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471694496373             558819         1534           {1:1}
+b7ebe720-6764-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471759296146             50406          260            {1:4}
+d29d0e10-697f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471990839665             652398         1936           {1:4}
+2d3a3b30-650d-11e6-b7db-d361fd368e17     system             sstable_activity             1471501794915             3792           852            {1:44, 2:24, 3:24, 4:2}
+27cfbe90-67b0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471791696121             82020          593            {1:6}
+11cf1de0-69a7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472007696062             114059         414            {1:4}
+57512490-6929-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471953696089             82727          570            {1:6}
+c1fa5c00-6553-11e6-b7db-d361fd368e17     system_schema      tables                       1471532109248             5581           4813           {1:10, 4:1}
+f0c3f590-651d-11e6-b7db-d361fd368e17     system             size_estimates               1471508994921             51047          11702          {4:8}
+c1fc09b0-6553-11e6-b7db-d361fd368e17     system_schema      columns                      1471532109259             11417          11159          {1:10, 4:1}
+b27c8ab0-6a16-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472055639771             66927          421            {1:4}
+57b25760-6929-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471953696726             2169760        6155           {1:6}
+81d12bb0-69f2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472040096235             938352         2831           {1:7}
+edb8b020-6838-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471850439714             652336         1945           {1:4}
+8863ca60-65eb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471597296134             16253          119            {1:1}
+3dee95a0-65b9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471575696378             1256662        3564           {1:10}
+dd2a7920-677d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471770096050             81950          507            {1:6}
+7fffb2f0-6503-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471497638815             77021          533            {1:6}
+8d715e40-669b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471672896036             80127          601            {1:6}
+078d8260-6847-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471856496006             49882          388            {1:4}
+6e6b4380-65dd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471591239608             652383         1943           {1:4}
+dd602f20-677d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471770096402             1187382        3036           {1:4}
+32422e10-6910-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471942896497             573830         1572           {1:1}
+f7f9d670-6998-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472001639767             67012          426            {1:4}
+7779be40-6892-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471888896036             98046          445            {1:7}
+6abd53c0-6a1c-11e6-b7db-d361fd368e17     system             sstable_activity             1472058096380             6897           1546           {1:54, 2:40, 3:13, 4:25}
+47f10540-6719-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471726896020             98411          657            {1:7}
+77d43600-653f-11e6-b7db-d361fd368e17     system             sstable_activity             1471523394912             4436           919            {1:48, 2:36, 3:24, 4:3}
+92a3df40-674b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471748496180             967274         2842           {1:7}
+280cc790-67b0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471791696521             565404         1553           {1:1}
+a8800800-6554-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471532496000             43276          700            {1:11}
+480354c0-6719-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471726896140             1215242        3259           {1:1}
+92cceb10-674b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471748496449             2110975        6004           {1:6}
+6d568030-6732-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471737696179             1216812        3264           {1:1}
+1079da00-64b8-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471465239456             109638         428            {1:6}
+a6136f40-651c-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471508440116             1118231        3019           {1:1}
+7dd1f280-67ed-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471818039720             66872          431            {1:4}
+185f72a0-65a0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471564895946             72524          551            {1:6}
+5c8b46b0-69d9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472029296283             1240061        3307           {1:1}
+4d0b9170-67c9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471802496007             98251          632            {1:7}
+e26c6370-682d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471845696295             81150          500            {1:6}
+a1e1f7a0-695b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471975296026             49476          481            {1:4}
+36334150-64d1-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471476040165             16196          123            {1:1}
+5c7fd500-69d9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472029296208             79074          441            {1:6}
+a8c30470-6554-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471532496439             537736         4495           {1:7}
+646ec1e0-679f-11e6-b7db-d361fd368e17     system             size_estimates               1471784496382             48132          11055          {4:9}
+880fbd70-694d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471969239751             66948          428            {1:4}
+3794ba30-69c0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472018496851             1339859        3366           {1:4}
+229f3960-6700-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471716095990             51129          465            {1:4}
+b7d8fb60-6764-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471759296022             100034         545            {1:7}
+43157de0-6669-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471651296446             634030         1850           {1:7}
+a1fdbd00-695b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471975296208             940528         2871           {1:7}
+8d6e29f0-669b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471672896015             95671          623            {1:7}
+7cacdb80-6942-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471964496184             941967         2566           {1:7}
+10e1eaa0-64b8-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471465240138             1377749        2791           {1:1}
+88a73c00-65eb-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471597296576             649950         1803           {1:7}
+bd4c2ee0-6814-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471834896590             565031         1549           {1:1}
+0cb55500-68f7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471932096080             77046          436            {1:6}
+1d86f720-6650-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471640496018             99178          637            {1:7}
+0ddf4e00-67a2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471785639648             652162         1940           {1:4}
+ce0f03f0-656d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471543296431             66092          280            {1:6}
+d8535e90-66cd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471694496505             2078069        5476           {1:6}
+cc568d10-6a24-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472061696097             115788         472            {1:4}
+ef7ba8e0-66a3-11e6-b7db-d361fd368e17     system             size_estimates               1471676496494             48151          11055          {4:9}
+2f2a4230-654b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471528426963             3170192        10358          {1:9}
+372d1ec0-69c0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472018496172             48337          374            {1:4}
+4e47b2e0-6674-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471656039694             67131          436            {1:4}
+a6000e50-651c-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471508439989             519645         1430           {1:1}
+88506970-65eb-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471597296004             97985          555            {1:7}
+375b5ab0-69c0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472018496475             1227223        3286           {1:1}
+dd67a930-677d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471770096451             651759         1845           {1:7}
+97b23670-67fb-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471824096087             99889          632            {1:7}
+fd8ce780-66e6-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471705296376             1203992        3409           {1:4}
+dd74c890-677d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471770096537             2096270        5586           {1:6}
+dd346430-677d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471770096115             1219144        3276           {1:1}
+f8701160-6636-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471629696374             1183101        3354           {1:4}
+d2eb0080-661d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471618896008             96534          577            {1:7}
+ecd8b870-698d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471996896631             656057         1800           {1:7}
+6d835c90-6732-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471737696473             56301          209            {1:1}
+f866e9a0-6636-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471629696314             561156         1549           {1:1}
+2d676a00-6860-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471867296928             649606         2068           {1:7}
+07cb75c0-6847-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471856496412             563071         1533           {1:1}
+f8321e00-6636-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471629695968             97411          578            {1:7}
+0cacf090-68f7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471932096025             47218          306            {1:4}
+2ea9a080-6a2d-11e6-b7db-d361fd368e17     system             size_estimates               1472065297032             48512          10971          {4:9}
+fad33ac0-69d0-11e6-b7db-d361fd368e17     system             sstable_activity             1472025696364             7809           1735           {1:49, 2:35, 3:20, 4:31}
+3de37210-65b9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471575696305             66835          319            {1:6}
+6a7de2f0-64fc-11e6-b7db-d361fd368e17     system             local                        1471494596255             1231           979            {4:1}
+f855ab90-6636-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471629696201             917576         2595           {1:7}
+b812d010-6764-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471759296401             56698          209            {1:1}
+1dca41b0-6650-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471640496459             641100         1975           {1:7}
+81d2d960-69f2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472040096246             45042          341            {1:4}
+dd291990-677d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471770096041             98386          542            {1:7}
+97f755c0-67fb-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471824096540             653002         1959           {1:7}
+42f3ec21-6669-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471651296226             47761          274            {1:4}
+0d137a90-68f7-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471932096697             636784         1780           {1:7}
+7f822690-6658-11e6-b7db-d361fd368e17     system             size_estimates               1471644096377             48405          11042          {4:9}
+77f9c3b0-6892-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471888896875             2139165        5663           {1:6}
+be24d390-66bf-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471688439625             652673         1932           {1:4}
+5c924b90-69d9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472029296329             44062          213            {1:4}
+c4f671a0-65da-11e6-b7db-d361fd368e17     system             size_estimates               1471590096314             48786          11068          {4:9}
+c789f9d0-6974-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471986096621             667267         1789           {1:7}
+a8718910-6554-11e6-b7db-d361fd368e17     system             local                        1471532495905             1182           980            {4:1}
+ad9d5350-6604-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471608096005             96949          496            {1:4}
+a8aae890-6554-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471532496281             403523         3433           {1:11}
+43bc6430-6514-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471504839155             29487          221            {1:2}
+d9808670-689a-11e6-b7db-d361fd368e17     system             size_estimates               1471892496471             48429          11070          {4:9}
+22a2bbd0-6700-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471716096013             97637          632            {1:7}
+e2673350-682d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471845696261             97410          382            {1:4}
+8e552680-6546-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471526439144             34716          229            {1:2}
+ca9ba990-6535-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471519238825             85879          494            {1:6}
+27f1c580-67b0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471791696344             48340          326            {1:4}
+535c2490-6724-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471731639641             652419         1941           {1:4}
+fa99bd60-64b0-11e6-b7db-d361fd368e17     system             local                        1471462196278             1247           979            {4:1}
+e78eb7d0-68dd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471921296333             43212          213            {1:4}
+0a852280-655d-11e6-b7db-d361fd368e17     system             size_estimates               1471536096424             50029          11169          {4:9}
+97bfa3f0-67fb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471824096175             83230          580            {1:6}
+884e1f80-65eb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471597295992             98314          414            {1:4}
+5aad98f0-64ea-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471486838783             78539          494            {1:5}
+a312f580-6806-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471828839640             652701         1943           {1:4}
+e7611820-68dd-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471921296034             93974          471            {1:7}
+47f4d5d0-6719-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471726896045             99253          458            {1:4}
+e63ffe30-6710-11e6-b7db-d361fd368e17     system             sstable_activity             1471723296147             7171           1570           {1:50, 2:36, 3:21, 4:27}
+46c42b80-654c-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471528896056             120349         64388          {2:1}
+10c95990-64b8-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471465239977             689601         1436           {1:1}
+a704c130-6a0b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472050896067             111848         474            {1:4}
+3e207b10-65b9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471575696705             3320769        9005           {1:9}
+b7d0be00-6764-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471759295968             51812          365            {1:4}
+778f9030-6892-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471888896179             958825         2599           {1:7}
+12531af0-69a7-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472007696927             664995         1879           {1:7}
+889f4cc0-65eb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471597296524             56569          209            {1:1}
+31fbd640-6910-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471942896036             108948         463            {1:4}
+634829b0-65d2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471586496459             1661571        4110           {1:6}
+ad9c1ad0-6604-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471608095997             96230          650            {1:7}
+62c321b0-6934-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471958439755             67183          448            {1:4}
+3251be70-6910-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471942896599             649800         1988           {1:7}
+f7e9f7f0-6998-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472001639663             652696         1939           {1:4}
+1d9e28a0-6650-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471640496170             50246          330            {1:4}
+0794fc70-6847-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471856496055             96752          399            {1:4}
+a1fcf9b0-695b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471975296203             16348          119            {1:1}
+bd57c7a0-6814-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471834896666             1198904        3416           {1:4}
+2f0024f0-654b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471528426687             963933         3066           {1:1}
+b30fc380-66b4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471683696568             1169186        3579           {1:4}
+47f85840-6719-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471726896068             81929          594            {1:6}
+28f96970-665b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471645239687             66682          436            {1:4}
+c2688fd0-68c4-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471910496589             656549         1974           {1:7}
+160f7fe0-6537-11e6-b7db-d361fd368e17     system             peers                        1471519794910             2034           1651           {4:2}
+9d2283c0-68ab-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471899696636             2135682        6122           {1:6}
+3df8ced0-65b9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471575696445             557135         1521           {1:1}
+607e5050-68bc-11e6-b7db-d361fd368e17     system             sstable_activity             1471906896341             7409           1685           {1:52, 2:38, 3:14, 4:30}
+c21d5600-68c4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471910496096             83094          569            {1:6}
+574c69a0-6929-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471953696058             99107          556            {1:7}
+47e8eef0-6719-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471726895967             51309          478            {1:4}
+02c33910-6797-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471780896545             2120371        6015           {1:6}
+22a4b7a0-6700-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471716096026             97597          597            {1:7}
+9d20af00-68ab-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471899696624             645146         1996           {1:7}
+5c9754a0-69d9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472029296362             940020         2576           {1:7}
+c7472470-6974-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471986096183             1233645        3303           {1:1}
+1dcdeb30-6650-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471640496483             2082610        5968           {1:6}
+34ffab60-6626-11e6-b7db-d361fd368e17     system             size_estimates               1471622496534             48326          11040          {4:9}
+2d4cb610-6860-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471867296753             561611         1550           {1:1}
+685b62e0-6682-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471662096398             56916          209            {1:1}
+d3051830-661d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471618896179             47157          281            {1:4}
+bd2a00e0-6814-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471834896366             1227735        3283           {1:1}
+81b3b8a0-69f2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472040096042             95761          647            {1:7}
+f3196690-6586-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471554095993             130180         465            {1:6}
+c216c650-68c4-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471910496053             99634          562            {1:7}
+feda1a80-68b3-11e6-b7db-d361fd368e17     system             size_estimates               1471903296552             48269          11027          {4:9}
+480c2e60-6719-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471726896198             49368          334            {1:4}
+0b979670-672a-11e6-b7db-d361fd368e17     system             sstable_activity             1471734096215             7071           1556           {1:49, 2:35, 3:20, 4:28}
+384871c0-686b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471872039644             652770         1938           {1:4}
+a26e0b00-695b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471975296944             657227         2085           {1:7}
+92c6f7a0-674b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471748496410             56840          209            {1:1}
+4d102550-67c9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471802496037             81972          594            {1:6}
+4d3f2490-67c9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471802496345             564382         1541           {1:1}
+fce78510-654c-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471529201633             6941           0              {}
+47eebb50-6719-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471726896005             98299          660            {1:7}
+491dbd60-65c4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471580439606             652453         1945           {1:4}
+8da1bd10-669b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471672896353             1172146        3423           {1:4}
+69068ef0-652d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471515639135             34736          220            {1:2}
+71373a50-6615-11e6-b7db-d361fd368e17     system             sstable_activity             1471615296117             7555           1610           {1:44, 2:30, 3:30, 4:29}
+e3719660-66d8-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471699239622             652203         1943           {1:4}
+93d04940-65f6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471602039764             652265         1943           {1:4}
+9d4f6230-67d1-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471806066643             209477         139974         {1:3}
+46b00740-654c-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471528895924             11401          670            {1:9}
+3564cdc0-64d1-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471476038812             3265720        7472           {1:5}
+ade4bc90-6604-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471608096473             2007789        5831           {1:6}
+d82c75a0-66cd-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471694496250             944481         2559           {1:7}
+02addc50-6797-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471780896405             1205159        3427           {1:4}
+3d77be70-691b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471947639767             66547          434            {1:4}
+e7be5350-68dd-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471921296645             641024         1792           {1:7}
+32110bf0-6910-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471942896175             44267          328            {1:4}
+d846db70-66cd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471694496423             1182140        3040           {1:4}
+e28346d0-682d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471845696445             16242          119            {1:1}
+e767f5f0-68dd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471921296079             105934         338            {1:4}
+e29ebe10-682d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471845696625             56630          209            {1:1}
+3ddabf80-65b9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471575696248             1163498        3131           {1:1}
+6e6e9ee0-65dd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471591239630             66518          422            {1:4}
+b26e80f0-6a16-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472055639679             652309         1933           {1:4}
+a271b480-695b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471975296968             2151519        6184           {1:6}
+d84a84f0-66cd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471694496447             56482          209            {1:1}
+e789aec0-68dd-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471921296300             907478         2501           {1:7}
+22d2f390-6700-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471716096329             563966         1546           {1:1}
+5b661380-64ea-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471486839992             522399         1431           {1:1}
+28295040-67b0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471791696708             2107522        6097           {1:6}
+98e0c350-66a6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471677639685             66665          436            {1:4}
+375e67f0-69c0-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472018496495             16239          119            {1:1}
+c7317990-6974-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471986096041             98543          479            {1:7}
+8ae9e510-6985-11e6-b7db-d361fd368e17     system             sstable_activity             1471993296353             7510           1733           {1:54, 2:39, 3:12, 4:30}
+b3248400-66b4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471683696704             2064801        5963           {1:6}
+528920e0-6526-11e6-b7db-d361fd368e17     system             sstable_activity             1471512594926             4353           915            {1:49, 2:36, 3:24, 4:2}
+10141350-64b8-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471465238789             103266         536            {1:5}
+c234fcb0-68c4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471910496251             1228101        3268           {1:1}
+2f2ade70-654b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471528426967             442485         1459           {1:1}
+11ca14d1-69a7-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472007696029             98006          537            {1:7}
+07e9fa40-6847-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471856496612             2122149        5715           {1:6}
+5cbed9d0-69d9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1472029296621             653449         1797           {1:7}
+31f79080-6910-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471942896008             48326          470            {1:4}
+9df4e6e0-6756-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471753239630             652329         1942           {1:4}
+8ee6d9c0-6868-11e6-b7db-d361fd368e17     system             size_estimates               1471870896476             48432          11169          {4:9}
+f32bdd20-6586-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471554096114             1159082        3097           {1:1}
+3e155780-65b9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471575696632             57328          210            {1:1}
+94240920-6918-11e6-b7db-d361fd368e17     system             size_estimates               1471946496690             48730          11051          {4:9}
+92855ac0-674b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471748495980             52484          444            {1:4}
+35fdd400-67f3-11e6-b7db-d361fd368e17     system             sstable_activity             1471820496192             7316           1614           {1:50, 2:36, 3:18, 4:31}
+9d1934f0-68ab-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471899696575             56024          209            {1:1}
+3617f120-64d1-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471476039986             521370         1428           {1:1}
+80b19dd0-6503-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471497639981             519470         1430           {1:1}
+03accdb0-6642-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471634439691             66943          430            {1:4}
+adbb89b0-6604-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471608096203             1165361        3113           {1:1}
+728f1bb0-67e2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471813296363             1197472        3566           {1:4}
+587948d0-67d4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471807239645             652556         1944           {1:4}
+81bc4420-69f2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472040096098             79856          592            {1:6}
+b2b3c0d0-66b4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471683695965             48866          478            {1:4}
+524a4771-6879-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471878096231             1232347        3278           {1:1}
+778d4640-6892-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471888896164             1228892        3296           {1:1}
+a8328ac0-68b6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471904439660             652215         1943           {1:4}
+bd515ab0-64c1-11e6-b7db-d361fd368e17     system             sstable_activity             1471469394907             3220           595            {1:40, 2:20, 3:20, 4:2}
+ec898700-698d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471996896112             79747          443            {1:6}
+3735f860-69c0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472018496230             106894         411            {1:4}
+ca282f50-668a-11e6-b7db-d361fd368e17     system             size_estimates               1471665696453             48136          11017          {4:9}
+6d87f070-6732-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471737696503             654484         2010           {1:7}
+b2c37840-66b4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471683696068             79693          609            {1:6}
+fbd4e490-69d6-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1472028275033             80569213       84311029       {4:2068}
+77ef6370-6892-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471888896807             56545          210            {1:1}
+81b73b10-69f2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472040096065             95826          587            {1:7}
+80426140-6503-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471497639252             82299          369            {1:6}
+62fe2860-65d2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471586495974             69804          390            {1:6}
+4d0f6200-67c9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471802496032             99842          486            {1:4}
+81b03630-69f2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472040096019             48530          444            {1:4}
+08bf1c80-66f2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471710039624             652560         1939           {1:4}
+68532580-6682-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471662096344             561629         1541           {1:1}
+e7b0e5d0-68dd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471921296557             570946         1568           {1:1}
+8205f750-69f2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472040096581             583281         1597           {1:1}
+27bbe870-67b0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471791695991             98089          655            {1:7}
+5f496040-66ef-11e6-b7db-d361fd368e17     system             size_estimates               1471708896324             48433          11062          {4:9}
+bd6905b0-6814-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471834896779             2146884        6130           {1:6}
+6308fdd0-65d2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471586496045             131411         615            {1:10}
+a6fef4d0-6a0b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472050896029             49981          429            {1:4}
+456bd600-6a03-11e6-b7db-d361fd368e17     system             sstable_activity             1472047296352             7015           1554           {1:60, 2:39, 3:12, 4:26}
+524f5080-6879-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471878096264             16201          120            {1:1}
+f3823a80-6586-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471554096680             888263         2457           {1:10}
+e78b3560-68dd-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471921296310             16275          119            {1:1}
+9ce24670-68ab-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471899696215             45971          345            {1:4}
+89c12a00-67b8-11e6-b7db-d361fd368e17     system             size_estimates               1471795296416             48169          11075          {4:9}
+9e022d50-6756-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471753239717             67218          435            {1:4}
+e2a178e0-64da-11e6-b7db-d361fd368e17     system             sstable_activity             1471480194926             3215           594            {1:40, 2:20, 3:20, 4:2}
+46d14ae0-654c-11e6-b7db-d361fd368e17     OpsCenter          rollups7200                  1471528896142             293166         291833         {1:1642, 2:134}
+96847250-662e-11e6-b7db-d361fd368e17     system             sstable_activity             1471626096117             7393           1670           {1:49, 2:35, 3:21, 4:29}
+97ebbd00-67fb-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471824096464             1197865        3258           {1:4}
+dfdea960-69fe-11e6-b7db-d361fd368e17     system_schema      indexes                      1472045407990             51             0              {}
+b7e9c440-6764-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471759296132             16209          119            {1:1}
+ade001a0-6604-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471608096442             56468          209            {1:1}
+c7504c30-6974-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471986096243             950592         2560           {1:7}
+729ab470-67e2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471813296439             56896          209            {1:1}
+e78764d0-68dd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471921296285             1233129        3301           {1:1}
+fd4fde80-66e6-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471705295976             51919          466            {1:4}
+a71c19c0-6a0b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472050896220             930978         2792           {1:7}
+b3191250-66b4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471683696629             56862          209            {1:1}
+a8a60690-6554-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471532496249             6407           119            {1:1}
+a5580e80-651c-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471508438888             3298717        8542           {1:6}
+523bef90-6879-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471878096137             106137         499            {1:4}
+4ea20270-6996-11e6-b7db-d361fd368e17     system             size_estimates               1472000496663             48241          10989          {4:9}
+5af688d0-64ea-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471486839261             88349          384            {1:6}
+6a1efc70-6a12-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1472053800375             264022         139495         {2:2}
+c7827fc0-6974-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471986096572             1351590        3531           {1:4}
+e37da450-66d8-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471699239701             67111          422            {1:4}
+7cee2a40-6942-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471964496612             2150650        5686           {1:6}
+4d28b660-67c9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471802496198             49322          325            {1:4}
+97d72391-67fb-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471824096329             965786         2844           {1:7}
+fd97bcf0-66e6-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471705296447             57657          209            {1:1}
+72a27ca0-67e2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471813296490             644853         1994           {1:7}
+cdd33370-656d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471543296039             132525         600            {1:10}
+18288aa0-6902-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471936839754             66668          429            {1:4}
+02abe080-6797-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471780896392             565505         1545           {1:1}
+88552460-65eb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471597296038             81857          523            {1:6}
+8018e040-6503-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471497638980             3249299        8078           {1:6}
+a7193390-6a0b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472050896201             16269          120            {1:1}
+1d8410f0-6650-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471640495999             98449          491            {1:4}
+c342bb20-676f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471764039634             652340         1940           {1:4}
+03a15c00-6642-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471634439616             652248         1940           {1:4}
+ecd31320-698d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471996896594             56925          210            {1:1}
+a7073230-6a0b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472050896083             97349          561            {1:7}
+c784c9b0-6974-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471986096587             56933          210            {1:1}
+b3ecadf0-655f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471537239631             32676          331            {1:3}
+7c9b7660-6942-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471964496070             96378          446            {1:7}
+1d384160-69b2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472012439670             652488         1942           {1:4}
+57623b90-6929-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471953696201             949872         2827           {1:7}
+c25b9780-68c4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471910496504             571750         1568           {1:1}
+b32128a0-66b4-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471683696682             634784         2015           {1:7}
+68471790-6682-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471662096265             922391         2560           {1:7}
+07d4c490-6847-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471856496473             56892          209            {1:1}
+b2b45d10-66b4-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471683695969             95396          640            {1:7}
+edbcf5e0-6838-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471850439742             67198          441            {1:4}
+3daecd80-65b9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471575695960             72505          514            {1:6}
+2ef8d1f0-654b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471528426639             74583          568            {1:6}
+158079c0-654c-11e6-b7db-d361fd368e17     backuptests        table2                       1471528813404             84             84             {1:5}
+27fd8550-67b0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471791696421             1222894        3259           {1:1}
+201d6580-69ea-11e6-b7db-d361fd368e17     system             sstable_activity             1472036496344             7217           1539           {1:53, 2:43, 3:17, 4:25}
+adbd5e70-6604-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471608096215             16215          119            {1:1}
+af09f530-67d1-11e6-b7db-d361fd368e17     system             size_estimates               1471806096387             48212          11023          {4:9}
+07a74bf0-6847-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471856496175             16264          119            {1:1}
+cddd4590-656d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471543296105             155000         600            {1:9}
+14b88d30-66bd-11e6-b7db-d361fd368e17     system             size_estimates               1471687296387             48197          11032          {4:9}
+5b8470f0-64ea-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471486840191             17582          118            {1:1}
+ad4e4f70-6966-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471980039655             652455         1940           {1:4}
+2d0a07c0-6860-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471867296316             16339          119            {1:1}
+e267f6a0-682d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471845696266             97165          510            {1:7}
+576018b0-6929-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471953696187             47631          325            {1:4}
+d4581790-67ea-11e6-b7db-d361fd368e17     system             size_estimates               1471816896393             48144          11062          {4:9}
+62fffd20-65d2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471586495986             131368         619            {1:10}
+a5189480-651c-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471508438472             79093          549            {1:6}
+ccad3890-6a24-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472061696665             588697         1603           {1:1}
+928b7541-674b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471748496020             101076         608            {1:7}
+ecd4e7e0-698d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471996896606             2143990        5666           {1:6}
+18a99b00-65a0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471564896432             1697944        4731           {1:6}
+02bafbb0-6797-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471780896491             56070          210            {1:1}
+45342d60-64e3-11e6-b7db-d361fd368e17     system             local                        1471483796278             1232           979            {4:1}
+7cddfda0-6942-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471964496506             577296         1582           {1:1}
+cb19ff50-654b-11e6-b7db-d361fd368e17     system_schema      keyspaces                    1471528688581             847            460            {1:10, 4:1}
+31f87ae0-6910-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471942896014             94967          618            {1:7}
+027f0420-6797-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471780896098             83587          588            {1:6}
+fd55d1f0-66e6-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471705296015             99856          488            {1:4}
+d3444410-661d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471618896593             1172925        3199           {1:4}
+765c26c0-66c5-11e6-b7db-d361fd368e17     system             sstable_activity             1471690896172             7396           1561           {1:51, 2:35, 3:20, 4:30}
+a0cbda30-678e-11e6-b7db-d361fd368e17     system             sstable_activity             1471777296211             7133           1593           {1:51, 2:37, 3:16, 4:29}
+42d20c40-6669-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471651296004             96432          442            {1:4}
+a240b970-695b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471975296647             572978         1570           {1:1}
+88487a30-65eb-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471597295955             98013          530            {1:7}
+bcf49900-6814-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471834896016             100340         653            {1:7}
+fcc3f780-654c-11e6-b7db-d361fd368e17     OpsCenter          bestpractice_results         1471529201400             16507          13644          {1:31, 2:12}
+ada17200-6604-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471608096032             80251          614            {1:6}
+8d81d900-669b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471672896144             16339          120            {1:1}
+a4c6fa20-6671-11e6-b7db-d361fd368e17     system             size_estimates               1471654896322             48143          11033          {4:9}
+bd374750-6814-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471834896453             966408         2887           {1:7}
+c2114810-68c4-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471910496017             51687          452            {1:4}
+e2851b90-682d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471845696457             955290         2646           {1:7}
+5abb0670-64ea-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471486838871             3344164        8517           {1:5}
+4be21310-65fc-11e6-b7db-d361fd368e17     system             sstable_activity             1471604496065             7579           1596           {1:44, 2:30, 3:30, 4:29}
+b80c4060-6764-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471759296358             1204341        3050           {1:4}
+f312d6e0-6586-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471554095950             131651         597            {1:10}
+3e1caa80-65b9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471575696680             931984         2698           {1:10}
+428d4190-69cb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1472023239721             652449         1941           {1:4}
+bd607a30-6814-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471834896723             56980          210            {1:1}
+3dde1ae0-65b9-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471575696270             16235          120            {1:1}
+821ba230-69f2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472040096723             2147068        6193           {1:6}
+ad9786f0-6604-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471608095967             49362          494            {1:4}
+97dc7ac0-67fb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471824096364             16291          119            {1:1}
+f0bfd6e0-651d-11e6-b7db-d361fd368e17     system             peers                        1471508994894             2038           1642           {4:2}
+d8093630-66cd-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471694496019             96554          477            {1:7}
+8d7fdd30-669b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471672896131             1183598        3158           {1:1}
+5cb38f30-69d9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472029296547             1342168        3363           {1:4}
+dd3b4200-677d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471770096160             48955          253            {1:4}
+02a15930-6797-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471780896323             969054         2780           {1:7}
+a1fece70-695b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471975296215             45358          357            {1:4}
+578d9150-6929-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471953696485             571877         1582           {1:1}
+9d0537c0-68ab-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471899696444             568587         1569           {1:1}
+9ccd37d0-68ab-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471899696077             96966          581            {1:7}
+bbd6da70-6647-11e6-b7db-d361fd368e17     system             sstable_activity             1471636896151             7453           1640           {1:49, 2:35, 3:20, 4:30}
+b7edbbe0-6764-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471759296158             965135         2648           {1:7}
+d80e8d60-66cd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471694496054             80792          445            {1:6}
+725769e0-67e2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471813295998             51945          475            {1:4}
+ccd3ac50-6a24-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472061696917             56687          209            {1:1}
+61fdb020-6555-11e6-b7db-d361fd368e17     system             peers                        1471532807202             1822           890            {3:1, 4:1}
+d826d050-66cd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471694496213             1196982        3214           {1:1}
+ade531c0-6604-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471608096476             631726         2025           {1:7}
+dc3689b0-65b0-11e6-b7db-d361fd368e17     system             sstable_activity             1471572096459             7441           1560           {1:44, 2:30, 3:30, 4:28}
+dfdef780-69fe-11e6-b7db-d361fd368e17     system_schema      types                        1472045407992             51             0              {}
+e76a8e00-68dd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471921296096             78572          445            {1:6}
+d2e4e600-661d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471618895968             96509          560            {1:7}
+80ddd430-64d2-11e6-b7db-d361fd368e17     system             size_estimates               1471476594931             50660          11598          {4:8}
+7ca0cd90-6942-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471964496105             80745          451            {1:6}
+7395fc50-668d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471666839701             66756          431            {1:4}
+fd5b9e50-66e6-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471705296053             82584          590            {1:6}
+483e8900-6719-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471726896528             2083941        5978           {1:6}
+d808c100-66cd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471694496016             97934          370            {1:4}
+0faca700-660d-11e6-b7db-d361fd368e17     system             size_estimates               1471611696496             48626          11054          {4:9}
+27cbee00-67b0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471791696096             98130          639            {1:7}
+cb4e09a0-6535-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471519239994             519597         1430           {1:1}
+3d64f9c0-691b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471947639644             652272         1940           {1:4}
+b7d1f680-6764-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471759295976             100035         540            {1:7}
+08c90790-66f2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471710039689             66858          436            {1:4}
+de531290-6628-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471623639609             652317         1941           {1:4}
+b4472490-6881-11e6-b7db-d361fd368e17     system             size_estimates               1471881696601             48516          11052          {4:9}
+1ef100f0-681d-11e6-b7db-d361fd368e17     system             size_estimates               1471838496383             48571          11182          {4:9}
+5226b9e1-6879-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471878095998             49802          475            {1:4}
+57a3d870-6929-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471953696631             1351194        3613           {1:4}
+7ce04790-6942-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471964496521             1328389        3293           {1:4}
+cb3d1440-6857-11e6-b7db-d361fd368e17     system             sstable_activity             1471863696260             7163           1641           {1:53, 2:39, 3:12, 4:32}
+778f4210-6892-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471888896177             16244          120            {1:1}
+5d949850-6884-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471882839637             652228         1942           {1:4}
+523f7200-6879-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471878096160             80767          591            {1:6}
+32126b80-6910-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471942896184             923361         2829           {1:7}
+49225140-65c4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471580439636             66765          434            {1:4}
+f31261b0-6586-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471554095947             73415          453            {1:6}
+11c88e30-69a7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472007696018             50384          392            {1:4}
+37384250-69c0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472018496245             94626          514            {1:7}
+adc32ad0-6604-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471608096253             47463          346            {1:4}
+fd78ea50-66e6-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471705296245             949417         2853           {1:7}
+ab1739b0-68ee-11e6-b7db-d361fd368e17     system             sstable_activity             1471928496331             7665           1719           {1:50, 2:36, 3:18, 4:31}
+320f5e40-6910-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471942896164             16212          120            {1:1}
+242556b0-68cd-11e6-b7db-d361fd368e17     system             size_estimates               1471914096539             48190          11054          {4:9}
+575df5d0-6929-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471953696173             16339          119            {1:1}
+7caf4c80-6942-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471964496200             45583          213            {1:4}
+f3495030-6586-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471554096307             64858          276            {1:6}
+ea3b1e20-65f3-11e6-b7db-d361fd368e17     system             size_estimates               1471600896258             48272          11062          {4:9}
+3db5ab50-65b9-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471575696005             133667         669            {1:10}
+11ee8cc0-69a7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472007696268             46936          268            {1:4}
+e39b7460-654a-11e6-b7db-d361fd368e17     system_schema      keyspaces                    1471528300198             814            460            {1:10, 3:1}
+0d096870-68f7-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471932096631             1274487        3007           {1:4}
+f5b3cc90-6920-11e6-b7db-d361fd368e17     system             sstable_activity             1471950096345             7555           1731           {1:53, 2:39, 3:13, 4:31}
+0279d400-6797-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471780896064             101164         430            {1:4}
+2f2671a0-654b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471528426938             75400          855            {1:9}
+320d6270-6910-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471942896151             1237736        3286           {1:1}
+7791da20-6892-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471888896194             47119          215            {1:4}
+100a7660-64b8-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471465238726             2054764        4937           {1:6}
+1dae0720-6650-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471640496274             1196808        3425           {1:4}
+d800aab0-66cd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471694495963             49868          369            {1:4}
+84a0d170-6708-11e6-b7db-d361fd368e17     system             size_estimates               1471719696391             48180          11008          {4:9}
+22aaab10-6700-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471716096065             81585          564            {1:6}
+181b1d20-6902-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471936839666             652010         1939           {1:4}
+dfdf45a0-69fe-11e6-b7db-d361fd368e17     system_schema      dropped_columns              1472045407994             51             0              {}
+42930df0-69cb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472023239759             66628          432            {1:4}
+e248d5e0-682d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471845696062             50297          373            {1:4}
+6d480140-6732-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471737696084             82872          595            {1:6}
+cccb20d0-6a24-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472061696861             1385014        3973           {1:4}
+7cac6650-6942-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471964496181             1237725        3287           {1:1}
+be9199b0-69e1-11e6-b7db-d361fd368e17     system             size_estimates               1472032896715             48274          11172          {4:9}
+ecd11750-698d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471996896581             1350764        3635           {1:4}
+cc6a8a40-6a24-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472061696228             47351          323            {1:4}
+fd6e6300-66e6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471705296176             16290          119            {1:1}
+e2a74990-682d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471845696681             2120175        5684           {1:6}
+bd306980-6814-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471834896408             16231          120            {1:1}
+cb2ac830-654b-11e6-b7db-d361fd368e17     system             size_estimates               1471528688691             51503          12157          {1:1, 4:8}
+98d48e50-66a6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471677639605             652780         1936           {1:4}
+b2ff21b0-66b4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471683696459             46179          329            {1:4}
+376286a0-69c0-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472018496522             939760         2631           {1:7}
+7c938720-6942-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471964496018             49896          375            {1:4}
+0153b100-65ca-11e6-b7db-d361fd368e17     system             sstable_activity             1471582896144             7486           1606           {1:44, 2:31, 3:30, 4:28}
+574564c0-6929-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471953696012             51621          451            {1:4}
+dd1f5590-677d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471770095977             50738          368            {1:4}
+92cc75e0-674b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471748496446             660377         1962           {1:7}
+57aefc00-6929-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471953696704             667383         1986           {1:7}
+f8578050-6636-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471629696213             16205          120            {1:1}
+8d858281-669b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471672896168             915050         2802           {1:7}
+632649d0-65d2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471586496237             63999          281            {1:6}
+42cd2a40-6669-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471651295972             96845          556            {1:7}
+631cfb00-65d2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471586496176             1165795        3112           {1:1}
+777ca470-6892-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471888896055             81932          449            {1:6}
+ff125450-654c-11e6-b7db-d361fd368e17     OpsCenter          rollups300                   1471529205269             12907357       12843982       {1:39, 2:24, 3:2976}
+e2959650-682d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471845696565             562786         1542           {1:1}
+22c007d0-6700-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471716096205             16256          119            {1:1}
+ce4cd040-656d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471543296836             532730         1460           {1:1}
+f9ae0220-6803-11e6-b7db-d361fd368e17     system             size_estimates               1471827696450             48118          11014          {4:9}
+a7561580-6a0b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472050896600             55447          210            {1:1}
+7775c6a0-6892-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471888896010             50424          380            {1:4}
+10e9d9e0-64b8-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471465240190             24844          121            {1:1}
+cb3d17b0-654b-11e6-b7db-d361fd368e17     system             peers                        1471528688810             1974           1642           {4:2}
+8cf94450-6899-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471891938581             264095         124125         {2:2}
+ad953d00-6604-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471608095952             96325          644            {1:7}
+324c8e50-6910-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471942896565             56890          210            {1:1}
+07aa0b10-6847-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471856496193             46850          273            {1:4}
+b3e5d020-655f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471537239586             364214         1635           {1:3}
+d0661f60-6907-11e6-b7db-d361fd368e17     system             sstable_activity             1471939296342             7483           1726           {1:53, 2:39, 3:12, 4:31}
+fdac2f50-66e6-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471705296581             2085429        5961           {1:6}
+92c4d4c0-674b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471748496396             1206381        3273           {1:4}
+18b97980-65a0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471564896536             57137          210            {1:1}
+917a39d0-657e-11e6-b7db-d361fd368e17     system             sstable_activity             1471550496237             7183           1512           {1:44, 2:30, 3:30, 4:26}
+e2a3c720-682d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471845696658             646184         1833           {1:7}
+1dad91f0-6650-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471640496271             927804         2793           {1:7}
+43172b90-6669-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471651296457             2076337        5574           {1:6}
+c2171470-68c4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471910496055             118656         461            {1:4}
+f35e10b0-6586-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471554096443             1652623        4313           {1:6}
+a59083a0-651c-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471508439258             76160          387            {1:6}
+04ee0680-6561-11e6-b7db-d361fd368e17     system_traces      sessions                     1471537805032             196            0              {}
+574b3120-6929-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471953696050             117022         460            {1:4}
+cdc7c1c0-656d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471543295964             132665         595            {1:10}
+f8592e00-6636-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471629696224             48437          274            {1:4}
+78b32090-673d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471742439705             652401         1940           {1:4}
+1888bfc0-6654-11e6-b7db-d361fd368e17     system_traces      sessions                     1471642205628             312            0              {}
+dd627910-677d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471770096417             56918          209            {1:1}
+11edf080-69a7-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472007696264             954436         2629           {1:7}
+c23809f0-68c4-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471910496271             965179         2767           {1:7}
+bd655c30-6814-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471834896755             656239         2013           {1:7}
+cc684050-6a24-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472061696213             16246          119            {1:1}
+a9e6b670-6721-11e6-b7db-d361fd368e17     system             size_estimates               1471730496343             48429          11169          {4:9}
+7c96bb70-6942-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471964496039             96410          478            {1:7}
+de5f2080-6628-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471623639688             66945          434            {1:4}
+e29c7420-682d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471845696610             1184790        3045           {1:4}
+46cc1ac0-654c-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471528896108             78731          3295           {1:9}
+22e4a6d0-6700-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471716096445             2071572        5928           {1:6}
+f82ec2a0-6636-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471629695946             49922          399            {1:4}
+11d3b1c0-69a7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472007696092             82128          499            {1:6}
+cc4dda80-6a24-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472061696040             98310          581            {1:7}
+6343e3f0-65d2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471586496431             555414         1527           {1:1}
+8da40700-669b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471672896367             56544          210            {1:1}
+ce649e00-656d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471543296992             1622707        4144           {1:6}
+d2e952d0-661d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471618895997             96500          444            {1:4}
+8861f5a0-65eb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471597296122             1170162        3135           {1:1}
+cb77f610-6504-11e6-b7db-d361fd368e17     system             size_estimates               1471498194929             50827          11731          {4:8}
+4836c0d0-6719-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471726896477             56556          210            {1:1}
+18845fc0-65a0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471564896188             66463          398            {1:6}
+7288b310-67e2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471813296321             563285         1548           {1:1}
+ec993e70-698d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471996896215             44851          214            {1:4}
+c1f6b280-6553-11e6-b7db-d361fd368e17     system_schema      keyspaces                    1471532109224             847            460            {1:10, 4:1}
+ec96a660-698d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471996896198             16231          120            {1:1}
+a1e8fc80-695b-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471975296072             96449          603            {1:7}
+101d1400-64b8-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471465238848             4067069        10158          {1:5}
+b7dcf300-6764-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471759296048             83913          501            {1:6}
+d30bf600-661d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471618896224             910284         2587           {1:7}
+0d1639b0-68f7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471932096715             2107032        5640           {1:6}
+fe86cfd0-6591-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471558839629             60105          436            {1:4}
+8865ed40-65eb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471597296148             46471          260            {1:4}
+174769a0-69d7-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1472028321082             321475271      322851952      {1:129, 2:905, 4:2068}
+4383ef10-6514-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471504838785             49136          254            {1:2}
+52297900-6879-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471878096016             96698          653            {1:7}
+b2bd5dc0-66b4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471683696028             96339          491            {1:4}
+f31cc1f0-6586-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471554096015             131329         590            {1:10}
+353902d0-64d1-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471476038525             1609748        4284           {1:6}
+f8859530-6636-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471629696515             2057411        5544           {1:6}
+f8304940-6636-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471629695956             97198          555            {1:7}
+adc107f0-6604-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471608096239             911097         2800           {1:7}
+73f5a310-69af-11e6-b7db-d361fd368e17     system             size_estimates               1472011296705             48359          11142          {4:9}
+632167d0-65d2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471586496205             16243          119            {1:1}
+d82ac7f0-66cd-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471694496239             47251          213            {1:4}
+1d8f82a0-6650-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471640496074             1176408        3176           {1:1}
+3dbbc5d0-65b9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471575696045             117789         655            {1:9}
+8d680f71-669b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471672895975             95629          648            {1:7}
+22a7c4e0-6700-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471716096046             97351          426            {1:4}
+48305830-6719-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471726896435             1195375        3584           {1:4}
+187fa4d0-65a0-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471564896157             16271          120            {1:1}
+dd219f80-677d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471770095992             98263          542            {1:7}
+e75ea721-68dd-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471921296018             47614          405            {1:4}
+88a60380-65eb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471597296568             2119061        5398           {1:6}
+37617530-69c0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1472018496515             43899          283            {1:4}
+93ca55d0-65f6-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471602039725             67007          432            {1:4}
+9ce071b0-68ab-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471899696203             16269          119            {1:1}
+5b78d830-64ea-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471486840115             1095672        2961           {1:1}
+92a71390-674b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471748496201             51717          312            {1:4}
+1867b000-65a0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471564896000             133011         720            {1:10}
+3338bb00-67bb-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471796439728             66811          442            {1:4}
+19d451e0-676d-11e6-b7db-d361fd368e17     system             size_estimates               1471762896382             48337          11150          {4:9}
+2d57b290-6860-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471867296825             1192239        3581           {1:4}
+7259b3d0-67e2-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471813296013             98827          628            {1:7}
+a627b0d0-64eb-11e6-b7db-d361fd368e17     system             peers                        1471487394909             2046           1648           {4:2}
+a87ea870-6554-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471532495991             43758          547            {1:7}
+630e7c10-65d2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471586496081             115986         597            {1:9}
+f34e0b20-6586-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471554096338             1192230        3282           {1:10}
+cc55f0d0-6a24-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1472061696093             98465          545            {1:7}
+39fb3de0-66d6-11e6-b7db-d361fd368e17     system             size_estimates               1471698096318             48313          11152          {4:9}
+dd2521f0-677d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471770096015             99522          410            {1:4}
+e2622a40-682d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471845696228             97221          542            {1:7}
+97bae900-67fb-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471824096144             99900          570            {1:7}
+fd51da50-66e6-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471705295989             98840          636            {1:7}
+fce1b8b0-654c-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471529201595             177943         0              {}
+97fab120-67fb-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471824096562             2146615        6092           {1:6}
+575ac180-6929-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471953696152             1238373        3292           {1:1}
+5c6bb0c0-69d9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1472029296076             48173          355            {1:4}
+0fe7d330-64b8-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471465238499             120107         647            {1:6}
+77e74d20-6892-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471888896754             1308421        3297           {1:4}
+42ef3130-6669-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471651296195             16230          119            {1:1}
+7c9b9d70-6942-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471964496071             111763         338            {1:4}
+a5200e90-651c-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471508438521             1507700        4273           {1:6}
+d2fd5000-661d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471618896128             1171360        3159           {1:1}
+68e8a6b0-652d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471515638939             34709          213            {1:2}
+46d3e2f0-654c-11e6-b7db-d361fd368e17     system             sstable_activity             1471528896159             5356           1351           {1:71, 2:50, 3:20, 4:3}
+2ce43040-6860-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471867296068             98844          614            {1:7}
+9ba2cf10-66de-11e6-b7db-d361fd368e17     system             sstable_activity             1471701696129             7084           1566           {1:49, 2:35, 3:20, 4:28}
+820b2770-69f2-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1472040096615             1349779        3986           {1:4}
+92911a90-674b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471748496057             84556          574            {1:6}
+c2391b60-68c4-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471910496278             48609          330            {1:4}
+fd882c90-66e6-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471705296344             563094         1545           {1:1}
+22e2d210-6700-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471716096433             641462         1949           {1:7}
+bcf2c440-6814-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471834896004             52009          470            {1:4}
+8d66afe0-669b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471672895966             49160          469            {1:4}
+67e13050-69e4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1472034039765             66807          430            {1:4}
+f08b0f90-6870-11e6-b7db-d361fd368e17     system             sstable_activity             1471874496265             7388           1635           {1:50, 2:38, 3:21, 4:29}
+92bdcfe0-674b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471748496350             565619         1548           {1:1}
+362d4de0-64d1-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471476040126             1088983        2937           {1:1}
+b2f64813-66b4-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471683696401             1186796        3169           {1:1}
+7a7a8620-65a8-11e6-b7db-d361fd368e17     system             size_estimates               1471568496514             48369          11172          {4:9}
+42f3ec20-6669-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471651296226             920667         2596           {1:7}
+6d582de0-6732-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471737696190             16248          119            {1:1}
+2f22a110-654b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471528426913             68673          380            {1:6}
+7dc39aa0-67ed-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471818039626             652093         1940           {1:4}
+ce78e950-656d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471543297125             891925         2395           {1:10}
+2ce345e0-6860-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471867296062             99035          465            {1:4}
+07e84c90-6847-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471856496601             643153         1890           {1:7}
+3db6bcc0-65b9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471575696012             131282         515            {1:6}
+fdd98630-654c-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471529203219             315111         194889         {1:1, 2:2}
+9cde9cf0-68ab-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471899696191             1228477        3280           {1:1}
+c3513a10-676f-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471764039729             66892          429            {1:4}
+7a145eb0-66c3-11e6-b7db-d361fd368e17     OpsCenter          rollups60                    1471690043419             80684099       84349453       {1:905, 4:2068}
+cc5ad2d0-6a24-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1472061696125             82132          564            {1:6}
+07a83650-6847-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471856496181             949508         2676           {1:7}
+189e9e80-65a0-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471564896360             559324         1542           {1:1}
+5b14e640-64ea-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471486839460             83561          364            {1:6}
+c615dde0-67a7-11e6-b7db-d361fd368e17     system             sstable_activity             1471788096190             7254           1594           {1:49, 2:35, 3:21, 4:29}
+f344e360-6586-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471554096278             16252          119            {1:1}
+8e253ce0-6546-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471526438830             59536          327            {1:2}
+7fce1ba0-6503-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471497638490             83130          524            {1:6}
+6d3870e0-6732-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471737695982             51983          467            {1:4}
+28ee6cf0-665b-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471645239615             652377         1943           {1:4}
+36378710-64d1-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471476040192             17317          117            {1:1}
+066bcc30-667a-11e6-b7db-d361fd368e17     system             sstable_activity             1471658496115             7286           1609           {1:49, 2:35, 3:20, 4:29}
+37a33920-69c0-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472018496946             2139467        5725           {1:6}
+97f29ad0-67fb-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471824096509             56862          209            {1:1}
+a25ec8c0-695b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471975296844             1316869        4074           {1:4}
+8870e9c0-65eb-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471597296220             936123         2546           {1:7}
+81bb0ba0-69f2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1472040096090             109922         513            {1:4}
+4d2a8b20-67c9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471802496210             928726         2801           {1:7}
+adddb7b0-6604-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471608096427             1170887        3765           {1:4}
+3db0a240-65b9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471575695972             133658         674            {1:10}
+46c69c80-654c-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471528896072             11332          630            {1:9}
+81cebab0-69f2-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472040096219             1238086        3299           {1:1}
+80d2ba60-6503-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471497640198             16624          117            {1:1}
+cb744c90-6504-11e6-b7db-d361fd368e17     system             peers                        1471498194905             2036           1648           {4:2}
+3dfe9b30-65b9-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471575696483             1700766        4534           {1:6}
+4971a450-68e6-11e6-b7db-d361fd368e17     system             size_estimates               1471924896533             48414          11137          {4:9}
+525bac90-6879-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471878096345             951980         2889           {1:7}
+8d849820-669b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471672896162             46613          328            {1:4}
+22dc1b50-6700-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471716096389             1189841        3423           {1:4}
+a62ae520-64eb-11e6-b7db-d361fd368e17     system             size_estimates               1471487394930             50709          11628          {4:8}
+63560c60-65d2-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471586496550             56760          209            {1:1}
+7b7ccd70-6775-11e6-b7db-d361fd368e17     system             sstable_activity             1471766496199             7020           1580           {1:52, 2:38, 3:14, 4:29}
+a7000640-6a0b-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1472050896036             97364          585            {1:7}
+5b91ada0-64b9-11e6-b7db-d361fd368e17     system             size_estimates               1471465794938             50604          11598          {4:8}
+27ef2d70-67b0-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471791696327             16240          119            {1:1}
+cb608030-6535-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471519240115             1132063        3032           {1:1}
+22c3b150-6700-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471716096229             48250          308            {1:4}
+2d6a9e50-6860-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471867296949             2132249        6131           {1:6}
+a7169b80-6a0b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472050896184             1237576        3318           {1:1}
+1db707d0-6650-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471640496333             563110         1533           {1:1}
+07a59e40-6847-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471856496164             1230113        3279           {1:1}
+5906b640-6949-11e6-b7db-d361fd368e17     OpsCenter          rollups300                   1471967442852             63600521       66756215       {1:377, 2:636, 3:42, 4:2026}
+a7423f60-6a0b-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1472050896470             584817         1604           {1:1}
+ce731cf0-656d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471543297085             56296          209            {1:1}
+e7bd68f0-68dd-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471921296639             2119815        5666           {1:6}
+5cc1c000-69d9-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1472029296640             2146442        5669           {1:6}
+d31cbee0-661d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471618896334             556885         1531           {1:1}
+2d2027d0-6860-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471867296461             955704         2898           {1:7}
+68fc55c0-652d-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1471515639068             204437         632            {1:2}
+dfdf6cb0-69fe-11e6-b7db-d361fd368e17     system_schema      aggregates                   1472045407995             51             0              {}
+e76732a0-68dd-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471921296074             93850          430            {1:7}
+cb3a7fa0-654b-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471528688794             120647         59686          {2:1}
+5cb9a9b0-69d9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472029296587             54670          209            {1:1}
+82f1aed0-689d-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471893639741             66742          433            {1:4}
+8060e5c0-6503-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471497639452             76996          358            {1:6}
+4d09bcb0-67c9-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471802495995             98384          645            {1:7}
+a5f07880-683e-11e6-b7db-d361fd368e17     system             sstable_activity             1471852896264             7654           1627           {1:45, 2:31, 3:28, 4:32}
+5a2a8e50-663f-11e6-b7db-d361fd368e17     system             size_estimates               1471633296309             48546          11186          {4:9}
+ec7c1980-698d-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471996896024             49604          373            {1:4}
+f2db52a0-68e8-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471926039754             66682          433            {1:4}
+5765fdc0-6708-11e6-b7db-d361fd368e17     OpsCenter          rollup_state                 1471719620508             400813         209477         {2:3}
+0caf1370-68f7-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471932096039             91808          479            {1:7}
+379b70f0-69c0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1472018496895             54751          209            {1:1}
+0938b3e0-6a14-11e6-b7db-d361fd368e17     system             size_estimates               1472054496798             48267          11140          {4:9}
+d582f580-69b7-11e6-b7db-d361fd368e17     system             sstable_activity             1472014896344             7638           1750           {1:53, 2:39, 3:12, 4:31}
+a54b1630-651c-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471508438803             80741          554            {1:6}
+52788360-6879-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471878096534             645232         2019           {1:7}
+0debf830-67a2-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471785639731             67073          425            {1:4}
+27cb78d0-67b0-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471791696093             98454          454            {1:4}
+4304b500-6669-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_ks   1471651296336             562206         1540           {1:1}
+11ea6e10-69a7-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1472007696241             1230361        3255           {1:1}
+4d4a4820-67c9-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471802496418             56806          209            {1:1}
+cc6d2250-6a24-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms    1472061696245             940713         2873           {1:7}
+c236aa60-68c4-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1471910496262             16193          119            {1:1}
+68183f60-6682-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms_summary1471662095958             50962          368            {1:4}
+f882af00-6636-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471629696496             633746         1855           {1:7}
+dfe03000-69fe-11e6-b7db-d361fd368e17     system_schema      functions                    1472045408000             51             0              {}
+4e3c8f50-6674-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms     1471656039621             652502         1942           {1:4}
+0d0e4a70-68f7-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471932096663             56322          210            {1:1}
+636f60c0-65d2-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471586496716             934886         2632           {1:10}
+cd8d3040-68cf-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_summary1471915239748             66875          445            {1:4}
+2cea98e0-6860-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_summary1471867296110             82378          604            {1:6}
+3b2642e0-68a3-11e6-b7db-d361fd368e17     system             sstable_activity             1471896096270             7266           1682           {1:54, 2:40, 3:13, 4:29}
+9cc8f210-68ab-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471899696049             110505         497            {1:4}
+bd0a43e0-6814-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471834896158             100248         602            {1:7}
+2f1819c0-654b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms 1471528426844             72600          394            {1:6}
+6c18dd90-6565-11e6-b7db-d361fd368e17     system             sstable_activity             1471539696105             8035           1499           {1:90, 2:60, 3:38, 4:8}
+8dab0be0-669b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471672896414             2073492        5972           {1:6}
+9d0a40d0-68ab-11e6-b7db-d361fd368e17     dse_perf           read_latency_histograms      1471899696477             1308770        3825           {1:4}
+11ec1bc0-69a7-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472007696252             16292          119            {1:1}
+68de4670-652d-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471515638871             57977          254            {1:2}
+2d107060-6860-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471867296358             49531          345            {1:4}
+a2681790-695b-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_ks1471975296905             56839          209            {1:1}
+439c0af0-6514-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms_summary1471504838943             29456          214            {1:2}
+a1f95030-695b-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471975296179             1232831        3294           {1:1}
+ce7e6790-656d-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms     1471543297161             4368520        8378           {1:9}
+5c8ddec0-69d9-11e6-b7db-d361fd368e17     dse_perf           range_latency_histograms_ks  1472029296300             16217          119            {1:1}
+6d5b1410-6732-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471737696209             50431          330            {1:4}
+2824e370-67b0-11e6-b7db-d361fd368e17     dse_perf           cell_count_histograms        1471791696679             641890         1997           {1:7}
+f853d6d0-6636-11e6-b7db-d361fd368e17     dse_perf           write_latency_histograms_ks  1471629696189             1172944        3170           {1:1}
+02985880-6797-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471780896264             51272          316            {1:4}
+6d3b3000-6732-11e6-b7db-d361fd368e17     dse_perf           partition_size_histograms_summary1471737696000             99341          653            {1:7}
+e286a230-682d-11e6-b7db-d361fd368e17     dse_perf           sstables_per_read_histograms_summary1471845696467             48369          260            {1:4}
+85cbaf60-68d5-11e6-b7db-d361fd368e17     system             sstable_activity             1471917696342             7395           1709           {1:53, 2:40, 3:12, 4:30}

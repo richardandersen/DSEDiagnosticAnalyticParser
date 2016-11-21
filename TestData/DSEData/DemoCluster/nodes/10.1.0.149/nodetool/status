@@ -1,0 +1,23 @@
+Datacenter: prod-us-west-1
+==========================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address      Load       Tokens  Owns    Host ID                               Rack
+UN  10.1.78.194  1.01 TB    256     ?       2116a838-1a38-46de-ab9d-647f0ad16a39  RackC
+UN  10.1.70.7    1.31 TB    256     ?       4778c4df-5b64-4bd0-9fc0-9ccd10686c1b  RackC
+UN  10.1.4.202   568.59 GB  256     ?       c8b0841f-9149-474a-870f-27a109ac0b24  RackA
+UN  10.1.6.237   1.04 TB    256     ?       3af439d0-d2b0-4b90-a745-98e0ae8de41c  RackA
+UN  10.1.64.174  964.34 GB  256     ?       c26a3929-5d81-48b9-ac2a-37d66b321d7a  RackC
+UN  10.1.2.80    774.8 GB   256     ?       9dc2ffb9-9562-4b9d-a46b-76763e08eea6  RackA
+UN  10.1.0.149   1.1 TB     256     ?       ba48e822-2fc0-4b29-9426-d6c86f77f552  RackA
+UN  10.1.0.151   951.09 GB  256     ?       49164b55-1358-43c1-8c12-1ae13ab076ad  RackA
+UN  10.1.0.150   1.19 TB    256     ?       99d0a109-2f47-4ae2-b1bb-2ebb3ed0e6e8  RackA
+UN  10.1.0.153   1.1 TB     256     ?       ef6d9bfa-e4df-4c97-b3af-17d0f173d872  RackA
+UN  10.1.0.152   1.14 TB    256     ?       b4098b0c-e7ed-4b63-8894-f8e0c92d20ce  RackA
+DN  10.1.72.91   1.04 TB    256     ?       67e91979-626c-4f49-ab85-b4131f032531  RackC
+UN  10.1.72.93   1 TB       256     ?       0b6c7b74-3b84-400f-8349-f532b156f5b5  RackC
+UN  10.1.72.92   1.11 TB    256     ?       1ca6d2aa-6993-4e22-ae73-a0633242802b  RackC
+UN  10.1.72.95   1.01 TB    256     ?       8e395954-453c-4312-91d5-e92d83e02cc6  RackC
+UN  10.1.72.94   895.87 GB  256     ?       16d9ff98-1d20-4bce-ab90-e916ae050a07  RackC
+
+Note: Non-system keyspaces don't have the same replication settings, effective ownership information is meaningless

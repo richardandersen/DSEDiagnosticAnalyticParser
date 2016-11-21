@@ -1,0 +1,7 @@
+/usr/bin/dsetool --host=127.0.0.1 --jmxport=7199 sparkmaster
+exit status: 3
+
+stderr:
+This functionality is deprecated and may be removed in future release. Please use 'dse client-tool' instead.
+One or more JMX beans have not been registered. Has this node finished starting up?
+javax.management.InstanceNotFoundException: com.datastax.bdp:type=analytics,name=SparkPlugin

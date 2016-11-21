@@ -1,0 +1,194 @@
+spark_cluster_info_options:
+  enabled: false
+system_info_encryption:
+  enabled: false
+authentication_options:
+  enabled: true
+  default_scheme: internal
+  other_schemes: []
+  scheme_permissions: true
+  allow_digest_with_kerberos: true
+  plain_text_without_ssl: warn
+  transitional_mode: disabled
+spark_security_enabled: false
+config_encryption_active: false
+histogram_data_options:
+  enabled: false
+hive_meta_store_enabled: true
+resource_level_latency_tracking_options:
+  enabled: false
+spark_application_info_options:
+  enabled: false
+  driver:
+    sink: false
+    connectorSource: false
+    jvmSource: false
+    stateSource: false
+  executor:
+    sink: false
+    connectorSource: false
+    jvmSource: false
+graph:
+  system_evaluation_timeout: PT3M
+  msg:
+    graph_msg_timeout: 5 sec
+  realtime_evaluation_timeout: 30 sec
+  max_query_queue: 10000
+  gremlin_server:
+    maxContentLength: '65536000'
+    maxChunkSize: '4096000'
+    port: 8182
+  ids:
+    block_renew: 0.8
+    community_reuse: 28
+    id_hash_modulus: 20
+    member_block_size: 512
+  shared_data:
+    refresh_interval: PT1M
+  window_size: 100000
+  analytic_evaluation_timeout: PT168H
+  schema_mode: Production
+  schema_agreement_timeout: 10 sec
+kerberos_options:
+  keytab: /etc/dse/conf/dse.keytab
+  service_principal: dse/_HOST@REALM
+  http_principal: HTTP/_HOST@REALM
+  qop: auth
+user_level_latency_tracking_options:
+  enabled: false
+max_solr_concurrency_per_core: 2
+dsefs_options:
+  enabled: false
+  gossip_options:
+    round_delay_ms: 5000
+    startup_delay_ms: 5000
+    shutdown_delay_ms: 30000
+  transaction_options:
+    transaction_timeout_ms: 3000
+    conflict_retry_delay_ms: 200
+    execution_retry_delay_ms: 1000
+    execution_retry_count: 3
+  rest_options:
+    request_timeout_ms: 330000
+    connection_open_timeout_ms: 55000
+    client_close_timeout_ms: 60000
+    server_request_timeout_ms: 300000
+solr_request_handler_metrics_options:
+  enabled: false
+spark_daemon_readiness_assertion_interval: 1000
+spark_shared_secret_bit_length: 256
+cql_solr_query_paging: 'off'
+internode_messaging_options:
+  port: 8609
+  server_acceptor_threads: 8
+  server_worker_threads: 16
+  client_max_connections: 100
+  client_worker_threads: 16
+  handshake_timeout_seconds: 10
+hive_options:
+  insert_max_retries: 6
+  insert_retry_sleep_period: 50
+performance_max_threads: 32
+initial_spark_worker_resources: 0.7
+enable_health_based_routing: false
+lease_metrics_options:
+  enabled: false
+back_pressure_threshold_per_core: 1000
+node_health_options:
+  refresh_rate_ms: 60000
+  uptime_ramp_up_period_seconds: 86400
+  dropped_mutation_window_minutes: 30
+solr_encryption_options:
+  decryption_cache_offheap_allocation: true
+  decryption_cache_size_in_mb: 256
+spark_encryption_options:
+  enabled: false
+  keystore: .keystore
+  keystore_password: cassandra
+  key_password: cassandra
+  truststore: .truststore
+  truststore_password: cassandra
+  protocol: TLS
+  cipher_suites:
+  - TLS_RSA_WITH_AES_128_CBC_SHA
+  - TLS_RSA_WITH_AES_256_CBC_SHA
+solr_latency_snapshot_options:
+  enabled: false
+db_summary_stats_options:
+  enabled: false
+enable_index_disk_failure_policy: false
+solr_cache_stats_options:
+  enabled: false
+cluster_summary_stats_options:
+  enabled: false
+max_memory_to_lock_mb: 10240
+solr_slow_sub_query_log_options:
+  enabled: false
+hadoop_options:
+  task_tracker_cores: 2
+  task_tracker_memory: 4g
+solr_indexing_error_log_options:
+  enabled: false
+system_key_directory: /etc/dse/conf
+solr_index_stats_options:
+  enabled: false
+audit_logging_options:
+  enabled: false
+  cassandra_audit_writer_options:
+    mode: sync
+    write_consistency: QUORUM
+    dropped_event_log: /var/log/cassandra/dropped_audit_events.log
+    day_partition_millis: 3600000
+cql_slow_log_options:
+  enabled: true
+  threshold: 2000.0
+  minimum_samples: 100
+  ttl_seconds: 259200
+cql_solr_query_row_timeout: 10000
+solr_update_handler_metrics_options:
+  enabled: false
+cql_system_info_options:
+  enabled: false
+advanced_replication_options:
+  enabled: false
+solr_field_cache_enabled: false
+flush_max_time_per_core: 5
+max_memory_to_lock_fraction: 0.2
+authorization_options:
+  enabled: false
+shard_transport_options:
+  netty_client_request_timeout: 60000
+  netty_client_max_connections: 100
+  http_shard_client_conn_timeout: 0
+  type: netty
+  http_shard_client_socket_timeout: 0
+  netty_server_port: 8984
+ldap_options:
+  user_memberof_attribute: memberof
+  group_search_type: directory_search
+  search_password: ''
+  credentials_validity_in_ms: 0
+  truststore_path: ''
+  search_validity_in_seconds: 0
+  user_search_base: ''
+  user_search_filter: (uid={0})
+  server_host: ''
+  truststore_password: ''
+  group_name_attribute: cn
+  server_port: 389
+  use_ssl: false
+  truststore_type: jks
+  connection_pool:
+    max_active: 8
+    max_idle: 8
+  search_dn: ''
+  group_search_filter: (uniquemember={0})
+  use_tls: false
+ttl_index_rebuild_options:
+  fixed_rate_period: 300
+  initial_delay: 20
+  max_docs_per_batch: 200
+  thread_pool_size: 1
+load_max_time_per_core: 5
+graph_events:
+  ttl_seconds: 600
