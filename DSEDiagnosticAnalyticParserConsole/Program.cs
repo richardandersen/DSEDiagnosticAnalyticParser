@@ -384,6 +384,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             dtNodeStatsStack,
                                                                                             ParserSettings.GCFlagThresholdInMS,
                                                                                             ParserSettings.CompactionFlagThresholdInMS,
+                                                                                            ParserSettings.CompactionFlagThresholdAsIORate,
                                                                                             ParserSettings.SlowLogQueryThresholdInMS));
                                 parsedLogList.TryAdd(ipAddress);
                             }
@@ -457,6 +458,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dtNodeStatsStack,
                                                                                         ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
+                                                                                        ParserSettings.CompactionFlagThresholdAsIORate,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
                             parsedLogList.TryAdd(ipAddress);
                         }
@@ -727,6 +729,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dtNodeStatsStack,
                                                                                         ParserSettings.GCFlagThresholdInMS,
                                                                                         ParserSettings.CompactionFlagThresholdInMS,
+                                                                                        ParserSettings.CompactionFlagThresholdAsIORate,
                                                                                         ParserSettings.SlowLogQueryThresholdInMS));
                             parsedLogList.TryAdd(ipAddress);
                         }
@@ -870,6 +873,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 dtNodeStatsStack,
                                                                                                 ParserSettings.GCFlagThresholdInMS,
                                                                                                 ParserSettings.CompactionFlagThresholdInMS,
+                                                                                                ParserSettings.CompactionFlagThresholdAsIORate,
                                                                                                 ParserSettings.SlowLogQueryThresholdInMS));
                                     parsedLogList.TryAdd(ipAddress);
                                 }

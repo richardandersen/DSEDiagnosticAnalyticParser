@@ -1002,5 +1002,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((int)(this["ContinuousGCNbrInSeries"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public decimal CompactionFlagThresholdAsIORate {
+            get {
+                return ((decimal)(this["CompactionFlagThresholdAsIORate"]));
+            }
+        }
     }
 }

@@ -37,9 +37,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         /// <summary>
-        /// Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java is defined) and log status for GC latencies. 
+        /// Defines a threshold that will flag a log entry in both the log summary and log status for GC latencies. 
         /// </summary>
-        [Option('G', "GCFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java is defined) and log status for GC latencies.",
+        [Option('G', "GCFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary and log status for GC latencies.",
                     Required = false)]
         public int GCFlagThresholdInMS
         {
@@ -48,14 +48,22 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         /// <summary>
-        /// Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java is defined) and log status for compaction latencies.
+        /// Defines a threshold that will flag a log entry in both the log summary and log status for compaction latencies.
         /// </summary>
-        [Option('C', "CompactionFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java is defined) and log status for compaction latencies.",
+        [Option('C', "CompactionFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary and log status for compaction latencies. -1 disables this feature.",
                     Required = false)]
         public int CompactionFlagThresholdInMS
         {
             get { return ParserSettings.CompactionFlagThresholdInMS; }
             set { ParserSettings.CompactionFlagThresholdInMS = value; }
+        }
+
+        [Option('R', "CompactionFlagThresholdAsIORate", HelpText = "Defines a threshold that if the IO rate below this threshold will flag a log entry in both the log summary and log status for compaction IO rate (MB/Sec). -1 disables this feature.",
+                    Required = false)]
+        public decimal CompactionFlagThresholdAsIORate
+        {
+            get { return ParserSettings.CompactionFlagThresholdAsIORate; }
+            set { ParserSettings.CompactionFlagThresholdAsIORate = value; }
         }
 
         /// <summary>
@@ -577,6 +585,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--MaxRowInExcelWork[B]ook {1} " +
                                     "--[G]CFlagThresholdInMS {2} " +
                                     "--[C]ompactionFlagThresholdInMS {3} " +
+                                    "--CompactionFlagThresholdAsIORate|-R {25}" +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
                                     "--SummarizeOnlyOverlappingLogs|-U {5}" +
                                     "--LogStartDate|-Z \"{6}\" " +
@@ -624,7 +633,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.ToleranceContinuousGCInMS,
                                     this.GCTimeFrameDetection,
                                     this.GCTimeFrameDetectionPercentage,
-                                    this.NbrGCInSeriesToConsiderContinuous);
+                                    this.NbrGCInSeriesToConsiderContinuous,
+                                    this.CompactionFlagThresholdAsIORate);
         }
     }
 }

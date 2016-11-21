@@ -30,6 +30,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtTPStatsStack,
                                                         int gcPausedFlagThresholdInMS,
                                                         int compactionFllagThresholdInMS,
+                                                        decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
             DateTime maxLogTimestamp = DateTime.MinValue;
@@ -52,6 +53,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         out maxLogTimestamp,
                                                                                         gcPausedFlagThresholdInMS,
                                                                                         compactionFllagThresholdInMS,
+                                                                                        compactionFlagThresholdAsIORate,
                                                                                         slowLogQueryThresholdInMS);
 
                                     lock (maxminMaxLogDate)
@@ -121,6 +123,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             dtTPStatsStack,
                                                             gcPausedFlagThresholdInMS,
                                                             compactionFllagThresholdInMS,
+                                                            compactionFlagThresholdAsIORate,
                                                             slowLogQueryThresholdInMS);
                     }
                 }
@@ -269,6 +272,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         out DateTime maxTimestamp,
                                                         int gcPausedFlagThresholdInMS,
                                                         int compactionFllagThresholdInMS,
+                                                        decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
             CreateCassandraLogDataTable(dtCLog);
@@ -366,6 +370,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //java.lang.OutOfMemoryError: Java heap space
                 //WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
                 //Failure to flush may cause excessive growth of Cassandra commit log.
+                //SharedPool-Worker-1	DseAuthenticator.java					 Plain text authentication without client / server encryption is strongly discouraged
 
                 #region Exception Log Info Parsing
 
@@ -1074,25 +1079,43 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 					else if (parsedValues[4] == "CompactionTask.java")
 					{
-						#region CompactionTask.java
-						//INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+                        #region CompactionTask.java
+                        //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+                        //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
 
-						if (nCell == itemValuePos)
-						{
-							var time = DetermineTime(parsedValues[nCell]);
+                        if(itemPos > 0
+                                && parsedValues[nCell].EndsWith("of original)")
+                                && parsedValues[nCell + 1] == "in")
+                        {
+                            object time = DetermineTime(parsedValues[nCell + 2]);
+                            object rate = null;
 
-							if (time is int && (int)time >= compactionFllagThresholdInMS)
-							{
-								dataRow["Flagged"] = true;
-								//dataRow["Associated Item"] = "Compaction Pause";
-								dataRow["Exception"] = "Compaction Latency Warning";
-                                handled = true;
+                            if(Common.StringFunctions.ParseIntoNumeric(parsedValues[nCell + 4].Substring(0, parsedValues[nCell + 4].Length - 4), out rate)
+                                && compactionFlagThresholdAsIORate > 0)
+                            {                         
+                                if ((dynamic) rate < compactionFlagThresholdAsIORate)
+                                {
+                                    dataRow["Flagged"] = true;                                    
+                                    dataRow["Exception"] = "Compaction IO Rate Warning";
+                                    handled = true;
+                                }        
                             }
-							dataRow["Associated Value"] = time;
-						}
+
+                            if (!handled 
+                                    && compactionFllagThresholdInMS >= 0
+                                    && time is int
+                                    && (int)time >= compactionFllagThresholdInMS)
+                            {
+                                dataRow["Flagged"] = true;                                
+                                dataRow["Exception"] = "Compaction Latency Warning";
+                                handled = true;                                                               
+                            }
+
+                            dataRow["Associated Value"] = string.Format("{0} ms; {1} MB/sec", time, rate);
+                        }
 						else if (parsedValues[nCell] == "Compacted")
 						{
-							itemValuePos = nCell + 11;
+                            itemPos = nCell + 1;
 						}
 						#endregion
 					}
@@ -1241,6 +1264,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Exception"] = "Node Startup";
                             dataRow["Flagged"] = true;
+                            handled = true;
+                        }
+                        #endregion
+                    }
+                    else if (parsedValues[4] == "DseAuthenticator.java" && parsedValues[0] == "WARN")
+                    {
+                        #region DseAuthenticator.java
+                        //WARN	SharedPool-Worker-1	DseAuthenticator.java					 Plain text authentication without client / server encryption is strongly discouraged
+                        if (parsedValues[nCell] == "Plain"
+                                && parsedValues[nCell + 2] == "authentication"
+                                && parsedValues[nCell + 3] == "without")
+                        {
+                            dataRow["Exception"] = "Plain Text Authentication";
+                            //dataRow["Flagged"] = true;
                             handled = true;
                         }
                         #endregion
@@ -1873,7 +1910,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExPool2Line = new Regex(@"\s*(\w+)\s+(\w+/\w+|\d+)\s+(\w+/\w+|\d+).*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
+        static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime /*Log Timestamp*/, int /*GC Latency*/, long /*Group Indicator*/>>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, int, long>>>();
@@ -1927,7 +1964,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CompactionExecutor                0         0        2120758         0                 0
             //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_keyspaces                   0,0
             //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_usertypes                   0,0
-
+            //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+            //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
+            
             if (dtCStatusLog.Columns.Count == 0)
             {
                 dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
