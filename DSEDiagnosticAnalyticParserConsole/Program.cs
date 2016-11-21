@@ -490,8 +490,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     
                     if(files.HasAtLeastOneElement())
                     {
-                        var filesInWarning = string.Format("Invalid File(s) Found in OpsCenter Folder: {0}",
-                                                            string.Join(", ", files.Select(file => "\"" + file.Path + "\"")));
+                        var filesInWarning = string.Format("Invalid File(s) Found in OpsCenter Folder ({1}): {0}",
+                                                            string.Join(", ", files.Select(file => "\"" + file.Path + "\"")),
+                                                            files.Count());
                         Logger.Instance.Warn(filesInWarning);
                         Program.ConsoleWarnings.Increment("Invalid File(s) Found in OpsCenter Folder");
                     }
@@ -783,6 +784,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             parsedCFStatList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                        }
                     }
 
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolTPStatsFile, out diagFilePath))
@@ -797,6 +802,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             parsedTPStatList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                        }
                     }
 
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolInfoFile, out diagFilePath))
@@ -808,6 +817,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             ProcessFileTasks.ReadInfoFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtRingInfo);
                             parsedRingList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
+                        }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
 
@@ -821,6 +834,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dtCompHistStack.Push(dtHistComp);
                             ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtHistComp, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
+                        }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
 
@@ -877,6 +894,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 ParserSettings.SlowLogQueryThresholdInMS));
                                     parsedLogList.TryAdd(ipAddress);
                                 }
+                                else
+                                {
+                                    Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                                }
                             }
                         }
                     }
@@ -892,6 +913,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfCassandraType, yamlList);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                        }
                     }
 
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath))
@@ -906,6 +931,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             parsedYamlList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                        }
                     }
 
                     if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEFile, out diagFilePath))
@@ -919,6 +948,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfDSEType, yamlList);
                             parsedYamlList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
+                        }
+                        else
+                        {
+                            Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
 
@@ -1048,6 +1081,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     TaskContinuationOptions.AttachedToParent
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
+            else
+            {
+                Logger.Instance.DebugFormat("TableHistogram Directory \"{0}\" does not exists.", tableHistogramDir?.Path);
             }
 
             #endregion
