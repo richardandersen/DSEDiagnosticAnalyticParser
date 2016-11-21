@@ -104,7 +104,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static bool LookForIPAddress(string value, string ignoreIPAddress, out string ipAddress)
         {
 
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value) || value.Length < 7)
             {
                 ipAddress = null;
                 return false;

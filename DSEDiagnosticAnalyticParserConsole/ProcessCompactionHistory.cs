@@ -69,6 +69,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //cfde9db0-3d06-11e6-adbd-0fa082120add 	production_mqh_bi  	bi_newdata			1467101014795		247011505	247011472      					{ 1:354, 2:1}
                 //																				timestamp			size SSTtable before and after compaction	the number of partitions merged. The notation means {tables:rows}. For example: {1:3, 3:1} means 3 rows were taken from one SSTable (1:3) and 1 row taken from 3 SSTables (3:1) to make the one SSTable in that compaction operation.
                 //	0										1				2					3					4			5								6
+                //	 26909550-65e3-11e6-923c-7d02e3681807     dse_perf           partition_size_histograms_summary1471593696037             168003         1114           {1:15}
+                
                 parsedLine = Common.StringFunctions.Split(line,
                                                             ' ',
                                                             Common.StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace,
@@ -91,6 +93,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         currentKeySpace = ksItem == null ? "?" : ksItem.KeySpaceName;
                         currentTable = ksItem == null ? parsedLine[1] : ksItem.TableName;
 
+                        if (ignoreKeySpaces.Contains(currentKeySpace))
+                        {
+                            continue;
+                        }
+
                         if (ksItem != null && parsedLine[1].Length > currentKeySpace.Length + currentTable.Length)
                         {
                             parsedLine[1] = parsedLine[1].Substring(currentKeySpace.Length + currentTable.Length);
@@ -111,6 +118,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else
                     {
                         currentKeySpace = RemoveQuotes(parsedLine[1]);
+
+                        if (ignoreKeySpaces.Contains(currentKeySpace))
+                        {
+                            continue;
+                        }
 
                         if (parsedLine[2].Length > 30)
                         {

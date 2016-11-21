@@ -332,6 +332,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>dse_security</string>
   <string>solr_admin</string>
   <string>dse_auth</string>
+  <string>dse_leases</string>
   <string>OpsCenter</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection IgnoreKeySpaces {

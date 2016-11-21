@@ -49,9 +49,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTable.Columns.Add("Counters", typeof(int));//n
                 dtTable.Columns.Add("Blobs", typeof(int));//o                
                 dtTable.Columns.Add("Static", typeof(int));//p
-                dtTable.Columns.Add("Total", typeof(int));//q
-                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//r
-                dtTable.Columns.Add("DDL", typeof(string));//s
+                dtTable.Columns.Add("Frozen", typeof(int));//q
+                dtTable.Columns.Add("Total", typeof(int));//r
+                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//s
+                dtTable.Columns.Add("DDL", typeof(string));//t
 
                 dtTable.PrimaryKey = new System.Data.DataColumn[] { dtTable.Columns["Keyspace Name"], dtTable.Columns["Name"] };
             }
@@ -305,6 +306,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 int nbrCounters = 0;
                                 int nbrBlobs = 0;
                                 int nbrStatic = 0;
+                                int nbrFrozen = 0;
 
                                 for (int nIndex = 0; nIndex < endParan; ++nIndex)
                                 {
@@ -315,6 +317,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     else if (tblColumns[nIndex].EndsWith(" static", StringComparison.OrdinalIgnoreCase))
                                     {
                                         ++nbrStatic;
+                                    }
+
+                                    if(tblColumns[nIndex].IndexOf(" frozen ", StringComparison.OrdinalIgnoreCase) > 3
+                                        || tblColumns[nIndex].IndexOf("frozen<", StringComparison.OrdinalIgnoreCase) > 3
+                                        || tblColumns[nIndex].IndexOf("<frozen", StringComparison.OrdinalIgnoreCase) > 3)
+                                    {
+                                        ++nbrFrozen;
                                     }
 
                                     if (tblColumns[nIndex].EndsWith(" counter", StringComparison.OrdinalIgnoreCase))
@@ -328,7 +337,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
                                     else if (tblColumns[nIndex].IndexOf(" list", StringComparison.OrdinalIgnoreCase) > 3
                                                 || tblColumns[nIndex].IndexOf(" map", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf(" set", StringComparison.OrdinalIgnoreCase) > 3)
+                                                || tblColumns[nIndex].IndexOf(" set", StringComparison.OrdinalIgnoreCase) > 3
+                                                || tblColumns[nIndex].IndexOf("<list", StringComparison.OrdinalIgnoreCase) > 3
+                                                || tblColumns[nIndex].IndexOf("<map", StringComparison.OrdinalIgnoreCase) > 3
+                                                || tblColumns[nIndex].IndexOf("<set", StringComparison.OrdinalIgnoreCase) > 3)
                                     {
                                         ++nbrCollections;
                                     }
@@ -338,6 +350,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Counters"] = nbrCounters;
                                 dataRow["Blobs"] = nbrBlobs;
                                 dataRow["Static"] = nbrStatic;
+                                dataRow["Frozen"] = nbrFrozen;
                                 dataRow["Total"] = endParan;
 
                                 //parse options...
@@ -370,6 +383,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     {
                                         //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}                                        
                                         //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
+                                        // AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
                                         var kwOptions = ParseKeyValuePair(optKeyword).Item2;
                                         var jsonItems = ParseJson(kwOptions);
 
@@ -377,9 +391,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         {
                                             dataRow["Compression"] = RemoveNamespace((string) jsonItems["cipher_algorithm"]);
                                         }
-                                        else
+                                        else if(jsonItems.ContainsKey("sstable_compression"))
                                         {
                                             dataRow["Compression"] = RemoveNamespace((string)jsonItems["sstable_compression"]);
+                                        }
+                                        else if (jsonItems.ContainsKey("class"))
+                                        {
+                                            dataRow["Compression"] = RemoveNamespace((string)jsonItems["class"]);
                                         }
                                     }
                                     else if (optKeyword.StartsWith("dclocal_read_repair_chance", StringComparison.OrdinalIgnoreCase))

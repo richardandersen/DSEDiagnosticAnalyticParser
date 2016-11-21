@@ -34,22 +34,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["H1:H2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
                                             workSheet.Cells["K1:K2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                            workSheet.Cells["M1:Q1"].Style.WrapText = true;
-                                            workSheet.Cells["M1:Q1"].Merge = true;
-                                            workSheet.Cells["M1:Q1"].Value = "Column Counts";
+                                            workSheet.Cells["M1:R1"].Style.WrapText = true;
+                                            workSheet.Cells["M1:R1"].Merge = true;
+                                            workSheet.Cells["M1:R1"].Value = "Column Counts";
                                             workSheet.Cells["M1:M2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                            workSheet.Cells["Q1:Q2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                            workSheet.Cells["R1:R2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
                                             workSheet.View.FreezePanes(3, 1);
                                             workSheet.Cells["I:I"].Style.Numberformat.Format = "0%";
                                             workSheet.Cells["J:J"].Style.Numberformat.Format = "0%";
                                             workSheet.Cells["L:L"].Style.Numberformat.Format = "d hh:mm";
 
-                                            workSheet.Cells["M:M"].Style.Numberformat.Format = "###";
-                                            workSheet.Cells["N:N"].Style.Numberformat.Format = "###";
-                                            workSheet.Cells["O:O"].Style.Numberformat.Format = "###";
-                                            workSheet.Cells["P:P"].Style.Numberformat.Format = "###";
-                                            workSheet.Cells["Q:Q"].Style.Numberformat.Format = "###";
+                                            workSheet.Cells["M:M"].Style.Numberformat.Format = "#,###";
+                                            workSheet.Cells["N:N"].Style.Numberformat.Format = "#,###";
+                                            workSheet.Cells["O:O"].Style.Numberformat.Format = "#,###";
+                                            workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###";
+                                            workSheet.Cells["Q:Q"].Style.Numberformat.Format = "#,###";
+                                            workSheet.Cells["R:R"].Style.Numberformat.Format = "#,###";
 
                                             workSheet.Cells["A2:R2"].AutoFilter = true;
 
@@ -58,7 +59,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["I2"].AddComment("read_repair_chance -- Specifies the basis for invoking read repairs on reads in clusters. The value must be between 0 and 1. Default Values are: 0.0 (Cassandra 2.1, Cassandra 2.0.9 and later) 0.1 (Cassandra 2.0.8 and earlier)", "Richard Andersen");
                                             workSheet.Cells["L2"].AddComment("gc_grace_seconds -- Specifies the time to wait before garbage collecting tombstones (deletion markers). The default value allows a great deal of time for consistency to be achieved prior to deletion. In many deployments this interval can be reduced, and in a single-node cluster it can be safely set to zero. Default value is 864000 [10 days]", "Richard Andersen");
 
-                                            workSheet.Cells["A:Q"].AutoFitColumns();
+                                            workSheet.Cells["A:R"].AutoFitColumns();
                                         },
                                         ParserSettings.DDLTableWorksheetFilterSort,
                                         "A2");
