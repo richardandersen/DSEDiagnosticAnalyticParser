@@ -327,6 +327,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
   <string>dse_system</string>
   <string>system_auth</string>
   <string>system_traces</string>
+  <string>system_distributed</string>
+  <string>system_schema</string>
   <string>system</string>
   <string>dse_perf</string>
   <string>dse_security</string>
