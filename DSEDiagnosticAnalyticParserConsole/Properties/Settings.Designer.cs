@@ -150,8 +150,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[MyDocuments]\\LINQPad Queries\\DataStax\\TestData\\HL_Statim_Cluster-diagnostics-201" +
-            "6_09_12_14_39_32_UTC")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[Personal]\\DSEData\\HL_Statim_Cluster-diagnostics-2016_09_12_14_39_32_UTC")]
         public string DiagnosticPath {
             get {
                 return ((string)(this["DiagnosticPath"]));
