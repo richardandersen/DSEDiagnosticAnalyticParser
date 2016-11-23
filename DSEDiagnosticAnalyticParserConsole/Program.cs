@@ -49,6 +49,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
+            if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
+            {
+                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets;
+            }
+
             if (ParserSettings.ParsingExcelOptions.Detect.IsEnabled())
             {
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath)) ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseDDLFiles;
@@ -60,11 +65,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                             && ParserSettings.GCTimeFrameDetection != TimeSpan.Zero))
                 {
                     ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseTPStatsLogs;
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
                 }
                 if (ParserSettings.LogSummaryPeriods.Length > 0
                     || ParserSettings.LogSummaryPeriodRanges.Length > 0)
                 {
                     ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseSummaryLogs;
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets;
                 }
             }
 
@@ -77,16 +84,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                     || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()))
             {
-                ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.Parse;                
+                if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled()
+                    || (!ParserSettings.LogParsingExcelOptions.Parse.IsEnabled()
+                            && !ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
+                {
+                    ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.ParseLogs;
+                }                
             }
-
-            if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
-                    && !ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
-                    && !ParserSettings.ParsingExcelOptions.ProduceSummaryWorkbook.IsEnabled())
-            {
-                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets;                
-            }
-            
+                        
             if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled()                    
@@ -96,7 +101,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                     || ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled())
             {
-                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
+                if (!ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                {
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
+                }
             }
             
             Logger.Instance.InfoFormat("Program: {0} Version: {1} Directory: {2}",
@@ -117,19 +125,19 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.Console.WriteLine("Diagnostic Source Folder: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.DiagnosticPath)?.PathResolved);
             ConsoleDisplay.Console.WriteLine("Excel Target File: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.ExcelFilePath)?.PathResolved);
             ConsoleDisplay.Console.WriteLine("Parse Options: {{{0}}}, Log Options: {{{1}}}{2}",
-                                                argResult.Value.ParsingExcelOption,
-                                                argResult.Value.LogParsingExcelOption,                                                
-                                                argResult.Value.LogStartDate == DateTime.MinValue 
+                                                ParserSettings.ParsingExcelOption,
+                                                ParserSettings.LogParsingExcelOption,
+                                                ParserSettings.LogStartDate == DateTime.MinValue 
                                                     ? string.Empty
-                                                    : string.Format(" From: {0} ({0:ddd})", argResult.Value.LogStartDate));
+                                                    : string.Format(" From: {0} ({0:ddd})", ParserSettings.LogStartDate));
 
             ConsoleDisplay.Console.WriteLine(" ");
 
             ConsoleNonLogReadFiles = new ConsoleDisplay("Non-Log Files: {0} Working: {1} Task: {2}");
             ConsoleLogReadFiles = new ConsoleDisplay("Log Files: {0}  Working: {1} Task: {2}");
+            ConsoleLogCount = new ConsoleDisplay("Log Item Count: {0:###,###,##0}", 2, false);
             ConsoleParsingNonLog = new ConsoleDisplay("Non-Log Processing: {0}  Working: {1} Task: {2}");
-            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");
-			ConsoleLogCount = new ConsoleDisplay("Log Item Count: {0:###,###,##0}", 2, false);
+            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");			
 			ConsoleExcel = new ConsoleDisplay("Excel: {0}  Working: {1} WorkSheet: {2}");
             ConsoleExcelNonLog = new ConsoleDisplay("Excel Non-Log: {0}  Working: {1} Task: {2}");
             ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Working: {1} Task: {2}");

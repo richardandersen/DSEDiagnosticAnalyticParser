@@ -12,7 +12,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         [Flags]
         public enum LogParsingExcelOptions
         {
-            Disable = 0,
+            Detect = 0,
             Parse = 0x0001,          
             ParseArchivedLogs = 0x0002,
             CreateWorkbook = 0x0004,
@@ -234,7 +234,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             return LogParsingExcelOption == option
                         ? true
-                        :  (LogParsingExcelOption == LogParsingExcelOptions.Disable ? false : (LogParsingExcelOption & option) == option);
+                        :  (LogParsingExcelOption == LogParsingExcelOptions.Detect ? false : (LogParsingExcelOption & option) == option);
         }
 
         public static bool IsEnabled(this ParsingExcelOptions option)
