@@ -84,9 +84,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()))
             {
-                if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled()
-                    || (!ParserSettings.LogParsingExcelOptions.Parse.IsEnabled()
-                            && !ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
+                if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled())
                 {
                     ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.ParseLogs;
                 }                
@@ -1375,8 +1373,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
             bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
                                         || ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
-                                    && excelFile.Exist();
-            var excelFileAttrs = excelFileExists ? excelFile.GetAttributes() : System.IO.FileAttributes.Normal;
+                                    && excelFile.Exist();           
+            var excelFileFound = excelFileExists;
+            var excelFileAttrs = excelFileExists ? excelFile.GetAttributes() : System.IO.FileAttributes.Normal;           
             Task runLogToExcel = null;
 
             try
@@ -1393,13 +1392,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         try
                         {
-                            excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);
+                            excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);                                                                                  
                             if (excelTemplateFile.Copy(excelFile))
                             {
                                 Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
                                 excelFileExists = true;
                                 excelFileAttrs = excelFile.GetAttributes();
-                                excelFile.SetAttributes(System.IO.FileAttributes.Hidden);
+                                excelFile.SetAttributes(excelFileAttrs | System.IO.FileAttributes.Hidden);
                             }
                         }
                         catch (System.Exception ex)
@@ -1410,11 +1409,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
 
-                if (excelFileExists)
-                {
-                    excelFile.SetAttributes(System.IO.FileAttributes.Hidden);
+                if (excelFileFound)
+                {                    
+                    excelFile.SetAttributes(excelFileAttrs | System.IO.FileAttributes.Hidden);                                      
                 }
-                else
+                else if(!excelFileExists)
                 {
                     excelFile.ReplaceFileExtension(ParserSettings.ExcelWorkBookFileExtension);
                 }
@@ -1533,7 +1532,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             finally
             {
                 if(excelFileExists)
-                {
+                {                    
                     excelFile.SetAttributes(excelFileAttrs);
                 }
             }

@@ -968,7 +968,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("ParseCreateAll")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Detect")]
         public string LogParsingExcelOptions {
             get {
                 return ((string)(this["LogParsingExcelOptions"]));
