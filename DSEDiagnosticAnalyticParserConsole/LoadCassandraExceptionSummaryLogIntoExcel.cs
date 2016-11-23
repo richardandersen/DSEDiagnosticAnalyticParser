@@ -10,10 +10,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
-        public static Task LoadCassandraExceptionSummaryLog(Task<Tuple<DataTable,DataTable>> runLogSummaryParsingTask,
+        public static Task LoadCassandraExceptionSummaryLog(Task<Tuple<DataTable,DataTable,DateTimeRange>> runLogSummaryParsingTask,
                                                                 string excelFilePath,
-                                                                string excelWorkSheetLogCassandra,                                                
-                                                                DateTimeRange logCassandraMaxMinTimestamp)
+                                                                string excelWorkSheetLogCassandra)
         {
             var runLogToExcel = runLogSummaryParsingTask.ContinueWith(logTask =>
             {
@@ -62,11 +61,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["A1:M1"].Merge = true;
                                                     workSheet.Cells["A1:M1"].Value = //string.IsNullOrEmpty(logExcelWorkbookFilter)
                                                                                                             string.Format("Exception Summary Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
-                                                                                                                                logCassandraMaxMinTimestamp.Min,
-                                                                                                                                logCassandraMaxMinTimestamp.Max,
-                                                                                                                                logCassandraMaxMinTimestamp.Max - logCassandraMaxMinTimestamp.Min,
-                                                                                                                                logCassandraMaxMinTimestamp.Min.DayOfWeek,
-                                                                                                                                logCassandraMaxMinTimestamp.Max.DayOfWeek);
+                                                                                                                                runLogSummaryParsingTask.Result.Item3.Min,
+                                                                                                                                runLogSummaryParsingTask.Result.Item3.Max,
+                                                                                                                                runLogSummaryParsingTask.Result.Item3.Max - runLogSummaryParsingTask.Result.Item3.Min,
+                                                                                                                                runLogSummaryParsingTask.Result.Item3.Min.DayOfWeek,
+                                                                                                                                runLogSummaryParsingTask.Result.Item3.Max.DayOfWeek);
                                                     // : logExcelWorkbookFilter;
                                                     workSheet.Cells["A1:M1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 

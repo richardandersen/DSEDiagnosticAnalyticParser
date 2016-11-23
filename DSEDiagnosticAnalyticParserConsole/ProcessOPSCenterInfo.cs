@@ -37,38 +37,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 if (nodeInfoDict.ContainsKey((string)dataRow["Node IPAddress"]))
                                 {
-                                    var nodeInfo = (Dictionary<string, object>)nodeInfoDict[(string)dataRow["Node IPAddress"]];
-                                    var dseVersions = (Dictionary<string, object>)nodeInfo["node_version"];
+                                    var nodeInfo = (Dictionary<string, object>) nodeInfoDict.TryGetValue((string)dataRow["Node IPAddress"]);
+                                    var dseVersions = (Dictionary<string, object>) nodeInfo.TryGetValue("node_version");
 
                                     dataRow.BeginEdit();
 
                                     if (nodeInfo.ContainsKey("ec2"))
                                     {
-                                        dataRow["Instance Type"] = ((Dictionary<string, object>)nodeInfo["ec2"])["instance-type"];
+                                        dataRow["Instance Type"] = ((Dictionary<string, object>) nodeInfo.TryGetValue("ec2")).TryGetValue("instance-type");
                                     }
 
                                     if (dataRow["Cores"] == DBNull.Value)
                                     {
-                                        dataRow["Cores"] = nodeInfo["num_procs"];
+                                        dataRow["Cores"] = nodeInfo.TryGetValue("num_procs");
                                     }
-                                    dataRow["DSE"] = dseVersions["dse"];
-                                    dataRow["Cassandra"] = dseVersions["cassandra"];
-                                    dataRow["Search"] = dseVersions["search"];
-                                    var searchInfo = ((Dictionary<string, object>)dseVersions["spark"]);
-                                    if (searchInfo != null)
-                                    {
-                                        dataRow["Spark"] = searchInfo["version"];
-                                    }
-                                    dataRow["VNodes"] = nodeInfo["vnodes"];
+                                    dataRow["DSE"] = dseVersions.TryGetValue("dse");
+                                    dataRow["Cassandra"] = dseVersions.TryGetValue("cassandra");
+                                    dataRow["Search"] = dseVersions.TryGetValue("search");
+
+                                    dataRow["Spark"] = ((Dictionary<string, object>)dseVersions.TryGetValue("spark")).TryGetValue("version");                                    
+                                    dataRow["VNodes"] = nodeInfo.TryGetValue("vnodes");
 
                                     dataRow.EndEdit();
+                                }
+                                else
+                                {
+                                    Logger.Instance.WarnFormat("Node {0} is missing from the OpsCenter's node_info file.", (string)dataRow["Node IPAddress"]);
                                 }
                             }
                         }
                         else if (fileName.Contains("repair_service"))
                         {
                             var infoText = filePath.ReadAllText();
-                            var definition = new { time_to_completion = 0L, status = "", parallel_tasks = 0, all_tasks = new object[1][] };
+                            var definition = new { time_to_completion = 0L, status = string.Empty, parallel_tasks = 0, all_tasks = new object[1][] };
                             var infoObject = Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(infoText, definition);
 
                             foreach (DataRow dataRow in dtRingInfo.Rows)

@@ -20,7 +20,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         int maxNbrLinesRead,
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
                                                         IFilePath[] archiveFilePaths, //null disables archive parsing
-                                                        bool parseNonLogs,
+                                                        ParserSettings.LogParsingExcelOptions parseLogOptions,
+                                                        ParserSettings.ParsingExcelOptions parseNonLogOptions,
                                                         string excelWorkSheetStatusLogCassandra,
                                                         Common.Patterns.Collections.ThreadSafe.Dictionary<string, string> nodeGCInfo,
                                                         IEnumerable<string> ignoreKeySpaces,
@@ -66,19 +67,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     return linesRead;
                                 },
                                 TaskCreationOptions.LongRunning);
-            
-            statusTask = logTask.ContinueWith(taskResult =>
+
+            if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+                || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
+                || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled())
+            {
+                statusTask = logTask.ContinueWith(taskResult =>
                             {
                                 var dtStatusLog = new System.Data.DataTable(excelWorkSheetStatusLogCassandra + "-" + ipAddress);
-                                var dtCFStats = parseNonLogs ? new DataTable("CFStats-Comp" + "-" + ipAddress) : null;
-                                var dtTPStats = parseNonLogs ? new DataTable("CFStats-GC" + "-" + ipAddress) : null;
+                                var dtCFStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseCFStatsLogs) ? new DataTable("CFStats-Logs" + "-" + ipAddress) : null;
+                                var dtTPStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseTPStatsLogs) ? new DataTable("TPStats-Logs" + "-" + ipAddress) : null;
 
                                 dtLogStatusStack.Push(dtStatusLog);
-                                dtCFStatsStack.Push(dtCFStats);
-                                dtTPStatsStack.Push(dtTPStats);
+
+                                if (dtCFStats != null) dtCFStatsStack.Push(dtCFStats);
+                                if (dtTPStats != null) dtTPStatsStack.Push(dtTPStats);
 
                                 Logger.Instance.InfoFormat("Status Log Processing File \"{0}\"", logFilePath.Path);
-                                Program.ConsoleParsingLog.Increment(string.Format("Status {0}", dtLog.TableName));                                
+                                Program.ConsoleParsingLog.Increment(string.Format("Status {0}", dtLog.TableName));
 
                                 ParseCassandraLogIntoStatusLogDataTable(dtLog,
                                                                         dtStatusLog,
@@ -90,15 +96,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         ignoreKeySpaces,
                                                                         kstblNames);
 
-                                Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));                               
+                                Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));
                             },
                             TaskContinuationOptions.AttachedToParent
                                 | TaskContinuationOptions.LongRunning
                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
-
+            }
 
             if (maxNbrLinesRead <= 0
-                        && archiveFilePaths != null)
+                        && archiveFilePaths != null
+                        && ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
             {
                 foreach (IFilePath archiveElement in archiveFilePaths)
                 {
@@ -113,7 +120,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             -1,
                                                             dtLogsStack,
                                                             null,
-                                                            parseNonLogs,
+                                                            parseLogOptions,
+                                                            parseNonLogOptions,
                                                             excelWorkSheetStatusLogCassandra,
                                                             nodeGCInfo,
                                                             ignoreKeySpaces,
@@ -135,40 +143,41 @@ namespace DSEDiagnosticAnalyticParserConsole
                     .ContinueWhenAll(new Task[] { logTask, statusTask, archTask }, tasks => logTask.Result + archTask.Result);
         }
 
-        public static Task<Tuple<DataTable, DataTable>> ParseCassandraLogIntoSummaryDataTable(Task<DataTable> logTask,
-                                                                                                string excelWorkSheetLogCassandra,
-                                                                                                DateTimeRange maxminLogDate,
-                                                                                                Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
-                                                                                                Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
-                                                                                                bool summarizeOnlyOverlappingDateRangesForNodes,
-                                                                                                IDictionary<string, List<Common.DateTimeRange>> nodeLogDateRanges,
-                                                                                                string[] logAggregateAdditionalTaskExceptionItems,                                                                                
-                                                                                                string[] logSummaryIgnoreTaskExceptions)
+        public static Task<Tuple<DataTable, DataTable, DateTimeRange>> ParseCassandraLogIntoSummaryDataTable(Task<DataTable> logTask,
+                                                                                                                string excelWorkSheetLogCassandra,
+                                                                                                                Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
+                                                                                                                Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
+                                                                                                                bool summarizeOnlyOverlappingDateRangesForNodes,
+                                                                                                                IDictionary<string, List<Common.DateTimeRange>> nodeLogDateRanges,
+                                                                                                                string[] logAggregateAdditionalTaskExceptionItems,
+                                                                                                                string[] logSummaryIgnoreTaskExceptions)
         {
-			Task<Tuple<DataTable, DataTable>> summaryTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable>>();
-
-            if(summarizeOnlyOverlappingDateRangesForNodes)
-            {                
-                foreach (var nodeLogRanges in nodeLogDateRanges)
-                {
-                    DateTimeRange nodeInnerRange = new DateTimeRange();
-
-                    nodeLogRanges.Value.ForEach(range =>
-                    {
-                        nodeInnerRange.SetMinMax(range.Min);
-                        nodeInnerRange.SetMinMax(range.Max);
-                    });
-                    
-                    maxminLogDate.SetMinimal(maxminLogDate.MaximumMinDateTime(nodeInnerRange));
-                    maxminLogDate.SetMaximum(maxminLogDate.MinimalMaxDateTime(nodeInnerRange));
-                }
-            }
-
+			Task<Tuple<DataTable, DataTable, DateTimeRange>> summaryTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
+            
             if ((logSummaryPeriods != null && logSummaryPeriods.Length > 0)
                             || (logSummaryPeriodRanges != null && logSummaryPeriodRanges.Length > 0))
             {
                 summaryTask = logTask.ContinueWith(taskResult =>
                                 {
+                                    var maxminLogDate = new DateTimeRange(ProcessFileTasks.LogCassandraMaxMinTimestamp);
+
+                                    if (summarizeOnlyOverlappingDateRangesForNodes)
+                                    {
+                                        foreach (var nodeLogRanges in nodeLogDateRanges)
+                                        {
+                                            DateTimeRange nodeInnerRange = new DateTimeRange();
+
+                                            nodeLogRanges.Value.ForEach(range =>
+                                            {
+                                                nodeInnerRange.SetMinMax(range.Min);
+                                                nodeInnerRange.SetMinMax(range.Max);
+                                            });
+
+                                            maxminLogDate.SetMinimal(maxminLogDate.MaximumMinDateTime(nodeInnerRange));
+                                            maxminLogDate.SetMaximum(maxminLogDate.MinimalMaxDateTime(nodeInnerRange));
+                                        }
+                                    }
+
                                     DataTable dtLog = taskResult.Result;
                                     DataTable dtSummaryLog = new DataTable(dtLog.TableName + "Summary");
                                     DataTable dtExceptionSummaryLog = new DataTable(dtLog.TableName + "Exception Summary");
@@ -214,7 +223,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     Program.ConsoleParsingLog.TaskEnd(string.Format("Summary {0}", dtLog.TableName));
 
-                                    return new Tuple<DataTable,DataTable>(dtSummaryLog, dtExceptionSummaryLog);
+                                    return new Tuple<DataTable,DataTable, DateTimeRange>(dtSummaryLog, dtExceptionSummaryLog, maxminLogDate);
                                 },
                                 TaskContinuationOptions.AttachedToParent
                                     | TaskContinuationOptions.LongRunning

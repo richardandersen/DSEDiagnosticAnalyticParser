@@ -110,83 +110,20 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.LogExcelWorkbookFilter = value; }
         }
 
-        /// <summary>
-        /// True to allow all the log entries to be imported into Excel. This is independent of parsing. If log parsing is disabled, loading into Excel is also disabled. 
-        /// </summary>
-        [Option('E', "LoadLogsIntoExcel", HelpText = "True to allow all the log entries to be imported into Excel. This is independent of parsing. If log parsing is disabled, loading into Excel is also disabled.",
+        [Option('L', "LogParsingExcelOption", HelpText = "A list of Log parsing and Excel workbook creation options. Multiple options should be separated by a comma (,).",
                     Required = false)]
-        public bool LoadLogsIntoExcel
+        public ParserSettings.LogParsingExcelOptions LogParsingExcelOption
         {
-            get { return ParserSettings.LoadLogsIntoExcel; }
-            set { ParserSettings.LoadLogsIntoExcel = value; }
+            get { return ParserSettings.LogParsingExcelOption; }
+            set { ParserSettings.LogParsingExcelOption = value; }
         }
 
-        [Option('e', "DisableLoadLogsIntoExcel", HelpText = "Disabled the loading of logs into Excel",
-                   Required = false)]
-        public bool DisableLoadLogsIntoExcel
-        {
-            get { return !ParserSettings.LoadLogsIntoExcel; }
-            set { ParserSettings.LoadLogsIntoExcel = !value; }
-        }
-
-        /// <summary>
-        /// True to allow parsing of log files.
-        /// </summary>
-        [Option('L', "ParseLogs", HelpText = "True to allow parsing of log files.",
+        [Option('E', "ParsingExcelOptions", HelpText = "A list of parsing and Excel workbook and worksheet creation options. Multiple options should be separated by a comma (,).",
                     Required = false)]
-        public bool ParseLogs
+        public ParserSettings.ParsingExcelOptions ParsingExcelOption
         {
-            get { return ParserSettings.ParseLogs; }
-            set { ParserSettings.ParseLogs = value; }
-        }
-
-        [Option('l', "DisableParseLogs", HelpText = "Disable the parsing of log files.",
-                    Required = false)]
-        public bool DisableParseLogs
-        {
-            get { return !ParserSettings.ParseLogs; }
-            set { ParserSettings.ParseLogs = !value; }
-        }
-
-        /// <summary>
-        /// True to parse non-log files (e.g., cfstats, ring, json, etc.). 
-        /// </summary>
-        [Option('N', "ParseNonLogs", HelpText = "True to parse non-log files (e.g., cfstats, ring, json, etc.).",
-                    Required = false)]
-        public bool ParseNonLogs
-        {
-            get { return ParserSettings.ParseNonLogs; }
-            set { ParserSettings.ParseNonLogs = value; }
-        }
-
-        [Option('n', "DisableParseNonLogs", HelpText = "Disables the parsing of non-log files (e.g., cfstats, ring, json, etc.).",
-                    Required = false)]
-        public bool DisableParseNonLogs
-        {
-            get { return !ParserSettings.ParseNonLogs; }
-            set { ParserSettings.ParseNonLogs = !value; }
-        }
-
-        /// <summary>
-        /// True to parse archived log files. 
-        /// </summary>
-        /// <remarks>
-        /// Parsing of archive log files is also dependent on DiagnosticNoSubFolders being false.
-        /// </remarks>
-        [Option('A', "ParseArchivedLogs", HelpText = "True to parse archived log files.",
-                    Required = false)]
-        public bool ParseArchivedLogs
-        {
-            get { return ParserSettings.ParseArchivedLogs; }
-            set { ParserSettings.ParseArchivedLogs = value; }
-        }
-
-        [Option('a', "DisableParseArchivedLogs", HelpText = "Disables the parsing of the archived log files.",
-                    Required = false)]
-        public bool DisableParseArchivedLogs
-        {
-            get { return !ParserSettings.ParseArchivedLogs; }
-            set { ParserSettings.ParseArchivedLogs = !value; }
+            get { return ParserSettings.ParsingExcelOption; }
+            set { ParserSettings.ParsingExcelOption = value; }
         }
 
         /// <summary>
@@ -444,29 +381,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
         }
-
-        [Option('U', "SummarizeOnlyOverlappingLogs", HelpText = "Logs are only summarized for overlapping time ranges for all nodes.",
-                    Required = false)]
-        public bool SummarizeOnlyOverlappingLogDateRangesForNodes
-        {
-            get { return ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes; }
-            set
-            {
-                ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes = value;               
-            }
-        }
-
-        [Option('u', "DisableSummarizeOnlyOverlappingLogs", HelpText = "All logs entries are summarized regardless of time ranges.",
-                    Required = false)]
-        public bool DisableSummarizeOnlyOverlappingLogDateRangesForNodes
-        {
-            get { return !ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes; }
-            set
-            {
-                ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes = !value;
-            }
-        }
-
+                
         [Option('g', "ToleranceContinuousGCInMS", HelpText = "The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled.",
                     Required = false)]
         public int ToleranceContinuousGCInMS
@@ -526,6 +441,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             var excelFilePathrentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
             var excelTemplateFilePath = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
             var tableHistogramDirPath = string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath) ? null : Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.TableHistogramDirPath);
+            var alternativeDDLFilePath = string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath) ? null : Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
+            var alternativeLogFilePath = string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath) ? null : Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
 
             if (!diagnosticPath.Exist())
             {
@@ -568,11 +485,61 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (!tableHistogramDirPath.Exist())
                 {
-                    var msg = string.Format("TableHistogram Folder doesn't exists. File is \"{0}\".", tableHistogramDirPath.PathResolved);
+                    var msg = string.Format("TableHistogram Folder doesn't exists. Path is \"{0}\".", tableHistogramDirPath.PathResolved);
 
                     Console.WriteLine(msg);
                     Logger.Instance.Error(msg);
                     bResult = false;
+                }
+            }
+
+            if (alternativeDDLFilePath != null)
+            {
+                if (!alternativeDDLFilePath.HasWildCardPattern())
+                {
+                    if (alternativeDDLFilePath.IsRelativePath)
+                    {
+                        IAbsolutePath absPath;
+
+                        if (diagnosticPath.MakePathFrom((IRelativePath)alternativeDDLFilePath, out absPath))
+                        {
+                            alternativeDDLFilePath = absPath;
+                        }
+                    }
+
+                    if (!alternativeDDLFilePath.Exist())
+                    {
+                        var msg = string.Format("Alternative DDL path doesn't exists. Path is \"{0}\".", alternativeDDLFilePath.PathResolved);
+
+                        Console.WriteLine(msg);
+                        Logger.Instance.Error(msg);
+                        bResult = false;
+                    }
+                }                
+            }
+
+            if (alternativeLogFilePath != null)
+            {
+                if (!alternativeLogFilePath.HasWildCardPattern())
+                {
+                    if (alternativeLogFilePath.IsRelativePath)
+                    {
+                        IAbsolutePath absPath;
+
+                        if (diagnosticPath.MakePathFrom((IRelativePath)alternativeLogFilePath, out absPath))
+                        {
+                            alternativeLogFilePath = absPath;
+                        }
+                    }
+
+                    if (!alternativeLogFilePath.Exist())
+                    {
+                        var msg = string.Format("Alternative Log Path doesn't exists. Path is \"{0}\".", alternativeLogFilePath.PathResolved);
+
+                        Console.WriteLine(msg);
+                        Logger.Instance.Error(msg);
+                        bResult = false;
+                    }
                 }
             }
 
@@ -587,13 +554,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--CompactionFlagThresholdAsIORate|-R {25}" +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
-                                    "--SummarizeOnlyOverlappingLogs|-U {5}" +
+                                    "" +
                                     "--LogStartDate|-Z \"{6}\" " +
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
-                                    "--LoadLogsInto[E]xcel {8} " +
-                                    "--Parse[L]ogs {9} " +
-                                    "--Parse[N]onLogs {10} " +
-                                    "--Parse[A]rchivedLogs {11} " +
+                                    "--Parsing[E]xcelOptions {{{8}}} " +
+                                    "--[L]ogParsingExcelOption {{{9}}} " +
+                                    "" +                                
                                     "--Excel[T]emplateFilePath \"{12}\" " +
                                     "--ExcelFile[P]ath \"{13}\" " +
                                     "--DiagnosticNoSubFolders|-O {14} " +
@@ -613,13 +579,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.GCFlagThresholdInMS,
                                     this.CompactionFlagThresholdInMS,
                                     this.SlowLogQueryThresholdInMS,
-                                    this.SummarizeOnlyOverlappingLogDateRangesForNodes,
+                                    null,
                                     this.LogStartDate,
                                     this.LogExcelWorkbookFilter,
-                                    this.LoadLogsIntoExcel,
-                                    this.ParseLogs,
-                                    this.ParseNonLogs,
-                                    this.ParseArchivedLogs,
+                                    this.ParsingExcelOption,
+                                    this.LogParsingExcelOption,
+                                    null,
+                                    null,
                                     this.ExcelTemplateFilePath,
                                     this.ExcelFilePath,
                                     this.DiagnosticNoSubFolders,

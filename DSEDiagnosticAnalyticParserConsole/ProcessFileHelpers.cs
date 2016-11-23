@@ -559,14 +559,15 @@ namespace DSEDiagnosticAnalyticParserConsole
             var keyValuePair = StringFunctions.Split(strJson,
                                                         new char[] { ':', ',' },
                                                         StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace | Common.StringFunctions.IgnoreWithinDelimiterFlag.Bracket,
-                                                        StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries | Common.StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
+                                                        Common.StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
 
             var jsonDict = new Dictionary<string, object>();
+            var pairLength = keyValuePair.Count == 1 ? (keyValuePair[0] == string.Empty ? 0 : 1) : keyValuePair.Count;
 
-            for (int nIndex = 0; nIndex < keyValuePair.Count; ++nIndex)
+            for (int nIndex = 0; nIndex < pairLength; ++nIndex)
             {
                 jsonDict.Add(RemoveQuotes(keyValuePair[nIndex].Trim()).Trim(),
-                                ParseJsonValue(keyValuePair[++nIndex]));
+                                ++nIndex < pairLength ? ParseJsonValue(keyValuePair[nIndex]) : null);
             }
 
             return jsonDict;
@@ -586,37 +587,36 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return jsonValue;
             }
 
-            if (jsonValue.Length > 2)
+            if (jsonValue.Length > 1)
             {
                 var endPos = jsonValue.Length - 1;
 
-                if (endPos >= 2)
+                if (jsonValue[0] == '[')
                 {
-                    if (jsonValue[0] == '[')
-                    {
-                        if (jsonValue[endPos] == ']')
-                        {
-                            var arrayValues = StringFunctions.Split(jsonValue.Substring(1, endPos - 1),
-                                                                        ',',
-                                                                        StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace | Common.StringFunctions.IgnoreWithinDelimiterFlag.Bracket,
-                                                                        StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries | Common.StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
-                            var array = new object[arrayValues.Count];
+                    if (jsonValue[endPos] == ']')
+                    {                        
+                        var arrayValues = StringFunctions.Split(jsonValue.Substring(1, endPos - 1),
+                                                                    ',',
+                                                                    StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace | Common.StringFunctions.IgnoreWithinDelimiterFlag.Bracket,
+                                                                    Common.StringFunctions.SplitBehaviorOptions.StringTrimEachElement);
 
-                            for (int nIndex = 0; nIndex < array.Length; ++nIndex)
-                            {
-                                array[nIndex] = ParseJsonValue(arrayValues[nIndex]);
-                            }
-                            return array;
-                        }
-                    }
-                    else if (jsonValue[0] == '{')
-                    {
-                        if (jsonValue[endPos] == '}')
+                        var arrayLength = arrayValues.Count == 1 ? (arrayValues[0] == string.Empty ? 0 : 1) : arrayValues.Count;
+                        var array = new object[arrayLength];
+
+                        for (int nIndex = 0; nIndex < arrayLength; ++nIndex)
                         {
-                            return ParseJson(jsonValue.Substring(1, endPos - 1));
+                            array[nIndex] = ParseJsonValue(arrayValues[nIndex]);
                         }
+                        return array;
                     }
                 }
+                else if (jsonValue[0] == '{')
+                {
+                    if (jsonValue[endPos] == '}')
+                    {
+                        return ParseJson(jsonValue);
+                    }
+                }                
             }
 
             return DetermineProperObjectFormat(jsonValue, true, false);
@@ -627,5 +627,18 @@ namespace DSEDiagnosticAnalyticParserConsole
             return o1 == null ? o2 : o1;
         }
 
+
+        public static V TryGetValue<K,V>(this Dictionary<K,V> collection, K key)
+            where V : class
+        {
+            V getValue;
+
+            if(collection != null && collection.TryGetValue(key, out getValue))
+            {
+                return getValue;
+            }
+
+            return default(V);
+        }
     }
 }

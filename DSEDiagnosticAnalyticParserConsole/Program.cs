@@ -49,6 +49,56 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
+            if (ParserSettings.ParsingExcelOptions.Detect.IsEnabled())
+            {
+                if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath)) ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseDDLFiles;
+                if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath)) ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.ParseLogs;
+                if (!string.IsNullOrEmpty(ParserSettings.CFHistogramFileName)) ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseTblHistogramFiles;
+                if ((ParserSettings.ToleranceContinuousGCInMS >= 0
+                            && ParserSettings.ContinuousGCNbrInSeries > 1)
+                    || (ParserSettings.GCTimeFrameDetectionPercentage > 0
+                            && ParserSettings.GCTimeFrameDetection != TimeSpan.Zero))
+                {
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseTPStatsLogs;
+                }
+                if (ParserSettings.LogSummaryPeriods.Length > 0
+                    || ParserSettings.LogSummaryPeriodRanges.Length > 0)
+                {
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseSummaryLogs;
+                }
+            }
+
+            if (ParserSettings.ParsingExcelOptions.ProduceSummaryWorkbook.IsEnabled())
+            {
+                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseSummaryLogs;
+            }
+
+            if ((ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()))
+            {
+                ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.Parse;                
+            }
+
+            if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
+                    && !ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
+                    && !ParserSettings.ParsingExcelOptions.ProduceSummaryWorkbook.IsEnabled())
+            {
+                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets;                
+            }
+            
+            if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled()                    
+                    || ParserSettings.ParsingExcelOptions.ParseOpsCenterFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseTblHistogramFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled())
+            {
+                ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
+            }
+            
             Logger.Instance.InfoFormat("Program: {0} Version: {1} Directory: {2}",
                                             Common.Functions.Instance.ApplicationName,
                                             Common.Functions.Instance.ApplicationVersion,
@@ -66,11 +116,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.Console.WriteLine(" ");
             ConsoleDisplay.Console.WriteLine("Diagnostic Source Folder: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.DiagnosticPath)?.PathResolved);
             ConsoleDisplay.Console.WriteLine("Excel Target File: \"{0}\"", Common.Path.PathUtils.BuildDirectoryPath(argResult.Value.ExcelFilePath)?.PathResolved);
-            ConsoleDisplay.Console.WriteLine("Parse Non-Logs: {0} Logs: {1} Archived Logs: {2} Excel Load Logs: {3}{4}",
-                                                argResult.Value.ParseNonLogs,
-                                                argResult.Value.ParseLogs,
-                                                argResult.Value.ParseArchivedLogs,
-                                                argResult.Value.LoadLogsIntoExcel,
+            ConsoleDisplay.Console.WriteLine("Parse Options: {{{0}}}, Log Options: {{{1}}}{2}",
+                                                argResult.Value.ParsingExcelOption,
+                                                argResult.Value.LogParsingExcelOption,                                                
                                                 argResult.Value.LogStartDate == DateTime.MinValue 
                                                     ? string.Empty
                                                     : string.Format(" From: {0} ({0:ddd})", argResult.Value.LogStartDate));
@@ -109,8 +157,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtYaml = new System.Data.DataTable(ParserSettings.ExcelWorkSheetYaml);
             var dtOSMachineInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetOSMachineInfo);
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
-            var maxminMaxLogDate = new DateTimeRange();
-            var minmaxSummaryLogDate = new DateTimeRange();
+            var maxminMaxLogDate = new DateTimeRange();            
 			Task<DataTable> tskdtCFHistogram = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             int nbrNodes = -1;
 
@@ -155,7 +202,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #region preprocessing File
 
-                if (ParserSettings.ParseNonLogs && nodetoolRingChildFiles.HasAtLeastOneElement())
+                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && nodetoolRingChildFiles.HasAtLeastOneElement())
                 {
                     foreach (var element in nodetoolRingChildFiles)
                     {
@@ -168,10 +215,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                         element.MakeEmpty();
                     }
                 }
+                else
+                {
+                    Logger.Instance.Warn("Node/DSE tool Ring File is either missing or this option disabled. Data center information will be missing from the worksheets!");
+                }
 
                 nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.DSEToolDir + "_" + ParserSettings.DSEtoolRingFile));
 
-                if (ParserSettings.ParseNonLogs && nodetoolRingChildFiles.HasAtLeastOneElement())
+                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && nodetoolRingChildFiles.HasAtLeastOneElement())
                 {
                     foreach (var element in nodetoolRingChildFiles)
                     {
@@ -187,7 +238,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 IFilePath cqlFilePath;
 
-                if (ParserSettings.ParseNonLogs && diagPath.MakeFile(ParserSettings.CQLDDLDirFileExt, out cqlFilePath))
+                if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled() && diagPath.MakeFile(ParserSettings.CQLDDLDirFileExt, out cqlFilePath))
                 {
                     foreach (IFilePath element in cqlFilePath.GetWildCardMatches()
                                                                 .Where(c => !ParserSettings.ExcludePathName(c.Name)))
@@ -220,7 +271,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #region alternative file paths (DDL)
 
-                if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
+                if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled()
+                        && !string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
                     IEnumerable<IFilePath> alterFiles;
@@ -289,9 +341,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (ProcessFileTasks.DetermineIPDCFromFileName(((IFilePath)diagFile).FileName, dtRingInfo, out ipAddress, out dcName))
                         {
-                            if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolCFStatsFile))
+                            if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
+                                    && diagFile.Name.Contains(ParserSettings.NodetoolCFStatsFile))
                             {
-                                if (ParserSettings.ParseNonLogs && string.IsNullOrEmpty(dcName))
+                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -313,9 +366,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 parsedCFStatList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
-                            else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolTPStatsFile))
+                            else if (ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolTPStatsFile))
                             {
-                                if (string.IsNullOrEmpty(dcName))
+                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -329,9 +382,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 parsedTPStatList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
-                            else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolInfoFile))
+                            else if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolInfoFile))
                             {
-                                if (string.IsNullOrEmpty(dcName))
+                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -342,9 +395,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 parsedRingList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
-                            else if (ParserSettings.ParseNonLogs && diagFile.Name.Contains(ParserSettings.NodetoolCompactionHistFile))
+                            else if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolCompactionHistFile))
                             {
-                                if (string.IsNullOrEmpty(dcName))
+                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -357,7 +410,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtCompHist, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
-                            else if (ParserSettings.ParseLogs && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile))
+                            else if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
+                                        && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile))
                             {
                                 if (string.IsNullOrEmpty(dcName))
                                 {
@@ -374,7 +428,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             -1,
                                                                                             dtLogsStack,
                                                                                             null,
-                                                                                            ParserSettings.ParseNonLogs,
+                                                                                            ParserSettings.LogParsingExcelOption,
+                                                                                            ParserSettings.ParsingExcelOption,
                                                                                             ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                             nodeGCInfo,
                                                                                             ParserSettings.IgnoreKeySpaces,
@@ -399,7 +454,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #region alternative file paths (Logs)
 
-                if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
+                if (ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled() && !string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
                     IEnumerable<IFilePath> alterFiles;
@@ -433,7 +488,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName))
                         {
-                            if (string.IsNullOrEmpty(dcName))
+                            if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                             {
                                 element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                 Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -448,7 +503,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         -1,
                                                                                         dtLogsStack,
                                                                                         null,
-                                                                                        ParserSettings.ParseNonLogs,
+                                                                                        ParserSettings.LogParsingExcelOption,
+                                                                                        ParserSettings.ParsingExcelOption,
                                                                                         ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                         nodeGCInfo,
                                                                                         ParserSettings.IgnoreKeySpaces,
@@ -477,7 +533,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             else
             {
-                #region Read/Parse -- Files located in separate folders where each folder's name is the IP Address
+                #region Read/Parse -- OpsCenter Diag Tar-Ball or Files located in separate folders where each folder's name is the IP Address
 
                 var diagNodePath = diagPath.MakeChild(ParserSettings.DiagNodeDir) as Common.IDirectoryPath;
                 List<Common.IDirectoryPath> nodeDirs;
@@ -524,7 +580,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         fileIndex < nbrNodes && !preFilesProcessed.All(flag => flag);
                         ++fileIndex)
                 {
-                    if (ParserSettings.ParseNonLogs
+                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && !preFilesProcessed[0]
                             && nodeDirs[fileIndex].MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolRingFile, out filePath))
                     {
@@ -534,8 +590,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
                             ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
                             //parsedRingList.TryAdd(filePath.PathResolved);
-                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
-
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);                            
                             preFilesProcessed[0] = true;
                         }
                         else
@@ -544,7 +599,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs
+                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && !preFilesProcessed[1]
                             && nodeDirs[fileIndex].MakeChild(ParserSettings.DSEToolDir).MakeFile(ParserSettings.DSEtoolRingFile, out filePath))
                     {
@@ -554,8 +609,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
                             ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
                             //parsedRingList.TryAdd(filePath.PathResolved);
-                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
-
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);                           
                             preFilesProcessed[1] = true;
                         }
                         else
@@ -564,7 +618,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs
+                    if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled()
                             && !preFilesProcessed[2]
                             && nodeDirs[fileIndex].MakeFile(ParserSettings.CQLDDLDirFile, out filePath))
                     {
@@ -601,9 +655,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #endregion
 
-                #region alternative file paths
+                #region alternative file paths (DDL)
 
-                if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
+                if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled() && !string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
                     IEnumerable<IFilePath> alterFiles;
@@ -705,7 +759,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName))
                         {
-                            if (string.IsNullOrEmpty(dcName))
+                            if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                             {
                                 element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                 Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
@@ -720,7 +774,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         -1,
                                                                                         dtLogsStack,
                                                                                         null,
-                                                                                        ParserSettings.ParseNonLogs,
+                                                                                        ParserSettings.LogParsingExcelOption,
+                                                                                        ParserSettings.ParsingExcelOption,
                                                                                         ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                         nodeGCInfo,
                                                                                         ParserSettings.IgnoreKeySpaces,
@@ -742,6 +797,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Logger.Instance.InfoFormat("Queing {0} Nodes: {1}",
                                             nbrNodes,
                                             string.Join(", ", nodeDirs.Select(p => p.Name).Sort()));
+
+                if(dtRingInfo == null || dtRingInfo.Rows.Count == 0)
+                {
+                    Logger.Instance.Warn("Node/DSE tool Ring File is either missing or this option disabled. Data center information will be missing from the worksheets!");
+                }
+
                 Parallel.ForEach(nodeDirs, (element) =>
                 //foreach (var element in nodeDirs)
                 {
@@ -751,13 +812,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     ProcessFileTasks.DetermineIPDCFromFileName(element.Name, dtRingInfo, out ipAddress, out dcName);
 
-                    if (ParserSettings.ParseNonLogs && string.IsNullOrEmpty(dcName))
-                    {
+                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
+                            && string.IsNullOrEmpty(dcName))
+                    {                        
                         element.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the Ring file.");
-                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
+                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");                        
                     }
 
-                    if (ParserSettings.ParseNonLogs)
+                    if (ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled())
                     {
                         Logger.Instance.InfoFormat("Processing Files {{{0}}} in directory \"{1}\"",
                                                     string.Join(", ", ParserSettings.OSMachineFiles),
@@ -771,7 +833,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         parsedOSMachineList.TryAdd(ipAddress);
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -790,7 +853,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolTPStatsFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolTPStatsFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -808,7 +872,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolInfoFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolInfoFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -824,7 +889,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCompactionHistFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCompactionHistFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -841,7 +907,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseLogs)
+                    if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
                     {
                         foreach (var logDir in ParserSettings.LogCassandraDirSystemLogs)
                         {
@@ -851,7 +917,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     IFilePath[] archivedFilePaths = null;
 
-                                    if (ParserSettings.ParseArchivedLogs)
+                                    if (ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
                                     {
                                         IFilePath archivedFilePath = null;
 
@@ -880,7 +946,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 ParserSettings.LogMaxRowsPerNode,
                                                                                                 dtLogsStack,
                                                                                                 archivedFilePaths,
-                                                                                                ParserSettings.ParseNonLogs,
+                                                                                                ParserSettings.LogParsingExcelOption,
+                                                                                                ParserSettings.ParsingExcelOption,
                                                                                                 ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                                 nodeGCInfo,
                                                                                                 ParserSettings.IgnoreKeySpaces,
@@ -902,7 +969,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                     
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -919,7 +987,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -937,7 +1006,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                    if (ParserSettings.ParseNonLogs && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEFile, out diagFilePath))
+                    if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+                            && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEFile, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -968,7 +1038,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             IDirectoryPath tableHistogramDir = null;
             Task<IEnumerable<IFilePath>> cfhistFilesTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask( (IEnumerable<IFilePath>) new IFilePath[0]);
 
-            if (!string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath))
+            if (ParserSettings.ParsingExcelOptions.ParseTblHistogramFiles.IsEnabled()
+                    && !string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath))
             {
                 tableHistogramDir = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.TableHistogramDirPath);
 
@@ -1051,7 +1122,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                 ProcessFileTasks.DetermineIPDCFromFileName(chFile.Name, dtRingInfo, out ipAddress, out dcName);
 
-                                                if (string.IsNullOrEmpty(ipAddress))
+                                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(ipAddress))
                                                 {
                                                     chFile.Path.Dump(Logger.DumpType.Warning, "IPAdress was not found in the CFHistogram file. File Ignored.");
                                                     Program.ConsoleWarnings.Increment("IPAdress Not Found");
@@ -1087,8 +1158,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Logger.Instance.DebugFormat("TableHistogram Directory \"{0}\" does not exists.", tableHistogramDir?.Path);
             }
 
-            #endregion
-
             tskdtCFHistogram.ContinueWith(Task =>
                                 {
                                     ConsoleNonLogReadFiles.Terminate();
@@ -1114,128 +1183,137 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 parsedCFHistList.Count,
                                                                 string.Join(", ", parsedCFHistList.Sort<string>()));
                                 });
-            
-            //Task
-            //    .Factory
-            //    .ContinueWhenAll(new Task[] { tskdtCFHistogram }, tasks => Program.ConsoleNonLogFiles.Terminate());
+            #endregion
+          
+            Task<DataTable> runLogParsingTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task<Tuple<DataTable, DataTable, DateTimeRange>> runSummaryLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
+            Task<DataTable> runNodeStatsLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task updateRingWYamlInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+            Task<DataTable> runUpdateActiveTblStatus = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 
-            var runYamlListIntoDTTask = Task.Factory.StartNew(() =>
+            {
+                var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+                                                ? Task.Factory.StartNew(() =>
+                                                    {
+                                                        Program.ConsoleParsingNonLog.Increment("Yaml");
+                                                        ProcessFileTasks.ParseYamlListIntoDataTable(listCYamlStack, dtYaml);
+                                                        Program.ConsoleParsingNonLog.TaskEnd("Yaml");
+                                                    },
+                                                     TaskCreationOptions.LongRunning)
+                                                : Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+
+                updateRingWYamlInfoTask = ParserSettings.ParsingExcelOptions.ParseOpsCenterFiles.IsEnabled()
+                                                ? runYamlListIntoDTTask.ContinueWith(task =>
+                                                    {
+                                                        Program.ConsoleParsingNonLog.Increment("OpsCenter");
+
+                                                        ProcessFileTasks.ParseOPSCenterInfoDataTable((IDirectoryPath)diagPath.Clone().AddChild(ParserSettings.OPSCenterDir),
+                                                                                                        ParserSettings.OPSCenterFiles,
+                                                                                                        dtOSMachineInfo,
+                                                                                                        dtRingInfo);
+
+                                                        ProcessFileTasks.UpdateMachineInfo(dtOSMachineInfo,
+                                                                                            nodeGCInfo);
+
+                                                        ProcessFileTasks.UpdateRingInfo(dtRingInfo,
+                                                                                        dtYaml);
+
+                                                        Program.ConsoleParsingNonLog.TaskEnd("OpsCenter");
+                                                    },
+                                                TaskContinuationOptions.AttachedToParent
+                                                    | TaskContinuationOptions.LongRunning
+                                                    | TaskContinuationOptions.OnlyOnRanToCompletion)
+                                            : Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+                                               
+                Task<int> runningLogTask = logParsingTasks.Count == 0
+                                            ? Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>()
+                                            : Task<int>
+                                                .Factory
+                                                .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
+
+                if (logParsingTasks.Count > 0)
+                {
+                    if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
+                    {
+                        runningLogTask.ContinueWith(action =>
                                             {
-                                                Program.ConsoleParsingNonLog.Increment("Yaml");
-                                                ProcessFileTasks.ParseYamlListIntoDataTable(listCYamlStack, dtYaml);
-                                                Program.ConsoleParsingNonLog.TaskEnd("Yaml");
-                                            }, 
-                                             TaskCreationOptions.LongRunning);
+                                                Program.ConsoleLogReadFiles.Terminate();
+                                                Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
+                                                Logger.Instance.InfoFormat("Parsed Log Data for {0} Nodes: {1}",
+                                                                            parsedLogList.Count,
+                                                                            string.Join(", ", parsedLogList.Sort<string>()));
+                                            });
 
-            var updateRingWYamlInfoTask = runYamlListIntoDTTask.ContinueWith(task =>
+
+                        runLogParsingTask = runningLogTask.ContinueWith(action =>
                                             {
-                                                Program.ConsoleParsingNonLog.Increment("OpsCenter");
-
-                                                ProcessFileTasks.ParseOPSCenterInfoDataTable((IDirectoryPath)diagPath.Clone().AddChild(ParserSettings.OPSCenterDir),
-                                                                                                ParserSettings.OPSCenterFiles,
-                                                                                                dtOSMachineInfo,
-                                                                                                dtRingInfo);
-
-                                                ProcessFileTasks.UpdateMachineInfo(dtOSMachineInfo,
-                                                                                    nodeGCInfo);
-
-                                                ProcessFileTasks.UpdateRingInfo(dtRingInfo,
-                                                                                dtYaml);
-
-                                                Program.ConsoleParsingNonLog.TaskEnd("OpsCenter");
+                                                Program.ConsoleParsingLog.Increment("Log Merge");
+                                                var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
+                                                                                                                                                    "[Data Center], [Timestamp] DESC",
+                                                                                                                                                    DataViewRowState.CurrentRows));
+                                                Program.ConsoleParsingLog.TaskEnd("Log Merge");
+                                                return dtlog;
                                             },
-                                        TaskContinuationOptions.AttachedToParent
-                                            | TaskContinuationOptions.LongRunning
-                                            | TaskContinuationOptions.OnlyOnRanToCompletion);
+                                            TaskContinuationOptions.AttachedToParent
+                                                | TaskContinuationOptions.LongRunning
+                                                | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-			Task<DataTable> runLogParsingTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
-            Task<Tuple<DataTable,DataTable>> runSummaryLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable>>();
-            Task<DataTable> runNodeStatsLogTask;
-            Task<int> runningLogTask = logParsingTasks.Count == 0
-			                                          ? Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>()
-                                        : Task<int>
-                                            .Factory
-                                            .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
+                        runNodeStatsLogTask = runningLogTask.ContinueWith(action =>
+                                            {
+                                                Program.ConsoleParsingLog.Increment("Node Stats Updates");
+                                                var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
+                                                dtNodeStatsStack.Push(dtTPStats);
+                                                ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
+                                                                                                    ParserSettings.ToleranceContinuousGCInMS,
+                                                                                                    ParserSettings.ContinuousGCNbrInSeries,
+                                                                                                    ParserSettings.GCTimeFrameDetection,
+                                                                                                    ParserSettings.GCTimeFrameDetectionPercentage);
+                                                Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
+                                                Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+                                                var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+                                                Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
+                                                return dtNodeStatslog;
+                                            },
+                                           TaskContinuationOptions.AttachedToParent
+                                               | TaskContinuationOptions.LongRunning
+                                               | TaskContinuationOptions.OnlyOnRanToCompletion);
+                    }
 
-            if (ParserSettings.ParseLogs && logParsingTasks.Count > 0)
-            {
-                runningLogTask.ContinueWith(action =>
-                                        {                                                                        
-                                            Program.ConsoleLogReadFiles.Terminate();
-                                            Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
-                                            Logger.Instance.InfoFormat("Parsed Log Data for {0} Nodes: {1}",
-                                                                        parsedLogList.Count,
-                                                                        string.Join(", ", parsedLogList.Sort<string>()));
-                                        });
+                    if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
+                    {
+                        runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
+                                                                                                    ParserSettings.ExcelWorkSheetLogCassandra,                                                                                                    
+                                                                                                    ParserSettings.LogSummaryPeriods,
+                                                                                                    ParserSettings.LogSummaryPeriodRanges,
+                                                                                                    ParserSettings.ParsingExcelOptions.OnlyOverlappingDateRanges.IsEnabled(),
+                                                                                                    ProcessFileTasks.LogCassandraNodeMaxMinTimestamps,
+                                                                                                    ParserSettings.LogSummaryTaskItems,
+                                                                                                    ParserSettings.LogSummaryIgnoreTaskExceptions);
 
-                
-                runLogParsingTask = runningLogTask.ContinueWith(action =>
-                                    {
-                                        Program.ConsoleParsingLog.Increment("Log Merge");
-                                        var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
-                                                                                                                                            "[Data Center], [Timestamp] DESC",
-                                                                                                                                            DataViewRowState.CurrentRows));
-                                        Program.ConsoleParsingLog.TaskEnd("Log Merge");
-                                        return dtlog;
-                                    },
-                                    TaskContinuationOptions.AttachedToParent
-                                        | TaskContinuationOptions.LongRunning
-                                        | TaskContinuationOptions.OnlyOnRanToCompletion);
+                        runSummaryLogTask.ContinueWith(action =>
+                                                {
+                                                    Program.ConsoleParsingLog.Terminate();
+                                                });
+                    }
 
-                runNodeStatsLogTask = runningLogTask.ContinueWith(action =>
-                                    {
-                                        Program.ConsoleParsingLog.Increment("Node Stats Updates");
-                                        var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
-                                        dtNodeStatsStack.Push(dtTPStats);
-                                        ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
-                                                                                            ParserSettings.ToleranceContinuousGCInMS,
-                                                                                            ParserSettings.ContinuousGCNbrInSeries,
-                                                                                            ParserSettings.GCTimeFrameDetection,
-                                                                                            ParserSettings.GCTimeFrameDetectionPercentage);
-                                        Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
-                                        Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
-                                        var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
-                                        Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
-                                        return dtNodeStatslog;
-                                    },
-                                   TaskContinuationOptions.AttachedToParent
-                                       | TaskContinuationOptions.LongRunning
-                                       | TaskContinuationOptions.OnlyOnRanToCompletion);
+                    ProcessFileTasks.LogCassandraNodeMaxMinTimestamps.ForEach(nodeLogRanges
+                        => Logger.Instance.InfoFormat("Log IP: {0} Range(s): {1}",
+                                                        nodeLogRanges.Key,
+                                                        string.Join(", ", nodeLogRanges.Value.OrderBy(s => s))));
+                }
+                else
+                {
+                    runNodeStatsLogTask = Task.Factory.StartNew<DataTable>(() =>
+                                            {
+                                                Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+                                                var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+                                                Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
+                                                return dtNodeStatslog;
+                                            },
+                                       TaskCreationOptions.LongRunning);
+                }
 
-                minmaxSummaryLogDate = new DateTimeRange(ProcessFileTasks.LogCassandraMaxMinTimestamp);
-                runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
-                                                                                            ParserSettings.ExcelWorkSheetLogCassandra,
-                                                                                            minmaxSummaryLogDate,
-                                                                                            ParserSettings.LogSummaryPeriods,
-                                                                                            ParserSettings.LogSummaryPeriodRanges,
-                                                                                            ParserSettings.SummarizeOnlyOverlappingLogDateRangesForNodes,
-                                                                                            ProcessFileTasks.LogCassandraNodeMaxMinTimestamps,
-                                                                                            ParserSettings.LogSummaryTaskItems,
-                                                                                            ParserSettings.LogSummaryIgnoreTaskExceptions);
-
-                runSummaryLogTask.ContinueWith(action =>
-                                        {
-                                            Program.ConsoleParsingLog.Terminate();
-                                        });
-
-                ProcessFileTasks.LogCassandraNodeMaxMinTimestamps.ForEach(nodeLogRanges
-                    => Logger.Instance.InfoFormat("Log IP: {0} Range(s): {1}", 
-                                                    nodeLogRanges.Key,
-                                                    string.Join(", ", nodeLogRanges.Value.OrderBy(s => s))));
-            }
-            else
-            {
-                runNodeStatsLogTask = Task.Factory.StartNew<DataTable>(() =>
-                                        {                      
-                                            Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
-                                            var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
-                                            Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
-                                            return dtNodeStatslog;
-                                        },
-                                   TaskCreationOptions.LongRunning);
-            }
-
-            tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
+                tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
                                     {
                                         var dtCFHist = taskResult.Result;
 
@@ -1257,175 +1335,205 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-            var runUpdateActiveTblStatus = Task.Factory
-                                                .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask }, ignoreItem => { })
-                                                .ContinueWith(action =>
-                                                    {
-                                                        Program.ConsoleParsingLog.Increment("CFStats Merge");
-                                                        var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
-                                                                                                                                                            "[Data Center], [Node IPAddress], [KeySpace], [Table]",
-                                                                                                                                                            DataViewRowState.CurrentRows));
-                                                        ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
-                                                        Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
+                runUpdateActiveTblStatus = Task.Factory
+                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask }, ignoreItem => { })
+                                            .ContinueWith(action =>
+                                                {
+                                                    Program.ConsoleParsingLog.Increment("CFStats Merge");
+                                                    var dtCFTable = dtCFStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null,
+                                                                                                                                                        "[Data Center], [Node IPAddress], [KeySpace], [Table]",
+                                                                                                                                                        DataViewRowState.CurrentRows));
+                                                    ProcessFileTasks.UpdateTableActiveStatus(dtCFTable);
+                                                    Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
 
-                                                        Program.ConsoleParsingLog.Increment("DDL Active Table Update");
-                                                        ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
-                                                        Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
+                                                    Program.ConsoleParsingLog.Increment("DDL Active Table Update");
+                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
+                                                    Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
 
-                                                        return dtCFTable;
-                                                    },
-                                                TaskContinuationOptions.AttachedToParent
-                                                    | TaskContinuationOptions.LongRunning
-                                                    | TaskContinuationOptions.OnlyOnRanToCompletion);
+                                                    return dtCFTable;
+                                                },
+                                            TaskContinuationOptions.AttachedToParent
+                                                | TaskContinuationOptions.LongRunning
+                                                | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-            Task.Factory
-                   .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus, runNodeStatsLogTask },
-                                       tasks => Program.ConsoleParsingNonLog.Terminate());
-
+                Task.Factory
+                       .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus, runNodeStatsLogTask },
+                                           tasks => Program.ConsoleParsingNonLog.Terminate());
+            }
             #endregion
 
             #region Excel Creation/Formatting
 
             var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
-            bool excelFileExists = excelFile.Exist();
-
-            if (!string.IsNullOrEmpty(ParserSettings.ExcelTemplateFilePath))
-            {
-                var excelTemplateFile = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
-                
-                if (excelTemplateFile != null
-                        && !excelFileExists
-                        && excelTemplateFile.Exist())
-                {
-                    try
-                    {
-                        excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);
-                        if (excelTemplateFile.Copy(excelFile))
-                        {
-                            Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
-                            excelFileExists = true;
-                        }
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Logger.Instance.Error(string.Format("Created Workbook \"{0}\" from Template \"{1}\" Failed", excelFile.Path, excelTemplateFile.Path), ex);
-                        Program.ConsoleErrors.Increment("Workbook Template Copy Failed");
-                    }
-                }
-            }
-
-            if(!excelFileExists)
-            {
-                excelFile.ReplaceFileExtension(ParserSettings.ExcelWorkBookFileExtension);
-            }
-
-            #region Load Logs into Excel
-            
+            bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
+                                        || ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                                    && excelFile.Exist();
+            var excelFileAttrs = excelFileExists ? excelFile.GetAttributes() : System.IO.FileAttributes.Normal;
             Task runLogToExcel = null;
 
-            if (ParserSettings.LoadLogsIntoExcel && ParserSettings.ParseLogs && logParsingTasks.Count > 0)
-            {                
-                var statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runLogParsingTask,
-                                                                            dtLogStatusStack,
+            try
+            {
+                if ((ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
+                                            || ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                        && !string.IsNullOrEmpty(ParserSettings.ExcelTemplateFilePath))
+                {
+                    var excelTemplateFile = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
+
+                    if (excelTemplateFile != null
+                            && !excelFileExists
+                            && excelTemplateFile.Exist())
+                    {
+                        try
+                        {
+                            excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);
+                            if (excelTemplateFile.Copy(excelFile))
+                            {
+                                Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
+                                excelFileExists = true;
+                                excelFileAttrs = excelFile.GetAttributes();
+                                excelFile.SetAttributes(System.IO.FileAttributes.Hidden);
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Logger.Instance.Error(string.Format("Created Workbook \"{0}\" from Template \"{1}\" Failed", excelFile.Path, excelTemplateFile.Path), ex);
+                            Program.ConsoleErrors.Increment("Workbook Template Copy Failed");
+                        }
+                    }
+                }
+
+                if (excelFileExists)
+                {
+                    excelFile.SetAttributes(System.IO.FileAttributes.Hidden);
+                }
+                else
+                {
+                    excelFile.ReplaceFileExtension(ParserSettings.ExcelWorkBookFileExtension);
+                }
+
+                #region Load Logs into Excel
+                {
+                    Task statusLogToExcel = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+                    Task summaryLogToExcel = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+                    Task logToExcel = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+
+                    if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
+                    {
+                        statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runLogParsingTask,
+                                                                               dtLogStatusStack,
+                                                                               excelFile.Path,
+                                                                               ParserSettings.ExcelWorkSheetStatusLogCassandra,
+                                                                               ProcessFileTasks.LogCassandraMaxMinTimestamp,
+                                                                               ParserSettings.MaxRowInExcelWorkBook,
+                                                                               ParserSettings.MaxRowInExcelWorkSheet,
+                                                                               ParserSettings.LogExcelWorkbookFilter);
+                    }
+
+                    if (ParserSettings.ParsingExcelOptions.ProduceSummaryWorkbook.IsEnabled())
+                    {
+                        summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
+                                                                                                excelFile.Path,
+                                                                                                ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra);
+                    }
+
+                    Task.Factory
+                            .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+
+                    if (ParserSettings.LogParsingExcelOptions.CreateWorkbook.IsEnabled())
+                    {
+                        logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogParsingTask,
                                                                             excelFile.Path,
-                                                                            ParserSettings.ExcelWorkSheetStatusLogCassandra,                                                                           
+                                                                            ParserSettings.ExcelWorkSheetLogCassandra,
                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                             ParserSettings.MaxRowInExcelWorkBook,
                                                                             ParserSettings.MaxRowInExcelWorkSheet,
                                                                             ParserSettings.LogExcelWorkbookFilter);
 
-				Task summaryLogToExcel = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+                        logToExcel.ContinueWith(action =>
+                        {
+                            Program.ConsoleExcelLog.Terminate();
+                        });
+                    }
 
-                if(ParserSettings.ParseNonLogs)
-                {
-                    summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
-                                                                                            excelFile.Path,
-                                                                                            ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
-                                                                                            ProcessFileTasks.LogCassandraMaxMinTimestamp);
-                }
-               
-                Task.Factory
-                        .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
-
-
-                var logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogParsingTask,
-                                                                        excelFile.Path,
-                                                                        ParserSettings.ExcelWorkSheetLogCassandra,                                                                        
-                                                                        ProcessFileTasks.LogCassandraMaxMinTimestamp,
-                                                                        ParserSettings.MaxRowInExcelWorkBook,
-                                                                        ParserSettings.MaxRowInExcelWorkSheet,
-                                                                        ParserSettings.LogExcelWorkbookFilter);
-
-                logToExcel.ContinueWith(action =>
-                                        {
-                                            Program.ConsoleExcelLog.Terminate();
-                                        });
-
-                runLogToExcel = Task.Factory
-                                    .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel, logToExcel } , tasks => { });
-            }
-            else
-            {
-                if(ParserSettings.ParseNonLogs && ParserSettings.ParseLogs)
-                {
-                    var summaryLogToExcel = DTLoadIntoExcel.LoadCassandraExceptionSummaryLog(runSummaryLogTask,
-                                                                                                excelFile.Path,
-                                                                                                ParserSettings.ExcelWorkSheetExceptionSummaryLogCassandra,
-                                                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp);
                     runLogToExcel = Task.Factory
-                                        .ContinueWhenAll(new Task[] { summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+                                        .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel, logToExcel }, tasks => { });
+                }
+
+                #endregion
+
+                #region non-logs into Excel
+                //Non-Logs
+                if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled()
+                        || ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled())
+                {
+                    using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
+                    {
+                        if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                        {
+                            DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
+                            DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
+                            DTLoadIntoExcel.LoadKeySpaceDDL(excelPkg, dtKeySpace, ParserSettings.ExcelWorkSheetDDLKeyspaces);
+
+                            DTLoadIntoExcel.LoadYamlRingOSInfo(updateRingWYamlInfoTask,
+                                                                excelPkg,
+                                                                dtYaml,
+                                                                ParserSettings.ExcelWorkSheetYaml,
+                                                                dtRingInfo,
+                                                                ParserSettings.ExcelWorkSheetRingInfo,
+                                                                dtOSMachineInfo,
+                                                                ParserSettings.ExcelWorkSheetOSMachineInfo);
+
+                            runLogParsingTask?.Wait();
+                            runUpdateActiveTblStatus?.Wait();
+                            runNodeStatsLogTask?.Wait();
+
+                            DTLoadIntoExcel.LoadCFStats(excelPkg, runUpdateActiveTblStatus?.Result, ParserSettings.ExcelWorkSheetCFStats);
+                            DTLoadIntoExcel.LoadNodeStats(excelPkg, runNodeStatsLogTask?.Result, ParserSettings.ExcelWorkSheetNodeStats);
+                            DTLoadIntoExcel.LoadTableDDL(excelPkg, dtTable, ParserSettings.ExcelWorkSheetDDLTables);
+                        }
+
+                        if (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled())
+                        {
+                            runSummaryLogTask?.Wait();
+
+                            if (runSummaryLogTask?.Result != null)
+                            {
+                                DTLoadIntoExcel.LoadSummaryLog(excelPkg,
+                                                                runSummaryLogTask.Result.Item1,
+                                                                ParserSettings.ExcelWorkSheetSummaryLogCassandra,
+                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp,
+                                                                runSummaryLogTask.Result.Item3,
+                                                                ParserSettings.LogExcelWorkbookFilter);
+                            }
+                        }
+
+                        if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                        {
+                            DTLoadIntoExcel.LoadCFHistogram(excelPkg, tskdtCFHistogram, ParserSettings.ExcelCFHistogramWorkSheet);
+                        }
+
+                        DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
+
+                        excelPkg.Save();
+                        Program.ConsoleExcelWorkbook.Increment(excelFile);
+                        Program.ConsoleExcelNonLog.Terminate();
+                        Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
+                    } //Save non-log data                
+                }
+                #endregion
+            }
+            finally
+            {
+                if(excelFileExists)
+                {
+                    excelFile.SetAttributes(excelFileAttrs);
                 }
             }
             #endregion
 
-            //Non-Logs
-            if (ParserSettings.ParseNonLogs)
-            {                
-                using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
-                {
-                    DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
-                    DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
-                    DTLoadIntoExcel.LoadKeySpaceDDL(excelPkg, dtKeySpace, ParserSettings.ExcelWorkSheetDDLKeyspaces);
-                    
-                    DTLoadIntoExcel.LoadYamlRingOSInfo(updateRingWYamlInfoTask,
-                                                        excelPkg,
-                                                        dtYaml,
-                                                        ParserSettings.ExcelWorkSheetYaml,
-                                                        dtRingInfo,
-                                                        ParserSettings.ExcelWorkSheetRingInfo,
-                                                        dtOSMachineInfo,
-                                                        ParserSettings.ExcelWorkSheetOSMachineInfo);
-                    
-                    DTLoadIntoExcel.LoadSummaryLogCFNodeStats(runLogParsingTask,
-                                                                runSummaryLogTask,
-                                                                runNodeStatsLogTask,
-                                                                excelPkg,                                                                
-                                                                ParserSettings.ExcelWorkSheetSummaryLogCassandra,
-                                                                minmaxSummaryLogDate,
-                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp,
-                                                                maxminMaxLogDate,                                                             
-                                                                ParserSettings.LogExcelWorkbookFilter,
-                                                                runUpdateActiveTblStatus,
-                                                                ParserSettings.ExcelWorkSheetCFStats,                                                               
-                                                                ParserSettings.ExcelWorkSheetNodeStats,
-                                                                dtTable,
-                                                                ParserSettings.ExcelWorkSheetDDLTables);
 
-                    DTLoadIntoExcel.LoadCFHistogram(excelPkg, tskdtCFHistogram, ParserSettings.ExcelCFHistogramWorkSheet);
-
-                    DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
-
-                    excelPkg.Save();
-                    Program.ConsoleExcelWorkbook.Increment(excelFile);
-                    Program.ConsoleExcelNonLog.Terminate();
-                } //Save non-log data
-                Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
-            }
-           
             runLogToExcel?.Wait();
             Program.ConsoleExcelWorkbook.Terminate();
-
-            #endregion
 
             var parsedItemCounts = new int[] { parsedCFHistList.Count,
                                                 parsedCFStatList.Count,
@@ -1441,7 +1549,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 nbrNodes = parsedItemCounts.Max();
             }
 
-            if(nbrNodes != parsedItemCounts.Where(cnt => cnt > 0).Min())
+            if(nbrNodes != parsedItemCounts.Where(cnt => cnt > 0).DefaultIfEmpty().Min())
             {
                 var msg = string.Format("Number of components read/parsed should have been {0}, but some components only parsed/read {1}. Review Application Log for Warning/Errors.",
                                             nbrNodes,

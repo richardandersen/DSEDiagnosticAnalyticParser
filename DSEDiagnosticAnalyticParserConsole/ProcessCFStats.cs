@@ -89,50 +89,61 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else
                     {
-                        dataRow = dtCFStats.NewRow();
+                        try
+                        {                        
+                            dataRow = dtCFStats.NewRow();
 
-                        dataRow["Source"] = "CFStats";
-                        dataRow["Data Center"] = dcName;
-                        dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["KeySpace"] = currentKS;
-                        dataRow["Table"] = currentTbl;
-                        dataRow["Attribute"] = parsedLine[0];
+                            dataRow["Source"] = "CFStats";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = currentKS;
+                            dataRow["Table"] = currentTbl;
+                            dataRow["Attribute"] = parsedLine[0];
 
-                        parsedValue = Common.StringFunctions.Split(parsedLine[1],
-                                                                    ' ',
-                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                            parsedValue = Common.StringFunctions.Split(parsedLine[1],
+                                                                        ' ',
+                                                                        Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
+                                                                        Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
 
-                        if (Common.StringFunctions.ParseIntoNumeric(parsedValue[0], out numericValue, true))
-                        {
-                            dataRow["Value"] = numericValue;
-                            dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? 0 : numericValue;
-
-                            if (parsedValue.Count() > 1)
+                            if (Common.StringFunctions.ParseIntoNumeric(parsedValue[0], out numericValue, true))
                             {
-                                dataRow["Unit of Measure"] = parsedValue[1];
-                            }
+                                dataRow["Value"] = numericValue;
+                                dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? 0 : numericValue;
 
-                            if (addToMBColumn != null)
-                            {
-                                var decNbr = decimal.Parse(numericValue.ToString());
-
-                                foreach (var item in addToMBColumn)
+                                if (parsedValue.Count() > 1)
                                 {
-                                    if (parsedLine[0].ToLower().Contains(item))
+                                    dataRow["Unit of Measure"] = parsedValue[1];
+                                }
+
+                                if (addToMBColumn != null)
+                                {
+                                    var decNbr = decimal.Parse(numericValue.ToString());
+
+                                    foreach (var item in addToMBColumn)
                                     {
-                                        dataRow["Size in MB"] = decNbr / BytesToMB;
-                                        break;
+                                        if (parsedLine[0].ToLower().Contains(item))
+                                        {
+                                            dataRow["Size in MB"] = decNbr / BytesToMB;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                        else
-                        {
-                            dataRow["Unit of Measure"] = parsedLine[1];
-                        }
+                            else
+                            {
+                                dataRow["Unit of Measure"] = parsedLine[1];
+                            }
 
-                        dtCFStats.Rows.Add(dataRow);
+                            dtCFStats.Rows.Add(dataRow);
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Logger.Instance.Error(string.Format("Parsing for CFStats for Node {0} failed during parsing of line \"{1}\". Line skipped.",
+                                                            ipAddress,
+                                                            line),
+                                                    ex);
+                            Program.ConsoleWarnings.Increment("CCFStats Parsing Exception; Line Skipped");
+                        }
                     }
                 }
             }

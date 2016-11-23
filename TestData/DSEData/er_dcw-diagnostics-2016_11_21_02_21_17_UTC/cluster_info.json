@@ -1,0 +1,91 @@
+{
+    "avg_token_count": 1, 
+    "bdp_version": null, 
+    "cassandra_versions": null, 
+    "cluster_cores": 24, 
+    "cluster_instance_types": [
+        null
+    ], 
+    "cluster_os": [
+        [
+            "linux", 
+            "CentOS", 
+            "6.8", 
+            "amd64"
+        ], 
+        [
+            null, 
+            null, 
+            null, 
+            null
+        ]
+    ], 
+    "cluster_ram": 193802, 
+    "columnfamily_count": 26, 
+    "config_diff": {
+        "agents": [
+            "ssl_keystore_password", 
+            "ssl_keystore"
+        ], 
+        "cassandra": [
+            "log_location", 
+            "ssl_ca_certs", 
+            "seed_hosts", 
+            "username", 
+            "password", 
+            "ssl_validate"
+        ], 
+        "definitions": [
+            "auto_update"
+        ], 
+        "jmx": [
+            "username", 
+            "password", 
+            "port"
+        ], 
+        "stat_reporter": [
+            "interval"
+        ], 
+        "webserver": [
+            "ssl_certfile", 
+            "ssl_keyfile", 
+            "interface"
+        ]
+    }, 
+    "cql3_cf_count": 26, 
+    "dc_count": 2, 
+    "free_space": null, 
+    "is_enterprise": true, 
+    "keyspace_count": 4, 
+    "node_count": 24, 
+    "opscenter_arch": "x86_64", 
+    "opscenter_cores": 2, 
+    "opscenter_instance_type": null, 
+    "opscenter_os": "linux", 
+    "opscenter_os_sub": "CentOS", 
+    "opscenter_os_version": "6.8", 
+    "opscenter_ram": 15951, 
+    "opscenter_version": "5.2.4", 
+    "opscenterd_install_type": "archive", 
+    "partitioner": "org.apache.cassandra.dht.Murmur3Partitioner", 
+    "python_version": "2.6", 
+    "rack_map": {
+        "DCE.ER-DCE": 12, 
+        "DCW.ER-DCW": 12
+    }, 
+    "separate_storage": false, 
+    "snitch": null, 
+    "strategy_options": [
+        "{\"DCW\":\"3\"}", 
+        "{\"DCW\":\"3\"}", 
+        "{}", 
+        "{\"DCW\":\"3\"}", 
+        "{}", 
+        "{\"DCW\":\"3\"}", 
+        "{}", 
+        "{\"DCW\":\"3\"}", 
+        "{\"replication_factor\":\"2\"}"
+    ], 
+    "used_space": null, 
+    "user": "anonymous"
+}

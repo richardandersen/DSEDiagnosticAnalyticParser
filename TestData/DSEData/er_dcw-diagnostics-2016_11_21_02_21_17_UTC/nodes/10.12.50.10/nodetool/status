@@ -1,0 +1,36 @@
+Datacenter: DCE
+===============
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address      Load       Tokens  Owns    Host ID                               Rack
+DN  10.13.6.15   347.43 MB  1       ?       22a638f1-041d-4607-b975-fd2f106f3c36  ER-DCE
+DN  10.13.5.25   363.79 MB  1       ?       406897bf-c58e-423b-93bd-0fb8d3ffe769  ER-DCE
+DN  10.13.4.21   328.05 MB  1       ?       507d5d3e-129a-4bf9-b5c6-a25da15de1be  ER-DCE
+DN  10.13.5.21   380.29 MB  1       ?       3331c3eb-52c1-4d7b-ab17-b1ccef93c77f  ER-DCE
+DN  10.13.6.21   336.04 MB  1       ?       731b2cd6-ec23-4dcb-8a43-a02d13e4c75a  ER-DCE
+DN  10.13.5.20   377 MB     1       ?       239fd1ad-0816-4609-8841-02d358705f7d  ER-DCE
+DN  10.13.4.20   458.67 MB  1       ?       94e50e8b-e6b6-4762-b464-84c1d6d50b74  ER-DCE
+DN  10.13.4.23   361.57 MB  1       ?       7624fe89-4bab-4a03-9469-d808a58edc8d  ER-DCE
+DN  10.13.6.22   483.8 MB   1       ?       9f13e87b-2746-4023-994c-7561b601f681  ER-DCE
+DN  10.13.4.22   274.77 MB  1       ?       4588b710-9c1f-469b-8416-6d72def31a9c  ER-DCE
+DN  10.13.5.22   274.05 MB  1       ?       22819bb1-3ba8-4b43-aa3d-6caada7add48  ER-DCE
+DN  10.13.5.19   464.23 MB  1       ?       a1edf4f0-faf2-4502-a6c7-902f98834784  ER-DCE
+Datacenter: DCW
+===============
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address      Load       Tokens  Owns    Host ID                               Rack
+DN  10.12.52.28  117.1 GB   1       ?       978c1219-a618-4c9c-b6f6-ab88096e58e9  ER-DCW
+UN  10.12.51.29  131.75 GB  1       ?       5dee9c2c-ddf9-46d2-9203-89e31fdd4349  ER-DCW
+UN  10.12.52.13  127.95 GB  1       ?       4c5e5ed6-f840-43a2-a059-24cc2205ad1e  ER-DCW
+UN  10.12.52.25  134.31 GB  1       ?       3c76c9b4-fab4-4d24-a63a-e2797939fc18  ER-DCW
+UN  10.12.49.10  153.62 GB  1       ?       57b22934-fc3a-42f4-b6c9-395a4a275955  ER-DCW
+UN  10.12.50.10  145.53 GB  1       ?       1f93f1cd-7f7d-41c3-b8f1-ca87ad261b4c  ER-DCW
+UN  10.12.49.11  141.49 GB  1       ?       2ae3289a-924d-428f-be18-64834f6e66fb  ER-DCW
+UN  10.12.50.11  162.76 GB  1       ?       d0bd54da-34e9-4920-a9ae-823faa644a1d  ER-DCW
+UN  10.12.51.20  127.36 GB  1       ?       d68ec555-bff4-444f-b773-ae8cb14bf173  ER-DCW
+UN  10.12.51.32  200.96 GB  1       ?       a9558063-f1e0-4222-a1d0-148fc3716ef4  ER-DCW
+UN  10.12.50.16  136.5 GB   1       ?       75f720ea-8c98-48af-bb78-9b55e1a53a1f  ER-DCW
+UN  10.12.49.17  138.09 GB  1       ?       91cc4a98-3bdd-4d40-af4e-8c7d2236d80f  ER-DCW
+
+Note: Non-system keyspaces don't have the same replication settings, effective ownership information is meaningless

@@ -11,7 +11,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
-        private static void LoadCFStats(ExcelPackage excelPkg,
+        public static void LoadCFStats(ExcelPackage excelPkg,
                                             DataTable dtCFStats,
                                             string excelWorkSheetCFStats)
         {

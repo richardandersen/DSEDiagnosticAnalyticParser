@@ -1,0 +1,1423 @@
+{
+    "10.12.49.10": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 164944734086.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_1", 
+            "data": [
+                "dm_0", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_3", 
+                "sdd", 
+                "sdb", 
+                "sda", 
+                "sdc"
+            ], 
+            "saved_caches": "dm_1"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1249160.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.56000000000000005, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.49.10", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sda1_enc", 
+            "data": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sdb1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdd1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sda1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.49.10", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-3074457345618258614", 
+        "vnodes": false
+    }, 
+    "10.12.49.11": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 151921877500.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_1", 
+            "data": [
+                "dm_0", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_3", 
+                "sdb", 
+                "sdd", 
+                "sda", 
+                "sdc"
+            ], 
+            "saved_caches": "dm_1"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1249170.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.67000000000000004, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.49.11", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sda1_enc", 
+            "data": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sdd1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdb1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sda1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.49.11", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-9223372036854775798", 
+        "vnodes": false
+    }, 
+    "10.12.49.17": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 148265204020.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_1", 
+            "data": [
+                "dm_2", 
+                "dm_3"
+            ], 
+            "other": [
+                "dm_0", 
+                "sdd", 
+                "sdc", 
+                "sdb", 
+                "sda"
+            ], 
+            "saved_caches": "dm_1"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1249100.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 2.2400000000000002, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.49.17", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdb1_enc", 
+            "data": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sdd1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sda1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdb1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.49.17", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "3074457345618258610", 
+        "vnodes": false
+    }, 
+    "10.12.50.10": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 156265549974.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_2", 
+            "data": [
+                "dm_3", 
+                "dm_0"
+            ], 
+            "other": [
+                "dm_1", 
+                "sdb", 
+                "sdc", 
+                "sdd", 
+                "sda"
+            ], 
+            "saved_caches": "dm_2"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1250170.ews.int", 
+        "inmemory": {
+            "max": 40643225190, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 2.0099999999999998, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.50.10", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdc1_enc", 
+            "data": [
+                "/dev/mapper/sdb1_enc", 
+                "/dev/mapper/sda1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdd1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdc1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.50.10", 
+        "streaming": {}, 
+        "task_progress": {
+            "Repair of account_owner.ew_account_owners": 0.55211246000000003
+        }, 
+        "token": "-12", 
+        "vnodes": false
+    }, 
+    "10.12.50.11": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 174765231828.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_1", 
+            "data": [
+                "dm_2", 
+                "dm_0"
+            ], 
+            "other": [
+                "dm_3", 
+                "sdc", 
+                "sdd", 
+                "sdb", 
+                "sda"
+            ], 
+            "saved_caches": "dm_1"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1250180.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.75, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.50.11", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdb1_enc", 
+            "data": [
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sda1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdc1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdb1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.50.11", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-6148914691236517216", 
+        "vnodes": false
+    }, 
+    "10.12.50.16": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 146575131013.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_3"
+            ], 
+            "other": [
+                "dm_2", 
+                "sdc", 
+                "sda", 
+                "sdd", 
+                "sdb"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1250040.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.65000000000000002, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.50.16", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdb1_enc", 
+            "data": [
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sdc1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sda1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdb1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.50.16", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "6148914691236517212", 
+        "vnodes": false
+    }, 
+    "10.12.51.20": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 136749348258.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_4", 
+                "dm_3", 
+                "sdc", 
+                "sda", 
+                "sdf", 
+                "sdg", 
+                "sdd", 
+                "sdb", 
+                "sde", 
+                "sdh"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1251160palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.080000000000000002, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.51.20", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdh1_enc", 
+            "data": [
+                "/dev/mapper/sde1_enc", 
+                "/dev/mapper/sdb1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sda1_enc", 
+                "/dev/mapper/sdf1_enc", 
+                "/dev/mapper/sdg1_enc", 
+                "/dev/mapper/sdd1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdh1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.51.20", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "4611686018427387891", 
+        "vnodes": false
+    }, 
+    "10.12.51.29": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 141469378679.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_2", 
+            "data": [
+                "dm_4", 
+                "dm_1"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_3", 
+                "dm_0", 
+                "sdc", 
+                "sdf", 
+                "sda", 
+                "sdh", 
+                "sdd", 
+                "sdg", 
+                "sde", 
+                "sdb"
+            ], 
+            "saved_caches": "dm_2"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1251080palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 1.8700000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.51.29", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdg1_enc", 
+            "data": [
+                "/dev/mapper/sdh1_enc", 
+                "/dev/mapper/sde1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sdf1_enc", 
+                "/dev/mapper/sdb1_enc", 
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sda1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdg1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.51.29", 
+        "streaming": {}, 
+        "task_progress": {
+            "Compaction of account_owner.ew_account_owners": 0.25806475000000001
+        }, 
+        "token": "-7686143364045646517", 
+        "vnodes": false
+    }, 
+    "10.12.51.32": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 215751229169.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_4", 
+                "dm_3", 
+                "sdd", 
+                "sdc", 
+                "sde", 
+                "sdh", 
+                "sda", 
+                "sdf", 
+                "sdb", 
+                "sdg"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1251140palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.89000000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.51.32", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdg1_enc", 
+            "data": [
+                "/dev/mapper/sdb1_enc", 
+                "/dev/mapper/sdf1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sde1_enc", 
+                "/dev/mapper/sdh1_enc", 
+                "/dev/mapper/sda1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdg1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.51.32", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "1537228672809129289", 
+        "vnodes": false
+    }, 
+    "10.12.52.13": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 137381996504.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_4", 
+                "dm_3", 
+                "sdf", 
+                "sdb", 
+                "sdh", 
+                "sda", 
+                "sdg", 
+                "sde", 
+                "sdc", 
+                "sdd"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1252200palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.26000000000000001, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.52.13", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdd1_enc", 
+            "data": [
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sde1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdf1_enc", 
+                "/dev/mapper/sdb1_enc", 
+                "/dev/mapper/sdh1_enc", 
+                "/dev/mapper/sda1_enc", 
+                "/dev/mapper/sdg1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdd1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.52.13", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-4611686018427387915", 
+        "vnodes": false
+    }, 
+    "10.12.52.25": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": 144216475579.0, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_4", 
+                "dm_3", 
+                "sdf", 
+                "sdc", 
+                "sdd", 
+                "sde", 
+                "sdg", 
+                "sdh", 
+                "sda", 
+                "sdb"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1252050palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 0, 
+        "load": 0.97999999999999998, 
+        "mode": "normal", 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.52.25", 
+        "node_version": {
+            "cassandra": "2.1.15.1423", 
+            "dse": "4.8.10", 
+            "jobtracker": null, 
+            "search": "4.10.3", 
+            "spark": {
+                "master": null, 
+                "version": null, 
+                "worker": null
+            }, 
+            "tasktracker": null
+        }, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdb1_enc", 
+            "data": [
+                "/dev/mapper/sda1_enc", 
+                "/dev/mapper/sdh1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdf1_enc", 
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sde1_enc", 
+                "/dev/mapper/sdg1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdb1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.52.25", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "7686143364045646493", 
+        "vnodes": false
+    }, 
+    "10.12.52.28": {
+        "agent_jvm_version": "1.8.0_60", 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCW", 
+        "devices": {
+            "commitlog": "dm_0", 
+            "data": [
+                "dm_1", 
+                "dm_2"
+            ], 
+            "other": [
+                "dm_7", 
+                "dm_6", 
+                "dm_5", 
+                "dm_4", 
+                "dm_3", 
+                "sdg", 
+                "sdd", 
+                "sdh", 
+                "sdc", 
+                "sde", 
+                "sda", 
+                "sdf", 
+                "sdb"
+            ], 
+            "saved_caches": "dm_0"
+        }, 
+        "ec2": {
+            "ami-id": null, 
+            "instance-id": null, 
+            "instance-type": null, 
+            "placement": null
+        }, 
+        "has_jna": true, 
+        "hostname": "c1252080palp.ews.int", 
+        "inmemory": {
+            "max": 40643434905, 
+            "tables": [], 
+            "version": 2
+        }, 
+        "last_seen": 1479649841, 
+        "load": 1.26, 
+        "mode": null, 
+        "network_interfaces": [
+            "lo", 
+            "eth0", 
+            "eth1", 
+            "eth2", 
+            "eth3"
+        ], 
+        "node_ip": "10.12.52.28", 
+        "node_version": null, 
+        "num_procs": 24, 
+        "os": "linux", 
+        "partitions": {
+            "commitlog": "/dev/mapper/sdb1_enc", 
+            "data": [
+                "/dev/mapper/sdf1_enc", 
+                "/dev/mapper/sda1_enc"
+            ], 
+            "other": [
+                "/dev/mapper/sdg1_enc", 
+                "/dev/mapper/sdd1_enc", 
+                "/dev/mapper/sdh1_enc", 
+                "/dev/mapper/sdc1_enc", 
+                "/dev/mapper/sde1_enc", 
+                "rootfs"
+            ], 
+            "saved_caches": "/dev/mapper/sdb1_enc"
+        }, 
+        "rack": "ER-DCW", 
+        "rpc_ip": "10.12.52.28", 
+        "streaming": null, 
+        "task_progress": null, 
+        "token": "-1537228672809129313", 
+        "vnodes": false
+    }, 
+    "10.13.4.20": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.4.20", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.4.20", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-3074457345618258604", 
+        "vnodes": false
+    }, 
+    "10.13.4.21": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.4.21", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.4.21", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-9223372036854775808", 
+        "vnodes": false
+    }, 
+    "10.13.4.22": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.4.22", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.4.22", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "3074457345618258600", 
+        "vnodes": false
+    }, 
+    "10.13.4.23": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.4.23", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.4.23", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "7686143364045646503", 
+        "vnodes": false
+    }, 
+    "10.13.5.19": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.5.19", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.5.19", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-1537228672809129303", 
+        "vnodes": false
+    }, 
+    "10.13.5.20": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.5.20", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.5.20", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-4611686018427387905", 
+        "vnodes": false
+    }, 
+    "10.13.5.21": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.5.21", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.5.21", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "1537228672809129299", 
+        "vnodes": false
+    }, 
+    "10.13.5.22": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.5.22", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.5.22", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "6148914691236517202", 
+        "vnodes": false
+    }, 
+    "10.13.5.25": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.5.25", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.5.25", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-7686143364045646507", 
+        "vnodes": false
+    }, 
+    "10.13.6.15": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.6.15", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.6.15", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-6148914691236517206", 
+        "vnodes": false
+    }, 
+    "10.13.6.21": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.6.21", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.6.21", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "4611686018427387901", 
+        "vnodes": false
+    }, 
+    "10.13.6.22": {
+        "agent_jvm_version": null, 
+        "alias": null, 
+        "data_held": null, 
+        "dc": "DCE", 
+        "devices": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "ec2": {}, 
+        "has_jna": false, 
+        "hostname": null, 
+        "inmemory": null, 
+        "last_seen": 1479516788, 
+        "load": null, 
+        "mode": "unknown", 
+        "network_interfaces": null, 
+        "node_ip": "10.13.6.22", 
+        "node_version": {}, 
+        "num_procs": null, 
+        "os": null, 
+        "partitions": {
+            "commitlog": null, 
+            "data": null, 
+            "other": null, 
+            "saved_caches": null
+        }, 
+        "rack": "ER-DCE", 
+        "rpc_ip": "10.13.6.22", 
+        "streaming": {}, 
+        "task_progress": {}, 
+        "token": "-2", 
+        "vnodes": false
+    }
+}

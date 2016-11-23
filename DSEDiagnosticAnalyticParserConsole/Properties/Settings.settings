@@ -35,9 +35,6 @@
     <Setting Name="LogExcelWorkbookFilter" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="LoadLogsIntoExcel" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="ExcelTemplateFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\dseTemplate.xlsm</Value>
     </Setting>
@@ -49,15 +46,6 @@
     </Setting>
     <Setting Name="DiagnosticNoSubFolders" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="ParseLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="ParseNonLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="ParseArchivedLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="AlternativeLogFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
@@ -509,9 +497,6 @@
     <Setting Name="TableHistogramDirPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SummarizeOnlyOverlappingLogDateRangesForNodes" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="ToleranceContinuousGCInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">250</Value>
     </Setting>
@@ -559,6 +544,12 @@
     </Setting>
     <Setting Name="CompactionFlagThresholdAsIORate" Type="System.Decimal" Scope="Application">
       <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="LogParsingExcelOptions" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ParseCreateAll</Value>
+    </Setting>
+    <Setting Name="ParsingExcelOptions" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ParseLoadWorksheets</Value>
     </Setting>
   </Settings>
 </SettingsFile>

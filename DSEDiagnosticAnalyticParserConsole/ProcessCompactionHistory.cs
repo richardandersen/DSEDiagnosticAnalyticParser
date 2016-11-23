@@ -76,6 +76,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             Common.StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace,
                                                             Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
 
+                if (parsedLine.Count <= 4)
+                {
+                    line.Dump(Logger.DumpType.Warning, "Invalid Line in \"{0}\".", cmphistFilePath);
+                    Program.ConsoleWarnings.Increment("Compaction History invalid Line...");
+                    continue;
+                }
+
                 if (parsedLine.Count > 6)
                 {
                     currentKeySpace = RemoveQuotes(parsedLine[1]);
@@ -163,27 +170,38 @@ namespace DSEDiagnosticAnalyticParserConsole
                     continue;
                 }
 
-                dataRow = dtCmpHist.NewRow();
-
-                dataRow["Data Center"] = dcName;
-                dataRow["Node IPAddress"] = ipAddress;
-                dataRow["KeySpace"] = currentKeySpace;
-                dataRow["Table"] = currentTable;
-                dataRow["Compaction Timestamp (UTC)"] = FromUnixTime(parsedLine[3 - offSet]);
-                dataRow["SSTable Size Before"] = long.Parse(parsedLine[4 - offSet]);
-                dataRow["Before Size (MB)"] = ConvertInToMB(parsedLine[4 - offSet], "MB");
-                dataRow["SSTable Size After"] = long.Parse(parsedLine[5 - offSet]);
-                dataRow["After Size (MB)"] = ConvertInToMB(parsedLine[5 - offSet], "MB");
-                dataRow["Partitions Merged (tables:rows)"] = parsedLine[6 - offSet];
-
-                ksDataRow = dtTable.Rows.Find(new object[] { currentKeySpace, currentTable });
-
-                if (ksDataRow != null)
+                try
                 {
-                    dataRow["Compaction Strategy"] = ksDataRow["Compaction Strategy"];
-                }
+                    dataRow = dtCmpHist.NewRow();
 
-                dtCmpHist.Rows.Add(dataRow);
+                    dataRow["Data Center"] = dcName;
+                    dataRow["Node IPAddress"] = ipAddress;
+                    dataRow["KeySpace"] = currentKeySpace;
+                    dataRow["Table"] = currentTable;
+                    dataRow["Compaction Timestamp (UTC)"] = FromUnixTime(parsedLine[3 - offSet]);
+                    dataRow["SSTable Size Before"] = long.Parse(parsedLine[4 - offSet]);
+                    dataRow["Before Size (MB)"] = ConvertInToMB(parsedLine[4 - offSet], "MB");
+                    dataRow["SSTable Size After"] = long.Parse(parsedLine[5 - offSet]);
+                    dataRow["After Size (MB)"] = ConvertInToMB(parsedLine[5 - offSet], "MB");
+                    dataRow["Partitions Merged (tables:rows)"] = parsedLine[6 - offSet];
+
+                    ksDataRow = dtTable.Rows.Find(new object[] { currentKeySpace, currentTable });
+
+                    if (ksDataRow != null)
+                    {
+                        dataRow["Compaction Strategy"] = ksDataRow["Compaction Strategy"];
+                    }
+
+                    dtCmpHist.Rows.Add(dataRow);
+                }
+                catch (System.Exception ex)
+                {
+                    Logger.Instance.Error(string.Format("Parsing for Compacation History for Node {0} failed during parsing of line \"{1}\". Line skipped.",
+                                                            ipAddress,
+                                                            line),
+                                            ex);
+                    Program.ConsoleWarnings.Increment("Compaction History Parsing Exception; Line Skipped");
+                }
             }
         }
 
