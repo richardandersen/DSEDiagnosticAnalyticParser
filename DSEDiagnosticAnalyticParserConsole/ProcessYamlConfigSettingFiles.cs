@@ -14,7 +14,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     string ipAddress,
                                                     string dcName,
                                                     string yamlType,
-                                                    List<YamlInfo> yamlList)
+                                                    List<YamlInfo> yamlList,
+                                                    bool parsingPropertiesFile = false)
         {
             var fileLines = yamlFilePath.ReadAllLines();
             string line;
@@ -145,15 +146,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                 });
             }
 
-            foreach (var element in yamlList)
+            if (!parsingPropertiesFile)
             {
-                if (!element.Cmd.EndsWith("_directories"))
-                {
-                    var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
+                var propList = new List<YamlInfo>();
 
-                    element.CmdParams = parsedValues.Item1;
-                    element.KeyValueParams = parsedValues.Item2;
+                foreach (var element in yamlList)
+                {
+                    if (element.Cmd == "endpoint_snitch")
+                    {
+                        if (ParserSettings.SnitchFiles.ContainsKey(element.CmdParams.ToLower()))
+                        {
+                            var propFilePath = Common.Path.PathUtils.BuildPath(ParserSettings.SnitchFiles[element.CmdParams.ToLower()],
+                                                                                yamlFilePath.ParentDirectoryPath.Path,
+                                                                                null,
+                                                                                true,
+                                                                                true,
+                                                                                true) as IFilePath;
+                            if (propFilePath != null
+                                    && propFilePath.Exist())
+                            {                                
+                                ReadYamlFileParseIntoList(propFilePath, ipAddress, dcName, propFilePath.FileNameWithoutExtension, propList, true);
+                            }
+                        }
+                    }
+                    else if (!element.Cmd.EndsWith("_directories"))
+                    {
+                        var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
+
+                        element.CmdParams = parsedValues.Item1;
+                        element.KeyValueParams = parsedValues.Item2;
+                    }
                 }
+
+                yamlList.AddRange(propList);
             }
         }
 

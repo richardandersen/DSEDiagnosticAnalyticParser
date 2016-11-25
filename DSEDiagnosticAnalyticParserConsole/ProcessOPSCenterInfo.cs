@@ -37,28 +37,44 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 if (nodeInfoDict.ContainsKey((string)dataRow["Node IPAddress"]))
                                 {
-                                    var nodeInfo = (Dictionary<string, object>) nodeInfoDict.TryGetValue((string)dataRow["Node IPAddress"]);
-                                    var dseVersions = (Dictionary<string, object>) nodeInfo.TryGetValue("node_version");
-
-                                    dataRow.BeginEdit();
-
-                                    if (nodeInfo.ContainsKey("ec2"))
+                                    try
                                     {
-                                        dataRow["Instance Type"] = ((Dictionary<string, object>) nodeInfo.TryGetValue("ec2")).TryGetValue("instance-type");
+                                        var nodeInfo = (Dictionary<string, object>)nodeInfoDict.TryGetValue((string)dataRow["Node IPAddress"]);
+                                        var dseVersions = (Dictionary<string, object>)nodeInfo.TryGetValue("node_version");
+
+                                        dataRow.BeginEdit();
+
+                                        if (nodeInfo.ContainsKey("ec2"))
+                                        {
+                                            dataRow["Instance Type"] = ((Dictionary<string, object>)nodeInfo.TryGetValue("ec2")).TryGetValue("instance-type");
+                                        }
+
+                                        if (dataRow["Cores"] == DBNull.Value
+                                                && nodeInfo.ContainsKey("num_procs"))
+                                        {
+                                            var dataValue = nodeInfo["num_procs"];
+                                            dataRow["Cores"] = dataValue == null ? DBNull.Value : dataValue;
+                                        }
+                                        dataRow["DSE"] = dseVersions.TryGetValue("dse");
+                                        dataRow["Cassandra"] = dseVersions.TryGetValue("cassandra");
+                                        dataRow["Search"] = dseVersions.TryGetValue("search");
+
+                                        dataRow["Spark"] = ((Dictionary<string, object>)dseVersions.TryGetValue("spark")).TryGetValue("version");
+
+                                        if (nodeInfo.ContainsKey("vnodes"))
+                                        {                                            
+                                            var dataValue = nodeInfo["VNodes"];
+                                            dataRow["VNodes"] = dataValue == null ? DBNull.Value : dataValue;
+                                        }
+
+                                        dataRow.EndEdit();
                                     }
-
-                                    if (dataRow["Cores"] == DBNull.Value)
-                                    {
-                                        dataRow["Cores"] = nodeInfo.TryGetValue("num_procs");
+                                    catch(System.Exception e)
+                                    {                                        
+                                        Logger.Instance.Error(string.Format("Error in OpsCenter's node_info file for node {0}.",
+                                                                                (string)dataRow["Node IPAddress"]),
+                                                                e);
                                     }
-                                    dataRow["DSE"] = dseVersions.TryGetValue("dse");
-                                    dataRow["Cassandra"] = dseVersions.TryGetValue("cassandra");
-                                    dataRow["Search"] = dseVersions.TryGetValue("search");
-
-                                    dataRow["Spark"] = ((Dictionary<string, object>)dseVersions.TryGetValue("spark")).TryGetValue("version");                                    
-                                    dataRow["VNodes"] = nodeInfo.TryGetValue("vnodes");
-
-                                    dataRow.EndEdit();
                                 }
                                 else
                                 {

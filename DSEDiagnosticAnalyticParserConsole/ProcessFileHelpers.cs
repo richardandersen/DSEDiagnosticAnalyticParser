@@ -640,5 +640,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             return default(V);
         }
+
+        public static V TryGetValue<K, V, T>(this Dictionary<K, V> collection, K key, T defaultValue)
+            where V : class
+        {
+            V getValue;
+
+            if (collection != null && collection.TryGetValue(key, out getValue))
+            {
+                return getValue;
+            }
+
+            return defaultValue as V;
+        }
     }
 }

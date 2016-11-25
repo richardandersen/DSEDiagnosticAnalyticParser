@@ -12,13 +12,33 @@ namespace DSEDiagnosticAnalyticParserConsole
         [Flags]
         public enum LogParsingExcelOptions
         {
+            /// <summary>
+            /// If enabled, the log settings will be determined based on ParsingExcelOptions settings.
+            /// </summary>
             Detect = 0,
-            Parse = 0x0001,          
+            /// <summary>
+            /// If enabled, current log files will be included for parsing
+            /// </summary>
+            Parse = 0x0001,
+            /// <summary>
+            /// If enabled, archived log files will be included for parsing
+            /// </summary>
             ParseArchivedLogs = 0x0002,
+            /// <summary>
+            /// If enabled, the parsed log files will be captured into separate Excel workbooks. 
+            /// </summary>
             CreateWorkbook = 0x0004,
-           
+            /// <summary>
+            /// Enables both current and archived log parsing.
+            /// </summary>                                   
             ParseLogs = Parse | ParseArchivedLogs,
+            /// <summary>
+            /// Enables both current and archived log parsing plus captures this output into Excel workbook(s).
+            /// </summary>
             ParseCreateAll = Parse | CreateWorkbook | ParseArchivedLogs,
+            /// <summary>
+            /// Enables only current log parsing plus captures this output into Excel workbook(s).
+            /// </summary>
             ParseCreateOnlyCurrentLogs = Parse | CreateWorkbook           
         }
 
@@ -27,30 +47,105 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             Disable = 0,
 
+            /// <summary>
+            /// Enables nodetool CFStats file parsing which is used by the analysis worksheets
+            /// </summary>
             ParseCFStatsFiles = 0x0001,
+            /// <summary>
+            /// Enables nodetool TPStats file parsing which is used by the analysis worksheets
+            /// </summary>
             ParseTPStatsFiles = 0x0002,
+            /// <summary>
+            /// Enables nodetool compacation history file parsing
+            /// </summary>
             ParseCompacationHistFiles = 0x0004,
+            /// <summary>
+            /// Enables DDL (cqlsh describe) file processing
+            /// Note: This option is important for proper analysis 
+            /// </summary>
             ParseDDLFiles = 0x0008,
+            /// <summary>
+            /// Enables nodetool Table/CF Histogram file processing which is used by the analysis worksheets
+            /// Note: This option is important for proper analysis
+            /// </summary>
             ParseTblHistogramFiles = 0x0010,
+            /// <summary>
+            /// Enables nodetool/dsetool ring file processing.
+            /// Note: This option is important for proper data center related information and is recommended to be enabled.
+            /// </summary>
             ParseRingInfoFiles = 0x0020,
             //ParseNodeInfoFiles = 0x0040,
+            /// <summary>
+            /// Enables machine/OS (created by OpsCenter) file parsing
+            /// </summary>
             ParseMachineInfoFiles = 0x1000,
+            /// <summary>
+            /// Enables yaml/configuration file parsing
+            /// </summary>
             ParseYamlFiles = 0x0080,
+            /// <summary>
+            /// Performs an analysis of the log files and produces a summary error/exception event worksheet.
+            /// LogParsingExcelOptions.Parse, ParseArchivedLogs, and/or Detect is required to be enabled.
+            /// </summary>
             ParseSummaryLogs = 0x0100,
+            /// <summary>
+            /// Logs are only summarized so that only overlapping time ranges are used based on the timestamp ranges found in every node's logs.
+            /// This is only valid if ParseSummaryLogs is enabled.
+            /// Note: This option is important for proper analysis
+            /// </summary>
             OnlyOverlappingDateRanges = 0x0200,
+            /// <summary>
+            /// Enables ParseSummaryLogs and OnlyOverlappingDateRanges
+            /// </summary>
             ParseSummaryLogsOnlyOverlappingDateRanges = ParseSummaryLogs | OnlyOverlappingDateRanges,
+            /// <summary>
+            /// Enables parsing of OpsCenter diagnostic files associated with node related information
+            /// </summary>
             ParseOpsCenterFiles = 0x2000,
+            /// <summary>
+            /// Performs an analysis of the log files and produces a worksheet related to keyspace/table events.
+            /// LogParsingExcelOptions.Parse, ParseArchivedLogs, and/or Detect is required to be enabled.
+            /// Note: This option is important for proper analysis
+            /// </summary>
             ParseCFStatsLogs = 0x4000,
-            ParseTPStatsLogs = 0x8000,
+            /// <summary>
+            /// Performs an analysis of the log files and produces a worksheet related to node events.
+            /// LogParsingExcelOptions.Parse, ParseArchivedLogs, and/or Detect is required to be enabled.
+            /// Note: This option is important for proper analysis
+            /// </summary>
+            ParseNodeStatsLogs = 0x8000,
+
+            /// <summary>
+            /// Enables the creation of analysis worksheets (e.g., ParseNodeStatsLogs, ParseCFStatsLogs, ParseYamlFiles, etc.).
+            /// </summary>
             LoadWorkSheets = 0x0400,
+            /// <summary>
+            /// Enables the creation of the log summary worksheet (i.e., ParseSummaryLogs)
+            /// Note: This can be disabled and ProduceSummaryWorkbook is enabled to create a detail log exception/error workbook
+            /// </summary>
             LoadSummaryWorkSheets = 0x0800,
 
+            /// <summary>
+            /// Enables the creation of the log summary exception/error Excel workbook. This workbook can be used to reconcile the summary worksheet.
+            /// </summary>
             ProduceSummaryWorkbook = 0x10000,
+            /// <summary>
+            /// Enables the creation of the node/table stats/information Excel workbook based on the analysis of the log files. This workbook can be used to reconcile the analysis worksheet.
+            /// </summary>
             ProduceStatsWorkbook = 0x20000,
 
+            /// <summary>
+            /// If enabled, this will determine the required ParsingExcelOptions, LogParsingExcelOptions, and application settings based on the &quot;Parse&quot; and &quote;Produce&quot; settings.
+            /// </summary>
             Detect = 0x40000,
 
+            /// <summary>
+            /// Enables the loading of all worksheets into the main Excel workbook.
+            /// </summary>
             LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets,
+            /// <summary>
+            /// Enables all settings.
+            /// </summary>
             ParseLoadWorksheets = ParseCFStatsFiles
                                     | ParseTPStatsFiles
                                     | ParseCompacationHistFiles
@@ -62,25 +157,32 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     | ParseOpsCenterFiles
                                     | ParseSummaryLogsOnlyOverlappingDateRanges
                                     | ParseCFStatsLogs
-                                    | ParseTPStatsLogs
+                                    | ParseNodeStatsLogs
                                     | LoadAllWorkSheets                                   
                                     | ProduceSummaryWorkbook
                                     | ProduceStatsWorkbook,
+            /// <summary>
+            /// Enables only settings related to the log summary analysis
+            /// </summary>
             ParseLoadOnlySummaryLogs = ParseSummaryLogsOnlyOverlappingDateRanges | LoadSummaryWorkSheets | ProduceSummaryWorkbook
         }
-
-        public static int MaxRowInExcelWorkSheet = Properties.Settings.Default.MaxRowInExcelWorkSheet; //-1 disabled
-        public static int MaxRowInExcelWorkBook = Properties.Settings.Default.MaxRowInExcelWorkBook; //-1 disabled
+       
+        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);
+        
         public static int GCFlagThresholdInMS = Properties.Settings.Default.GCFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java) and log worksheets
         public static int CompactionFlagThresholdInMS = Properties.Settings.Default.CompactionFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java) and log worksheets
         public static decimal CompactionFlagThresholdAsIORate = Properties.Settings.Default.CompactionFlagThresholdAsIORate;
-        public static int SlowLogQueryThresholdInMS = Properties.Settings.Default.SlowLogQueryThresholdInMS;
-       
+        public static int SlowLogQueryThresholdInMS = Properties.Settings.Default.SlowLogQueryThresholdInMS;        
+        public static int ToleranceContinuousGCInMS = Properties.Settings.Default.ToleranceContinuousGCInMS;
+        public static int ContinuousGCNbrInSeries = Properties.Settings.Default.ContinuousGCNbrInSeries;
+        public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
+        public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
+        public static System.Text.RegularExpressions.Regex ExcludePathNamesRegEx = string.IsNullOrEmpty(Properties.Settings.Default.ExcludePathNamesRegEx) ? null : new System.Text.RegularExpressions.Regex(Properties.Settings.Default.ExcludePathNamesRegEx, System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
         public static DateTime LogStartDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
         public static int LogMaxRowsPerNode = Properties.Settings.Default.LogMaxRowsPerNode; // -1 disabled //If enabled only the current log file is read (no achieves).
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
         public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray(false);
-
         public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<DateTime, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriods);
         //new Tuple<DateTime, TimeSpan>[] { new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 02), new TimeSpan(0, 0, 30, 0)), //From By date/time and aggregation period
         //                                  new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 1, 0, 0, 0), new TimeSpan(0, 1, 0, 0)),
@@ -134,13 +236,17 @@ namespace DSEDiagnosticAnalyticParserConsole
         //	All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
         //		e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
         public static string DiagnosticPath = Properties.Settings.Default.DiagnosticPath;
-
         public static bool DiagnosticNoSubFolders = Properties.Settings.Default.DiagnosticNoSubFolders;
+
         public static LogParsingExcelOptions LogParsingExcelOption = ParseEnumString<LogParsingExcelOptions>(Properties.Settings.Default.LogParsingExcelOptions);
         public static ParsingExcelOptions ParsingExcelOption = ParseEnumString<ParsingExcelOptions>(Properties.Settings.Default.ParsingExcelOptions);
-       
+        public static List<string> CFStatsCreateMBColumns = Properties.Settings.Default.CFStatsCreateMBColumns.ToList(false, true); //MUST BE IN LOWER CASE -- CFStats attributes that contains these phrases/words will convert their values from bytes to MB in a separate Excel Column
+        public static int MaxRowInExcelWorkSheet = Properties.Settings.Default.MaxRowInExcelWorkSheet; //-1 disabled
+        public static int MaxRowInExcelWorkBook = Properties.Settings.Default.MaxRowInExcelWorkBook; //-1 disabled
+
         public static string AlternativeLogFilePath = Properties.Settings.Default.AlternativeLogFilePath; //Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. This wild cards can be included. 
         public static string AlternativeDDLFilePath = Properties.Settings.Default.AlternativeDDLFilePath; //A file path which supports wild card patterns to parse CQL/DDL
+        public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;
 
         //Excel Worksheet names
         public static string ExcelWorkSheetRingInfo = Properties.Settings.Default.ExcelWorkSheetRingInfo;
@@ -155,11 +261,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkSheetOSMachineInfo = Properties.Settings.Default.ExcelWorkSheetOSMachineInfo;
         public static string ExcelWorkSheetSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetSummaryLogCassandra;
         public static string ExcelWorkSheetStatusLogCassandra = Properties.Settings.Default.ExcelWorkSheetStatusLogCassandra;
-        public static string ExcelWorkSheetExceptionSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetExceptionSummaryLogCassandra;
-        //var excelPivotWorkSheets = new string[] {"Read-Write Counts", "Partitions", "Latency", "Storage-Size"};
-
-        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);      
-        public static List<string> CFStatsCreateMBColumns = Properties.Settings.Default.CFStatsCreateMBColumns.ToList(false, true); //MUST BE IN LOWER CASE -- CFStats attributes that contains these phrases/words will convert their values from bytes to MB in a separate Excel Column
+        public static string ExcelWorkSheetExceptionSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetExceptionSummaryLogCassandra;        
 
         //Static Directory/File names
         public static string DiagNodeDir = Properties.Settings.Default.DiagNodeDir;
@@ -187,32 +289,19 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string CQLDDLDirFileExt = Properties.Settings.Default.CQLDDLDirFileExt;
         public static string[] OSMachineFiles = Properties.Settings.Default.OSMachineFiles.ToArray(false); //Referenced from the node directory
         public static string OPSCenterDir = Properties.Settings.Default.OPSCenterDir;
-        public static string[] OPSCenterFiles = Properties.Settings.Default.OPSCenterFiles.ToArray(false);
-        
+        public static string[] OPSCenterFiles = Properties.Settings.Default.OPSCenterFiles.ToArray(false);    
         public static string TableHistogramFileName = Properties.Settings.Default.TableHistogramFileName;
         public static string CFHistogramFileName = Properties.Settings.Default.CFHistogramFileName;
         public static string ExcelCFHistogramWorkSheet = Properties.Settings.Default.ExcelCFHistogramWorkSheet;
+        public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
+        public static Dictionary<string, string> SnitchFiles = CreateSnitchDictionary(Properties.Settings.Default.SnitcheFiles);
 
         public static string[] CFStatsAttribs = Properties.Settings.Default.CFStatsAttribs.ToArray(false);
         public static string[] NodeStatsAttribs = Properties.Settings.Default.NodeAttribs.ToArray(false);
         public static string[] TablehistogramAttribs = Properties.Settings.Default.TableHistogramAttribs.ToArray(false);
         public static string[] PerformanceKeyspaces = Properties.Settings.Default.PerformanceKeyspaces.ToArray(false);
         public static string[] SummaryIgnoreExceptions = Properties.Settings.Default.SummaryIgnoreExceptions.ToArray(false);
-        public static string ExcelWorkBookFileExtension = Properties.Settings.Default.ExcelWorkBookFileExtension;
-        public static string TableHistogramDirPath = Properties.Settings.Default.TableHistogramDirPath;        
-        public static int ToleranceContinuousGCInMS = Properties.Settings.Default.ToleranceContinuousGCInMS;
-        public static int ContinuousGCNbrInSeries = Properties.Settings.Default.ContinuousGCNbrInSeries;
-        public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
-        public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
-        public static System.Text.RegularExpressions.Regex ExcludePathNamesRegEx = string.IsNullOrEmpty(Properties.Settings.Default.ExcludePathNamesRegEx) ? null : new System.Text.RegularExpressions.Regex(Properties.Settings.Default.ExcludePathNamesRegEx, System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-        public static bool ExcludePathName(string name)
-        {
-            return !string.IsNullOrEmpty(name)
-                        && ExcludePathNamesRegEx != null
-                        && ExcludePathNamesRegEx.IsMatch(name);
-        }
-
+                
         public static Tuple<string,string,System.Data.DataViewRowState> DDLTableWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLTableWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> TokenRangeWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.TokenRangeWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> OSMachineInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.OSMachineInfoWorksheetFilterSort);
@@ -221,6 +310,29 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static Tuple<string, string, System.Data.DataViewRowState> DDLKeyspaceWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLKeyspaceWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> RingInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.RingInfoWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> SummaryLogWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.SummaryLogWorksheetFilterSort);
+        
+        public static Dictionary<string, string> CreateSnitchDictionary(string configString)
+        {
+            var configObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string>[]>(configString);
+            var dict = new Dictionary<string, string>();
+
+            if(configObj != null)
+            {
+                foreach (var item in configObj)
+                {
+                    dict.Add(item.Item1.ToLower(), item.Item2);
+                }
+            }
+
+            return dict;
+        }
+
+        public static bool ExcludePathName(string name)
+        {
+            return !string.IsNullOrEmpty(name)
+                        && ExcludePathNamesRegEx != null
+                        && ExcludePathNamesRegEx.IsMatch(name);
+        }
 
         public static T ParseEnumString<T>(string enumString)          
         {

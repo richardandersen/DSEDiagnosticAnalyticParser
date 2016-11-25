@@ -983,5 +983,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((string)(this["ParsingExcelOptions"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"[{""Item1"":""SimpleSnitch"",""Item2"":null},{""Item1"":""RackInferringSnitch"",""Item2"":null},{""Item1"":""PropertyFileSnitch"",""Item2"":"".\\cassandra-topology.properties""},{""Item1"":""GossipingPropertyFileSnitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""CloudstackSnitch"",""Item2"":null},{""Item1"":""GoogleClouldSnitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""EC2Snitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""EC2MultiRegionSnitch"",""Item2"":"".\\cassandra-rackdc.properties""}]")]
+        public string SnitcheFiles {
+            get {
+                return ((string)(this["SnitcheFiles"]));
+            }
+        }
     }
 }

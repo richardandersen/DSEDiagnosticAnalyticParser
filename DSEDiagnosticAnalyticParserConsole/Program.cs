@@ -64,7 +64,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     || (ParserSettings.GCTimeFrameDetectionPercentage > 0
                             && ParserSettings.GCTimeFrameDetection != TimeSpan.Zero))
                 {
-                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseTPStatsLogs;
+                    ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs;
                     ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
                 }
                 if (ParserSettings.LogSummaryPeriods.Length > 0
@@ -81,7 +81,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
 
             if ((ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
-                    || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
+                    || ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()))
             {
                 if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled())

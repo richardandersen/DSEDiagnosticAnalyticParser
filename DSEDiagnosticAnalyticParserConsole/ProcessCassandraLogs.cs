@@ -69,14 +69,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 TaskCreationOptions.LongRunning);
 
             if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
-                || ParserSettings.ParsingExcelOptions.ParseTPStatsLogs.IsEnabled()
+                || ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
                 || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled())
             {
                 statusTask = logTask.ContinueWith(taskResult =>
                             {
                                 var dtStatusLog = new System.Data.DataTable(excelWorkSheetStatusLogCassandra + "-" + ipAddress);
                                 var dtCFStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseCFStatsLogs) ? new DataTable("CFStats-Logs" + "-" + ipAddress) : null;
-                                var dtTPStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseTPStatsLogs) ? new DataTable("TPStats-Logs" + "-" + ipAddress) : null;
+                                var dtTPStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs) ? new DataTable("TPStats-Logs" + "-" + ipAddress) : null;
 
                                 dtLogStatusStack.Push(dtStatusLog);
 
@@ -1287,6 +1287,33 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             dataRow["Exception"] = "Plain Text Authentication";
                             //dataRow["Flagged"] = true;
+                            handled = true;
+                        }
+                        #endregion
+                    }
+                    else if((parsedValues[4] == "PasswordAuthenticator.java" 
+                                || parsedValues[4] == "Auth.java")
+                            && parsedValues[0] == "WARN")
+                    {
+                        #region PasswordAuthenticator|Auth.java
+                        //Auth.java					 Skipped default superuser setup: some nodes were not ready
+                        //PasswordAuthenticator.java PasswordAuthenticator skipped default user setup: some nodes were not ready
+                        if ((parsedValues[nCell] == "PasswordAuthenticator" && parsedValues[nCell + 1] == "skipped")
+                                || (parsedValues[nCell] == "Skipped" && parsedValues[nCell + 2] == "superuser"))
+                        {
+                            var lastOccurence = (from dr in dtCLog.AsEnumerable().TakeLast(10)
+                                                    where dr.Field<string>("Item") == (parsedValues[4] == "PasswordAuthenticator.java" 
+                                                                                        ? "Auth.java"
+                                                                                        : "PasswordAuthenticator.java")
+                                                    select new { Timestamp = dr.Field<DateTime>("Timestamp") }).LastOrDefault();
+
+                            if (lastOccurence == null
+                                    || lastOccurence.Timestamp == DateTime.MinValue
+                                    || lastOccurence.Timestamp.AddSeconds(1) < lineDateTime)
+                            {
+                                dataRow["Exception"] = "Possible Authenticator conflict between nodes";
+                                //dataRow["Flagged"] = true;
+                            }
                             handled = true;
                         }
                         #endregion
