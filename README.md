@@ -26,9 +26,13 @@ Below is a description of the application command line arguments:
 
 **CompactionFlagThresholdInMS** -- Defines a threshold, in milliseconds, that will flag compaction latencies in the C* log. Default 10000
 
+**CompactionFlagThresholdAsIORate** -- Defines a threshold that if the IO rate below this threshold will flag a log entry in both the log summary and log status for compaction IO rate (MB/Sec). -1 disables this feature.
+
 **SlowLogQueryThresholdInMS** -- Defines a threshold, in milliseconds, that will flag query latencies in the C* log. Default 2000
 
-**OverlapToleranceContinuousGCInMS** -- The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled. The default is 500ms
+**ToleranceContinuousGCInMS** -- The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled. The default is 500ms
+
+**NbrGCInSeriesToConsiderContinuous** -- The number of GC in a series (row) that will be considered as continuous (back-to-back). This works in conjunction with ToleranceContinuousGCInMS to determine the series.
 
 **GCTimeFrameDetectionPercentage** -- A percentage (as a decimal value) of time used within the time frame (GCTimeFrameDetection) to determine excess GC activity. If -1, this feature is disabled. Default is 0.25 (25%).
 
