@@ -246,7 +246,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
         //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
 
-        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+))",
+        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
                                                         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
@@ -1485,7 +1485,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         string locIpAddress;
 
-                        if (IPAddressStr(exceptionDescSplits[nIndex], out locIpAddress))
+                        if (IPAddressStr(exceptionDescSplits[nIndex][0] == '.'
+                                                ? exceptionDescSplits[nIndex].Substring(1)
+                                                : exceptionDescSplits[nIndex],
+                                            out locIpAddress))
                         {
                             UpdateRowColumn(dataRow,
                                                "Associated Item",
@@ -1500,6 +1503,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 dataRow["Associated Item"] as string,
                                                 exceptionDescSplits[nIndex],
                                                 "->");
+                        }
+
+                        //Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
+                        //Remove the first IPAdress's protocol
+                        if (exceptionDescSplits.Skip(nIndex + 1).Select(i => i == null ? string.Empty : i.Trim()).Any(i => i == ">" || i == "=>"))
+                        {
+                            var protocolPos = exceptionDescSplits[nIndex].IndexOf(':');
+
+                            if(protocolPos > 0)
+                            {
+                                exceptionDescSplits[nIndex] = exceptionDescSplits[nIndex].Substring(0, protocolPos) + ":####";
+                            }
                         }
                     }
                     if(lastException == null || !lastException.Contains(exceptionDescSplits[nIndex]))
