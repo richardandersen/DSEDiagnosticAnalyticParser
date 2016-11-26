@@ -123,15 +123,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool LoadLogsIntoExcel {
-            get {
-                return ((bool)(this["LoadLogsIntoExcel"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(".\\dseTemplate.xlsm")]
         public string ExcelTemplateFilePath {
             get {
@@ -163,33 +154,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public bool DiagnosticNoSubFolders {
             get {
                 return ((bool)(this["DiagnosticNoSubFolders"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ParseLogs {
-            get {
-                return ((bool)(this["ParseLogs"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ParseNonLogs {
-            get {
-                return ((bool)(this["ParseNonLogs"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool ParseArchivedLogs {
-            get {
-                return ((bool)(this["ParseArchivedLogs"]));
             }
         }
         
@@ -862,15 +826,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool SummarizeOnlyOverlappingLogDateRangesForNodes {
-            get {
-                return ((bool)(this["SummarizeOnlyOverlappingLogDateRangesForNodes"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("250")]
         public int ToleranceContinuousGCInMS {
             get {
@@ -1008,6 +963,33 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public decimal CompactionFlagThresholdAsIORate {
             get {
                 return ((decimal)(this["CompactionFlagThresholdAsIORate"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Detect")]
+        public string LogParsingExcelOptions {
+            get {
+                return ((string)(this["LogParsingExcelOptions"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ParseLoadWorksheets")]
+        public string ParsingExcelOptions {
+            get {
+                return ((string)(this["ParsingExcelOptions"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"[{""Item1"":""SimpleSnitch"",""Item2"":null},{""Item1"":""RackInferringSnitch"",""Item2"":null},{""Item1"":""PropertyFileSnitch"",""Item2"":"".\\cassandra-topology.properties""},{""Item1"":""GossipingPropertyFileSnitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""CloudstackSnitch"",""Item2"":null},{""Item1"":""GoogleClouldSnitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""EC2Snitch"",""Item2"":"".\\cassandra-rackdc.properties""},{""Item1"":""EC2MultiRegionSnitch"",""Item2"":"".\\cassandra-rackdc.properties""}]")]
+        public string SnitcheFiles {
+            get {
+                return ((string)(this["SnitcheFiles"]));
             }
         }
     }

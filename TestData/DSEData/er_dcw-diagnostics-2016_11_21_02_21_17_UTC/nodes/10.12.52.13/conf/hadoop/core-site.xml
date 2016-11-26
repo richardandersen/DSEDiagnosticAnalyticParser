@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+<configuration>
+
+  <!-- General Security Settings -->
+  <!-- 
+  <property>
+    <name>hadoop.security.authentication</name>
+    <value>kerberos</value> 
+  </property>
+  
+  <property>
+    <name>hadoop.security.authorization</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>dfs.permissions</name>
+    <value>true</value>
+  </property>
+  -->
+  
+  <!-- Hadoop Web Console Authentication settings
+    The value of the hadoop.http.authentication.kerberos.principal property
+    must use a principal name such as HTTP/host@REALM as required by the 
+    SPNEGO specification (RFC-4559 4.1)
+  -->
+  <!-- 
+  <property>
+    <name>hadoop.http.filter.initializers</name>
+    <value>org.apache.hadoop.security.AuthenticationFilterInitializer</value>
+  </property>
+
+  <property>
+    <name>hadoop.http.authentication.type</name>
+    <value>kerberos</value>
+  </property>  
+
+  <property>
+    <name>hadoop.http.authentication.token.validity</name>
+    <value>36000</value>
+  </property>  
+
+  <property>
+    <name>hadoop.http.authentication.signature.secret</name>
+    <value>hadoop</value>
+  </property>  
+
+  <property>
+    <name>hadoop.http.authentication.cookie.domain</name>
+    <value>.example.com</value>
+  </property>
+
+  <property>
+    <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hadoop.http.authentication.kerberos.principal</name>
+    <value>HTTP/_HOST@REALM</value>
+  </property>
+
+  <property>
+    <name>hadoop.http.authentication.kerberos.keytab</name>
+    <value>/path/to/dse.keytab</value>
+  </property>
+  -->
+     
+  <!-- General CFS/DFS settings -->
+  <property>
+    <name>io.seqfile.compress.blocksize</name>
+    <value>1048576</value>
+    <description>
+      The minimum block size for compression in block compressed 
+      SequenceFiles.
+    </description>
+  </property>
+
+  <!-- 64 MB default --> 
+  <property>
+    <name>fs.local.block.size</name>
+    <value>67108864</value> 
+  </property>
+
+  <!-- 2 MB SubBlock Size -->
+  <property>
+    <name>fs.local.subblock.size</name>
+    <value>2097152</value> 
+  </property>
+
+  <!--
+    Uncomment these properties to override default consistency levels used by CFS.
+    Default read and write consistency levels
+    are QUORUM for SimpleStrategy and LOCAL_QUORUM for NetworkTopologyStrategy.
+
+    If read CL is set to QUORUM, CFS will internally
+    try to read blocks at ONE for performance reasons, before attempting QUORUM.
+    This is safe to do so, because blocks in CFS are immutable.
+  -->
+  <!--
+  <property>
+    <name>dse.consistencylevel.read</name>
+    <value>QUORUM</value>
+  </property>
+
+  <property>
+    <name>dse.consistencylevel.write</name>
+    <value>QUORUM</value>
+  </property>
+  -->
+
+  <!-- CFS Repair batch size -->
+  <property>
+    <name>dse.cfs.repair.batchsize</name>
+    <value>300</value>
+  </property>
+
+  <!-- real world cluster configuration  checket http://hadoop.apache.org/docs/r1.0.3/cluster_setup.html-->
+  <!-- 
+  // Larger amount of memory allocated for the in-memory file-system used to merge map-outputs at 
+  // the reduces. 
+  <property>
+    <name>fs.inmemory.size.mb</name>
+    <value>200</value> 
+  </property>
+ 
+  // More streams merged at once while sorting files.
+  <property>
+    <name>io.sort.factor</name>
+    <value>100</value>
+  </property>
+ 
+  // Higher memory-limit while sorting data.
+  <property>
+    <name>io.sort.mb</name>
+    <value>200</value>
+  </property>
+  -->
+</configuration>

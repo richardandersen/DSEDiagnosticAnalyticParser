@@ -1,0 +1,313 @@
+{
+    "agent_config": {}, 
+    "agents": {
+        "agent_certfile": "./ssl/agentKeyStore.pem", 
+        "agent_keyfile": "./ssl/agentKeyStore", 
+        "agent_keyfile_raw": "./ssl/agentKeyStore.key", 
+        "api_port": "61621", 
+        "backup_staging_dir": "", 
+        "concurrent_agent_requests": "10", 
+        "concurrent_settings_requests": "10", 
+        "concurrent_snapshot_list_requests": "1", 
+        "config_sleep": "420", 
+        "ec2_metadata_api_host": "169.254.169.254", 
+        "fingerprint_throttle": "50", 
+        "http_timeout": "10", 
+        "incoming_interface": "0.0.0.0", 
+        "incoming_port": "61620", 
+        "install_throttle": "20", 
+        "not_seen_threshold": "60", 
+        "path_to_deb": "agent/datastax-agent.deb", 
+        "path_to_find_java": "agent/bin/find-java", 
+        "path_to_installscript": "agent/bin/install_agent.sh", 
+        "path_to_rpm": "agent/datastax-agent.rpm", 
+        "path_to_sudowrap": "./bin/sudo_with_pass.py", 
+        "remote_backup_region": "us-west-1", 
+        "restore_req_update_period": "", 
+        "scp_executable": "/usr/bin/scp", 
+        "snapshot_wait": "60", 
+        "ssh_executable": "/usr/bin/ssh", 
+        "ssh_keygen_executable": "/usr/bin/ssh-keygen", 
+        "ssh_keyscan_executable": "/usr/bin/ssh-keyscan", 
+        "ssh_port": "22", 
+        "ssh_sys_known_hosts_file": "/etc/ssh/ssh_known_hosts", 
+        "ssh_user_known_hosts_file": "~/.ssh/known_hosts", 
+        "ssl_certfile": "./ssl/opscenter.pem", 
+        "ssl_keyfile": "./ssl/opscenter.key", 
+        "ssl_keystore": "/ews/security/keystore/ews_ca.keystore", 
+        "ssl_keystore_password": "changeit", 
+        "storage_ssl_keystore": "", 
+        "storage_ssl_keystore_password": "", 
+        "tmp_dir": "./tmp", 
+        "use_ssl": "False"
+    }, 
+    "authentication": {
+        "audit_auth": "True", 
+        "audit_pattern": "[Audit Auth]", 
+        "authentication_method": "DatastaxEnterpriseAuth", 
+        "enabled": "False", 
+        "passwd_db": "./passwd.db", 
+        "timeout": "0"
+    }, 
+    "backups": {
+        "failure_threshold": "50", 
+        "restore_init_throttle": "20", 
+        "restore_sleep": "5"
+    }, 
+    "bestpractice": {
+        "results_ttl": "2419200"
+    }, 
+    "cassandra": {
+        "api_port": "9160", 
+        "bind_interface": "", 
+        "conf_location": "", 
+        "connect_timeout": "6.0", 
+        "connection_pool_size": "5", 
+        "cql_port": "9042", 
+        "install_location": "", 
+        "local_dc_pref": "", 
+        "log_location": "/data/1/dse/log/system.log", 
+        "max_schema_agreement_wait": "30", 
+        "password": "^KNw^5n&mS})A(K!E*6hm!QEks", 
+        "retry_delay": "10", 
+        "rolling_restart_error_threshold": "1", 
+        "seed_hosts": "c1249170,c1249160,c1249100", 
+        "send_rpc": "True", 
+        "snapshot_threshold": "10", 
+        "ssl_ca_certs": "/opt/dse/resources/cassandra/conf/prod-sor-metadata-cassandra.ews.int.pem", 
+        "ssl_client_key": "", 
+        "ssl_client_pem": "", 
+        "ssl_validate": "False", 
+        "used_hosts_per_remote_dc": "1", 
+        "username": "svc_admin"
+    }, 
+    "cassandra_metrics": {
+        "1min_ttl": "604800", 
+        "24hr_ttl": "-1", 
+        "2hr_ttl": "31536000", 
+        "5min_ttl": "2419200", 
+        "ignored_column_families": "", 
+        "ignored_keyspaces": "system, system_traces, system_auth, dse_auth, OpsCenter", 
+        "ignored_solr_cores": "", 
+        "metrics_enabled": "True"
+    }, 
+    "cloud": {
+        "accepted_certs": "./conf/ssl/cacert.pem"
+    }, 
+    "cluster_display_options": {}, 
+    "clusters": {
+        "add_cluster_timeout": "30", 
+        "startup_sleep": "0"
+    }, 
+    "collection": {
+        "basic_info_period": "3600", 
+        "cf_poll_period": "60", 
+        "job_poll_period": "5", 
+        "node_poll_period": "120", 
+        "nodelist_poll_period": "30", 
+        "push_throttle_period": "60"
+    }, 
+    "definitions": {
+        "auto_update": "False", 
+        "definitions_dir": "./conf/definitions/", 
+        "download_filename": "definition_files.tgz", 
+        "download_host": "opscenter.datastax.com", 
+        "download_port": "443", 
+        "hash_filename": "version.md5", 
+        "sleep": "3600", 
+        "ssl_certfile": "./ssl/definitions.pem", 
+        "use_ssl": "True"
+    }, 
+    "destinations": {
+        "active": ""
+    }, 
+    "dse": {}, 
+    "event_storage": {
+        "enabled": "True"
+    }, 
+    "failover": {
+        "failover_configuration_directory": "./failover", 
+        "heartbeat_fail_window": "60", 
+        "heartbeat_period": "10", 
+        "heartbeat_reply_period": "300"
+    }, 
+    "feedback": {
+        "host": "phonehome.datastax.com", 
+        "port": "8890"
+    }, 
+    "forecasting": {
+        "function": "polyfit", 
+        "polyfit_degree": "3", 
+        "range_multiplier": "3", 
+        "required_data_percentage": ".5"
+    }, 
+    "hadoop": {
+        "base_job_tracker_proxy_port": "50031", 
+        "job_tracker_http_port": "50030", 
+        "job_tracker_port": "9290", 
+        "job_tracker_proxy_port": ""
+    }, 
+    "jmx": {
+        "operations_pool_size": "4", 
+        "password": "^KNw^5n&mS})A(K!E*6hm!QEks", 
+        "port": "7199", 
+        "username": "svc_admin"
+    }, 
+    "kerberos": {
+        "default_client_principal": "", 
+        "default_client_user": "opscenter-agent", 
+        "default_hostname": "", 
+        "default_service": "", 
+        "job_tracker_client_principal": "", 
+        "opscenterd_client_principal": ""
+    }, 
+    "kerberos_client_principals": {}, 
+    "kerberos_hostnames": {}, 
+    "kerberos_services": {}, 
+    "labs": {
+        "disable_backup_service_java7_check": "False", 
+        "enable_dashboard_preset_import_export": "False", 
+        "latest_version_check": "True", 
+        "live_routes": "False", 
+        "orbited_longpoll": "false"
+    }, 
+    "ldap": {
+        "admin_group_name": "", 
+        "connection_timeout": "20", 
+        "debug_ssl": "False", 
+        "group_name_attribute": "cn", 
+        "group_search_base": "", 
+        "group_search_filter": "", 
+        "group_search_filter_with_dn": "", 
+        "group_search_type": "directory_search", 
+        "ldap_security": "None", 
+        "opt_referrals": "1", 
+        "protocol_version": "", 
+        "search_dn": "", 
+        "search_password": "", 
+        "server_host": "127.0.0.1", 
+        "server_port": "389", 
+        "ssl_cacert": "", 
+        "ssl_cert": "", 
+        "ssl_key": "", 
+        "tls_demand": "", 
+        "tls_reqcert": "", 
+        "uri_scheme": "", 
+        "user_memberof_attribute": "memberof", 
+        "user_search_base": "", 
+        "user_search_filter": ""
+    }, 
+    "logging": {
+        "ignored_dict_keys": "", 
+        "level": "INFO", 
+        "log_length": "10000000", 
+        "log_path": "./log/opscenterd.log", 
+        "max_rotate": "10", 
+        "resource_usage_interval": "60"
+    }, 
+    "metric_caching": {
+        "num_data_points_cached": "50", 
+        "num_metrics_cached": "1000"
+    }, 
+    "metric_storage": {
+        "metric_poll_period": "60", 
+        "plugin": "cass_store"
+    }, 
+    "provisioning": {
+        "agent_install_timeout": "120", 
+        "enable_ec2multiregionsnitch": "False", 
+        "keyspace_timeout": "30", 
+        "private_key_dir": "./conf/"
+    }, 
+    "repair_service": {
+        "alert_on_repair_failure": "True", 
+        "cluster_stabilization_period": "30", 
+        "error_logging_window": "86400", 
+        "incremental_err_alert_threshold": "20", 
+        "incremental_range_repair": "False", 
+        "incremental_repair_tables": "", 
+        "ks_update_period": "300", 
+        "log_directory": "./log/repair_service/", 
+        "log_length": "10485760", 
+        "max_err_threshold": "100", 
+        "max_parallel_repairs": "0", 
+        "max_pending_repairs": "5", 
+        "max_rotate": "10", 
+        "min_repair_time": "5", 
+        "min_throughput": "512", 
+        "num_recent_throughputs": "20", 
+        "persist_directory": "./repair_service/", 
+        "persist_period": "300", 
+        "repair_estimation_factor": "0.75", 
+        "restart_period": "300", 
+        "single_repair_timeout": "3600", 
+        "single_task_err_threshold": "10", 
+        "snapshot_override": "False"
+    }, 
+    "request_tracker": {
+        "queue_size": "10000"
+    }, 
+    "security": {
+        "config_encryption_active": "False", 
+        "config_encryption_key_name": "opsc_system_key", 
+        "config_encryption_key_path": ""
+    }, 
+    "spark": {
+        "base_master_proxy_port": "7081", 
+        "master_http_port": "7080", 
+        "master_proxy_port": ""
+    }, 
+    "stat_reporter": {
+        "initial_sleep": "300", 
+        "interval": "0", 
+        "port": "8889", 
+        "report_file": "./cluster-report.pdf", 
+        "ssl_key": "./ssl/stats.pem", 
+        "ssl_port": "443", 
+        "url": "phonehome.datastax.com"
+    }, 
+    "stomp": {
+        "alert_push_interval": "1", 
+        "batch_size": "100", 
+        "interface": "127.0.0.1", 
+        "port": "61619", 
+        "push_interval": "3"
+    }, 
+    "storage_cassandra": {
+        "api_port": "9160", 
+        "bind_interface": "", 
+        "connect_timeout": "6.0", 
+        "connection_pool_size": "5", 
+        "cql_port": "9042", 
+        "keyspace": "OpsCenter", 
+        "local_dc_pref": "True", 
+        "max_schema_agreement_wait": "30", 
+        "password": "", 
+        "retry_delay": "10", 
+        "seed_hosts": "", 
+        "send_rpc": "True", 
+        "ssl_ca_certs": "", 
+        "ssl_client_key": "", 
+        "ssl_client_pem": "", 
+        "ssl_validate": "True", 
+        "used_hosts_per_remote_dc": "1", 
+        "username": ""
+    }, 
+    "ui": {
+        "default_api_timeout": "10", 
+        "max_metrics_requests": "16", 
+        "node_detail_refresh_delay": "5", 
+        "storagemap_ttl": "300"
+    }, 
+    "webserver": {
+        "interface": "0.0.0.0", 
+        "log_path": "./log/http.log", 
+        "port": "8888", 
+        "ssl_certfile": "/opt/cloudera/security/x509/s4810palv.hal.ews.int.pem", 
+        "ssl_keyfile": "/opt/cloudera/security/x509/s4810palv.hal.ews.int.np.key", 
+        "ssl_port": "8443", 
+        "staticdir": "./content", 
+        "sub_process_timeout": "600", 
+        "tarball_process_timeout": "600"
+    }
+}

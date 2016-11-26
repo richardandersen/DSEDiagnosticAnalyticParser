@@ -35,9 +35,6 @@
     <Setting Name="LogExcelWorkbookFilter" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="LoadLogsIntoExcel" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="ExcelTemplateFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\dseTemplate.xlsm</Value>
     </Setting>
@@ -49,15 +46,6 @@
     </Setting>
     <Setting Name="DiagnosticNoSubFolders" Type="System.Boolean" Scope="Application">
       <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="ParseLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="ParseNonLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="ParseArchivedLogs" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
     </Setting>
     <Setting Name="AlternativeLogFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
@@ -509,9 +497,6 @@
     <Setting Name="TableHistogramDirPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SummarizeOnlyOverlappingLogDateRangesForNodes" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
     <Setting Name="ToleranceContinuousGCInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">250</Value>
     </Setting>
@@ -559,6 +544,15 @@
     </Setting>
     <Setting Name="CompactionFlagThresholdAsIORate" Type="System.Decimal" Scope="Application">
       <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="LogParsingExcelOptions" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Detect</Value>
+    </Setting>
+    <Setting Name="ParsingExcelOptions" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ParseLoadWorksheets</Value>
+    </Setting>
+    <Setting Name="SnitcheFiles" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[{"Item1":"SimpleSnitch","Item2":null},{"Item1":"RackInferringSnitch","Item2":null},{"Item1":"PropertyFileSnitch","Item2":".\\cassandra-topology.properties"},{"Item1":"GossipingPropertyFileSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"CloudstackSnitch","Item2":null},{"Item1":"GoogleClouldSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2Snitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2MultiRegionSnitch","Item2":".\\cassandra-rackdc.properties"}]</Value>
     </Setting>
   </Settings>
 </SettingsFile>

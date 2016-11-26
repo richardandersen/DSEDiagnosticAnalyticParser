@@ -41,8 +41,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 lastTableName = dtItem.TableName;
 
-                if (dtItem.Rows.Count == 0)
-                    continue;
+                if (dtItem.Rows.Count == 0) continue;
 
                 rowCount += dtItem.Rows.Count;
                 dtErrors = dtItem.GetErrors();
@@ -72,6 +71,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 lastTableName,
                                                 rowCount,
                                                 dtComplete.Rows.Count);
+            }
+
+            if(dtComplete.Rows.Count == 0)
+            {
+                return dtComplete;
             }
 
             if (viewFilterSortRowStateOpts != null)

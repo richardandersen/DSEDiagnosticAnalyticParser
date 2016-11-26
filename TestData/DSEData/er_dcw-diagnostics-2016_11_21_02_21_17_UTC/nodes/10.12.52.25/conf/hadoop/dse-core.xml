@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<!-- Put site-specific property overrides in this file. -->
+<!-- When dse.autoconfigure.node property is enabled system will try to  
+ auto-configure the node according to hardware characteristics e.g.
+ map/reduce max tasks are going to be set to number of available cores for map
+ and half of core number to reduce.
+-->
+<configuration>
+
+<property>
+  <name>dse.autoconfigure.node</name>
+  <value>false</value>
+</property>
+
+</configuration>

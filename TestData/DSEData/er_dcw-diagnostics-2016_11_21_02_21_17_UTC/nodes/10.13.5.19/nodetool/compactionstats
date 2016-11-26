@@ -1,0 +1,5 @@
+/opt/dse-4.8.10/resources/cassandra/bin/nodetool --host=127.0.0.1 -p 7199 --username=svc_admin --password=***** compactionstats
+exit status: 1
+
+stderr:
+nodetool: Failed to connect to '127.0.0.1:7199' - ConnectException: 'Connection refused'.

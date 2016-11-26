@@ -11,7 +11,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
-        private static void LoadSummaryLog(ExcelPackage excelPkg,
+        public static void LoadSummaryLog(ExcelPackage excelPkg,
                                             DataTable dtLogSummary,
                                             string excelWorkSheetSummaryLogCassandra,
                                             DateTimeRange minmaxLogDate,
