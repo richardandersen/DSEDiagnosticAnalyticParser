@@ -278,12 +278,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string LogCassandraSystemLogFile = Properties.Settings.Default.LogCassandraSystemLogFile;
         public static string LogCassandraSystemLogFileArchive = Properties.Settings.Default.LogCassandraSystemLogFileArchive; //system-*.log
         public static string ConfCassandraDir = Properties.Settings.Default.ConfCassandraDir;
-        public static string ConfCassandraFile = Properties.Settings.Default.ConfCassandraFile;
-        public static string ConfCassandraType = Properties.Settings.Default.ConfCassandraType;
+        public static string ConfCassandraFile = Properties.Settings.Default.ConfCassandraFile;        
         public static string ConfDSEDir = Properties.Settings.Default.ConfDSEDir;
-        public static string ConfDSEYamlFile = Properties.Settings.Default.ConfDSEYamlFile;
-        public static string ConfDSEYamlType = Properties.Settings.Default.ConfDSEYamlType;
-        public static string ConfDSEType = Properties.Settings.Default.ConfDSEYamlType;
+        public static string ConfDSEYamlFile = Properties.Settings.Default.ConfDSEYamlFile;       
         public static string ConfDSEFile = Properties.Settings.Default.ConfDSEFile;
         public static string CQLDDLDirFile = Properties.Settings.Default.CQLDDLDirFile;
         public static string CQLDDLDirFileExt = Properties.Settings.Default.CQLDDLDirFileExt;
@@ -310,7 +307,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static Tuple<string, string, System.Data.DataViewRowState> DDLKeyspaceWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.DDLKeyspaceWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> RingInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.RingInfoWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> SummaryLogWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.SummaryLogWorksheetFilterSort);
-        
+        public static Tuple<string, string, System.Data.DataViewRowState> CompactionHistWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.CompactionHistWorksheetFilterSort);
+
         public static Dictionary<string, string> CreateSnitchDictionary(string configString)
         {
             var configObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string>[]>(configString);

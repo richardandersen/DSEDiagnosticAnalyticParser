@@ -16,6 +16,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public string Cmd;
         public string CmdParams;
         public IEnumerable<Tuple<string, string>> KeyValueParams;
+        public bool OptionsCmd;
 
         public string MakeKeyValue()
         {
@@ -26,6 +27,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                         + (this.KeyValueParams == null
                                 ? this.CmdParams
                                 : string.Join(" ", this.KeyValueParams.Select(kvp => kvp.Item1 + ": " + kvp.Item2)));
+        }
+
+        public string MakeKey()
+        {
+            return this.DCName
+                        + ": "
+                        + this.PropertyName();
         }
 
         public bool ComparerProperyOnly(YamlInfo compareItem)

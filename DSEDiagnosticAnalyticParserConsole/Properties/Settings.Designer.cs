@@ -449,15 +449,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("cassandra")]
-        public string ConfCassandraType {
-            get {
-                return ((string)(this["ConfCassandraType"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(".\\conf\\dse")]
         public string ConfDSEDir {
             get {
@@ -471,24 +462,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string ConfDSEYamlFile {
             get {
                 return ((string)(this["ConfDSEYamlFile"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("dse yaml")]
-        public string ConfDSEYamlType {
-            get {
-                return ((string)(this["ConfDSEYamlType"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("dse")]
-        public string ConfDSEType {
-            get {
-                return ((string)(this["ConfDSEType"]));
             }
         }
         
@@ -893,8 +866,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Data Center] ASC, [Node IPAddress] ASC, [Yaml Type] ASC, " +
-            "[Property] ASC\",\"Item3\":\"CurrentRows\"}")]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Yaml Type] ASC, [Property] ASC, [Data Center] ASC, [Node " +
+            "IPAddress] ASC\",\"Item3\":\"CurrentRows\"}")]
         public string YamlSettingsInfoWorksheetFilterSort {
             get {
                 return ((string)(this["YamlSettingsInfoWorksheetFilterSort"]));
@@ -990,6 +963,16 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string SnitcheFiles {
             get {
                 return ((string)(this["SnitcheFiles"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Data Center] ASC, [Node IPAddress] ASC, [KeySpace] ASC, [" +
+            "Table] ASC, [Compaction Timestamp (UTC)] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string CompactionHistWorksheetFilterSort {
+            get {
+                return ((string)(this["CompactionHistWorksheetFilterSort"]));
             }
         }
     }
