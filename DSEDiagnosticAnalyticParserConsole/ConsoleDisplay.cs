@@ -13,14 +13,23 @@ namespace DSEDiagnosticAnalyticParserConsole
         static ConsoleWriter consoleWriter = new ConsoleWriter();
         static Timer timer = new Timer(TimerCallback, consoleWriter, Timeout.Infinite, Timeout.Infinite);
         static List<ConsoleDisplay> ConsoleDisplays = new List<ConsoleDisplay>();
+        static bool SpinnerDefault = true;
+        static bool EnableWriters = true;
 
         private long _counter = 0;
         private Common.Patterns.Collections.ThreadSafe.List<string> _taskItems = new Common.Patterns.Collections.ThreadSafe.List<string>();
 
+        public static void DisableAllConsoleWriter()
+        {
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            SpinnerDefault = false;
+            EnableWriters = false;
+        }
+
         public ConsoleDisplay(string displayString, int maxLines = 2, bool enableSpinner = true)
         {
             this.LineFormat = displayString;
-            this.Spinner = enableSpinner;
+            this.Spinner = enableSpinner && SpinnerDefault;
             consoleWriter.ReserveRwWriteConsoleSpace(ConsoleDisplays.Count.ToString(), maxLines, -1);
             ConsoleDisplays.Add(this);
         }
@@ -47,9 +56,16 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (!string.IsNullOrEmpty(taskItem))
             {
-                if(!this._taskItems.TryAdd(taskItem))
+                if (EnableWriters)
                 {
-                    return -1;
+                    if (!this._taskItems.TryAdd(taskItem))
+                    {
+                        return -1;
+                    }
+                }
+                else
+                {
+                    consoleWriter.WriteLine(this.Line(taskItem, 1));
                 }
             }
 
@@ -74,9 +90,16 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (!string.IsNullOrEmpty(taskItem))
             {
-                if(!this._taskItems.Remove(taskItem))
+                if (EnableWriters)
                 {
-                    return -1;
+                    if (!this._taskItems.Remove(taskItem))
+                    {
+                        return -1;
+                    }
+                    else
+                    {
+                        consoleWriter.WriteLine(this.Line(taskItem, 0));
+                    }
                 }
             }
 
@@ -103,6 +126,20 @@ namespace DSEDiagnosticAnalyticParserConsole
         public int Pending
         {
             get { return this._taskItems.Count; }
+        }
+
+        public string Line(string item, int itemCount)
+        {
+            try
+            {                
+                return string.Format(LineFormat,
+                                        Common.Patterns.Threading.LockFree.Read(ref this._counter),
+                                        itemCount,
+                                        item);
+            }
+            catch
+            {}
+            return string.Empty;
         }
 
         public string Line(int pos, bool retry = true)
@@ -163,14 +200,17 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         public static void Start()
-        {                        
-            timer.Change(1000, 500);
+        {
+            if (EnableWriters)
+            {
+                timer.Change(1000, 500);
+            }
         }
 
         public static void End()
         {
-            timer.Change(0, 0);
-            consoleWriter.ClearSpinner();                       
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            consoleWriter.ClearSpinner();     
             //consoleWriter.DisableSpinner();
         }
 

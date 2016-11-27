@@ -37,7 +37,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["A:J"].AutoFitColumns();
                                         },
                                         false,
-                                        -1);
+                                        -1,
+                                        ParserSettings.CompactionHistWorksheetFilterSort);
 
             Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetCompactionHist);
         }

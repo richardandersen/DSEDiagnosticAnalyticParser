@@ -157,20 +157,11 @@
     <Setting Name="ConfCassandraFile" Type="System.String" Scope="Application">
       <Value Profile="(Default)">cassandra.yaml</Value>
     </Setting>
-    <Setting Name="ConfCassandraType" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">cassandra</Value>
-    </Setting>
     <Setting Name="ConfDSEDir" Type="System.String" Scope="Application">
       <Value Profile="(Default)">.\conf\dse</Value>
     </Setting>
     <Setting Name="ConfDSEYamlFile" Type="System.String" Scope="Application">
       <Value Profile="(Default)">dse.yaml</Value>
-    </Setting>
-    <Setting Name="ConfDSEYamlType" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">dse yaml</Value>
-    </Setting>
-    <Setting Name="ConfDSEType" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">dse</Value>
     </Setting>
     <Setting Name="ConfDSEFile" Type="System.String" Scope="Application">
       <Value Profile="(Default)">dse</Value>
@@ -522,7 +513,7 @@
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Node IPAddress] ASC, [Data Center] ASC","Item3":"CurrentRows"}</Value>
     </Setting>
     <Setting Name="YamlSettingsInfoWorksheetFilterSort" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center] ASC, [Node IPAddress] ASC, [Yaml Type] ASC, [Property] ASC","Item3":"CurrentRows"}</Value>
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Yaml Type] ASC, [Property] ASC, [Data Center] ASC, [Node IPAddress] ASC","Item3":"CurrentRows"}</Value>
     </Setting>
     <Setting Name="NodeStatsWorksheetFilterSort" Type="System.String" Scope="Application">
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Node IPAddress] ASC","Item3":"CurrentRows"}</Value>
@@ -553,6 +544,9 @@
     </Setting>
     <Setting Name="SnitcheFiles" Type="System.String" Scope="Application">
       <Value Profile="(Default)">[{"Item1":"SimpleSnitch","Item2":null},{"Item1":"RackInferringSnitch","Item2":null},{"Item1":"PropertyFileSnitch","Item2":".\\cassandra-topology.properties"},{"Item1":"GossipingPropertyFileSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"CloudstackSnitch","Item2":null},{"Item1":"GoogleClouldSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2Snitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2MultiRegionSnitch","Item2":".\\cassandra-rackdc.properties"}]</Value>
+    </Setting>
+    <Setting Name="CompactionHistWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center] ASC, [Node IPAddress] ASC, [KeySpace] ASC, [Table] ASC, [Compaction Timestamp (UTC)] ASC","Item3":"CurrentRows"}</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -35,12 +35,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if(argResult.Value.Debug)
             {
-                Common.ConsoleHelper.Prompt("Attach Debugger and Press Return to Continue", ConsoleColor.Yellow);
+                Common.ConsoleHelper.Prompt("Attach Debugger and Press Return to Continue", ConsoleColor.Gray, ConsoleColor.DarkRed);
+                ConsoleDisplay.DisableAllConsoleWriter();
             }
 
             if (argResult.Value.DisplayDefaults)
             {
-                Console.WriteLine(argResult.Value.ToString());
+                Console.WriteLine(argResult.Value.ToString());                
                 return;
             }
 
@@ -984,7 +985,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
-                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfCassandraType, yamlList);
+                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, diagFilePath.FileName, yamlList);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                         else
@@ -1002,7 +1003,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
-                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfDSEYamlType, yamlList);
+                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, diagFilePath.FileName, yamlList);
                             parsedYamlList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
@@ -1021,7 +1022,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var yamlList = new List<YamlInfo>();
                             listCYamlStack.Push(yamlList);
-                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, ParserSettings.ConfDSEType, yamlList);
+                            ProcessFileTasks.ReadYamlFileParseIntoList(diagFilePath, ipAddress, dcName, diagFilePath.FileName, yamlList);
                             parsedYamlList.TryAdd(ipAddress);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
@@ -1571,7 +1572,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (argResult.Value.Debug)
             {
-                Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Yellow);
+                Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Gray, ConsoleColor.DarkRed);
             }
         }
 

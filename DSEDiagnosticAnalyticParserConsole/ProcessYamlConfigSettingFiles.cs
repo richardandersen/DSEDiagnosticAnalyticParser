@@ -24,6 +24,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             string parsedValue;
             bool optionsCmdParamsFnd = false;
             bool optionsBrace = false;
+            YamlInfo lastYaml = null;
 
             //seed_provider:
             //# Addresses of hosts that are deemed contact points.
@@ -63,7 +64,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             for (int nIndex = 0; nIndex < fileLines.Length; ++nIndex)
             {
-                line = fileLines[nIndex].Trim();
+                line = RemoveCommentInLine(fileLines[nIndex]).RemoveConsecutiveChar().Trim();
 
                 if (string.IsNullOrEmpty(line)
                     || line[0] == '#'                    
@@ -72,31 +73,38 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     continue;
                 }
-
+                                
                 if (line[0] == '-')
                 {
-                    if (yamlList.Count > 0)
+                    if (lastYaml != null)
                     {
-                        parsedValue = RemoveCommentInLine(line.Substring(1).TrimStart().RemoveConsecutiveChar());
+                        parsedValue = line.Substring(1).TrimStart();
                         if (parsedValue != string.Empty && parsedValue[0] != '-')
                         {
-                            yamlList.Last().CmdParams += ' ' + parsedValue;
+                            lastYaml.CmdParams += ' ' + parsedValue;
                         }
                     }
                     continue;
                 }
                 else if (optionsBrace)
-                {
-                    parsedValue = RemoveCommentInLine(line.RemoveConsecutiveChar());
-                    yamlList.Last().CmdParams += ' ' + parsedValue;
-                    optionsBrace = !(parsedValue.Length > 0 && parsedValue[parsedValue.Length - 1] == '}');
+                {                   
+                    lastYaml.CmdParams += ' ' + line;
+                    optionsBrace = !(line.Length > 0 && line[line.Length - 1] == '}');
                     continue;
                 }
                 else if (line.StartsWith("parameters:")
-                            || optionsCmdParamsFnd && fileLines[nIndex][0] == ' ')
-                {
-                    parsedValue = RemoveCommentInLine(line.RemoveConsecutiveChar());
-                    yamlList.Last().CmdParams += ' ' + parsedValue;
+                            || (optionsCmdParamsFnd && fileLines[nIndex][0] == ' '))
+                {                    
+                    lastYaml.CmdParams += ' ' + line;
+                    continue;
+                }
+                else if (lastYaml != null
+                            && string.IsNullOrEmpty(lastYaml.CmdParams)
+                            && fileLines[nIndex][0] == ' ')
+                {                    
+                    lastYaml.CmdParams = line;
+                    lastYaml.OptionsCmd = true;
+                    optionsCmdParamsFnd = true;
                     continue;
                 }
 
@@ -113,8 +121,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (posCmdDel < 0)
                     {
-                        parsedValue = RemoveCommentInLine(line.RemoveConsecutiveChar());
-                        yamlList.Last().CmdParams += ' ' + parsedValue;
+                        lastYaml.CmdParams += ' ' + line;
                         continue;
                     }
                 }
@@ -126,7 +133,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     optionsCmdParamsFnd = true;
                 }
 
-                parsedValue = RemoveCommentInLine(line.Substring(posCmdDel + 1).Trim().RemoveConsecutiveChar());
+                parsedValue = line.Substring(posCmdDel + 1).Trim();
 
                 if (parsedValue.Length > 2 && parsedValue[0] == '{')
                 {
@@ -136,13 +143,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
 
-                yamlList.Add(new YamlInfo()
+                yamlList.Add(lastYaml = new YamlInfo()
                 {
                     YamlType = yamlType,
                     Cmd = strCmd,
                     DCName = dcName,
                     IPAddress = ipAddress,
-                    CmdParams = parsedValue
+                    CmdParams = parsedValue,
+                    OptionsCmd = optionsCmdParamsFnd
                 });
             }
 
@@ -154,9 +162,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if (element.Cmd == "endpoint_snitch")
                     {
-                        if (ParserSettings.SnitchFiles.ContainsKey(element.CmdParams.ToLower()))
+                        if (ParserSettings.SnitchFiles.ContainsKey(RemoveNamespace(element.CmdParams).ToLower()))
                         {
-                            var propFilePath = Common.Path.PathUtils.BuildPath(ParserSettings.SnitchFiles[element.CmdParams.ToLower()],
+                            var propFilePath = Common.Path.PathUtils.BuildPath(ParserSettings.SnitchFiles[RemoveNamespace(element.CmdParams).ToLower()],
                                                                                 yamlFilePath.ParentDirectoryPath.Path,
                                                                                 null,
                                                                                 true,
@@ -165,13 +173,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (propFilePath != null
                                     && propFilePath.Exist())
                             {                                
-                                ReadYamlFileParseIntoList(propFilePath, ipAddress, dcName, propFilePath.FileNameWithoutExtension, propList, true);
+                                ReadYamlFileParseIntoList(propFilePath, ipAddress, dcName, propFilePath.FileName, propList, true);
                             }
                         }
                     }
-                    else if (!element.Cmd.EndsWith("_directories"))
+                    else if (element.Cmd.EndsWith("_directories"))
                     {
-                        var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
+                        element.CmdParams = element.CmdParams.Trim().Replace(" ", ", ");
+                    }
+                    else
+                    {
+                        var parsedValues = ParseCommandParams(element.CmdParams, string.Empty, element.OptionsCmd);
 
                         element.CmdParams = parsedValues.Item1;
                         element.KeyValueParams = parsedValues.Item2;
@@ -182,7 +194,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        static Tuple<string, IEnumerable<Tuple<string, string>>> ParseCommandParams(string cmdParams, string orgSubCmd)
+        static Tuple<string, IEnumerable<Tuple<string, string>>> ParseCommandParams(string cmdParams, string orgSubCmd, bool optionsCmd, string topSubCmd = null)
         {
             var separateParams = Common.StringFunctions.Split(cmdParams,
                                                                 new char[] { ',', ' ', '=' },
@@ -198,7 +210,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     && paramValue[0] == '{'
                     && paramValue[paramValue.Length - 1] == '}')
                 {
-                    return ParseCommandParams(paramValue.Substring(1, paramValue.Length - 1), orgSubCmd);
+                    return ParseCommandParams(paramValue.Substring(1, paramValue.Length - 1), orgSubCmd, optionsCmd);
                 }
 
                 return new Tuple<string, IEnumerable<Tuple<string, string>>>(orgSubCmd + DetermineProperFormat(separateParams.FirstOrDefault()), null);
@@ -206,7 +218,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             else
             {
                 var keyValues = new List<Tuple<string, string>>();
-                bool optionsFnd = false;
+                bool optionsFnd = optionsCmd;
                 bool keywordFnd = false;
                 string subCmd = orgSubCmd;
 
@@ -217,7 +229,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             && separateParams[nIndex][0] == '{'
                             && separateParams[nIndex][separateParams[nIndex].Length - 1] == '}')
                     {
-                        var paramItems = ParseCommandParams(separateParams[nIndex].Substring(1, separateParams[nIndex].Length - 2), subCmd);
+                        var paramItems = ParseCommandParams(separateParams[nIndex].Substring(1, separateParams[nIndex].Length - 2), subCmd, optionsFnd);
 
                         if (paramItems.Item1 != null)
                         {
@@ -236,8 +248,21 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (separateParams[nIndex + 1][separateParams[nIndex + 1].Length - 1] == ':')
                         {
-                            subCmd = orgSubCmd + separateParams[nIndex] + '.';
-                            var paramItems = ParseCommandParams(string.Join(" ", separateParams.Skip(nIndex + 1)), subCmd);
+                            if (topSubCmd == null)
+                            {
+                                subCmd = orgSubCmd + separateParams[nIndex] + '.';
+                            }
+                            else
+                            {
+                                subCmd = topSubCmd + separateParams[nIndex] + '.';
+                            }
+
+                            var paramItems = ParseCommandParams(string.Join(" ", separateParams.Skip(nIndex + 1)),
+                                                                    subCmd,
+                                                                    true,
+                                                                    topSubCmd == null
+                                                                        ? orgSubCmd
+                                                                        : topSubCmd);
 
                             if (paramItems.Item1 != null)
                             {
@@ -302,9 +327,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 return;
             }
-
-            var removeDups = masterYamlList.DuplicatesRemoved(item => item.MakeKeyValue());
-
+            
             if (dtCYaml.Columns.Count == 0)
             {
                 dtCYaml.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
@@ -314,16 +337,32 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCYaml.Columns.Add("Value", typeof(object));
             }
 
-            var yamlItems = removeDups.ToArray();
+            var keyvalueOccurrences = masterYamlList.GroupBy(item => item.MakeKeyValue())
+                                            .Select(g => new { Key=g.First().MakeKey(), YamlItems = g, count = g.Count() });
+            var masterKeys = masterYamlList.GroupBy(item => item.MakeKey())
+                                                .Select(g => g.First().MakeKey());
 
-            foreach (var element in yamlItems)
+            foreach (var key in masterKeys)
             {
-                if (yamlItems.Count(i => i.ComparerProperyOnly(element)) < 2)
-                {
-                    element.IPAddress = "<Common>";
-                }
+                var nbrChanges = keyvalueOccurrences.Where(i => i.Key == key).OrderByDescending(i => i.count);
+                int rangePos = 0;
 
-                element.AddValueToDR(dtCYaml);
+                if (nbrChanges.Count() == 1
+                        && nbrChanges.First().count > 1)
+                {
+                    var element = nbrChanges.First();
+                    element.YamlItems.First().IPAddress = "<Common>";
+                    element.YamlItems.First().AddValueToDR(dtCYaml);
+                    rangePos = 1;                 
+                }
+               
+                foreach(var element in nbrChanges.GetRange(rangePos))
+                {
+                    foreach (var subElement in element.YamlItems)
+                    {
+                        subElement.AddValueToDR(dtCYaml);
+                    }
+                }
             }
         }
 
