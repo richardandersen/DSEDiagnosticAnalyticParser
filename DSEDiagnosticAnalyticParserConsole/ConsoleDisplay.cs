@@ -30,7 +30,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             this.LineFormat = displayString;
             this.Spinner = enableSpinner && SpinnerDefault;
-            consoleWriter.ReserveRwWriteConsoleSpace(ConsoleDisplays.Count.ToString(), maxLines, -1);
+			if (EnableWriters)
+			{
+				consoleWriter.ReserveRwWriteConsoleSpace(ConsoleDisplays.Count.ToString(), maxLines, -1);
+			}
             ConsoleDisplays.Add(this);
         }
 
