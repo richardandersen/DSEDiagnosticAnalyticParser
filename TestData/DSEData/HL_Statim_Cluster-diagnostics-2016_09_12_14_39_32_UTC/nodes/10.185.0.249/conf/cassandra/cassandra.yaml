@@ -112,6 +112,7 @@ partitioner: org.apache.cassandra.dht.Murmur3Partitioner
 # If not set, the default directory is $CASSANDRA_HOME/data/data.
 data_file_directories:
      - /mnt/dse/data1
+     - /mnt/dse/data2
 
 # commit log.  when running on magnetic HDD, this should be a
 # separate spindle than the data directories.
@@ -607,10 +608,10 @@ range_request_timeout_in_ms: 10000
 # How long the coordinator should wait for writes to complete
 write_request_timeout_in_ms: 2000
 # How long the coordinator should wait for counter writes to complete
-counter_write_request_timeout_in_ms: 5000
+counter_write_request_timeout_in_ms: 5000 #10000
 # How long a coordinator should continue to retry a CAS operation
 # that contends with other proposals for the same row
-cas_contention_timeout_in_ms: 1000
+cas_contention_timeout_in_ms: 1000 # 5000
 # How long the coordinator should wait for truncates to complete
 # (This can be much longer, because unless auto_snapshot is disabled
 # we need to flush first so we can snapshot before removing the data.)
