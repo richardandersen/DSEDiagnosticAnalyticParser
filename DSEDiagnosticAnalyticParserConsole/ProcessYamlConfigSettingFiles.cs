@@ -219,6 +219,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var keyValues = new List<Tuple<string, string>>();
                 string subCmd = orgSubCmd;
+                bool keyWord = false;
 
                 for (int nIndex = 0; nIndex < separateParams.Count; ++nIndex)
                 {
@@ -272,6 +273,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             break;
                         }
+                        keyWord = true;
                     }
 
                     bool noNamespace = separateParams[nIndex] == "seeds"
@@ -279,6 +281,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         || separateParams[nIndex].EndsWith("_interface")
                                         || separateParams[nIndex].EndsWith("_password")
                                         || separateParams[nIndex].EndsWith("_host");
+                    
+                    if (keyWord 
+                            && nIndex + 3 <= separateParams.Count
+                            && separateParams[nIndex + 2][separateParams[nIndex + 2].Length - 1] != ':')
+                    {
+                        //Determine if reminding items are values
+                        var subList = separateParams.GetRange(nIndex + 1, separateParams.Count - nIndex - 1);
+                        var valuesList = subList.TakeWhile(i => Common.StringFunctions.IndexOf(i, ':') < 0);
+
+                        keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
+                                                                string.Join(",",
+                                                                                valuesList.Select(i => DetermineProperFormat(i, false, !noNamespace))
+                                                                                            .Sort())));
+                        nIndex += valuesList.Count();
+                        continue;
+                    }
 
                     keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
                                                                 DetermineProperFormat(separateParams[++nIndex], false, !noNamespace)));
