@@ -453,6 +453,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return strValueA;
             }
 
+            if(strValue.IndexOfAny(new char[] { '/', '\\', ':' }) >= 0)
+            {
+                return strValue;
+            }
+
             if (StringFunctions.ParseIntoNumeric(strValue, out item))
             {
                 return item;

@@ -67,13 +67,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                 line = RemoveCommentInLine(fileLines[nIndex]).RemoveConsecutiveChar().Trim();
 
                 if (string.IsNullOrEmpty(line)
-                    || line[0] == '#'                    
+                    || line[0] == '#'
                     || line.StartsWith("if ")
                     || line == "fi")
                 {
                     continue;
                 }
-                                
+
                 if (line[0] == '-')
                 {
                     if (lastYaml != null)
@@ -87,21 +87,21 @@ namespace DSEDiagnosticAnalyticParserConsole
                     continue;
                 }
                 else if (optionsBrace)
-                {                   
+                {
                     lastYaml.CmdParams += ' ' + line;
                     optionsBrace = !(line.Length > 0 && line[line.Length - 1] == '}');
                     continue;
                 }
                 else if (line.StartsWith("parameters:")
                             || (optionsCmdParamsFnd && fileLines[nIndex][0] == ' '))
-                {                    
+                {
                     lastYaml.CmdParams += ' ' + line;
                     continue;
                 }
                 else if (lastYaml != null
                             && string.IsNullOrEmpty(lastYaml.CmdParams)
                             && fileLines[nIndex][0] == ' ')
-                {                    
+                {
                     lastYaml.CmdParams = line;
                     lastYaml.OptionsCmd = true;
                     optionsCmdParamsFnd = true;
@@ -172,18 +172,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                 true) as IFilePath;
                             if (propFilePath != null
                                     && propFilePath.Exist())
-                            {                                
+                            {
                                 ReadYamlFileParseIntoList(propFilePath, ipAddress, dcName, propFilePath.FileName, propList, true);
                             }
                         }
                     }
                     else if (element.Cmd.EndsWith("_directories"))
                     {
-                        element.CmdParams = element.CmdParams.Trim().Replace(" ", ", ");
+                        element.CmdParams = element.CmdParams.Trim().Split(' ').OrderBy(i => i).Join(", ", i => i);
                     }
                     else
                     {
-                        var parsedValues = ParseCommandParams(element.CmdParams, string.Empty, element.OptionsCmd);
+                        var parsedValues = ParseCommandParams(element.CmdParams, string.Empty);
 
                         element.CmdParams = parsedValues.Item1;
                         element.KeyValueParams = parsedValues.Item2;
@@ -194,7 +194,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        static Tuple<string, IEnumerable<Tuple<string, string>>> ParseCommandParams(string cmdParams, string orgSubCmd, bool optionsCmd, string topSubCmd = null)
+        static Tuple<string, IEnumerable<Tuple<string, string>>> ParseCommandParams(string cmdParams, string orgSubCmd, string topSubCmd = null)
         {
             var separateParams = Common.StringFunctions.Split(cmdParams,
                                                                 new char[] { ',', ' ', '=' },
@@ -210,7 +210,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     && paramValue[0] == '{'
                     && paramValue[paramValue.Length - 1] == '}')
                 {
-                    return ParseCommandParams(paramValue.Substring(1, paramValue.Length - 1), orgSubCmd, optionsCmd);
+                    return ParseCommandParams(paramValue.Substring(1, paramValue.Length - 1), orgSubCmd, topSubCmd);
                 }
 
                 return new Tuple<string, IEnumerable<Tuple<string, string>>>(orgSubCmd + DetermineProperFormat(separateParams.FirstOrDefault()), null);
@@ -218,8 +218,6 @@ namespace DSEDiagnosticAnalyticParserConsole
             else
             {
                 var keyValues = new List<Tuple<string, string>>();
-                bool optionsFnd = optionsCmd;
-                bool keywordFnd = false;
                 string subCmd = orgSubCmd;
 
                 for (int nIndex = 0; nIndex < separateParams.Count; ++nIndex)
@@ -229,7 +227,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             && separateParams[nIndex][0] == '{'
                             && separateParams[nIndex][separateParams[nIndex].Length - 1] == '}')
                     {
-                        var paramItems = ParseCommandParams(separateParams[nIndex].Substring(1, separateParams[nIndex].Length - 2), subCmd, optionsFnd);
+                        var paramItems = ParseCommandParams(separateParams[nIndex].Substring(1, separateParams[nIndex].Length - 2), subCmd, topSubCmd);
 
                         if (paramItems.Item1 != null)
                         {
@@ -259,7 +257,6 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             var paramItems = ParseCommandParams(string.Join(" ", separateParams.Skip(nIndex + 1)),
                                                                     subCmd,
-                                                                    true,
                                                                     topSubCmd == null
                                                                         ? orgSubCmd
                                                                         : topSubCmd);
@@ -275,37 +272,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             break;
                         }
-                        keywordFnd = true;
-                    }
-                   
-                    if (separateParams[nIndex].EndsWith("_options"))
-                    {
-                        optionsFnd = true;
-                        subCmd += separateParams[nIndex] + '.';
-                    }
-                    else if (optionsFnd)
-                    {
-                        keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false), DetermineProperFormat(separateParams[++nIndex])));
-                    }
-                    else if (separateParams[nIndex] != "parameters")
-                    {
-                        optionsFnd = false;
-
-                        if (keywordFnd
-                                && separateParams[nIndex][separateParams[nIndex].Length - 1] == 's'
-                                && nIndex + 2 < separateParams.Count)
-                        {
-                            keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
-                                                                        string.Join(",", separateParams.Skip(nIndex + 1))));
-                            break;
-                        }
-                        else
-                        {
-                            keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false), DetermineProperFormat(separateParams[++nIndex])));
-                        }
                     }
 
-                    keywordFnd = false;
+                    bool noNamespace = separateParams[nIndex] == "seeds"
+                                        || separateParams[nIndex].EndsWith("_address")
+                                        || separateParams[nIndex].EndsWith("_interface")
+                                        || separateParams[nIndex].EndsWith("_password")
+                                        || separateParams[nIndex].EndsWith("_host");
+
+                    keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
+                                                                DetermineProperFormat(separateParams[++nIndex], false, !noNamespace)));
                 }
 
                 return new Tuple<string, IEnumerable<Tuple<string, string>>>(null, keyValues.OrderBy(v => v.Item1));
@@ -327,7 +303,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 return;
             }
-            
+
             if (dtCYaml.Columns.Count == 0)
             {
                 dtCYaml.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
@@ -353,9 +329,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     var element = nbrChanges.First();
                     element.YamlItems.First().IPAddress = "<Common>";
                     element.YamlItems.First().AddValueToDR(dtCYaml);
-                    rangePos = 1;                 
+                    rangePos = 1;
                 }
-               
+
                 foreach(var element in nbrChanges.GetRange(rangePos))
                 {
                     foreach (var subElement in element.YamlItems)

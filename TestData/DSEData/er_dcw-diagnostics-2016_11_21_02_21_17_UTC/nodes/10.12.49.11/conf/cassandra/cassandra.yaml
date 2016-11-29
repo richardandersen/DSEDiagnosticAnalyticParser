@@ -749,12 +749,12 @@ server_encryption_options:
     truststore: /opt/dse/resources/cassandra/conf/ews_ca.keystore
     truststore_password: changeit
     # More advanced defaults below:
-    # protocol: TLS
-    # algorithm: SunX509
-    # store_type: JKS
+    protocol: TLS
+    algorithm: SunX509
+    store_type: JKS
     cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA]
     # cipher_suites: [TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_DHE_RSA_WITH_AES_128_CBC_SHA,TLS_DHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA]
-    # require_client_auth: false
+     require_client_auth: false
 
 # enable or disable client/server encryption.
 client_encryption_options:

@@ -78,15 +78,6 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
-        public int LogMaxRowsPerNode {
-            get {
-                return ((int)(this["LogMaxRowsPerNode"]));
-            }
-        }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public global::System.Collections.Specialized.StringCollection LogSummaryIgnoreTaskExceptions {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["LogSummaryIgnoreTaskExceptions"]));

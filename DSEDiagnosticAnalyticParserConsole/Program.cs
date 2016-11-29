@@ -41,7 +41,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (argResult.Value.DisplayDefaults)
             {
-                Console.WriteLine(argResult.Value.ToString());                
+                Console.WriteLine(argResult.Value.ToString());
                 return;
             }
 
@@ -88,12 +88,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled())
                 {
                     ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.ParseLogs;
-                }                
+                }
             }
-                        
+
             if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
-                    || ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled()                    
+                    || ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseOpsCenterFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseTblHistogramFiles.IsEnabled()
@@ -105,7 +105,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadWorkSheets;
                 }
             }
-            
+
             Logger.Instance.InfoFormat("Program: {0} Version: {1} Directory: {2}",
                                             Common.Functions.Instance.ApplicationName,
                                             Common.Functions.Instance.ApplicationVersion,
@@ -126,7 +126,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.Console.WriteLine("Parse Options: {{{0}}}, Log Options: {{{1}}}{2}",
                                                 ParserSettings.ParsingExcelOption,
                                                 ParserSettings.LogParsingExcelOption,
-                                                ParserSettings.LogStartDate == DateTime.MinValue 
+                                                ParserSettings.LogStartDate == DateTime.MinValue
                                                     ? string.Empty
                                                     : string.Format(" From: {0} ({0:ddd})", ParserSettings.LogStartDate));
 
@@ -136,7 +136,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleLogReadFiles = new ConsoleDisplay("Log Files: {0}  Working: {1} Task: {2}");
             ConsoleLogCount = new ConsoleDisplay("Log Item Count: {0:###,###,##0}", 2, false);
             ConsoleParsingNonLog = new ConsoleDisplay("Non-Log Processing: {0}  Working: {1} Task: {2}");
-            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");			
+            ConsoleParsingLog = new ConsoleDisplay("Log Processing: {0}  Working: {1} Task: {2}");
 			ConsoleExcel = new ConsoleDisplay("Excel: {0}  Working: {1} WorkSheet: {2}");
             ConsoleExcelNonLog = new ConsoleDisplay("Excel Non-Log: {0}  Working: {1} Task: {2}");
             ConsoleExcelLog = new ConsoleDisplay("Excel Log: {0}  Working: {1} Task: {2}");
@@ -160,11 +160,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtLogStatusStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var dtCompHistStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var listCYamlStack = new Common.Patterns.Collections.LockFree.Stack<List<YamlInfo>>();
-            
+
             var dtYaml = new System.Data.DataTable(ParserSettings.ExcelWorkSheetYaml);
             var dtOSMachineInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetOSMachineInfo);
             var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
-            var maxminMaxLogDate = new DateTimeRange();            
+            var maxminMaxLogDate = new DateTimeRange();
 			Task<DataTable> tskdtCFHistogram = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             int nbrNodes = -1;
 
@@ -298,7 +298,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else
                     {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name) 
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name)
                                             ? Enumerable.Empty<IFilePath>()
                                             : new IFilePath[] { (IFilePath)alterPath };
                     }
@@ -431,8 +431,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                             dcName,
                                                                                             ipAddress,
                                                                                             ParserSettings.LogStartDate,
-                                                                                            maxminMaxLogDate,
-                                                                                            -1,
+                                                                                            maxminMaxLogDate,                                                                                            
                                                                                             dtLogsStack,
                                                                                             null,
                                                                                             ParserSettings.LogParsingExcelOption,
@@ -480,7 +479,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else
                     {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name) 
+                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name)
                                         ? Enumerable.Empty<IFilePath>()
                                         : new IFilePath[] { (IFilePath)alterPath };
                     }
@@ -506,8 +505,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dcName,
                                                                                         ipAddress,
                                                                                         ParserSettings.LogStartDate,
-                                                                                        maxminMaxLogDate,
-                                                                                        -1,
+                                                                                        maxminMaxLogDate,                                                                                       
                                                                                         dtLogsStack,
                                                                                         null,
                                                                                         ParserSettings.LogParsingExcelOption,
@@ -550,7 +548,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     var childrenItems = diagNodePath.Children()
                                                         .Where(c => !ParserSettings.ExcludePathName(c.Name));
                     var files = childrenItems.Where(item => item.IsFilePath).Cast<Common.IFilePath>();
-                    
+
                     if(files.HasAtLeastOneElement())
                     {
                         var filesInWarning = string.Format("Invalid File(s) Found in OpsCenter Folder ({1}): {0}",
@@ -597,7 +595,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
                             ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
                             //parsedRingList.TryAdd(filePath.PathResolved);
-                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);                            
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
                             preFilesProcessed[0] = true;
                         }
                         else
@@ -616,7 +614,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
                             ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
                             //parsedRingList.TryAdd(filePath.PathResolved);
-                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);                           
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
                             preFilesProcessed[1] = true;
                         }
                         else
@@ -777,8 +775,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         dcName,
                                                                                         ipAddress,
                                                                                         ParserSettings.LogStartDate,
-                                                                                        maxminMaxLogDate,
-                                                                                        -1,
+                                                                                        maxminMaxLogDate,                                                                                        
                                                                                         dtLogsStack,
                                                                                         null,
                                                                                         ParserSettings.LogParsingExcelOption,
@@ -800,7 +797,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 #endregion
-             
+
                 Logger.Instance.InfoFormat("Queing {0} Nodes: {1}",
                                             nbrNodes,
                                             string.Join(", ", nodeDirs.Select(p => p.Name).Sort()));
@@ -821,9 +818,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && string.IsNullOrEmpty(dcName))
-                    {                        
+                    {
                         element.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the Ring file.");
-                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");                        
+                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled())
@@ -949,8 +946,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                 dcName,
                                                                                                 ipAddress,
                                                                                                 ParserSettings.LogStartDate,
-                                                                                                maxminMaxLogDate,
-                                                                                                ParserSettings.LogMaxRowsPerNode,
+                                                                                                maxminMaxLogDate,                                                                                                
                                                                                                 dtLogsStack,
                                                                                                 archivedFilePaths,
                                                                                                 ParserSettings.LogParsingExcelOption,
@@ -975,7 +971,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                         }
                     }
-                    
+
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
                             && element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath))
                     {
@@ -1109,7 +1105,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
 
             if (parseCFHistFiles)
-            {                
+            {
                 tskdtCFHistogram = cfhistFilesTask.ContinueWith(fileTask =>
                                     {
                                         var cfHistogramFiles = fileTask.Result;
@@ -1191,7 +1187,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 string.Join(", ", parsedCFHistList.Sort<string>()));
                                 });
             #endregion
-          
+
             Task<DataTable> runLogParsingTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             Task<Tuple<DataTable, DataTable, DateTimeRange>> runSummaryLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
             Task<DataTable> runNodeStatsLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
@@ -1231,7 +1227,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     | TaskContinuationOptions.LongRunning
                                                     | TaskContinuationOptions.OnlyOnRanToCompletion)
                                             : Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
-                                               
+
                 Task<int> runningLogTask = logParsingTasks.Count == 0
                                             ? Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>()
                                             : Task<int>
@@ -1289,7 +1285,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
                     {
                         runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
-                                                                                                    ParserSettings.ExcelWorkSheetLogCassandra,                                                                                                    
+                                                                                                    ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                                     ParserSettings.LogSummaryPeriods,
                                                                                                     ParserSettings.LogSummaryPeriodRanges,
                                                                                                     ParserSettings.ParsingExcelOptions.OnlyOverlappingDateRanges.IsEnabled(),
@@ -1374,9 +1370,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
             bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
                                         || ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
-                                    && excelFile.Exist();           
+                                    && excelFile.Exist();
             var excelFileFound = excelFileExists;
-            var excelFileAttrs = excelFileExists ? excelFile.GetAttributes() : System.IO.FileAttributes.Normal;           
+            var excelFileAttrs = excelFileExists ? excelFile.GetAttributes() : System.IO.FileAttributes.Normal;
             Task runLogToExcel = null;
 
             try
@@ -1393,7 +1389,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         try
                         {
-                            excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);                                                                                  
+                            excelFile.ReplaceFileExtension(excelTemplateFile.FileExtension);
                             if (excelTemplateFile.Copy(excelFile))
                             {
                                 Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
@@ -1411,8 +1407,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 if (excelFileFound)
-                {                    
-                    excelFile.SetAttributes(excelFileAttrs | System.IO.FileAttributes.Hidden);                                      
+                {
+                    excelFile.SetAttributes(excelFileAttrs | System.IO.FileAttributes.Hidden);
                 }
                 else if(!excelFileExists)
                 {
@@ -1526,14 +1522,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Program.ConsoleExcelWorkbook.Increment(excelFile);
                         Program.ConsoleExcelNonLog.Terminate();
                         Logger.Instance.InfoFormat("Excel WorkBooks saved to \"{0}\"", excelFile.PathResolved);
-                    } //Save non-log data                
+                    } //Save non-log data
                 }
                 #endregion
             }
             finally
             {
                 if(excelFileExists)
-                {                    
+                {
                     excelFile.SetAttributes(excelFileAttrs);
                 }
             }
@@ -1563,10 +1559,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             nbrNodes,
                                             parsedItemCounts.Where(cnt => cnt > 0).Min());
                 Logger.Instance.Warn(msg);
-                
+
                 ConsoleDisplay.Console.WriteLine(msg);
             }
-           
+
             ConsoleDisplay.End();
             Logger.Instance.InfoFormat("Completed");
 
