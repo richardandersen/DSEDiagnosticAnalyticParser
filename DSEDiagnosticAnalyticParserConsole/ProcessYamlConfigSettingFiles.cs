@@ -281,8 +281,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         || separateParams[nIndex].EndsWith("_interface")
                                         || separateParams[nIndex].EndsWith("_password")
                                         || separateParams[nIndex].EndsWith("_host");
-                    
-                    if (keyWord 
+
+                    if (keyWord
                             && nIndex + 3 <= separateParams.Count
                             && separateParams[nIndex + 2][separateParams[nIndex + 2].Length - 1] != ':')
                     {
@@ -291,7 +291,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         var valuesList = subList.TakeWhile(i => Common.StringFunctions.IndexOf(i, ':') < 0);
 
                         keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
-                                                                string.Join(",",
+                                                                string.Join(", ",
                                                                                 valuesList.Select(i => DetermineProperFormat(i, false, !noNamespace))
                                                                                             .Sort())));
                         nIndex += valuesList.Count();
