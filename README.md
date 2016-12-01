@@ -5,7 +5,7 @@ This application will parse and perform analytics on a DataStax OpsCenter diagno
 
 There are two zip files that contain the required assemblies to run the application. These zip files are:
 
-- DSEDiagnosticAnalyticParser_Win64_V#.zip -- This file contains the assemblies that should be ran under MS-Windows x64. The .Net framework 4.0 is required. 
+- DSEDiagnosticAnalyticParser_Win64_V#.zip -- This file contains the assemblies that should be ran under **MS-Windows x64**. The .Net framework 4.0 and 4.5.2 are required. 
 
 - DSEDiagnosticAnalyticParser_Mono_V#.zip -- This file contains the assembiies that should be ran under Mono 4.6 (Linux, Mac OS X, Windows). Mono can be downloaded from the Mono Project websit (http://www.mono-project.com/download/). After installing Mono you can run the application using the following command line: `mono DSEDiagnosticAnalyticParserConsole.exe -?` 
 Warning: The terminal (console) windows must be resized before running the application to at least '117X30'. If the windows is smaller than these specification, an exception will be thrown. 
@@ -50,12 +50,6 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 **IncludePerformanceKeyspaces** -- If true, performance keyspaces are included during parsing. The default is to ignore these keyspaces.
 
 **IncludeOpsCenterKeyspace** -- if true, the OpsCenter Keyspace is included. The default is false.
-
-**ParseArchivedLogs|DisableParseArchivedLogs** -- If ture, any archieve C* logs are read. Default is true. Note: This option is only valid when LogMaxRowsPerNode is disable (-1), DiagnosticNoSubFolders is false, and ParseLogs is true.
-
-**ParseLogs|DisableParseLogs** -- If true, log files are parsed. If false, no log files are parsed and any associated analytics will not be performed. Default is true. If false, archive log files are not parsed either.
-
-**ParseNonLogs|DisableParseNonLogs** -- If true, non-log files (e.g., tpstat, cfstat, machine-os, etc.) are parsed. If false, no non-log files are parsed and any associated analytics will not be performed. Default is true.
 
 **DiagnosticPath** -- The path of the folder that contains the diagnostic files. This can be an absolute or a relative path. This is a required field. The default is "[MyDocuments]\DataStax\TestData\OpsCenter-diagnostics-2016_08_30_19_08_03_UTC". Note the structure of the content of this folder is dependent on the value of DiagnosticNoSubFolders. 
 
@@ -106,8 +100,65 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
 
 **LogStartDate** -- Only import log entries from this date/time. MinDate ('1/1/0001 00:00:00') will parse all entries which is the default.
 
-**SummarizeOnlyOverlappingLogs|DisableSummarizeOnlyOverlappingLogs** -- Logs are only summarized so that only overlapping time ranges are used based on the timestamp ranges found in every node's logs. The default is to use overlapping time ranges.
+Below settings are used for parsing of diagnostic fles and creation of the Excel worksheets/workbooks:
 
+**ParsingExcelOptions** -- A list of parsing and Excel workbook and worksheet creation options (flags). Multiple options should be separated by a comma (,). The options are split into "Parse" and "Produce" actions. "Parse" actions are used to parse certain segements of the diagnostic files. "Produce" actions are used to create/generate the corresponding Excel workbooks/worksheets. Typically, you specify the “Produce” actions and the corresponding “Parse” actions are selected by the application. The default is "ParseLoadWorksheets" (unless changed in the aplication config file). Below are the options:
+```
+  ParseCFStatsFiles         -- Enables nodetool CFStats file parsing which is used by the analysis worksheets
+  ParseTPStatsFiles         -- Enables nodetool TPStats file parsing which is used by the analysis worksheets
+  ParseCompacationHistFiles -- Enables nodetool compacation history file parsing
+  ParseDDLFiles             -- Enables DDL (cqlsh describe) file processing
+  ParseTblHistogramFiles    -- Enables nodetool Table/CF Histogram file processing which is used by the analysis worksheets.
+                                  Note: This option is important for proper analysis
+  ParseRingInfoFiles        -- Enables nodetool/dsetool ring file processing.
+                                  Note: This option is important for proper data center related information and is recommended to be enabled.
+  ParseMachineInfoFiles     -- Enables machine/OS (created by OpsCenter) file parsing
+  ParseYamlFiles            -- Enables yaml/configuration file parsing
+  ParseSummaryLogs          -- Performs an analysis of the log files and produces a summary error/exception event worksheet.
+                                  Note: LogParsingExcelOptions of Parse, ParseArchivedLogs, and/or Detect are required to be enabled.
+  OnlyOverlappingDateRanges -- Logs are only summarized so that only overlapping time ranges are used based on the timestamp ranges found in every node's logs. This is only valid if ParseSummaryLogs is enabled.
+                                  Note: This option is important for proper analysis
+  ParseSummaryLogsOnlyOverlappingDateRanges** = ParseSummaryLogs | OnlyOverlappingDateRanges
+  ParseOpsCenterFiles       -- Enables parsing of OpsCenter diagnostic files associated with node related information
+  ParseCFStatsLogs          -- Performs an analysis of the log files and produces a worksheet related to keyspace/table events.
+                                  Note: LogParsingExcelOptions of Parse, ParseArchivedLogs, and/or Detect is required to be enabled. This option is important for proper analysis
+  ParseNodeStatsLogs        -- Performs an analysis of the log files and produces a worksheet related to node events.
+                                  Note: LogParsingExcelOptions of Parse, ParseArchivedLogs, and/or Detect is required to be enabled. This option is important for proper analysis
+  LoadWorkSheets            -- Enables the creation of analysis worksheets produced by the parsing options (e.g., ParseNodeStatsLogs, ParseCFStatsLogs, ParseYamlFiles, etc.).
+  LoadSummaryWorkSheets     -- Enables the creation of the log summary worksheet produced by the ParseSummaryLogs option
+                                  Note: This can be disabled and ProduceSummaryWorkbook is enabled to create a detail log exception/error workbook
+  ProduceSummaryWorkbook    -- Enables the creation of the log summary exception/error Excel workbook. This workbook can be used to reconcile the summary worksheet.
+  ProduceStatsWorkbook      -- Enables the creation of the node/table stats/information Excel workbook based on the analysis of the log files. This workbook can be used to reconcile the analysis worksheet.
+  Detect                    -- If enabled, this will determine the required ParsingExcelOptions, LogParsingExcelOptions, and application settings based on the "Parse" and "Produce" settings.
+  LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets
+  ParseLoadWorksheets = ParseCFStatsFiles
+			                        | ParseTPStatsFiles
+			                        | ParseCompacationHistFiles
+			                        | ParseDDLFiles
+			                        | ParseTblHistogramFiles
+			                        | ParseRingInfoFiles
+			                        | ParseMachineInfoFiles
+			                        | ParseYamlFiles
+			                        | ParseOpsCenterFiles
+			                        | ParseSummaryLogsOnlyOverlappingDateRanges
+			                        | ParseCFStatsLogs
+			                        | ParseNodeStatsLogs
+			                        | LoadAllWorkSheets
+			                        | ProduceSummaryWorkbook
+			                        | ProduceStatsWorkbook
+  ParseLoadOnlySummaryLogs = ParseSummaryLogsOnlyOverlappingDateRanges | LoadSummaryWorkSheets | ProduceSummaryWorkbook
+```
+
+**LogParsingExcelOption** -- A list of options around how logs are parsed and if seperate Ecel workbooks are created. Multiple options should be separated by a comma (,). The fefault is "Detect" (unless changed in the aplication config file). Below are the options:
+```
+  Detect            -- If enabled, the log settings will be determined based on ParsingExcelOptions settings (above).
+  Parse             -- If enabled, current log files will be included for parsing
+  ParseArchivedLogs -- If enabled, archived log files will be included for parsing
+  CreateWorkbook    -- If enabled, the parsed log files will be captured into separate Excel workbooks.
+  ParseLogs = Parse | ParseArchivedLogs,
+  ParseCreateAll = Parse | CreateWorkbook | ParseArchivedLogs,
+  ParseCreateOnlyCurrentLogs = Parse | CreateWorkbook
+```
 Below settings are used for processing of Excel worksheets/workbooks:
 
 **MaxRowInExcelWorkSheet** -- The maximum number of Excel rows in an individual worksheet. If this limit is reached a new worksheet is created. Default 500,000
@@ -122,8 +173,6 @@ Below settings are used for processing of Excel worksheets/workbooks:
   	  [Node IPAddress], string
   	  [Timestamp], DateTime    	
 ```
-
-**LoadLogsIntoExcel|DisableLoadLogsIntoExcel** -- If true log entries are loaded into their own separate workbooks. Default is true. Note that if this is disabled (false), logs are still processed, if ParseLogs is true. If ParseLogs is false this option is ignored and no logs are loaded into Excel. 
 
 **ExcelTemplateFilePath** -- The location of the Diagnostic Analytic Excel template workbook file that is used to create the "main" workbook. This can be no value (null), no template will be used. Default is ".\dseTemplate.xlsx" (looks in the current directory for the file).
 
