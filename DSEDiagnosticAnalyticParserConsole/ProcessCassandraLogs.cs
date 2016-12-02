@@ -245,6 +245,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
                                                         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        public enum LogFlagStatus
+        {
+            None = 0,
+            Exception = 1, //Includes Errors, Warns, etc.
+            Stats = 2,
+            ReadRepair = 3
+        }
+
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
         {
             if (dtCLog.Columns.Count == 0)
@@ -264,7 +272,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 dtCLog.Columns.Add("Description", typeof(string));
-                dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
+                dtCLog.Columns.Add("Flagged", typeof(int)).AllowDBNull = true;
             }
         }
 
@@ -392,7 +400,6 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #region Exception Log Info Parsing
 
-
                     if (assertError && line.Substring(0, 3).ToLower() == "at ")
                     {
                         #region assert Error at
@@ -436,7 +443,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     : parsedValues[0];
 
                             lastRow["Exception Description"] = line;
-                            lastRow["Flagged"] = true;
+                            lastRow["Flagged"] = (int) LogFlagStatus.Exception;
                             lastRow["Exception"] = exception;
 
                             assertError = true;
@@ -659,7 +666,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "row")
                             {
                                 itemPos = nCell + 2;
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Compacting large row";
                                 handled = true;
                             }
@@ -699,7 +706,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "partition")
                             {
                                 itemPos = nCell + 2;
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Compacting large partition";
                                 handled = true;
                             }
@@ -720,7 +727,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (time is int && (int)time >= gcPausedFlagThresholdInMS)
                                 {
-                                    dataRow["Flagged"] = true;
+                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                     dataRow["Exception"] = "GC Threshold";
                                     handled = true;
                                 }
@@ -750,7 +757,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
 
                                 //dataRow["Associated Item"] = "Heap Full";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Heap Full";
                                 handled = true;
                             }
@@ -769,7 +776,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Associated Value"] = nbr;
                                 }
 
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Pause(FailureDetector)";
                                 handled = true;
                             }
@@ -803,7 +810,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemPos = nCell + 5;
                                 itemValuePos = nCell + 9;
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Batch Size Exceeded";
                                 handled = true;
                             }
@@ -851,14 +858,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 itemPos = nCell + 7;
                                 itemValuePos = nCell + 3;
                                 dataRow["Exception"] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parsedValues[nCell]) + " Batch Partitions";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             else if (parsedValues[nCell] == "Maximum" && parsedValues[nCell + 1] == "memory" && parsedValues[nCell + 2] == "reached")
                             {
                                 itemValuePos = nCell + 9;
                                 dataRow["Exception"] = "Maximum Memory Reached cannot Allocate";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             #endregion
@@ -910,14 +917,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemPos = nCell + 8;
                                 itemValuePos = nCell + 4;
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
                             {
                                 itemPos = nCell + 5;
                                 itemValuePos = 2;
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Query Tombstones Aborted";
                                 handled = true;
                             }
@@ -931,7 +938,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 //dataRow["Associated Item"] = "Dropped Hints";
                                 dataRow["Exception"] = "Dropped Hints";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
 
                                 if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
@@ -1067,7 +1074,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 //dataRow["Associated Item"] = "Dropped Mutations";
                                 dataRow["Exception"] = "Dropped Mutations";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                                 itemPos = nCell + 8;
                             }
@@ -1076,7 +1083,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         && parsedValues[nCell + 3] == "thread")
                             {
                                 dataRow["Exception"] = "Node Shutdown";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             #endregion
@@ -1099,7 +1106,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     if ((dynamic)rate < compactionFlagThresholdAsIORate)
                                     {
-                                        dataRow["Flagged"] = true;
+                                        dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                         dataRow["Exception"] = "Compaction IO Rate Warning";
                                         handled = true;
                                     }
@@ -1110,7 +1117,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         && time is int
                                         && (int)time >= compactionFllagThresholdInMS)
                                 {
-                                    dataRow["Flagged"] = true;
+                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                     dataRow["Exception"] = "Compaction Latency Warning";
                                     handled = true;
                                 }
@@ -1159,7 +1166,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (queryTime >= slowLogQueryThresholdInMS)
                                 {
-                                    dataRow["Flagged"] = true;
+                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                     handled = true;
                                     //dataRow["Associated Item"] = "Compaction Pause";
                                     dataRow["Exception"] = "Slow Query";
@@ -1174,7 +1181,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else if (parsedValues[nCell] == "Error")
                             {
                                 dataRow["Associated Item"] = string.Join(" ", parsedValues.GetRange(nCell, parsedValues.Count - nCell));
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             #endregion
@@ -1214,7 +1221,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
                             {
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));
                                 handled = true;
                             }
@@ -1235,7 +1242,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         && nxtLine.StartsWith("Failure")
                                         && nxtLine.Contains("commit log"))
                                 {
-                                    dataRow["Flagged"] = true;
+                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                     handled = true;
                                     dataRow["Associated Item"] = nxtLine;
                                     dataRow["Exception"] = "CommitLogFlushFailure";
@@ -1269,7 +1276,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     && parsedValues[nCell + 3].StartsWith("clients"))
                             {
                                 dataRow["Exception"] = "Node Startup";
-                                dataRow["Flagged"] = true;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
                             #endregion
@@ -1283,7 +1290,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     && parsedValues[nCell + 3] == "without")
                             {
                                 dataRow["Exception"] = "Plain Text Authentication";
-                                //dataRow["Flagged"] = true;
+                                //dataRow["Flagged"] = (int) LogFlagStatus;
                                 handled = true;
                             }
                             #endregion
@@ -1624,10 +1631,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					var segmentView = (from dr in dtroCLog.AsEnumerable()
 									   let timeStamp = dr.Field<DateTime>("Timestamp")
-									   let flagged = dr.Field<bool?>("Flagged")
+									   let flagged = dr.Field<int?>("Flagged")
 									   let indicator = dr.Field<string>("Indicator")
 									   where element.Item1 >= timeStamp && element.Item2 < timeStamp
-												&& ((flagged.HasValue && flagged.Value)
+												&& ((flagged.HasValue && flagged.Value != 0)
 														|| !dr.IsNull("Exception")
 														|| indicator == "ERROR"
 														|| indicator == "WARN")
@@ -1639,7 +1646,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 										   TaskItem = dr.Field<string>("Task"),
 										   Item = dr.Field<string>("Item"),
 										   Exception = dr.Field<string>("Exception"),
-										   Flagged = flagged.HasValue ? flagged.Value : false,
+										   Flagged = flagged.HasValue ? flagged.Value != 0 : false,
 										   DataCenter = dr.Field<string>("Data Center"),
 										   IpAdress = dr.Field<string>("Node IPAddress"),
 										   AssocItem = dr.Field<string>("Associated Item"),
@@ -2064,11 +2071,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //		dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Description", typeof(string));
-                //		dtCLog.Columns.Add("Flagged", typeof(bool)).AllowDBNull = true;
+                //		dtCLog.Columns.Add("Flagged", typeof(int)).AllowDBNull = true;
                 var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
                 var statusLogView = new DataView(dtroCLog,
                                                     "[Item] in ('GCInspector.java', 'StatusLogger.java', 'CompactionTask.java')" +
-                                                        " or [Flagged] = true",
+                                                        " or [Flagged] = 2",
                                                     "[TimeStamp] ASC, [Item] ASC",
                                                     DataViewRowState.CurrentRows);
                 var gcLatencies = new List<int>();
