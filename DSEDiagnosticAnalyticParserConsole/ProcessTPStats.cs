@@ -19,16 +19,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTPStats.Columns.Add("Node IPAddress", typeof(string));
                 dtTPStats.Columns.Add("Attribute", typeof(string));
 
-                dtTPStats.Columns.Add("Active", typeof(long)).AllowDBNull = true;
+                dtTPStats.Columns.Add("Active", typeof(long)).AllowDBNull = true; //E
                 dtTPStats.Columns.Add("Pending", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Completed", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Blocked", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("All time blocked", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Dropped", typeof(long)).AllowDBNull = true;
                 dtTPStats.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true;
-                dtTPStats.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true;
+                dtTPStats.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //L
                 dtTPStats.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;
-                dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
+				dtTPStats.Columns.Add("GC Eden Space Change (mb)", typeof(decimal)).AllowDBNull = true;
+				dtTPStats.Columns.Add("GC Survivor Space Change (mb)", typeof(decimal)).AllowDBNull = true;
+				dtTPStats.Columns.Add("GC Old Space Change (mb)", typeof(decimal)).AllowDBNull = true; //p
+				dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
             }
         }
 

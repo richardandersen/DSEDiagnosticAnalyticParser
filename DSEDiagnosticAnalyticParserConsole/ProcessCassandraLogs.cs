@@ -1951,11 +1951,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             return exceptionName;
         }
 
-        static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+(\d+)(?:.*Eden Space:\s*(\d+)\s*->\s*(\d+))?(?:.*Old Gen:\s*(\d+)\s*->\s*(\d+))?(?:.*Survivor Space:\s*(\d+)\s*->\s*(\d+).*)?.*",
+		//GCInspector.java:258 - G1 Young Generation GC in 691ms.  G1 Eden Space: 4,682,940,416 -> 0; G1 Old Gen: 2,211,450,256 -> 2,797,603,280; G1 Survivor Space: 220,200,960 -> 614,465,536;
+		//GCInspector.java:258 - G1 Young Generation GC in 277ms. G1 Eden Space: 4047503360 -> 0; G1 Old Gen: 2855274656 -> 2855274648;
+		static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+([0-9,]+)(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Survivor Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+).*)?.*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExGCLine = new Regex(@"\s*GC.+ParNew:\s+(\d+)",
+		//GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
+		static Regex RegExGCLine = new Regex(@"\s*GC.+ParNew:\s+([0-9,]+)",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExGCMSLine = new Regex(@"\s*ConcurrentMarkSweep.+in\s+(\d+)(?:.*Old Gen:\s*(\d+)\s*->\s*(\d+))?(?:.*Eden Space:\s*(\d+)\s*->\s*(\d+))?.*",
+		//ConcurrentMarkSweep GC in 363ms. CMS Old Gen: 5688178056 -> 454696416; Par Eden Space: 3754560 -> 208755688;
+		//ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
+		static Regex RegExGCMSLine = new Regex(@"\s*ConcurrentMarkSweep.+in\s+([0-9,]+)(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?.*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExPoolLine = new Regex(@"\s*(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -1965,10 +1970,25 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExPool2Line = new Regex(@"\s*(\w+)\s+(\w+/\w+|\d+)\s+(\w+/\w+|\d+).*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
+		//INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+		//DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
+		static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime /*Log Timestamp*/, int /*GC Latency*/, long /*Group Indicator*/>>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, int, long>>>();
+		struct GCLogInfo
+		{
+			public DateTime LogTimestamp;
+			public int GCLatency;
+			public decimal GCEdenFrom;
+			public decimal GCEdenTo;
+			public decimal GCSurvivorFrom;
+			public decimal GCSurvivorTo;
+			public decimal GCOldFrom;
+			public decimal GCOldTo;
+			public long GroupIndicator;
+		}
+
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
 
         static void ParseCassandraLogIntoStatusLogDataTable(DataTable dtroCLog,
                                                                 DataTable dtCStatusLog,
@@ -1980,11 +2000,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 IEnumerable<string> ignoreKeySpaces,
                                                                 List<CKeySpaceTableNames> kstblExists)
         {
-            //GCInspector.java:258 - G1 Young Generation GC in 691ms.  G1 Eden Space: 4,682,940,416 -> 0; G1 Old Gen: 2,211,450,256 -> 2,797,603,280; G1 Survivor Space: 220,200,960 -> 614,465,536;
-            //GCInspector.java:258 - G1 Young Generation GC in 277ms. G1 Eden Space: 4047503360 -> 0; G1 Old Gen: 2855274656 -> 2855274648;
-            //GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
-            //ConcurrentMarkSweep GC in 363ms. CMS Old Gen: 5688178056 -> 454696416; Par Eden Space: 3754560 -> 208755688;
-            //ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
             //StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
             //StatusLogger.java:66 - MutationStage                     0         0     2424035521         0                 0
             //StatusLogger.java:66 - CompactionManager                 1         1
@@ -2019,8 +2034,6 @@ namespace DSEDiagnosticAnalyticParserConsole
             //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CompactionExecutor                0         0        2120758         0                 0
             //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_keyspaces                   0,0
             //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_usertypes                   0,0
-            //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
-            //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
 
             if (dtCStatusLog.Columns.Count == 0)
             {
@@ -2118,11 +2131,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         object time = null;
+						var dataRow = dtCStatusLog.NewRow();
 
-                        if (descr.TrimStart().StartsWith("GC for ParNew"))
+						if (descr.TrimStart().StartsWith("GC for ParNew"))
                         {
                             var splits = RegExGCLine.Split(descr);
-                            var dataRow = dtCStatusLog.NewRow();
                             time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
@@ -2140,7 +2153,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (descr.TrimStart().StartsWith("ConcurrentMarkSweep"))
                         {
                             var splits = RegExGCMSLine.Split(descr);
-                            var dataRow = dtCStatusLog.NewRow();
                             time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
@@ -2169,7 +2181,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                         else if (descr.TrimStart().StartsWith("G1 Young Generation GC in"))
                         {
                             var splits = RegExG1Line.Split(descr);
-                            var dataRow = dtCStatusLog.NewRow();
                             time = DetermineTime(splits[1]);
 
                             dataRow["Timestamp"] = vwDataRow["Timestamp"];
@@ -2204,11 +2215,34 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (time != null)
                         {
                             GCOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-                                                        ignore => { var gcList = new Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, int, long>>();
-                                                                        gcList.Add(new Tuple<DateTime, int, long>((DateTime)vwDataRow["Timestamp"], (int)((dynamic)time), groupIndicator));
-                                                                        return gcList;
+                                                        ignore => { var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>();
+                                                                        gcList.Add(new GCLogInfo()
+																		{
+																			LogTimestamp = (DateTime)vwDataRow["Timestamp"],
+																			GCLatency = (int)((dynamic)time),
+																			GroupIndicator = groupIndicator,
+																			GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
+																			GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
+																			GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
+																			GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
+																			GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
+																			GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
+																		});
+															return gcList;
                                                                     },
-                                                        (ignore, gcList) => { gcList.Add(new Tuple<DateTime, int, long>((DateTime) vwDataRow["Timestamp"], (int)((dynamic)time), groupIndicator));
+                                                        (ignore, gcList) => {
+																				gcList.Add(new GCLogInfo()
+																				{
+																					LogTimestamp = (DateTime)vwDataRow["Timestamp"],
+																					GCLatency = (int)((dynamic)time),
+																					GroupIndicator = groupIndicator,
+																					GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
+																					GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
+																					GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
+																					GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
+																					GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
+																					GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
+																				});
                                                                                 return gcList;
                                                                             });
                         }
@@ -4104,10 +4138,21 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         class GCContinuousInfo
         {
-            public string Node;
+			/// <summary>
+			/// The change in the Java Pool space. Positive number means the pool increased, a negative number decrease.
+			/// </summary>
+			public struct SpaceChanged
+			{
+				public decimal Eden;
+				public decimal Survivor;
+				public decimal Old;
+			}
+
+			public string Node;
             public List<int> Latencies;
             public List<long> GroupRefIds;
             public List<DateTime> Timestamps;
+			public List<SpaceChanged> GCSpacePoolChanges;
             public string Type;
             public decimal Percentage;
             public bool Deleted = false;
@@ -4129,19 +4174,28 @@ namespace DSEDiagnosticAnalyticParserConsole
             System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
             //foreach (var gcInfo in GCOccurrences)
                 {
-                    var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.Item1);
+                    var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
                     DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
                                             ? DateTime.MinValue
-                                            : gcInfoTimeLine.First().Item1 + gcTimeframeDetection;
+                                            : gcInfoTimeLine.First().LogTimestamp + gcTimeframeDetection;
                     GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
                                                             ? null
                                                             : new GCContinuousInfo()
                                                             {
                                                                 Node = gcInfo.Key,
-                                                                Latencies = new List<int>() { gcInfoTimeLine.First().Item2 },
-                                                                GroupRefIds = new List<long>() { gcInfoTimeLine.First().Item3 },
-                                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.First().Item1 },
-                                                                Type = "TimeFrame"
+                                                                Latencies = new List<int>() { gcInfoTimeLine.First().GCLatency },
+                                                                GroupRefIds = new List<long>() { gcInfoTimeLine.First().GroupIndicator },
+                                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.First().LogTimestamp },
+																GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
+																{
+																	new GCContinuousInfo.SpaceChanged()
+																	{
+																		Eden = gcInfoTimeLine.First().GCEdenTo - gcInfoTimeLine.First().GCEdenFrom,
+																		Survivor = gcInfoTimeLine.First().GCSurvivorTo - gcInfoTimeLine.First().GCSurvivorFrom,
+																		Old = gcInfoTimeLine.First().GCOldTo - gcInfoTimeLine.First().GCOldFrom
+																	}
+																},
+																Type = "TimeFrame"
                                                             };
                     GCContinuousInfo currentGCOverlappingInfo = null;
                     bool overLapped = false;
@@ -4151,24 +4205,45 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #region GC Continous (overlapping)
 
                         if (overlapToleranceInMS >= 0
-                                && gcInfoTimeLine.ElementAt(nIndex - 1).Item1.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Item2 + overlapToleranceInMS)
-                                            >= gcInfoTimeLine.ElementAt(nIndex).Item1)
+                                && gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).GCLatency + overlapToleranceInMS)
+                                            >= gcInfoTimeLine.ElementAt(nIndex).LogTimestamp)
                         {
                             if (overLapped)
                             {
-                                currentGCOverlappingInfo.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
-                                currentGCOverlappingInfo.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
-                            }
+                                currentGCOverlappingInfo.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).GCLatency);
+                                currentGCOverlappingInfo.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
+								currentGCOverlappingInfo.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
+																				{
+																					Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+																					Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+																					Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+																				});
+							}
                             else
                             {
                                 overLapped = true;
                                 gcList.Add(currentGCOverlappingInfo = new GCContinuousInfo()
                                 {
                                     Node = gcInfo.Key,
-                                    Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item2, gcInfoTimeLine.ElementAt(nIndex).Item2 },
-                                    GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item3 },
-                                    Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).Item1 },
-                                    Type = "Overlap"
+                                    Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).GCLatency, gcInfoTimeLine.ElementAt(nIndex).GCLatency },
+                                    GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).GroupIndicator },
+                                    Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp },
+									GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
+														{
+															new GCContinuousInfo.SpaceChanged()
+															{
+																Eden = gcInfoTimeLine.ElementAt(nIndex-1).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex-1).GCEdenFrom,
+																Survivor = gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorFrom,
+																Old = gcInfoTimeLine.ElementAt(nIndex-1).GCOldTo - gcInfoTimeLine.ElementAt(nIndex-1).GCOldFrom
+															},
+															new GCContinuousInfo.SpaceChanged()
+															{
+																Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+																Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+																Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+															}
+														},
+									Type = "Overlap"
                                 });
                             }
                         }
@@ -4180,12 +4255,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #region GC TimeFrame
 
-                        if (gcInfoTimeLine.ElementAt(nIndex).Item1 <= timeFrame)
+                        if (gcInfoTimeLine.ElementAt(nIndex).LogTimestamp <= timeFrame)
                         {
-                            detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).Item3);
-                            detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Item2);
-                            detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).Item1);
-                        }
+                            detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
+                            detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).GCLatency);
+                            detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).LogTimestamp);
+							detectionTimeFrame.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
+																			{
+																				Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+																				Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+																				Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+																			});
+						}
                         else if (detectionTimeFrame != null)
                         {
                             var totalGCLat = detectionTimeFrame.Latencies.Sum();
@@ -4196,14 +4277,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 gcList.Add(detectionTimeFrame);
                             }
 
-                            timeFrame = gcInfoTimeLine.ElementAt(nIndex).Item1 + gcTimeframeDetection;
+                            timeFrame = gcInfoTimeLine.ElementAt(nIndex).LogTimestamp + gcTimeframeDetection;
                             detectionTimeFrame = new GCContinuousInfo()
                             {
                                 Node = gcInfo.Key,
-                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Item2 },
-                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).Item3 },
-                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).Item1 },
-                                Type = "TimeFrame"
+                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).GCLatency },
+                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).GroupIndicator },
+                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).LogTimestamp },
+								GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
+													{
+														new GCContinuousInfo.SpaceChanged()
+														{
+															Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+															Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+															Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+														}
+													},
+								Type = "TimeFrame"
                             };
                         }
                         #endregion
@@ -4265,8 +4355,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous maximum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Max();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4276,8 +4369,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous minimum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Min();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4287,8 +4383,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous mean latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Average();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4303,7 +4402,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                     item.Timestamps.ElementAtOrDefault(idx)))) + "]";
                             dataRow["Occurrences"] = item.Latencies.Count;
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4313,8 +4412,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Sum();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4324,8 +4426,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous standard deviation latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
                             #endregion
                         }
                         else if (item.Type == "TimeFrame")
@@ -4341,8 +4446,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame maximum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Max();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4352,8 +4460,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame minimum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Min();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4363,8 +4474,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame mean latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Average();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4389,8 +4503,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Sum();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -4400,8 +4517,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame standard deviation latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
+							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
+							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
+							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
 
-                            dtNodeStats.Rows.Add(dataRow);
+							dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 

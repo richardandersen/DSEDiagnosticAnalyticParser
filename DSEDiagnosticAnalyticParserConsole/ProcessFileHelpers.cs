@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
+using System.Globalization;
 using Common;
 
 namespace DSEDiagnosticAnalyticParserConsole
@@ -322,20 +323,20 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         const decimal BytesToMB = 1048576m;
         static decimal ConvertInToMB(string strSize, string type)
-        {
+        {			
             switch (type.ToLower())
             {
                 case "bytes":
                 case "byte":
-                    return decimal.Parse(strSize) / BytesToMB;
+                    return decimal.Parse(strSize, NumberStyles.AllowThousands) / BytesToMB;
                 case "kb":
-                    return decimal.Parse(strSize) / 1024m;
+                    return decimal.Parse(strSize, NumberStyles.Number) / 1024m;
                 case "mb":
-                    return decimal.Parse(strSize);
+                    return decimal.Parse(strSize, NumberStyles.Number);
                 case "gb":
-                    return decimal.Parse(strSize) * 1024m;
+                    return decimal.Parse(strSize, NumberStyles.Number) * 1024m;
                 case "tb":
-                    return decimal.Parse(strSize) * 1048576m;
+                    return decimal.Parse(strSize, NumberStyles.Number) * 1048576m;
             }
 
             return -1;
