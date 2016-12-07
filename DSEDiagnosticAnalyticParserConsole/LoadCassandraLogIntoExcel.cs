@@ -78,7 +78,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     //workSheet.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                                     workSheet.View.FreezePanes(3, 1);
 
-                                                    workSheet.Cells["C:C"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
+                                                    workSheet.Cells["C:C"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
 
                                                     workSheet.Cells["A2:J2"].AutoFilter = true;
                                                     workSheet.Cells["A:F"].AutoFitColumns();

@@ -25,7 +25,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["1:1"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
                                             workSheet.Cells["1:1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                                            workSheet.Cells["E:E"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
+                                            workSheet.Cells["E:E"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
                                             workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###,###,##0";
                                             workSheet.Cells["G:G"].Style.Numberformat.Format = "#,###,###,##0.00";
                                             workSheet.Cells["H:H"].Style.Numberformat.Format = "#,###,###,##0";

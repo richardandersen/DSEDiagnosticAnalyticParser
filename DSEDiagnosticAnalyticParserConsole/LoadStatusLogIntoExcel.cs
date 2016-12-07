@@ -13,7 +13,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static Task LoadStatusLog(Task<DataTable> runLogParsingTask,
                                             Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
                                             string excelFilePath,
-                                            string excelWorkSheetStatusLogCassandra,                                            
+                                            string excelWorkSheetStatusLogCassandra,
                                             DateTimeRange logCassandraMaxMinTimestamp,
                                             int maxRowInExcelWorkBook,
                                             int maxRowInExcelWorkSheet,
@@ -77,63 +77,71 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         : logExcelWorkbookFilter;
                                                     workSheet.Cells["A1:F1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
-                                                    workSheet.Cells["G1:M1"].Style.WrapText = true;
-                                                    workSheet.Cells["G1:M1"].Merge = true;
-                                                    workSheet.Cells["G1:M1"].Value = "GC";
-                                                    workSheet.Cells["G1:G2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                    workSheet.Cells["M1:M2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["H1:N1"].Style.WrapText = true;
+                                                    workSheet.Cells["H1:N1"].Merge = true;
+                                                    workSheet.Cells["H1:N1"].Value = "GC";
+                                                    workSheet.Cells["H1:H2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["N1:N2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                    workSheet.Cells["N1:R1"].Style.WrapText = true;
-                                                    workSheet.Cells["N1:R1"].Merge = true;
-                                                    workSheet.Cells["N1:R1"].Value = "Pool";
-                                                    workSheet.Cells["N1:N2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                    workSheet.Cells["R1:R2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["O1:S1"].Style.WrapText = true;
+                                                    workSheet.Cells["O1:S1"].Merge = true;
+                                                    workSheet.Cells["O1:S1"].Value = "Pool";
+                                                    workSheet.Cells["O1:O2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["S1:S2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                    workSheet.Cells["S1:U1"].Style.WrapText = true;
-                                                    workSheet.Cells["S1:U1"].Merge = true;
-                                                    workSheet.Cells["S1:U1"].Value = "Cache";
-                                                    workSheet.Cells["S1:S2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                    workSheet.Cells["U1:U2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["T1:V1"].Style.WrapText = true;
+                                                    workSheet.Cells["T1:V1"].Merge = true;
+                                                    workSheet.Cells["T1:V1"].Value = "Cache";
+                                                    workSheet.Cells["T1:T2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["V1:V2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                    workSheet.Cells["V1:W1"].Style.WrapText = true;
-                                                    workSheet.Cells["V1:W1"].Merge = true;
-                                                    workSheet.Cells["V1:W1"].Value = "Column Family";
-                                                    workSheet.Cells["V1:V2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                    workSheet.Cells["W1:W2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["W1:X1"].Style.WrapText = true;
+                                                    workSheet.Cells["W1:X1"].Merge = true;
+                                                    workSheet.Cells["W1:X1"].Value = "Column Family";
+                                                    workSheet.Cells["W1:W2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["X1:X2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                    workSheet.Cells["X1:AD"].Style.WrapText = true;
-                                                    workSheet.Cells["X1:AD1"].Merge = true;
-                                                    workSheet.Cells["X1:AD1"].Value = "Compaction";
-                                                    workSheet.Cells["X1:X2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-                                                    workSheet.Cells["AD1:AD2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["Y1:AE1"].Style.WrapText = true;
+                                                    workSheet.Cells["Y1:AE1"].Merge = true;
+                                                    workSheet.Cells["Y1:AE1"].Value = "Compaction";
+                                                    workSheet.Cells["Y1:Y2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+                                                    workSheet.Cells["AE1:AE2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-                                                    workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
-                                                    workSheet.Cells["G:G"].Style.Numberformat.Format = "#,###,###,##0";
-                                                    workSheet.Cells["N:R"].Style.Numberformat.Format = "#,###,###,##0";
-                                                    workSheet.Cells["V:V"].Style.Numberformat.Format = "#,###,###,##0";
-                                                    workSheet.Cells["H:M"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["S:S"].Style.Numberformat.Format = "#,###,###,##0.0000";
-                                                    workSheet.Cells["T:T"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["Y:Y"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["W:W"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["X:X"].Style.Numberformat.Format = "#,###,###,##0";
-                                                    workSheet.Cells["AA:AA"].Style.Numberformat.Format = "#,###,###,##0";
-                                                    workSheet.Cells["Y:Y"].Style.Numberformat.Format = "#,###,###,##0.00";
+													workSheet.Cells["AF1:AK1"].Style.WrapText = true;
+													workSheet.Cells["AF1:AK1"].Merge = true;
+													workSheet.Cells["AF1:AK1"].Value = "Read Repair";
+													workSheet.Cells["AF1:AF2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+													workSheet.Cells["AK1:AK2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+
+													workSheet.Cells["B:B"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
+                                                    workSheet.Cells["H:H"].Style.Numberformat.Format = "#,###,###,##0";
+                                                    workSheet.Cells["O:S"].Style.Numberformat.Format = "#,###,###,##0";
+                                                    workSheet.Cells["W:W"].Style.Numberformat.Format = "#,###,###,##0";
+                                                    workSheet.Cells["I:N"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["T:T"].Style.Numberformat.Format = "#,###,###,##0.0000";
+                                                    workSheet.Cells["U:U"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["Z:Z"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                    workSheet.Cells["AB:AB"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["X:X"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["Y:Y"].Style.Numberformat.Format = "#,###,###,##0";
+                                                    workSheet.Cells["AB:AB"].Style.Numberformat.Format = "#,###,###,##0";
+                                                    workSheet.Cells["Z:Z"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["AA:AA"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                    workSheet.Cells["AC:AC"].Style.Numberformat.Format = "#,###,###,##0.00";
+													workSheet.Cells["AI:AI"].Style.Numberformat.Format = "#,###,###,##0";
+													workSheet.Cells["AJ:AJ"].Style.Numberformat.Format = "#,###,###,##0";
 
-                                                    workSheet.Cells["AD1"].AddComment("The notation means {sstables:rows}. For example {1:3, 3:1} means 3 rows were taken from one sstable (1:3) and 1 row taken from 3 (3:1) sstables, all to make the one sstable in that compaction operation.", "Rich Andersen");
-                                                    workSheet.Cells["X1"].AddComment("Number of SSTables Compacted", "Rich Andersen");
-                                                    workSheet.Cells["AC1"].AddComment("Number of Partitions Merged to", "Rich Andersen");
+													workSheet.Cells["AE1"].AddComment("The notation means {sstables:rows}. For example {1:3, 3:1} means 3 rows were taken from one sstable (1:3) and 1 row taken from 3 (3:1) sstables, all to make the one sstable in that compaction operation.", "Rich Andersen");
+                                                    workSheet.Cells["Y1"].AddComment("Number of SSTables Compacted", "Rich Andersen");
+                                                    workSheet.Cells["AD1"].AddComment("Number of Partitions Merged to", "Rich Andersen");
 
-                                                    workSheet.Cells["A2:AE2"].AutoFilter = true;
+                                                    workSheet.Cells["A2:AK2"].AutoFilter = true;
                                                     workSheet.Cells.AutoFitColumns();
                                                 },
                                             maxRowInExcelWorkBook,
                                             maxRowInExcelWorkSheet,
-                                            new Tuple<string, string, DataViewRowState>(logExcelWorkbookFilter,
-                                                                                            "[Data Center], [Timestamp] DESC",
-                                                                                        DataViewRowState.CurrentRows),
+                                            new Tuple<string, string, DataViewRowState>(logExcelWorkbookFilter == null ? ParserSettings.StatsWorkBookFilterSort.Item1 : logExcelWorkbookFilter,
+                                                                                            ParserSettings.StatsWorkBookFilterSort.Item2,
+																							ParserSettings.StatsWorkBookFilterSort.Item3),
                                             "A2");
                 #endregion
             },

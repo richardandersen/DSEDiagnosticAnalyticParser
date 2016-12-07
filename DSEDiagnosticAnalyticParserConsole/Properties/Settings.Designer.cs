@@ -598,8 +598,11 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ch Partitions Count occurrences</string>\r\n  <string>Tombstones query aborted Tot" +
             "al</string>\r\n  <string>Tombstones query aborted maximum</string>\r\n  <string>Tomb" +
             "stones query aborted mean</string>\r\n  <string>Tombstones query aborted minimum</" +
-            "string>\r\n  <string>Tombstones query aborted occurences</string>\r\n</ArrayOfString" +
-            ">")]
+            "string>\r\n  <string>Tombstones query aborted occurences</string>\r\n  <string>Read " +
+            "Repair maximum latency</string>\r\n  <string>Read Repair minimum latency</string>\r" +
+            "\n  <string>Read Repair mean latency</string>\r\n  <string>Read Repair occurrences<" +
+            "/string>\r\n  <string>Read Repair Exceptions occurrences</string>\r\n  <string>Read " +
+            "Repair Exceptions</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -941,7 +944,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("ParseLoadWorksheets")]
+        [global::System.Configuration.DefaultSettingValueAttribute("ParseLoadWorksheets - ParseCompacationHistFiles")]
         public string ParsingExcelOptions {
             get {
                 return ((string)(this["ParsingExcelOptions"]));
@@ -964,6 +967,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string CompactionHistWorksheetFilterSort {
             get {
                 return ((string)(this["CompactionHistWorksheetFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Data Center], [Timestamp] ASC\",\"Item3\":\"CurrentRows\"}")]
+        public string StatsWorkBookFilterSort {
+            get {
+                return ((string)(this["StatsWorkBookFilterSort"]));
             }
         }
     }

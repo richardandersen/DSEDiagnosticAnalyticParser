@@ -280,6 +280,12 @@
   &lt;string&gt;Tombstones query aborted mean&lt;/string&gt;
   &lt;string&gt;Tombstones query aborted minimum&lt;/string&gt;
   &lt;string&gt;Tombstones query aborted occurences&lt;/string&gt;
+  &lt;string&gt;Read Repair maximum latency&lt;/string&gt;
+  &lt;string&gt;Read Repair minimum latency&lt;/string&gt;
+  &lt;string&gt;Read Repair mean latency&lt;/string&gt;
+  &lt;string&gt;Read Repair occurrences&lt;/string&gt;
+  &lt;string&gt;Read Repair Exceptions occurrences&lt;/string&gt;
+  &lt;string&gt;Read Repair Exceptions&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="NodeAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -537,13 +543,16 @@
       <Value Profile="(Default)">Detect</Value>
     </Setting>
     <Setting Name="ParsingExcelOptions" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">ParseLoadWorksheets</Value>
+      <Value Profile="(Default)">ParseLoadWorksheets - ParseCompacationHistFiles</Value>
     </Setting>
     <Setting Name="SnitcheFiles" Type="System.String" Scope="Application">
       <Value Profile="(Default)">[{"Item1":"SimpleSnitch","Item2":null},{"Item1":"RackInferringSnitch","Item2":null},{"Item1":"PropertyFileSnitch","Item2":".\\cassandra-topology.properties"},{"Item1":"GossipingPropertyFileSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"CloudstackSnitch","Item2":null},{"Item1":"GoogleClouldSnitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2Snitch","Item2":".\\cassandra-rackdc.properties"},{"Item1":"EC2MultiRegionSnitch","Item2":".\\cassandra-rackdc.properties"}]</Value>
     </Setting>
     <Setting Name="CompactionHistWorksheetFilterSort" Type="System.String" Scope="Application">
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center] ASC, [Node IPAddress] ASC, [KeySpace] ASC, [Table] ASC, [Compaction Timestamp (UTC)] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="StatsWorkBookFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center], [Timestamp] ASC","Item3":"CurrentRows"}</Value>
     </Setting>
   </Settings>
 </SettingsFile>

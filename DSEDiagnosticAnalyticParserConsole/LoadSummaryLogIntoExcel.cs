@@ -24,7 +24,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         excelWorkSheetSummaryLogCassandra,
                                         dtLogSummary,
                                         workSheet =>
-                                        {                                           
+                                        {
                                             workSheet.Cells["1:2"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
                                             workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                             //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
@@ -51,22 +51,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                     minmaxLogDate.Min.DayOfWeek,
                                                                                                     minmaxLogDate.Max.DayOfWeek), "LogRange");
                                             }
-                                            
+
                                             workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm";
-											workSheet.Cells["J:J"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss";
+											workSheet.Cells["J:J"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
 											workSheet.Cells["K:K"].Style.Numberformat.Format = "#,###,###,##0";
                                             workSheet.Cells["B:B"].Style.Numberformat.Format = "d hh:mm";
 
                                             workSheet.View.FreezePanes(3, 1);
                                             workSheet.Cells["A2:N2"].AutoFilter = true;
-                                           
+
                                             workSheet.Cells["A:E"].AutoFitColumns();
                                             workSheet.Cells["J:K"].AutoFitColumns();
                                             workSheet.Column(6).Width = 45; //F
                                             workSheet.Column(7).Width = 38; //G
                                             workSheet.Column(8).Width = 5; //H
                                             workSheet.Column(9).Width = 16; //I
-                                        },                                        
+                                        },
                                         ParserSettings.SummaryLogWorksheetFilterSort,
                                         "A2");
             Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetSummaryLogCassandra);

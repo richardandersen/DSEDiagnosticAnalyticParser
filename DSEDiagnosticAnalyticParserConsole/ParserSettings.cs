@@ -307,8 +307,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static Tuple<string, string, System.Data.DataViewRowState> RingInfoWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.RingInfoWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> SummaryLogWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.SummaryLogWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> CompactionHistWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.CompactionHistWorksheetFilterSort);
+		public static Tuple<string, string, System.Data.DataViewRowState> StatsWorkBookFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.StatsWorkBookFilterSort);
 
-        public static Dictionary<string, string> CreateSnitchDictionary(string configString)
+		public static Dictionary<string, string> CreateSnitchDictionary(string configString)
         {
             var configObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string>[]>(configString);
             var dict = new Dictionary<string, string>();
@@ -333,10 +334,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         public static T ParseEnumString<T>(string enumString)
         {
-            enumString = enumString.Replace("|", ",");
-            enumString = enumString.Replace("+", ",");
+            enumString = enumString.Replace("|", ",").Replace(" + ", ",").Replace(" - ", ", !").Replace(" ~", ", !");
 
-            return (T) Enum.Parse(typeof(T), enumString, true);
+			var enumValues = enumString.Split(',');
+			T enumValue = (T) Enum.Parse(typeof(T), string.Join(",", enumValues.Where(i => !i.TrimStart().StartsWith("!"))), true);
+			string removeValues = string.Join(",", enumValues.Where(i => i.TrimStart().StartsWith("!")).Select(i => i.TrimStart().Substring(1).TrimStart()));
+
+			if (!string.IsNullOrEmpty(removeValues))
+			{
+				enumValue &= ~(dynamic)(T)Enum.Parse(typeof(T), removeValues, true);
+			}
+
+			return enumValue;
         }
 
         public static bool IsEnabled(this LogParsingExcelOptions option)
