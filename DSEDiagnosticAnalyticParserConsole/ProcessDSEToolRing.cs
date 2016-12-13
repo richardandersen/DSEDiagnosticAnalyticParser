@@ -13,7 +13,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public void ReadDSEToolRingFileParseIntoDataTable(IFilePath dseRingFilePath,
                                                                     DataTable dtRingInfo)
         {
-            var fileLines = dseRingFilePath.ReadAllLines();
+			InitializeRingDataTable(dtRingInfo);
+
+			var fileLines = dseRingFilePath.ReadAllLines();
             string line;
             List<string> parsedLine;
             string ipAddress;
@@ -141,8 +143,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
             }
-
-
         }
 
     }

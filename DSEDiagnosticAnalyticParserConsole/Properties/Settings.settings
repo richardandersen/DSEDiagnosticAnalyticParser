@@ -41,9 +41,6 @@
     <Setting Name="DiagnosticPath" Type="System.String" Scope="Application">
       <Value Profile="(Default)">[Personal]\DSEData\HL_Statim_Cluster-diagnostics-2016_09_12_14_39_32_UTC</Value>
     </Setting>
-    <Setting Name="DiagnosticNoSubFolders" Type="System.Boolean" Scope="Application">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
     <Setting Name="AlternativeLogFilePath" Type="System.String" Scope="Application">
       <Value Profile="(Default)" />
     </Setting>
@@ -513,6 +510,7 @@
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
   &lt;string&gt;.\cassandra\system.log&lt;/string&gt;
+  &lt;string&gt;.\system.log&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="DDLTableWorksheetFilterSort" Type="System.String" Scope="Application">
@@ -568,6 +566,17 @@
     </Setting>
     <Setting Name="ReadRepairWorksheetFilterSort" Type="System.String" Scope="Application">
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Start Timestamp] ASC, [Session Path] ASC, [Data Center], [Node IPAddress]","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="FileParsingOptions" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">OpsCtrDiagStruct</Value>
+    </Setting>
+    <Setting Name="IgnoreLogFileExtensions" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;.zip&lt;/string&gt;
+  &lt;string&gt;.tar&lt;/string&gt;
+  &lt;string&gt;.rar&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
     </Setting>
   </Settings>
 </SettingsFile>

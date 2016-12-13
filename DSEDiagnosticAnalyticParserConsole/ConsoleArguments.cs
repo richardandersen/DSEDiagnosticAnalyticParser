@@ -37,7 +37,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         /// <summary>
-        /// Defines a threshold that will flag a log entry in both the log summary and log status for GC latencies. 
+        /// Defines a threshold that will flag a log entry in both the log summary and log status for GC latencies.
         /// </summary>
         [Option('G', "GCFlagThresholdInMS", HelpText = "Defines a threshold that will flag a log entry in both the log summary and log status for GC latencies.",
                     Required = false)]
@@ -77,7 +77,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.SlowLogQueryThresholdInMS = value; }
         }
 
-        
+
         /// <summary>
         /// Import Log entries from this date. MinDate will parse all log entries.
         /// </summary>
@@ -90,7 +90,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         /// <summary>
-        /// This filter is only used when loading into Excel. Null disables filtering. 
+        /// This filter is only used when loading into Excel. Null disables filtering.
         /// </summary>
         /// <example>
         /// [Timestamp] &gt;= #2016-08-01#
@@ -100,7 +100,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         ///     Data Columns are:
  		///         [Data Center], string, AllowDBNull
         ///         [Node IPAddress], string
-        ///         [Timestamp], DateTime      
+        ///         [Timestamp], DateTime
         /// </remarks>
         [Option('F', "LogExcelWorkbookFilter", HelpText = "This filter is only used when loading into Excel. Null disables filtering.",
                     Required = false)]
@@ -181,45 +181,13 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        /// <summary>
-        /// If true the diagnostic files are not in the standard OpsCenter folder format. Instead each file name has the IP address embedded at the beginning or end of the file name.
-        /// </summary>
-        /// <remarks>
-        ///If diagnosticNoSubFolders is false:
-        ///     Directory where files are located to parse DSE diagnostics files produced by DataStax OpsCenter diagnostics or a special directory structure where DSE diagnostics information is placed.
-        ///     If the &quot;special&quot; directory is used it must follow the following structure:
-	    ///     &lt;MySpecialFolder&gt; -- this is the location used for the diagnosticPath variable
-	    ///             |- &lt;DSENodeIPAddress&gt; (the IPAddress must be located at the beginning or the end of the folder name) e.g., 10.0.0.1, 10.0.0.1-DC1, Diag-10.0.0.1
-        ///             |       | - nodetool -- static folder name
-	    ///             |       |	    | - cfstats 	-- This must be the output file from nodetool cfstats(static name)
-	    ///             |       |		| - ring		-- This must be the output file from nodetool ring(static name)
-	    ///             |		|       | - tpstats
-		///             |       |		| - info
-		///             |       |		| - compactionhistory
-		///             |       | - logs -- static folder name
-		///             |       |   | - Cassandra -- static folder name
-		///             |       |   | - system.log -- This must be the Cassandra log file from the node
-	    ///             | - &lt;NextDSENodeIPAddress&gt; -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2
-        ///
-        ///If diagnosticNoSubFolders is true:
-        ///     All diagnostic files are located directly under diagnosticPath folder.Each file should have the IP address either in the beginning or end of the file name.
-        ///     e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
-        /// </remarks>
-        [Option('O', "DiagnosticNoSubFolders", HelpText = "If true the diagnostic files are not in the standard OpsCenter folder format. Instead each file name has the IP address embedded at the beginning or end of the file name.",
-                    Required = false)]
-        public bool DiagnosticNoSubFolders
-        {
-            get { return ParserSettings.DiagnosticNoSubFolders; }
-            set { ParserSettings.DiagnosticNoSubFolders = value; }
-        }
-
-        [Option('o', "DiagnosticSubFolders", HelpText = "The folder follows the OpsCenter Diagnostic Tar Ball structure.",
-                    Required = false)]
-        public bool DiagnosticSubFolders
-        {
-            get { return ParserSettings.DiagnosticNoSubFolders; }
-            set { ParserSettings.DiagnosticNoSubFolders = !value; }
-        }
+		[Option('O', "FileParsingOption", HelpText = "Structure of the folders and file names used to determine the context of each file.",
+				   Required = false)]
+		public ParserSettings.FileParsingOptions FileParsingOption
+		{
+			get { return ParserSettings.FileParsingOption; }
+			set { ParserSettings.FileParsingOption = value; }
+		}
 
         /// <summary>
         /// The directory location of the diagnostic files. The structure of these folders and files is depending on the value of DiagnosticNoSubFolders.
@@ -245,7 +213,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         /// <summary>
-        /// Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. Wild cards can be included. 
+        /// Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. Wild cards can be included.
         /// </summary>
         [Option('1', "AlternativeLogFilePath", HelpText = "Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. Wild cards can be included.",
                     Required = false)]
@@ -269,7 +237,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             : Common.Path.PathUtils.BuildFilePath(ParserSettings.AlternativeDDLFilePath)?.PathResolved; }
             set { ParserSettings.AlternativeDDLFilePath = value; }
         }
-        
+
         [Option('t', "TableHistogramDirPath", HelpText = "Directory of files that contain the results of a nodetool TableHistogram. The file name must have the node's IP address in the beginning or end of the name. If not provide the DiagnosticPath is searched looking for files with the string \"TableHistogram\" embedded in the name.",
                     Required = false)]
         public string TableHistogramDirPath
@@ -381,7 +349,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
         }
-                
+
         [Option('g', "ToleranceContinuousGCInMS", HelpText = "The amount of time, in milliseconds, between GCs that will determine if the GCs are continuous (back-to-back). If negative, this feature is disabled.",
                     Required = false)]
         public int ToleranceContinuousGCInMS
@@ -515,7 +483,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Logger.Instance.Error(msg);
                         bResult = false;
                     }
-                }                
+                }
             }
 
             if (alternativeLogFilePath != null)
@@ -559,10 +527,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
                                     "--Parsing[E]xcelOptions {{{8}}} " +
                                     "--[L]ogParsingExcelOption {{{9}}} " +
-                                    "" +                                
+                                    "" +
                                     "--Excel[T]emplateFilePath \"{12}\" " +
                                     "--ExcelFile[P]ath \"{13}\" " +
-                                    "--DiagnosticNoSubFolders|-O {14} " +
+									"--FileParsingOption|-O {14} " +
                                     "--[D]iagnosticPath \"{15}\" " +
                                     "--AlternativeLogFilePath|-l \"{16}\" " +
                                     "--AlternativeDDLFilePath|-d \"{17}\" " +
@@ -588,7 +556,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     null,
                                     this.ExcelTemplateFilePath,
                                     this.ExcelFilePath,
-                                    this.DiagnosticNoSubFolders,
+                                    this.FileParsingOption,
                                     this.DiagnosticPath,
                                     this.AlternativeLogFilePath,
                                     this.AlternativeDDLFilePath,

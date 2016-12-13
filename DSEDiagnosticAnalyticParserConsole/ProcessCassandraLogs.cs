@@ -295,6 +295,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
+			maxTimestamp = DateTime.MinValue;
+
+			if (ParserSettings.IgnoreLogFileExtensions.Contains(clogFilePath.FileExtension))
+			{
+				return 0;
+			}
+
             CreateCassandraLogDataTable(dtCLog);
 
             string line;
@@ -315,8 +322,6 @@ namespace DSEDiagnosticAnalyticParserConsole
             bool assertError = false;
 
             //int tableItemValuePos = -1;
-
-            maxTimestamp = DateTime.MinValue;
 
             using (var readStream = clogFilePath.StreamReader())
             {

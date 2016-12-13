@@ -203,7 +203,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var parsedOSMachineList = new Common.Patterns.Collections.ThreadSafe.List<string>();
             var parsedYamlList = new Common.Patterns.Collections.ThreadSafe.List<string>();
 
-            if (ParserSettings.DiagnosticNoSubFolders)
+            if (ParserSettings.FileParsingOption == ParserSettings.FileParsingOptions.IndivFiles)
             {
                 #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
 
@@ -593,7 +593,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && !preFilesProcessed[0]
-                            && nodeDirs[fileIndex].MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolRingFile, out filePath))
+                            && MakeFile(nodeDirs[fileIndex], ParserSettings.NodetoolDir, ParserSettings.NodetoolRingFile, opsCtrDiag, out filePath))
                     {
                         if (filePath.Exist())
                         {
@@ -612,7 +612,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && !preFilesProcessed[1]
-                            && nodeDirs[fileIndex].MakeChild(ParserSettings.DSEToolDir).MakeFile(ParserSettings.DSEtoolRingFile, out filePath))
+                            && MakeFile(nodeDirs[fileIndex], ParserSettings.DSEToolDir, ParserSettings.DSEtoolRingFile, opsCtrDiag, out filePath))
                     {
                         if (filePath.Exist())
                         {
@@ -723,7 +723,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (kstblNames.Count == 0)
                 {
                     //We need to have a list of valid Keyspaces and Tables...
-                    if (nodeDirs.First().Clone().AddChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out filePath))
+                    if (opsCtrDiag
+							? nodeDirs.First().Clone().AddChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out filePath)
+							: nodeDirs.First().MakeFile(ParserSettings.NodetoolDir + "." + ParserSettings.NodetoolCFStatsFile, out filePath))
                     {
                         if (filePath.Exist())
                         {
@@ -844,7 +846,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCFStatsFile, out diagFilePath))
+                            && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolCFStatsFile, opsCtrDiag, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -864,7 +866,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolTPStatsFile, out diagFilePath))
+                            && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolTPStatsFile, opsCtrDiag, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -883,7 +885,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolInfoFile, out diagFilePath))
+                            && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolInfoFile, opsCtrDiag, out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -900,7 +902,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.NodetoolDir).MakeFile(ParserSettings.NodetoolCompactionHistFile, out diagFilePath))
+                            && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolCompactionHistFile,opsCtrDiag ,out diagFilePath))
                     {
                         if (diagFilePath.Exist())
                         {
@@ -921,8 +923,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         foreach (var logDir in ParserSettings.LogCassandraDirSystemLogs)
                         {
-                            if (element.MakeChild(ParserSettings.LogsDir).MakeFile(logDir, out diagFilePath))
-                            {
+                            if (opsCtrDiag
+									? element.MakeChild(ParserSettings.LogsDir).MakeFile(logDir, out diagFilePath)
+									: element.MakeFile(logDir, out diagFilePath))
+							{
                                 if (diagFilePath.Exist())
                                 {
                                     IFilePath[] archivedFilePaths = null;
@@ -979,8 +983,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath))
-                    {
+                            && (opsCtrDiag
+									? element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath)
+									: element.MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath)))
+
+					{
                         if (diagFilePath.Exist())
                         {
                             Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
@@ -997,8 +1004,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath))
-                    {
+                            && (opsCtrDiag
+									? element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath)
+									: element.MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath)))
+
+					{
                         if (diagFilePath.Exist())
                         {
                             Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
@@ -1016,8 +1026,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
-                            && element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEFile, out diagFilePath))
-                    {
+                            && (opsCtrDiag
+									? element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEFile, out diagFilePath)
+									: element.MakeFile(ParserSettings.ConfDSEFile, out diagFilePath)))
+					{
                         if (diagFilePath.Exist())
                         {
                             Program.ConsoleNonLogReadFiles.Increment(diagFilePath);
@@ -1652,5 +1664,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             //ExceptionOccurred = true;
         }
 
+		static bool MakeFile(IDirectoryPath directoryPath, string toolFolder, string fileName, bool isOpsCtrStruct, out IFilePath filePath)
+		{
+			if(isOpsCtrStruct)
+			{
+				return directoryPath.MakeChild(toolFolder).MakeFile(fileName, out filePath);
+			}
+
+			return directoryPath.MakeFile(toolFolder + "." + fileName, out filePath);
+		}
     }
 }

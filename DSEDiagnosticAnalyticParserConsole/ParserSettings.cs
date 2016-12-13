@@ -144,7 +144,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			/// </summary>
 			ParseReadRepairs = 0x80000,
 			/// <summary>
-			/// Enables the creation of the Read-Repair worksheet (i.e., ParseReadRepairs)			
+			/// Enables the creation of the Read-Repair worksheet (i.e., ParseReadRepairs)
 			/// </summary>
 			LoadReadRepairWorkSheets = 0x100000,
 
@@ -177,6 +177,24 @@ namespace DSEDiagnosticAnalyticParserConsole
             ParseLoadOnlySummaryLogs = ParseSummaryLogsOnlyOverlappingDateRanges | LoadSummaryWorkSheets | ProduceSummaryWorkbook
         }
 
+		public enum FileParsingOptions
+		{
+			/// <summary>
+			/// OpsCenter Diagnostic Tar-Ball structure
+			/// </summary>
+			OpsCtrDiagStruct = 0,
+			/// <summary>
+			/// Each file has the Node&apos;s IP Adress (prefixed or suffix) with the Nodetool/DSETool command.
+			/// Example: 10.0.0.1-cfstats, 10.0.0.1-system.log, 10.0.0.1-cassandra.yaml, etc.
+			/// </summary>
+			IndivFiles = 1,
+			/// <summary>
+			/// Each file is within a folder where the Node&apos;s IP Adress (prefixed or suffix) is within the folder name. All files within this folder
+			/// are prefixed by the command (e.g., dsetool, nodetool, etc.) followed by the command&apos;s subcommand/action. Logs and configuration files are just normal.
+			/// Example: 10.0.0.1Folder\nodetool.ring, 10.0.0.1Folder\nodetool.cfstats, 10.0.0.1Folder\dsetool.ring, 10.0.0.1Folder\cqlsh.describe.cql, 10.0.0.1Folder\system.log, 10.0.0.1Folder\cassandra.yaml
+			/// </summary>
+			NodeSubFldStruct = 2
+		}
         public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);
 
         public static int GCFlagThresholdInMS = Properties.Settings.Default.GCFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java) and log worksheets
@@ -245,9 +263,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         //	All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
         //		e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
         public static string DiagnosticPath = Properties.Settings.Default.DiagnosticPath;
-        public static bool DiagnosticNoSubFolders = Properties.Settings.Default.DiagnosticNoSubFolders;
+		public static FileParsingOptions FileParsingOption = (FileParsingOptions) Enum.Parse(typeof(FileParsingOptions), Properties.Settings.Default.FileParsingOptions);
+		public static string[] IgnoreLogFileExtensions = Properties.Settings.Default.IgnoreLogFileExtensions.ToArray(false);
 
-        public static LogParsingExcelOptions LogParsingExcelOption = ParseEnumString<LogParsingExcelOptions>(Properties.Settings.Default.LogParsingExcelOptions);
+		public static LogParsingExcelOptions LogParsingExcelOption = ParseEnumString<LogParsingExcelOptions>(Properties.Settings.Default.LogParsingExcelOptions);
         public static ParsingExcelOptions ParsingExcelOption = ParseEnumString<ParsingExcelOptions>(Properties.Settings.Default.ParsingExcelOptions);
         public static List<string> CFStatsCreateMBColumns = Properties.Settings.Default.CFStatsCreateMBColumns.ToList(false, true); //MUST BE IN LOWER CASE -- CFStats attributes that contains these phrases/words will convert their values from bytes to MB in a separate Excel Column
         public static int MaxRowInExcelWorkSheet = Properties.Settings.Default.MaxRowInExcelWorkSheet; //-1 disabled

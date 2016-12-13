@@ -10,36 +10,41 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
+		static void InitializeRingDataTable(DataTable dtRingInfo)
+		{
+			if (dtRingInfo.Columns.Count == 0)
+			{
+				dtRingInfo.Columns.Add("Node IPAddress", typeof(string));
+				dtRingInfo.Columns["Node IPAddress"].Unique = true;
+				dtRingInfo.PrimaryKey = new System.Data.DataColumn[] { dtRingInfo.Columns["Node IPAddress"] };
+				dtRingInfo.Columns.Add("Data Center", typeof(string));
+				dtRingInfo.Columns.Add("Rack", typeof(string));
+				dtRingInfo.Columns.Add("Status", typeof(string));
+				dtRingInfo.Columns.Add("Instance Type", typeof(string)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Cluster Name", typeof(string)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Read-Repair Service Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Key Cache Information", typeof(string)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Row Cache Information", typeof(string)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Counter Cache Information", typeof(string)).AllowDBNull = true;
+			}
+		}
+
         static public void ReadRingFileParseIntoDataTables(IFilePath ringFilePath,
                                                             DataTable dtRingInfo,
                                                             DataTable dtTokenRange)
         {
-            if (dtRingInfo.Columns.Count == 0)
-            {
-                dtRingInfo.Columns.Add("Node IPAddress", typeof(string));
-                dtRingInfo.Columns["Node IPAddress"].Unique = true;
-                dtRingInfo.PrimaryKey = new System.Data.DataColumn[] { dtRingInfo.Columns["Node IPAddress"] };
-                dtRingInfo.Columns.Add("Data Center", typeof(string));
-                dtRingInfo.Columns.Add("Rack", typeof(string));
-                dtRingInfo.Columns.Add("Status", typeof(string));
-                dtRingInfo.Columns.Add("Instance Type", typeof(string)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Cluster Name", typeof(string)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Read-Repair Service Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Key Cache Information", typeof(string)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Row Cache Information", typeof(string)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Counter Cache Information", typeof(string)).AllowDBNull = true;
-            }
+			InitializeRingDataTable(dtRingInfo);
 
             if (dtTokenRange.Columns.Count == 0)
             {
