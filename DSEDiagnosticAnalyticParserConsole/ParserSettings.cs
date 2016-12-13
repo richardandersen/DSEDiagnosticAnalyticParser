@@ -265,6 +265,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string DiagnosticPath = Properties.Settings.Default.DiagnosticPath;
 		public static FileParsingOptions FileParsingOption = (FileParsingOptions) Enum.Parse(typeof(FileParsingOptions), Properties.Settings.Default.FileParsingOptions);
 		public static string[] IgnoreLogFileExtensions = Properties.Settings.Default.IgnoreLogFileExtensions.ToArray(false);
+		public static string[] ExtractFilesWithExtensions = Properties.Settings.Default.ExtractFilesWithExtensions.ToArray(false);
+		public static int MaxNbrAchievedLogFiles = Properties.Settings.Default.MaxNbrAchievedLogFiles;
 
 		public static LogParsingExcelOptions LogParsingExcelOption = ParseEnumString<LogParsingExcelOptions>(Properties.Settings.Default.LogParsingExcelOptions);
         public static ParsingExcelOptions ParsingExcelOption = ParseEnumString<ParsingExcelOptions>(Properties.Settings.Default.ParsingExcelOptions);

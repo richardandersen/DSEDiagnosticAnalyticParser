@@ -385,8 +385,15 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.GCTimeFrameDetectionPercentage = value; }
         }
 
+		[Option('A', "MaxNbrAchievedLogFiles", HelpText = "The maximum number of archived log files that are read per node. If the value is -1, all file are read (disabled).",
+				   Required = false)]
+		public int MaxNbrAchievedLogFiles
+		{
+			get { return ParserSettings.MaxNbrAchievedLogFiles; }
+			set { ParserSettings.MaxNbrAchievedLogFiles = value; }
+		}
 
-        [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
+		[Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
         {
@@ -522,7 +529,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--CompactionFlagThresholdAsIORate|-R {25}" +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
-                                    "" +
+									"--MaxNbrAchievedLogFiles|A {5}" +
                                     "--LogStartDate|-Z \"{6}\" " +
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
                                     "--Parsing[E]xcelOptions {{{8}}} " +
@@ -547,7 +554,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.GCFlagThresholdInMS,
                                     this.CompactionFlagThresholdInMS,
                                     this.SlowLogQueryThresholdInMS,
-                                    null,
+                                    this.MaxNbrAchievedLogFiles,
                                     this.LogStartDate,
                                     this.LogExcelWorkbookFilter,
                                     this.ParsingExcelOption,

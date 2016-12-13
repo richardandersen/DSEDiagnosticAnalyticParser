@@ -659,5 +659,27 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             return defaultValue as V;
         }
+
+		public static bool ExtractFileToFolder(IFilePath filePath, out IDirectoryPath extractedFolder, bool forceExtraction = false)
+		{
+			extractedFolder = filePath.ParentDirectoryPath;
+
+			if(filePath.Exist()
+					&& (forceExtraction || ParserSettings.ExtractFilesWithExtensions.Contains(filePath.FileExtension)))
+			{
+				var newExtractedFolder = filePath.ParentDirectoryPath.MakeChild(filePath.FileNameWithoutExtension);
+
+				if(!newExtractedFolder.Exist())
+				{
+					System.IO.Compression.ZipFile.ExtractToDirectory(filePath.PathResolved, newExtractedFolder.PathResolved);
+				}
+
+				extractedFolder = (IDirectoryPath) newExtractedFolder;
+
+				return true;
+			}
+
+			return false;
+		}
     }
 }

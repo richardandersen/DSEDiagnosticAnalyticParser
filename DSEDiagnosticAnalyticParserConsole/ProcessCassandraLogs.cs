@@ -107,7 +107,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 foreach (IFilePath archiveElement in archiveFilePaths)
                 {
                     if (archiveElement.PathResolved != logFilePath.PathResolved)
-                    {
+                    {						
                         archTask = ProcessLogFileTasks(archiveElement,
                                                             excelWorkSheetLogCassandra,
                                                             dcName,

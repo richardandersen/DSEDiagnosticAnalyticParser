@@ -79,7 +79,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             return Increment(string.Format("{0} {1}",
                                             preFix,
-                                            maxMsgLength <= 0 || string.IsNullOrEmpty(msg) || msg.Length < maxMsgLength 
+                                            maxMsgLength <= 0 || string.IsNullOrEmpty(msg) || msg.Length < maxMsgLength
                                                 ? msg
                                                 : msg.Substring(0, maxMsgLength) + "..."));
         }
@@ -134,7 +134,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public string Line(string item, int itemCount)
         {
             try
-            {                
+            {
                 return string.Format(LineFormat,
                                         Common.Patterns.Threading.LockFree.Read(ref this._counter),
                                         itemCount,
@@ -213,34 +213,49 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static void End()
         {
             timer.Change(Timeout.Infinite, Timeout.Infinite);
-            consoleWriter.ClearSpinner();     
+            consoleWriter.ClearSpinner();
             //consoleWriter.DisableSpinner();
         }
 
         public static ConsoleWriter Console { get { return consoleWriter; } }
+		static long TimerEntry = 0;
 
         static void TimerCallback(object state)
         {
             var consoleWriter = (ConsoleWriter)state;
 
-            for (int nIndex = 0; nIndex < ConsoleDisplays.Count; ++nIndex)
-            {
-                if (ConsoleDisplays[nIndex].Terminated)
-                {
-                    consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
-                }
-                else
-                {
-                    if (ConsoleDisplays[nIndex].Spinner && ConsoleDisplays[nIndex].Counter != 0)
-                    {
-                        consoleWriter.ReWriteAndTurn(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
-                    }
-                    else
-                    {
-                        consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
-                    }
-                }
-            }
+			if(System.Threading.Interlocked.Read(ref TimerEntry) > 1)
+			{
+				return;
+			}
+
+			try
+			{
+				System.Threading.Interlocked.Increment(ref TimerEntry);
+
+				for (int nIndex = 0; nIndex < ConsoleDisplays.Count; ++nIndex)
+				{
+					if (ConsoleDisplays[nIndex].Terminated)
+					{
+						consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+					}
+					else
+					{
+						if (ConsoleDisplays[nIndex].Spinner && ConsoleDisplays[nIndex].Counter != 0)
+						{
+							consoleWriter.ReWriteAndTurn(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+						}
+						else
+						{
+							consoleWriter.ReWrite(nIndex.ToString(), ConsoleDisplays[nIndex].Line());
+						}
+					}
+				}
+			}
+			finally
+			{
+				System.Threading.Interlocked.Decrement(ref TimerEntry);
+			}
         }
     }
 }

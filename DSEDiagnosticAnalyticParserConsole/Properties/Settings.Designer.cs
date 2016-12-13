@@ -25,7 +25,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3000000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1800000")]
         public int MaxRowInExcelWorkBook {
             get {
                 return ((int)(this["MaxRowInExcelWorkBook"]));
@@ -34,7 +34,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1000000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("600000")]
         public int MaxRowInExcelWorkSheet {
             get {
                 return ((int)(this["MaxRowInExcelWorkSheet"]));
@@ -1013,6 +1013,26 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public global::System.Collections.Specialized.StringCollection IgnoreLogFileExtensions {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["IgnoreLogFileExtensions"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
+            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
+            "tring>.zip</string>\r\n</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection ExtractFilesWithExtensions {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["ExtractFilesWithExtensions"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
+        public int MaxNbrAchievedLogFiles {
+            get {
+                return ((int)(this["MaxNbrAchievedLogFiles"]));
             }
         }
     }

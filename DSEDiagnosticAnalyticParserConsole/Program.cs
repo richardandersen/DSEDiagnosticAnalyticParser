@@ -948,8 +948,47 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             {
                                                 archivedFilePaths = new IFilePath[] { archivedFilePath };
                                             }
-                                        }
-                                    }
+
+											List<IFilePath> newFiles = new List<IFilePath>();
+
+											for (int fIdx = 0; fIdx < archivedFilePaths.Length; ++fIdx)
+											{
+												IDirectoryPath extractedDir;
+
+												if (ProcessFileTasks.ExtractFileToFolder(archivedFilePaths[fIdx], out extractedDir))
+												{
+													if (extractedDir.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
+													{
+														if (archivedFilePath.HasWildCardPattern())
+														{
+															newFiles.AddRange(archivedFilePath.GetWildCardMatches()
+																									.Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
+																									.Cast<IFilePath>());
+														}
+														else
+														{
+															newFiles.Add(archivedFilePath);
+														}
+														archivedFilePaths[fIdx] = null;
+													}
+												}
+											}
+
+											if(newFiles.Count > 0)
+											{
+												newFiles.AddRange(archivedFilePaths.Where(p => p != null));
+												archivedFilePaths = newFiles.ToArray();
+											}
+
+											if(ParserSettings.MaxNbrAchievedLogFiles > 0)
+											{
+												archivedFilePaths = archivedFilePaths
+																		.OrderByDescending(p => p.FileName)
+																		.GetRange(0, ParserSettings.MaxNbrAchievedLogFiles)
+																		.ToArray();
+											}
+										}
+									}
 
                                     logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(diagFilePath,
                                                                                                 ParserSettings.ExcelWorkSheetLogCassandra,
