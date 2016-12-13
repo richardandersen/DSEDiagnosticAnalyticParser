@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="MaxRowInExcelWorkBook" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">1000000</Value>
+      <Value Profile="(Default)">3000000</Value>
     </Setting>
     <Setting Name="MaxRowInExcelWorkSheet" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">500000</Value>
+      <Value Profile="(Default)">1000000</Value>
     </Setting>
     <Setting Name="GCFlagThresholdInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">5000</Value>
@@ -284,8 +284,12 @@
   &lt;string&gt;Read Repair minimum latency&lt;/string&gt;
   &lt;string&gt;Read Repair mean latency&lt;/string&gt;
   &lt;string&gt;Read Repair occurrences&lt;/string&gt;
-  &lt;string&gt;Read Repair Exceptions occurrences&lt;/string&gt;
-  &lt;string&gt;Read Repair Exceptions&lt;/string&gt;
+  &lt;string&gt;Read Repair Aborted occurrences&lt;/string&gt;
+  &lt;string&gt;Solr reindex duration maximum&lt;/string&gt;
+  &lt;string&gt;Solr reindex duration minimum&lt;/string&gt;
+  &lt;string&gt;Solr reindex duration mean&lt;/string&gt;
+  &lt;string&gt;Solr reindex duration stdev&lt;/string&gt;
+  &lt;string&gt;Solr reindex occurrences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="NodeAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -438,6 +442,11 @@
   &lt;string&gt;GC TimeFrame latency&lt;/string&gt;
   &lt;string&gt;GC TimeFrame standard deviation latency&lt;/string&gt;
   &lt;string&gt;GC TimeFrame percent&lt;/string&gt;
+  &lt;string&gt;Timedout Hints Total&lt;/string&gt;
+  &lt;string&gt;Timedout Hints maximum&lt;/string&gt;
+  &lt;string&gt;Timedout Hints mean&lt;/string&gt;
+  &lt;string&gt;Timedout Hints minimum&lt;/string&gt;
+  &lt;string&gt;Timedout Hints occurrences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="TableHistogramAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -553,6 +562,12 @@
     </Setting>
     <Setting Name="StatsWorkBookFilterSort" Type="System.String" Scope="Application">
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Data Center], [Timestamp] ASC","Item3":"CurrentRows"}</Value>
+    </Setting>
+    <Setting Name="ReadRepairWorkSheetName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Read Repair History</Value>
+    </Setting>
+    <Setting Name="ReadRepairWorksheetFilterSort" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{"Item1":null,"Item2":"[Start Timestamp] ASC, [Session Path] ASC, [Data Center], [Node IPAddress]","Item3":"CurrentRows"}</Value>
     </Setting>
   </Settings>
 </SettingsFile>

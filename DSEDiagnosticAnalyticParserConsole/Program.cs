@@ -55,7 +55,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets;
             }
 
-            if (ParserSettings.ParsingExcelOptions.Detect.IsEnabled())
+			if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
+			{
+				ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseReadRepairs;
+			}
+
+			if (ParserSettings.ParsingExcelOptions.Detect.IsEnabled())
             {
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath)) ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseDDLFiles;
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath)) ParserSettings.LogParsingExcelOption |= ParserSettings.LogParsingExcelOptions.ParseLogs;
@@ -81,9 +86,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 ParserSettings.ParsingExcelOption |= ParserSettings.ParsingExcelOptions.ParseSummaryLogs;
             }
 
-            if ((ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
+            if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled()
                     || ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
-                    || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()))
+                    || ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
+					|| ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
             {
                 if (ParserSettings.LogParsingExcelOptions.Detect.IsEnabled())
                 {
@@ -1193,9 +1199,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             Task<DataTable> runNodeStatsLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             Task updateRingWYamlInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<DataTable> runUpdateActiveTblStatus = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+			Task<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>>();
+			Task<DataTable> runReadRepairTbl = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 
-            {
-                var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+			{
+				var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
                                                 ? Task.Factory.StartNew(() =>
                                                     {
                                                         Program.ConsoleParsingNonLog.Increment("Yaml");
@@ -1261,25 +1269,70 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 | TaskContinuationOptions.LongRunning
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-                        runNodeStatsLogTask = runningLogTask.ContinueWith(action =>
-                                            {
-                                                Program.ConsoleParsingLog.Increment("Node Stats Updates");
-                                                var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
-                                                dtNodeStatsStack.Push(dtTPStats);
-                                                ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
-                                                                                                    ParserSettings.ToleranceContinuousGCInMS,
-                                                                                                    ParserSettings.ContinuousGCNbrInSeries,
-                                                                                                    ParserSettings.GCTimeFrameDetection,
-                                                                                                    ParserSettings.GCTimeFrameDetectionPercentage);
-                                                Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
-                                                Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
-                                                var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
-                                                Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
-                                                return dtNodeStatslog;
-                                            },
-                                           TaskContinuationOptions.AttachedToParent
-                                               | TaskContinuationOptions.LongRunning
-                                               | TaskContinuationOptions.OnlyOnRanToCompletion);
+						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
+						{
+							runReadRepairProcess = runLogParsingTask.ContinueWith(logTask =>
+											{
+												Program.ConsoleParsingLog.Increment("Read Repair Processing");
+												var readRepairCollection = ProcessFileTasks.ParseReadRepairFromLog(logTask.Result,
+																													dtLogStatusStack,
+																													dtCFStatsStack,
+																													ParserSettings.IgnoreKeySpaces);
+
+												Program.ConsoleParsingLog.TaskEnd("Read Repair Processing");
+
+												return readRepairCollection;
+											},
+										   TaskContinuationOptions.AttachedToParent
+											   | TaskContinuationOptions.LongRunning
+											   | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+							if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
+							{
+								runReadRepairTbl = runReadRepairProcess.ContinueWith(readRepairTask =>
+													{
+														Program.ConsoleParsingLog.Increment("Read Repair Table");
+														var dtReadRepair = new DataTable("ReadRepair");
+
+														ProcessFileTasks.ReadRepairIntoDataTable(readRepairTask.Result, dtReadRepair);
+
+														Program.ConsoleParsingLog.TaskEnd("Read Repair Table");
+
+														return dtReadRepair;
+													},
+											   TaskContinuationOptions.AttachedToParent
+												   | TaskContinuationOptions.LongRunning
+												   | TaskContinuationOptions.OnlyOnRanToCompletion);
+							}
+						}
+
+						var runContGCTask = runningLogTask.ContinueWith(action =>
+													{
+														Program.ConsoleParsingLog.Increment("Node Stats Updates");
+														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
+														dtNodeStatsStack.Push(dtTPStats);
+														ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
+																											ParserSettings.ToleranceContinuousGCInMS,
+																											ParserSettings.ContinuousGCNbrInSeries,
+																											ParserSettings.GCTimeFrameDetection,
+																											ParserSettings.GCTimeFrameDetectionPercentage);
+														Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
+													},
+												   TaskContinuationOptions.AttachedToParent
+													   | TaskContinuationOptions.LongRunning
+													   | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+						runNodeStatsLogTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask }, ignoreItem => { })
+															.ContinueWith(action =>
+															{
+																Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+																var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+																Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
+																return dtNodeStatslog;
+															},
+															TaskContinuationOptions.AttachedToParent
+																| TaskContinuationOptions.LongRunning
+																| TaskContinuationOptions.OnlyOnRanToCompletion);
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
@@ -1339,7 +1392,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 runUpdateActiveTblStatus = Task.Factory
-                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask }, ignoreItem => { })
+                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess }, ignoreItem => { })
                                             .ContinueWith(action =>
                                                 {
                                                     Program.ConsoleParsingLog.Increment("CFStats Merge");
@@ -1368,6 +1421,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             #region Excel Creation/Formatting
 
             var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
+			//bool excelFileCopied = false;
             bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
                                         || ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
                                     && excelFile.Exist();
@@ -1394,7 +1448,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 Logger.Instance.InfoFormat("Created Workbook \"{0}\" from Template \"{1}\"", excelFile.Path, excelTemplateFile.Path);
                                 excelFileExists = true;
-                                excelFileAttrs = excelFile.GetAttributes();
+								//excelFileCopied = true;
+								excelFileAttrs = excelFile.GetAttributes();
                                 excelFile.SetAttributes(excelFileAttrs | System.IO.FileAttributes.Hidden);
                             }
                         }
@@ -1424,7 +1479,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
                     {
                         statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runLogParsingTask,
-                                                                               dtLogStatusStack,
+																			   runReadRepairProcess,
+																			   dtLogStatusStack,
                                                                                excelFile.Path,
                                                                                ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp,
@@ -1468,7 +1524,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #region non-logs into Excel
                 //Non-Logs
                 if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled()
-                        || ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled())
+                        || ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
+						|| ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
                 {
                     using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
                     {
@@ -1515,6 +1572,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             DTLoadIntoExcel.LoadCFHistogram(excelPkg, tskdtCFHistogram, ParserSettings.ExcelCFHistogramWorkSheet);
                         }
+
+						if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
+						{
+							DTLoadIntoExcel.LoadReadRepair(runReadRepairTbl, excelPkg, ParserSettings.ReadRepairWorkSheetName);
+						}
 
                         DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
 

@@ -11,7 +11,8 @@ namespace DSEDiagnosticAnalyticParserConsole
     static public partial class DTLoadIntoExcel
     {
         public static Task LoadStatusLog(Task<DataTable> runLogParsingTask,
-                                            Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+											Task runReadRepairProcess,
+											Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
                                             string excelFilePath,
                                             string excelWorkSheetStatusLogCassandra,
                                             DateTimeRange logCassandraMaxMinTimestamp,
@@ -21,7 +22,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             var runStatusLogToExcel = runLogParsingTask.ContinueWith(logTask =>
             {
-                #region Load Status Logs into Excel
+				#region Load Status Logs into Excel
+				runLogParsingTask.Wait();
 
                 DifferentExcelWorkBook(excelFilePath,
                                                 excelWorkSheetStatusLogCassandra,
@@ -107,11 +109,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["Y1:Y2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
                                                     workSheet.Cells["AE1:AE2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-													workSheet.Cells["AF1:AK1"].Style.WrapText = true;
-													workSheet.Cells["AF1:AK1"].Merge = true;
-													workSheet.Cells["AF1:AK1"].Value = "Read Repair";
+													workSheet.Cells["AF1:AP1"].Style.WrapText = true;
+													workSheet.Cells["AF1:AP1"].Merge = true;
+													workSheet.Cells["AF1:AP1"].Value = "Read Repair";
 													workSheet.Cells["AF1:AF2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-													workSheet.Cells["AK1:AK2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+													workSheet.Cells["AP1:AP2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
 													workSheet.Cells["B:B"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
                                                     workSheet.Cells["H:H"].Style.Numberformat.Format = "#,###,###,##0";
@@ -127,14 +129,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["Z:Z"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["AA:AA"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                     workSheet.Cells["AC:AC"].Style.Numberformat.Format = "#,###,###,##0.00";
-													workSheet.Cells["AI:AI"].Style.Numberformat.Format = "#,###,###,##0";
 													workSheet.Cells["AJ:AJ"].Style.Numberformat.Format = "#,###,###,##0";
+													workSheet.Cells["AK:AK"].Style.Numberformat.Format = "#,###,###,##0";
+													workSheet.Cells["AL:AL"].Style.Numberformat.Format = "#,###,###,##0";
+													workSheet.Cells["AM:AM"].Style.Numberformat.Format = "#,###,###,##0";
+													workSheet.Cells["AO:AO"].Style.Numberformat.Format = "#,###,###,##0";
 
-													workSheet.Cells["AE1"].AddComment("The notation means {sstables:rows}. For example {1:3, 3:1} means 3 rows were taken from one sstable (1:3) and 1 row taken from 3 (3:1) sstables, all to make the one sstable in that compaction operation.", "Rich Andersen");
-                                                    workSheet.Cells["Y1"].AddComment("Number of SSTables Compacted", "Rich Andersen");
-                                                    workSheet.Cells["AD1"].AddComment("Number of Partitions Merged to", "Rich Andersen");
+													workSheet.Cells["AE2"].AddComment("The notation means {sstables:rows}. For example {1:3, 3:1} means 3 rows were taken from one sstable (1:3) and 1 row taken from 3 (3:1) sstables, all to make the one sstable in that compaction operation.", "Rich Andersen");
+                                                    workSheet.Cells["Y2"].AddComment("Number of SSTables Compacted", "Rich Andersen");
+                                                    workSheet.Cells["AD2"].AddComment("Number of Partitions Merged to", "Rich Andersen");
 
-                                                    workSheet.Cells["A2:AK2"].AutoFilter = true;
+                                                    workSheet.Cells["A2:AP2"].AutoFilter = true;
                                                     workSheet.Cells.AutoFitColumns();
                                                 },
                                             maxRowInExcelWorkBook,

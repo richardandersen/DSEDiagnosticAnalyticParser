@@ -52,7 +52,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return 0;
             }
 
-            if (maxRowInExcelWorkBook <= 0 || dtExcel.Rows.Count <= maxRowInExcelWorkBook)
+            if (maxRowInExcelWorkBook <= 0 || dtExcel.Rows.Count <= maxRowInExcelWorkSheet)
             {
                 excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}{1}",
                                                                         excelTargetFile.Name,
@@ -86,15 +86,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return dtExcel.Rows.Count;
             }
 
-            var dtSplits = dtExcel.SplitTable(maxRowInExcelWorkBook);           
+            var dtSplits = dtExcel.SplitTable(maxRowInExcelWorkBook);
             int nResult = 0;
             long totalRows = 0;
 
-            excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}-{{1:000}}{1}",
-                                                                excelTargetFile.Name,
-                                                                string.IsNullOrEmpty(ParserSettings.ExcelWorkBookFileExtension)
-                                                                            ? excelTargetFile.FileExtension
-                                                                            : ParserSettings.ExcelWorkBookFileExtension);
+			if (dtSplits.Count() == 1)
+			{
+				excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}{1}",
+																		excelTargetFile.Name,
+																		string.IsNullOrEmpty(ParserSettings.ExcelWorkBookFileExtension)
+																			? excelTargetFile.FileExtension
+																			: ParserSettings.ExcelWorkBookFileExtension);
+			}
+			else
+			{
+				excelTargetFile.FileNameFormat = string.Format("{0}-{{0}}-{{1:000}}{1}",
+																excelTargetFile.Name,
+																string.IsNullOrEmpty(ParserSettings.ExcelWorkBookFileExtension)
+																			? excelTargetFile.FileExtension
+																			: ParserSettings.ExcelWorkBookFileExtension);
+			}
 
             Parallel.ForEach(dtSplits, dtSplit =>
             //foreach (var dtSplit in dtSplits)

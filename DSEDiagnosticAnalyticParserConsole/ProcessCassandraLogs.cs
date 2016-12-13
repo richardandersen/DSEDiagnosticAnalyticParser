@@ -245,12 +245,20 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
                                                         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+		//returns only numeric values in string via Matches
+		static Regex RegExNumerics = new Regex(@"([0-9-.,]+)",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		static Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
+															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public enum LogFlagStatus
         {
             None = 0,
-            Exception = 1, //Includes Errors, Warns, etc.
-            Stats = 2,
-            ReadRepair = 3
+            Exception = 1, //Includes Errors, Warns, etc. (Summary only)
+            Stats = 2, //Stats and Summary
+            ReadRepair = 3,
+			StatsOnly = 4 //Only Stats (no summary)
         }
 
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
@@ -387,7 +395,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     //org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level ONE
                     //java.lang.AssertionError: id=3114 length=3040 docID=2090 maxDoc=3040
                     //  at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
-                    //Caused by: org.apache.solr.search.SyntaxError: Cannot parse '(((other_id:() AND other_id_type:(PASSPORT)))^1.0 OR phone:(5126148266 OR 5126148266)^1.0 OR ((street:(CHURCH) AND street:(6835)))^1.0)': Encountered " ")" ") "" at line 1, column 13.
+                    //Caused by: org.apache.solr.search.SyntaxError: Cannot parse '(((other_id:() AND other_id_type:(PASSPORT)))^1.0 OR phone:(k OR l)^1.0 OR ((street:(CHURCH) AND street:(6835)))^1.0)': Encountered " ")" ") "" at line 1, column 13.
                     //ERROR [SharedPool-Worker-1] 2016-09-28 19:18:25,277  CqlSolrQueryExecutor.java:375 - No response after timeout: 60000
                     //org.apache.solr.common.SolrException: No response after timeout: 60000
                     //java.lang.RuntimeException: org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level LOCAL_ONE
@@ -421,6 +429,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 lastRow["Exception"] = ((string)lastRow["Exception"]) + "(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
                             }
+
+							if(lastRow["Flagged"] == DBNull.Value || (int) lastRow["Flagged"] == 0)
+							{
+								lastRow["Flagged"] = (int)LogFlagStatus.Exception;
+							}
                         }
 
                         continue;
@@ -629,6 +642,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         ++startRange;
                     }
+
+					if(((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
+					{
+						var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
+
+						if (taskItems.Length > 1)
+						{
+							var splitItems = SplitTableName(taskItems[1]);
+
+							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+						}
+					}
 
                     for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                     {
@@ -930,14 +955,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "HintedHandoffMetrics.java")
+                        else if (parsedValues[4] == "HintedHandoffMetrics.java" || parsedValues[4] == "HintedHandOffManager.java")
                         {
-                            #region HintedHandoffMetrics.java
-                            //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
-                            if (parsedValues[nCell] == "dropped")
+							#region HintedHandoffMetrics.java
+							//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
+							//INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
+							if (parsedValues[nCell] == "dropped")
                             {
                                 //dataRow["Associated Item"] = "Dropped Hints";
-                                dataRow["Exception"] = "Dropped Hints";
+                                dataRow["Exception"] = "Dropped Hints (node down)";
                                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
 
@@ -948,20 +974,46 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 dataRow["Associated Value"] = int.Parse(parsedValues[nCell - 1]);
                             }
-                            #endregion
-                        }
+							else if (parsedValues[nCell] == "Timed"
+										&& parsedValues[nCell + 1] == "out")
+							{
+								dataRow["Exception"] = "Hints (timeout)";
+								dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+								handled = true;
+
+								if (LookForIPAddress(parsedValues[nCell + 5].Replace(";", string.Empty), ipAddress, out lineIPAddress))
+								{
+									dataRow["Associated Item"] = lineIPAddress;
+								}
+
+								var matchNbrs = RegExNumerics.Matches(parsedValues[nCell + 7]);
+
+								if(matchNbrs.Count > 0)
+								{
+									dataRow["Associated Value"] = int.Parse(matchNbrs[0].Value);
+								}
+								else
+								{
+									dataRow["Associated Value"] = 0;
+								}
+
+							}
+							#endregion
+						}
                         else if (parsedValues[4] == "StorageService.java")
                         {
-                            #region StorageService.java
-                            //	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
-                            //INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
-                            //INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
-                            //INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
-                            //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
-                            //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
-                            //INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
+							#region StorageService.java
+							//	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
+							//INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
+							//INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
+							//INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
+							//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
+							//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
+							//INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
+							//INFO  [RMI TCP Connection(20943)-10.12.50.10] 2016-10-17 15:50:56,821  StorageService.java:2891 - starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
+							//INFO[Thread - 361905] 2016 - 10 - 17 15:50:56,822  StorageService.java:2970 - Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
 
-                            if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
+							if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
                             {
                                 nCell = -1;
                                 var kstblValues = Common.StringFunctions.Split(parsedValues[nCell],
@@ -997,6 +1049,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemValuePos = nCell + 3;
                             }
+							else if((parsedValues[nCell] == "starting"
+										&& parsedValues[nCell + 1] == "user-requested"
+										&& parsedValues[nCell + 2] == "repair")
+									|| (parsedValues[nCell] == "Starting"
+											&& parsedValues[nCell + 1] == "repair"
+											&& parsedValues[nCell + 2] == "command"))
+							{
+								dataRow["Flagged"] = (int)LogFlagStatus.ReadRepair;
+							}
                             #endregion
                         }
                         else if (parsedValues[4] == "StatusLogger.java")
@@ -1322,7 +1383,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (dataRow["Associated Value"] == DBNull.Value
+						else if(parsedValues[4] == "AbstractSolrSecondaryIndex.java")
+						{
+							#region AbstractSolrSecondaryIndex
+							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:52:23,011  AbstractSolrSecondaryIndex.java:1566 - Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:12:02,937  AbstractSolrSecondaryIndex.java:1539 - Reindexing on keyspace prod_fcra and column family rtics_contribution
+							//INFO  [SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:09,999  AbstractSolrSecondaryIndex.java:546 - Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
+
+							if (parsedValues[nCell] == "Reindexing"
+								|| (parsedValues[nCell] == "Finished" && parsedValues[nCell + 1] == "reindexing")
+								|| (parsedValues[nCell] == "Executing" && parsedValues[nCell + 1] == "hard")
+								|| (parsedValues[nCell] == "Truncated" && parsedValues[nCell + 1] == "commit"))
+							{
+								dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+							}
+							#endregion
+						}
+						else if (dataRow["Associated Value"] == DBNull.Value
                                     && LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
                         {
                             dataRow["Associated Value"] = lineIPAddress;
@@ -1366,7 +1446,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         logDesc.Append(parsedValues[nCell]);
                     }
 
-                    dataRow["Description"] = logDesc;
+                    dataRow["Description"] = logDesc.ToString().Trim();
 
                     #endregion
 
@@ -1420,8 +1500,36 @@ namespace DSEDiagnosticAnalyticParserConsole
                     && lastException == null
                     && dataRow["Exception Description"] == DBNull.Value)
             {
-                ParseExceptions(ipAddress, (string) dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates, false);
-                lastException = dataRow["Exception"] as string;
+				if (dataRow["Task"] is string && ((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
+				{
+					var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
+
+					if (taskItems.Length > 1)
+					{
+						var splitItems = SplitTableName(taskItems[1]);
+
+						UpdateRowColumn(dataRow,
+										"Associated Item",
+										dataRow["Associated Item"] as string,
+										splitItems.Item1 + '.' + splitItems.Item2,
+										"->");
+
+						if (taskItems.Length > 2)
+						{
+							lastException = "SolrSecondaryIndex." + taskItems[2];
+						}
+						else
+						{
+							lastException = "SolrSecondaryIndex";
+						}
+					}
+				}
+
+				if(lastException == null)
+				{
+					ParseExceptions(ipAddress, (string)dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates, false);
+					lastException = dataRow["Exception"] as string;
+				}
             }
 
             dataRow.BeginEdit();
@@ -1548,7 +1656,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             additionalUpdates?.Invoke(exception, extendedExceptionDesc, dataRow);
 
-            dataRow.EndEdit();
+			if (dataRow["Flagged"] == DBNull.Value || (int)dataRow["Flagged"] == 0)
+			{
+				dataRow["Flagged"] = (int)LogFlagStatus.Exception;
+			}
+
+			dataRow.EndEdit();
         }
 
         static string UpdateRowColumn(DataRow dataRow, string columnName, string currentValue, string appendValue, string delimitor = "=>")
@@ -1634,7 +1747,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									   let flagged = dr.Field<int?>("Flagged")
 									   let indicator = dr.Field<string>("Indicator")
 									   where element.Item1 >= timeStamp && element.Item2 < timeStamp
-												&& ((flagged.HasValue && flagged.Value != 0)
+												&& ((flagged.HasValue && (flagged.Value == 1 || flagged.Value == 2))
 														|| !dr.IsNull("Exception")
 														|| indicator == "ERROR"
 														|| indicator == "WARN")
@@ -1976,16 +2089,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-		static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+new session:.+on range \((\d+)\,\s*(\d+)\]\s+for\s+(.+)\.\[.+\]",
+		static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+new session:.+on range \(([0-9-]+)\,\s*([0-9-]+)\]\s+for\s+(.+)\.\[.+\]",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
+		static Regex RegExRepairUserRequest = new Regex(@".*starting\s+user-requested\s+repair.+range\s+\[?\(\s*([0-9-]+)\s*\,\s*([0-9-]+)\s*\]\]?\s+.+keyspace\s+(.+)\s+and.+",
+															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
+		static Regex RegExRepairUserRequest1 = new Regex(@".*Starting\s+repair\s+command\s.+keyspace\s+(.+)\s+\((.+)\)",
+															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
 		static Regex RegExRepairEndSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+session completed\s+(.+)",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
+		static Regex RegExRepairNbrRangesLine = new Regex(@"\[.+\s+#(.+)\]\s+Performing streaming repair.+\s+(\d+)\s+ranges.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//Reindexing on keyspace account_owner and column family ew_account_owners
+		//Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+		static Regex RegExSolrReIndex = new Regex(@".*Reindexing.+keyspace\s+(.+)\s+.+column\s+family\s+(.+)",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+		static Regex RegExSolrReIndex1 = new Regex(@".*Reindexing\s+(\d+)\s+commit.+core\s+(.+)\.(.+)\s*",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//Executing hard commit on index prod_fcra.bics_contribution
+		static Regex RegExSolrReIndex2 = new Regex(@".*Executing hard commit on index\s+(.+)\.(.+)\s*",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//Truncated commit log for core prod_fcra.bics_contribution
+		static Regex RegExSolrReIndex3 = new Regex(@".*Truncated commit log for core\s+(.+)\.(.+)\s*",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		struct GCLogInfo
+		public class GCLogInfo
 		{
 			public DateTime LogTimestamp;
 			public string DataCenter;
+			public string IPAddress;
 			public int GCLatency;
 			public decimal GCEdenFrom;
 			public decimal GCEdenTo;
@@ -1994,12 +2130,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public decimal GCOldFrom;
 			public decimal GCOldTo;
 			public long GroupIndicator;
+
+			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.GCLatency)); } }
 		}
 
-		/*internal struct CompactionLogInfo
+		public class CompactionLogInfo
 		{
 			public DateTime LogTimestamp;
 			public string DataCenter;
+			public string IPAddress;
 			public string Keyspace;
 			public string Table;
 			public int SSTables;
@@ -2010,26 +2149,142 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string PartitionsMerged;
 			public string MergeCounts;
 			public long GroupIndicator;
-		}*/
 
-		class ReadRepairLogInfo
-		{
-			public string Session;
-			public string IPAdress;
-			public string Keyspace;
-			public DateTime Start;
-			public DateTime Finish;
-			public int Latency { get { return (int) (Finish - Start).TotalMilliseconds; } }
-			public string TokenRangeStart;
-			public string TokenRangeEnd;
-			public int GCs;
-			public int Compactions;
-			public long GroupInd;
-			public string Exception;
+			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Latency)); } }
 		}
 
-        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
-		//internal static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>>();
+		public class SolrReIndexingLogInfo
+		{
+			public DateTime Start;
+			public DateTime Finish;
+			public string DataCenter;
+			public string IPAddress;
+			public string Keyspace;
+			public string Table;
+			public int NbrUpdates;
+			public long GroupIndicator;
+
+			public int Duration { get { return (int)(Finish - Start).TotalMilliseconds; } }
+		}
+
+		public class ReadRepairLogInfo
+		{
+			public string SessionPath;
+			public string Session;
+			public string DataCenter;
+			public string IPAddress;
+			public string Keyspace;
+			public string Options;
+			public bool UserRequest;
+			public DateTime Start;
+			public DateTime Finish;
+			public int Duration { get { return (int) (Finish - Start).TotalMilliseconds; } }
+			public string TokenRangeStart;
+			public string TokenRangeEnd;
+			public int GCs {  get { return this.GCList == null ? 0 : this.GCList.Count(); } }
+			public int Compactions { get { return this.CompactionList == null ? 0 : this.CompactionList.Count(); } }
+			public int Exceptions;
+
+			public long GroupInd;
+			public bool Aborted;
+			public string Exception;
+			public int NbrRepairs;
+			public List<string> ReceivingNodes = new List<string>();
+			public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
+			public IEnumerable<GCLogInfo> GCList = null;
+			public IEnumerable<CompactionLogInfo> CompactionList = null;
+
+			public static string DCIPAddress(string dcName, string ipAdress)
+			{
+				return (dcName == null ? string.Empty : dcName) + "|" + ipAdress;
+			}
+
+			public ReadRepairLogInfo Add()
+			{
+				return this;
+			}
+
+			public ReadRepairLogInfo Completed(DateTime timestamp)
+			{
+				this.Finish = timestamp;
+
+				return this;
+			}
+
+			public ReadRepairLogInfo Abort(DateTime timestamp, string exception = null)
+			{
+				this.Completed(timestamp);
+				this.Aborted = true;
+
+				if (!string.IsNullOrEmpty(exception))
+				{
+					this.Exception = exception;
+				}
+				return this;
+			}
+
+		}
+
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
+		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>>();
+		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
+
+		static void InitializeStatusDataTable(DataTable dtCStatusLog)
+		{
+			if (dtCStatusLog.Columns.Count == 0)
+			{
+				dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+
+				dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
+				dtCStatusLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Node IPAddress", typeof(string));
+				dtCStatusLog.Columns.Add("Pool/Cache Type", typeof(string)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Table", typeof(string)).AllowDBNull = true;
+
+				dtCStatusLog.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //h
+				dtCStatusLog.Columns.Add("Eden-From (mb)", typeof(decimal)).AllowDBNull = true; //i
+				dtCStatusLog.Columns.Add("Eden-To (mb)", typeof(decimal)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Old-From (mb)", typeof(decimal)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Old-To (mb)", typeof(decimal)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Survivor-From (mb)", typeof(decimal)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Survivor-To (mb)", typeof(decimal)).AllowDBNull = true; //n
+
+				dtCStatusLog.Columns.Add("Active", typeof(object)).AllowDBNull = true; //o
+				dtCStatusLog.Columns.Add("Pending", typeof(object)).AllowDBNull = true; //p
+				dtCStatusLog.Columns.Add("Completed", typeof(long)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Blocked", typeof(long)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("All Time Blocked", typeof(long)).AllowDBNull = true; //s
+
+				dtCStatusLog.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;//t
+				dtCStatusLog.Columns.Add("Capacity (mb)", typeof(decimal)).AllowDBNull = true; //u
+				dtCStatusLog.Columns.Add("KeysToSave", typeof(string)).AllowDBNull = true; //v
+				dtCStatusLog.Columns.Add("MemTable OPS", typeof(long)).AllowDBNull = true; //w
+				dtCStatusLog.Columns.Add("Data (mb)", typeof(decimal)).AllowDBNull = true; //x
+
+				dtCStatusLog.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //y
+				dtCStatusLog.Columns.Add("From (mb)", typeof(decimal)).AllowDBNull = true; //z
+				dtCStatusLog.Columns.Add("To (mb)", typeof(decimal)).AllowDBNull = true;//aa
+				dtCStatusLog.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true; //ab
+				dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ac
+				dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ad
+				dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ae
+
+				dtCStatusLog.Columns.Add("Session", typeof(string)).AllowDBNull = true; //af
+				dtCStatusLog.Columns.Add("Duration (ms)", typeof(int)).AllowDBNull = true; //ag
+				dtCStatusLog.Columns.Add("Start Token Range (exclusive)", typeof(string)).AllowDBNull = true; //ah
+				dtCStatusLog.Columns.Add("End Token Range (inclusive)", typeof(string)).AllowDBNull = true; //ai
+				dtCStatusLog.Columns.Add("Nbr GCs", typeof(int)).AllowDBNull = true; //aj
+				dtCStatusLog.Columns.Add("Nbr Compactions", typeof(int)).AllowDBNull = true; //ak
+				dtCStatusLog.Columns.Add("Nbr Solr ReIdxs", typeof(int)).AllowDBNull = true; //al
+				dtCStatusLog.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true; //am
+				dtCStatusLog.Columns.Add("Requested", typeof(bool)).AllowDBNull = true; //an
+				dtCStatusLog.Columns.Add("Aborted", typeof(int)).AllowDBNull = true; //ao
+				dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //ap
+
+				//dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
+			}
+		}
 
 		static void ParseCassandraLogIntoStatusLogDataTable(DataTable dtroCLog,
                                                                 DataTable dtCStatusLog,
@@ -2041,6 +2296,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 IEnumerable<string> ignoreKeySpaces,
                                                                 List<CKeySpaceTableNames> kstblExists)
         {
+			#region data table definations
 			//StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
 			//StatusLogger.java:66 - MutationStage                     0         0     2424035521         0                 0
 			//StatusLogger.java:66 - CompactionManager                 1         1
@@ -2078,56 +2334,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 			//INFO  [AntiEntropySessions:19] 2016-10-17 16:16:07,725  RepairSession.java:260 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
 			//INFO  [AntiEntropySessions:19] 2016-10-17 16:16:08,478  RepairSession.java:299 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
 
-			if (dtCStatusLog.Columns.Count == 0)
-            {
-				dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+			InitializeStatusDataTable(dtCStatusLog);
 
-				dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
-                dtCStatusLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Node IPAddress", typeof(string));
-                dtCStatusLog.Columns.Add("Pool/Cache Type", typeof(string)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Table", typeof(string)).AllowDBNull = true;
+			#endregion
 
-                dtCStatusLog.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //h
-                dtCStatusLog.Columns.Add("Eden-From (mb)", typeof(decimal)).AllowDBNull = true; //i
-                dtCStatusLog.Columns.Add("Eden-To (mb)", typeof(decimal)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Old-From (mb)", typeof(decimal)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Old-To (mb)", typeof(decimal)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Survivor-From (mb)", typeof(decimal)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Survivor-To (mb)", typeof(decimal)).AllowDBNull = true; //n
-
-                dtCStatusLog.Columns.Add("Active", typeof(object)).AllowDBNull = true; //o
-                dtCStatusLog.Columns.Add("Pending", typeof(object)).AllowDBNull = true; //p
-                dtCStatusLog.Columns.Add("Completed", typeof(long)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("Blocked", typeof(long)).AllowDBNull = true;
-                dtCStatusLog.Columns.Add("All Time Blocked", typeof(long)).AllowDBNull = true; //s
-
-                dtCStatusLog.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;//t
-                dtCStatusLog.Columns.Add("Capacity (mb)", typeof(decimal)).AllowDBNull = true; //u
-                dtCStatusLog.Columns.Add("KeysToSave", typeof(string)).AllowDBNull = true; //v
-                dtCStatusLog.Columns.Add("MemTable OPS", typeof(long)).AllowDBNull = true; //w
-                dtCStatusLog.Columns.Add("Data (mb)", typeof(decimal)).AllowDBNull = true; //x
-
-                dtCStatusLog.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //y
-                dtCStatusLog.Columns.Add("From (mb)", typeof(decimal)).AllowDBNull = true; //z
-                dtCStatusLog.Columns.Add("To (mb)", typeof(decimal)).AllowDBNull = true;//aa
-                dtCStatusLog.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true; //ab
-                dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ac
-                dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ad
-                dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ae
-
-				dtCStatusLog.Columns.Add("Session", typeof(string)).AllowDBNull = true; //af
-				dtCStatusLog.Columns.Add("Start Token Range (exclusive)", typeof(string)).AllowDBNull = true; //ag
-				dtCStatusLog.Columns.Add("End Token Range (inclusive)", typeof(string)).AllowDBNull = true; //ah
-				dtCStatusLog.Columns.Add("Nbr GCs", typeof(int)).AllowDBNull = true; //ai
-				dtCStatusLog.Columns.Add("Nbr Compactions", typeof(int)).AllowDBNull = true; //aj
-				dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //ak
-
-				//dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
-			}
-
-            if (dtroCLog.Rows.Count > 0)
+			if (dtroCLog.Rows.Count > 0)
             {
                 //		dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Node IPAddress", typeof(string));
@@ -2144,13 +2355,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 									let item = dr.Field<string>("Item")
 									let timestamp = dr.Field<DateTime>("Timestamp")
 									let flagged = dr.Field<int?>("Flagged")
-									let descr = dr.Field<string>("Description")
-									where ((flagged.HasValue && flagged.Value == 2)
+									let descr = dr.Field<string>("Description")?.Trim()
+									where ((flagged.HasValue && (flagged.Value == 2 || flagged.Value == 4))
 											|| item == "GCInspector.java"
 											|| item == "StatusLogger.java"
-											|| item == "CompactionTask.java"
-											|| (item == "RepairSession.java"
-													&& (descr.Contains("new session") || descr.Contains("session completed successfully"))))
+											|| item == "CompactionTask.java")
 									orderby timestamp ascending, item ascending
 									select new { Task = dr.Field<string>("Task"),
 													Item = item,
@@ -2176,12 +2385,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var workPoolErrors = new List<string>();
                 var nodeStatus = new List<Tuple<string,string,string>>();
                 var droppedHints = new List<int>();
-                var droppedMutations = new List<int>();
+				var timedoutHints = new List<int>();
+				var droppedMutations = new List<int>();
                 var maxMemoryAllocFailed = new List<int>();
-				var readRepairs = new List<ReadRepairLogInfo>();
-				var currentReadRepairs = new List<ReadRepairLogInfo>();
-
-				//string item;
+				var solrReindexing = new List<SolrReIndexingLogInfo>();
 
 				foreach (var item in statusLogItem)
                 {
@@ -2213,7 +2420,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Pool/Cache Type"] = "GC-ParNew";
                             dataRow["GC Time (ms)"] = (long)((dynamic)time);
                             dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => i.Session));
 
 							dtCStatusLog.Rows.Add(dataRow);
                             gcLatencies.Add((int)((dynamic)time));
@@ -2231,7 +2437,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Pool/Cache Type"] = "GC-CMS";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
                             dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => i.Session));
 
 							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2260,7 +2465,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Pool/Cache Type"] = "GC-G1";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
                             dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => i.Session));
 
 							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2286,39 +2490,25 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (time != null)
                         {
-							currentReadRepairs.ForEach(r => ++r.GCs);
+							var gcLogInfo = new GCLogInfo()
+							{
+								LogTimestamp = item.Timestamp,
+								DataCenter = dcName,
+								IPAddress = ipAddress,
+								GCLatency = (int)((dynamic)time),
+								GroupIndicator = groupIndicator,
+								GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
+								GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
+								GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
+								GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
+								GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
+								GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
+							};
 
 							GCOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-                                                        ignore => { var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>();
-                                                                        gcList.Add(new GCLogInfo()
-																		{
-																			LogTimestamp = item.Timestamp,
-																			DataCenter = dcName,
-																			GCLatency = (int)((dynamic)time),
-																			GroupIndicator = groupIndicator,
-																			GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
-																			GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
-																			GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
-																			GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
-																			GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
-																			GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
-																		});
-															return gcList;
-                                                                    },
+                                                        ignore => { return new Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>() { gcLogInfo }; },
                                                         (ignore, gcList) => {
-																				gcList.Add(new GCLogInfo()
-																				{
-																					LogTimestamp = item.Timestamp,
-																					DataCenter = dcName,
-																					GCLatency = (int)((dynamic)time),
-																					GroupIndicator = groupIndicator,
-																					GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
-																					GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
-																					GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
-																					GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
-																					GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
-																					GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
-																				});
+																				gcList.Add(gcLogInfo);
                                                                                 return gcList;
                                                                             });
                         }
@@ -2535,58 +2725,40 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Rate (MB/s)"] = rate;
                                 dataRow["Partitions Merged"] = splits[8] + ":" + splits[9];
                                 dataRow["Merge Counts"] = splits[10];
-								dataRow["Session Path"] = string.Join("=>", currentReadRepairs
-																				.Where(r => r.Keyspace == ksItem.KeySpaceName)
-																				.Select(r => { ++r.Compactions;  return r.Session; }));
 
                                 dtCStatusLog.Rows.Add(dataRow);
                                 compactionLatencies.Add(new Tuple<string, string, int>(ksItem.KeySpaceName, ksItem.TableName, (int)time));
                                 compactionRates.Add(new Tuple<string, string, decimal>(ksItem.KeySpaceName, ksItem.TableName, rate));
 
-								/*
-								CompactionOccurrences.AddOrUpdate(ipAddress,
+								var compactionLogInfo = new CompactionLogInfo()
+								{
+									LogTimestamp = item.Timestamp,
+									DataCenter = dcName,
+									IPAddress = ipAddress,
+									GroupIndicator = groupIndicator,
+									Keyspace = ksItem.KeySpaceName,
+									Table = ksItem.TableName,
+									SSTables = dataRow.Field<int>("SSTables"),
+									OldSize = dataRow.Field<decimal>("From (mb)"),
+									NewSize = dataRow.Field<decimal>("To (mb)"),
+									Latency = (int)time,
+									IORate = rate,
+									PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
+									MergeCounts = dataRow.Field<string>("Merge Counts")
+								};
+
+								CompactionOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
 									ignore =>
 									{
-										var gcList = new Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>();
-										gcList.Add(new CompactionLogInfo()
-										{
-											LogTimestamp = item.Timestamp,
-											DataCenter = dcName,
-											GroupIndicator = groupIndicator,
-											Keyspace = ksItem.KeySpaceName,
-											Table = ksItem.TableName,
-											SSTables = dataRow.Field<int>("SSTables"),
-											OldSize = dataRow.Field<decimal>("From (mb)"),
-											NewSize = dataRow.Field<decimal>("To (mb)"),
-											Latency = (int) time,
-											IORate = rate,
-											PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
-											MergeCounts = dataRow.Field<string>("Merge Counts")
-										});
-										return gcList;
+										return new Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo>() { compactionLogInfo };
 									},
 									(ignore, gcList) =>
 									{
-										gcList.Add(new CompactionLogInfo()
-										{
-											LogTimestamp = item.Timestamp,
-											DataCenter = dcName,
-											GroupIndicator = groupIndicator,
-											Keyspace = ksItem.KeySpaceName,
-											Table = ksItem.TableName,
-											SSTables = dataRow.Field<int>("SSTables"),
-											OldSize = dataRow.Field<decimal>("From (mb)"),
-											NewSize = dataRow.Field<decimal>("To (mb)"),
-											Latency = (int)time,
-											IORate = rate,
-											PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
-											MergeCounts = dataRow.Field<string>("Merge Counts")
-										});
+										gcList.Add(compactionLogInfo);
 										return gcList;
 									});
-									*/
 							}
-                        }
+						}
                         #endregion
                     }
                     else if (item.Item == "CompactionController.java" || item.Item == "SSTableWriter.java")
@@ -2789,9 +2961,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (item.Item == "StorageService.java")
                     {
-                        #region StorageService
+						#region StorageService
 
-                        if (!string.IsNullOrEmpty(item.Exception))
+						if (!string.IsNullOrEmpty(item.Exception))
                         {
                             var kstblName = item.AssocItem;
                             string ksName = null;
@@ -2829,10 +3001,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (item.Item == "HintedHandoffMetrics.java")
                     {
-                        #region HintedHandoffMetrics.java
-                        //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
-
-                        if (item.Exception == "Dropped Hints")
+						#region HintedHandoffMetrics.java
+						//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
+						if (item.Exception.StartsWith("Dropped Hints"))
                         {
                             var nbrDropped = item.AssocValue as int?;
 
@@ -2843,7 +3014,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Timestamp"] = item.Timestamp;
                                 dataRow["Data Center"] = dcName;
                                 dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["Pool/Cache Type"] = "Dropped Hints";
+                                dataRow["Pool/Cache Type"] = item.Exception;
                                 dataRow["Reconciliation Reference"] = groupIndicator;
                                 dataRow["Completed"] = (long)nbrDropped.Value;
 
@@ -2860,7 +3031,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         #endregion
                     }
-                    else if (item.Item == "NoSpamLogger.java")
+					else if (item.Item == "HintedHandOffManager.java")
+					{
+						#region HintedHandOffManager.java
+						//INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
+						if (item.Exception.StartsWith("Hints"))
+						{
+							var nbrCompleted = item.AssocValue as int?;
+
+							if (nbrCompleted.HasValue)
+							{
+								var dataRow = dtCStatusLog.NewRow();
+
+								dataRow["Timestamp"] = item.Timestamp;
+								dataRow["Data Center"] = dcName;
+								dataRow["Node IPAddress"] = ipAddress;
+								dataRow["Pool/Cache Type"] = item.Exception;
+								dataRow["Reconciliation Reference"] = groupIndicator;
+								dataRow["Completed"] = (long)nbrCompleted.Value;
+
+								dtCStatusLog.Rows.Add(dataRow);
+
+								timedoutHints.Add(nbrCompleted.Value);
+							}
+							else
+							{
+								Program.ConsoleWarnings.Increment("Invalid Hints Value...");
+								Logger.Dump(string.Format("Invalid Hints Value of \"{0}\" for {1} => {2}", item.AssocValue, ipAddress, item.AssocItem),
+															Logger.DumpType.Warning);
+							}
+						}
+						#endregion
+					}
+					else if (item.Item == "NoSpamLogger.java")
                     {
                         #region NoSpamLogger.java
                         //NoSpamLogger.java:94 - Unlogged batch covering 80 partitions detected against table[hlservicing.lvl1_bkfs_invoicechronology]. You should use a logged batch for atomicity, or asynchronous writes for performance.
@@ -2967,154 +3170,182 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
-					else if (item.Item == "RepairSession.java")
+					else if (item.Item == "AbstractSolrSecondaryIndex.java")
 					{
-						#region RepairSession.java
-						//TDB need to terminate session upon exception or dataRow["Exception"] = "Node Shutdown"; or "Node Startup"
-						var regExNewSession = RegExRepairNewSessionLine.Split(item.Description);
+						#region AbstractSolrSecondaryIndex
+						//Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+						//Reindexing on keyspace prod_fcra and column family rtics_contribution
+						#region ReIndex/Finish
+						var regExSolrReIndex = RegExSolrReIndex.Split(item.Description);
 
-						if (regExNewSession.Length > 4)
+						if (regExSolrReIndex.Length > 2)
 						{
-							if (ignoreKeySpaces.Contains(regExNewSession[4]))
+							if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
 							{
 								continue;
 							}
 
-							////[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-							var dataRow = dtCStatusLog.NewRow();
-
-							dataRow["Timestamp"] = item.Timestamp;
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Start";
-							dataRow["Reconciliation Reference"] = groupIndicator;
-
-							dataRow["Session"] = regExNewSession[1];
-							dataRow["Start Token Range (exclusive)"] = regExNewSession[2];
-							dataRow["End Token Range (inclusive)"] = regExNewSession[3];
-							dataRow["KeySpace"] = regExNewSession[4];
-
-							var logInfo = new ReadRepairLogInfo()
+							if (item.Description.TrimStart().StartsWith("Finish"))
 							{
-								Session = regExNewSession[1],
-								IPAdress = ipAddress,
-								Keyspace = regExNewSession[4],
-								Start = item.Timestamp,
-								//Finish;
-								TokenRangeStart = regExNewSession[2],
-								TokenRangeEnd = regExNewSession[3],
-								GroupInd = groupIndicator
-							};
-							currentReadRepairs.Add(logInfo);
-							readRepairs.Add(logInfo);
+								var solrReIndx = solrReindexing.LastOrDefault();
 
-							dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session));
-							dtCStatusLog.Rows.Add(dataRow);
-						}
-						else
-						{
-							var regExEndSession = RegExRepairEndSessionLine.Split(item.Description);
-
-							if (regExEndSession.Length > 1)
-							{
-								//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
-								var gcInfo = readRepairs.FirstOrDefault(r => r.Session == regExEndSession[1]);
-
-								if (gcInfo != null)
+								if (solrReIndx != null)
 								{
+									regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
+									regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
+
+									if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
+											&& solrReIndx.Table == regExSolrReIndex[2]
+											&& solrReIndx.Finish == DateTime.MinValue))
+									{
+										solrReIndx = solrReindexing
+														.Find(s => s.Keyspace == regExSolrReIndex[1]
+																		&& s.Table == regExSolrReIndex[2]
+																		&& s.Finish == DateTime.MinValue);
+									}
+
+									if(solrReIndx != null)
+									{
+										solrReIndx.Finish = item.Timestamp;
+										solrReIndx.GroupIndicator = groupIndicator;
+
+										var dataRow = dtCStatusLog.NewRow();
+
+										dataRow["Timestamp"] = item.Timestamp;
+										dataRow["Data Center"] = dcName;
+										dataRow["Node IPAddress"] = ipAddress;
+										dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
+										dataRow["KeySpace"] = solrReIndx.Keyspace;
+										dataRow["Table"] = solrReIndx.Table;
+										dataRow["Reconciliation Reference"] = groupIndicator;
+										dataRow["Latency (ms)"] = solrReIndx.Duration;
+
+										dtCStatusLog.Rows.Add(dataRow);
+									}
+								}
+							}
+							else
+							{
+								var solrReIndx = new SolrReIndexingLogInfo()
+								{
+									Start = item.Timestamp,
+									DataCenter = dcName,
+									IPAddress = ipAddress,
+									Keyspace = regExSolrReIndex[1].Trim(),
+									Table = regExSolrReIndex[2].Trim(),
+									GroupIndicator = groupIndicator
+								};
+
+								solrReindexing.Add(solrReIndx);
+								SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+									ignore =>
+									{
+										return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
+									},
+									(ignore, gcList) =>
+									{
+										gcList.Add(solrReIndx);
+										return gcList;
+									});
+							}
+						}
+						#endregion
+
+						//Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+						#region ReIndex Core
+						regExSolrReIndex = RegExSolrReIndex1.Split(item.Description);
+
+						if(regExSolrReIndex.Length > 2)
+						{
+							if (ignoreKeySpaces.Contains(regExSolrReIndex[2].Trim()))
+							{
+								continue;
+							}
+
+							var solrReIndx = new SolrReIndexingLogInfo()
+							{
+								Start = item.Timestamp,
+								DataCenter = dcName,
+								IPAddress = ipAddress,
+								Keyspace = regExSolrReIndex[2].Trim(),
+								Table = regExSolrReIndex[3].Trim(),
+								NbrUpdates = int.Parse(regExSolrReIndex[1]),
+								GroupIndicator = groupIndicator
+							};
+
+							solrReindexing.Add(solrReIndx);
+							SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+								ignore =>
+								{
+									return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
+								},
+								(ignore, gcList) =>
+								{
+									gcList.Add(solrReIndx);
+									return gcList;
+								});
+						}
+
+						#endregion
+
+						//Executing hard commit on index prod_fcra.bics_contribution
+						//Truncated commit log for core prod_fcra.bics_contribution
+						#region Hard Commit
+						regExSolrReIndex = RegExSolrReIndex2.Split(item.Description);
+
+						if (regExSolrReIndex.Length == 0)
+						{
+							regExSolrReIndex = RegExSolrReIndex3.Split(item.Description);
+						}
+
+						if (regExSolrReIndex.Length > 1)
+						{
+							if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
+							{
+								continue;
+							}
+
+							var solrReIndx = solrReindexing.LastOrDefault();
+
+							if (solrReIndx != null)
+							{
+								regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
+								regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
+
+								if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
+										&& solrReIndx.Table == regExSolrReIndex[2]
+										&& solrReIndx.Finish == DateTime.MinValue))
+								{
+									solrReIndx = solrReindexing
+													.Find(s => s.Keyspace == regExSolrReIndex[1]
+																	&& s.Table == regExSolrReIndex[2]
+																	&& s.Finish == DateTime.MinValue);
+								}
+
+								if (solrReIndx != null)
+								{
+									solrReIndx.Finish = item.Timestamp;
+									solrReIndx.GroupIndicator = groupIndicator;
+
 									var dataRow = dtCStatusLog.NewRow();
 
-									dataRow["Timestamp"] = gcInfo.Finish = item.Timestamp;
+									dataRow["Timestamp"] = item.Timestamp;
 									dataRow["Data Center"] = dcName;
 									dataRow["Node IPAddress"] = ipAddress;
-									dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Finished";
+									dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
+									dataRow["KeySpace"] = solrReIndx.Keyspace;
+									dataRow["Table"] = solrReIndx.Table;
 									dataRow["Reconciliation Reference"] = groupIndicator;
-
-									dataRow["Session"] = gcInfo.Session;
-									dataRow["Start Token Range (exclusive)"] = gcInfo.TokenRangeStart;
-									dataRow["End Token Range (inclusive)"] = gcInfo.TokenRangeEnd;
-									dataRow["KeySpace"] = gcInfo.Keyspace;
-									dataRow["Nbr GCs"] = gcInfo.GCs;
-									dataRow["Nbr Compactions"] = gcInfo.Compactions;
-									dataRow["Latency (ms)"] = gcInfo.Latency;
-									dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session));
-
+									dataRow["Latency (ms)"] = solrReIndx.Duration;
 									dtCStatusLog.Rows.Add(dataRow);
-
-									currentReadRepairs.Remove(gcInfo);
 								}
 							}
 						}
 
 						#endregion
+
+						#endregion
 					}
-
-					#region Read Repair Aborted Porcessing
-					if(currentReadRepairs.Count > 0
-						&& !string.IsNullOrEmpty(item.Exception))
-					{
-						if(item.Exception.StartsWith("Node Shutdown") || item.Exception.StartsWith("Node Startup"))
-						{
-							currentReadRepairs.ForEach(r =>
-							{
-								r.Exception = item.Exception;
-								r.Finish = item.Timestamp;
-
-								var dataRow = dtCStatusLog.NewRow();
-
-								dataRow["Timestamp"] = r.Finish;
-								dataRow["Data Center"] = dcName;
-								dataRow["Node IPAddress"] = ipAddress;
-								dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Aborted";
-								dataRow["Reconciliation Reference"] = groupIndicator;
-
-								dataRow["Session"] = r.Session;
-								dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
-								dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
-								dataRow["KeySpace"] = r.Keyspace;
-								dataRow["Nbr GCs"] = r.GCs;
-								dataRow["Nbr Compactions"] = r.Compactions;
-								dataRow["Latency (ms)"] = r.Latency;
-								dataRow["Session Path"] = r.Exception;
-
-								dtCStatusLog.Rows.Add(dataRow);
-							});
-							currentReadRepairs.Clear();
-						}
-						else
-						{
-							foreach (var readrepairInfo in currentReadRepairs.Copy())
-							{
-								if(item.Exception.Contains(readrepairInfo.Session))
-								{
-									readrepairInfo.Exception = item.Exception;
-									readrepairInfo.Finish = item.Timestamp;
-
-									var dataRow = dtCStatusLog.NewRow();
-
-									dataRow["Timestamp"] = readrepairInfo.Finish;
-									dataRow["Data Center"] = dcName;
-									dataRow["Node IPAddress"] = ipAddress;
-									dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Aborted";
-									dataRow["Reconciliation Reference"] = groupIndicator;
-
-									dataRow["Session"] = readrepairInfo.Session;
-									dataRow["Start Token Range (exclusive)"] = readrepairInfo.TokenRangeStart;
-									dataRow["End Token Range (inclusive)"] = readrepairInfo.TokenRangeEnd;
-									dataRow["KeySpace"] = readrepairInfo.Keyspace;
-									dataRow["Nbr GCs"] = readrepairInfo.GCs;
-									dataRow["Nbr Compactions"] = readrepairInfo.Compactions;
-									dataRow["Latency (ms)"] = readrepairInfo.Latency;
-									dataRow["Session Path"] = readrepairInfo.Exception;
-
-									dtCStatusLog.Rows.Add(dataRow);
-
-									currentReadRepairs.Remove(readrepairInfo);
-								}
-							}
-						}
-					}
-					#endregion
 				}
 
                 #region Add TP/CF Stats Info
@@ -3581,11 +3812,90 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dtTPStats.Rows.Add(dataRow);
                     }
 
-                    #endregion
+					#endregion
 
-                    #region Allocation Failed Maximum Memory Reached
+					#region Timed Out Hints
 
-                    if (maxMemoryAllocFailed.Count > 0)
+					if (timedoutHints.Count > 0)
+					{
+						var timedoutTotalNbr = timedoutHints.Sum();
+						var timedoutMaxNbr = timedoutHints.Max();
+						var timedoutMinNbr = timedoutHints.Min();
+						var timedoutAvgNbr = (int)timedoutHints.Average();
+						var timedoutOccurences = timedoutHints.Count;
+
+						//Timedout Hints Total
+						//Timedout Hints maximum
+						//Timedout Hints mean
+						//Timedout Hints minimum
+						//Timedout Hints occurrences
+
+						var dataRow = dtTPStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = dcName;
+						dataRow["Node IPAddress"] = ipAddress;
+						dataRow["Attribute"] = "Timedout Hints Total";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Completed"] = timedoutTotalNbr;
+						//dataRow["Occurrences"] = statusGrp.Count;
+
+						dtTPStats.Rows.Add(dataRow);
+
+						dataRow = dtTPStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = dcName;
+						dataRow["Node IPAddress"] = ipAddress;
+						dataRow["Attribute"] = "Timedout Hints maximum";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Completed"] = timedoutMaxNbr;
+						//dataRow["Occurrences"] = statusGrp.Count;
+
+						dtTPStats.Rows.Add(dataRow);
+
+						dataRow = dtTPStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = dcName;
+						dataRow["Node IPAddress"] = ipAddress;
+						dataRow["Attribute"] = "Timedout Hints mean";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Completed"] = timedoutAvgNbr;
+						//dataRow["Occurrences"] = statusGrp.Count;
+
+						dtTPStats.Rows.Add(dataRow);
+
+						dataRow = dtTPStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = dcName;
+						dataRow["Node IPAddress"] = ipAddress;
+						dataRow["Attribute"] = "Timedout Hints minimum";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Completed"] = timedoutMinNbr;
+						//dataRow["Occurrences"] = statusGrp.Count;
+
+						dtTPStats.Rows.Add(dataRow);
+
+						dataRow = dtTPStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = dcName;
+						dataRow["Node IPAddress"] = ipAddress;
+						dataRow["Attribute"] = "Timedout Hints occurrences";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+						//dataRow["Value"] = droppedMinNbr;
+						dataRow["Occurrences"] = timedoutOccurences;
+
+						dtTPStats.Rows.Add(dataRow);
+					}
+
+					#endregion
+
+					#region Allocation Failed Maximum Memory Reached
+
+					if (maxMemoryAllocFailed.Count > 0)
                     {
                         var allocTotalMem = maxMemoryAllocFailed.Sum();
                         var allocMaxMem = maxMemoryAllocFailed.Max();
@@ -4360,9 +4670,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (nodeStatus.Count > 0)
                     {
-                        #region Node Status
+						#region Node Status
+						initializeCFStatsDataTable(dtCFStats);
 
-                        var nodeStatusItems = from nodeItem in nodeStatus
+						var nodeStatusItems = from nodeItem in nodeStatus
                                               where !string.IsNullOrEmpty(nodeItem.Item2)
                                               group nodeItem by new { nodeItem.Item1, nodeItem.Item2, nodeItem.Item3 } into g
                                               select new
@@ -4393,40 +4704,37 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #endregion
                     }
 
-					if (readRepairs.Count > 0)
+					if (solrReindexing.Count > 0)
 					{
-						#region read repairs
-
+						#region Solr ReIndexing
 						initializeCFStatsDataTable(dtCFStats);
 
-						Logger.Instance.InfoFormat("Adding Read Repairs ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, readRepairs.Count);
+						var solrReIdxItems = from solrItem in solrReindexing
+											  group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
+											  select new
+											  {
+												  KeySpace = g.Key.Keyspace,
+												  Table = g.Key.Table,
+												  Count = g.Count(),
+												  Max = g.Max(i => i.Duration),
+												  Min = g.Min(i => i.Duration),
+												  Avg = g.Average(i => i.Duration),
+												  Std = g.Select(i => i.Duration).StandardDeviationP()
+											  };
 
-						var readrepairStats = from repairItem in readRepairs
-												where repairItem.Finish != DateTime.MinValue
-														&& string.IsNullOrEmpty(repairItem.Exception)
-												group repairItem by new { repairItem.Keyspace }
-													into g
-												select new
-												{
-													KeySpace = g.Key.Keyspace,
-													Max = g.Max(s => s.Latency),
-													Min = g.Min(s => s.Latency),
-													Avg = (int)g.Average(s => s.Latency),
-													Count = g.Count()
-												};
-
-						foreach (var statItem in readrepairStats)
+						foreach (var statusGrp in solrReIdxItems)
 						{
 							var dataRow = dtCFStats.NewRow();
 
 							dataRow["Source"] = "Cassandra Log";
 							dataRow["Data Center"] = dcName;
 							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair maximum latency";
+							dataRow["KeySpace"] = statusGrp.KeySpace;
+							dataRow["Table"] = statusGrp.Table;
+							dataRow["Attribute"] = "Solr reindex duration maximum";
 							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Max;
-							dataRow["(Value)"] = statItem.Max;
+							dataRow["Value"] = statusGrp.Max;
+							dataRow["(value)"] = statusGrp.Max;
 							dataRow["Unit of Measure"] = "ms";
 
 							dtCFStats.Rows.Add(dataRow);
@@ -4436,11 +4744,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Source"] = "Cassandra Log";
 							dataRow["Data Center"] = dcName;
 							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair minimum latency";
+							dataRow["KeySpace"] = statusGrp.KeySpace;
+							dataRow["Table"] = statusGrp.Table;
+							dataRow["Attribute"] = "Solr reindex duration minimum";
 							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Min;
-							dataRow["(Value)"] = statItem.Min;
+							dataRow["Value"] = statusGrp.Min;
+							dataRow["(value)"] = statusGrp.Min;
 							dataRow["Unit of Measure"] = "ms";
 
 							dtCFStats.Rows.Add(dataRow);
@@ -4450,11 +4759,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Source"] = "Cassandra Log";
 							dataRow["Data Center"] = dcName;
 							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair mean latency";
+							dataRow["KeySpace"] = statusGrp.KeySpace;
+							dataRow["Table"] = statusGrp.Table;
+							dataRow["Attribute"] = "Solr reindex duration mean";
 							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Avg;
-							dataRow["(Value)"] = statItem.Avg;
+							dataRow["Value"] = statusGrp.Avg;
+							dataRow["(value)"] = statusGrp.Avg;
 							dataRow["Unit of Measure"] = "ms";
 
 							dtCFStats.Rows.Add(dataRow);
@@ -4464,39 +4774,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Source"] = "Cassandra Log";
 							dataRow["Data Center"] = dcName;
 							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair occurrences";
+							dataRow["KeySpace"] = statusGrp.KeySpace;
+							dataRow["Table"] = statusGrp.Table;
+							dataRow["Attribute"] = "Solr reindex duration stdev";
 							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Count;
-							dataRow["(Value)"] = statItem.Count;
-							//dataRow["Unit of Measure"] = "ms";
-
-							dtCFStats.Rows.Add(dataRow);
-						}
-
-						var readrepairAbortedStats = from repairItem in readRepairs
-													where repairItem.Finish == DateTime.MinValue
-															|| !string.IsNullOrEmpty(repairItem.Exception)
-													group repairItem by new { repairItem.Keyspace }
-														into g
-													select new
-													{
-														KeySpace = g.Key.Keyspace,
-														Exceptions = string.Join(", ", g.Select(i => i.Exception).DuplicatesRemoved(i => i)),
-														Count = g.Count()
-													};
-
-						foreach (var statItem in readrepairAbortedStats)
-						{
-							var dataRow = dtCFStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair Exceptions";
-							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Exceptions;
+							dataRow["Value"] = statusGrp.Std;
+							dataRow["(value)"] = statusGrp.Std;
+							dataRow["Unit of Measure"] = "ms";
 
 							dtCFStats.Rows.Add(dataRow);
 
@@ -4505,18 +4789,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Source"] = "Cassandra Log";
 							dataRow["Data Center"] = dcName;
 							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statItem.KeySpace;
-							dataRow["Attribute"] = "Read Repair Exceptions occurrences";
+							dataRow["KeySpace"] = statusGrp.KeySpace;
+							dataRow["Table"] = statusGrp.Table;
+							dataRow["Attribute"] = "Solr reindex occurrences";
 							dataRow["Reconciliation Reference"] = groupIndicator;
-							dataRow["Value"] = statItem.Count;
-							dataRow["(Value)"] = statItem.Count;
-							//dataRow["Unit of Measure"] = "ms";
+							dataRow["Value"] = statusGrp.Count;
+							dataRow["(value)"] = statusGrp.Count;
 
 							dtCFStats.Rows.Add(dataRow);
 						}
 
 						#endregion
 					}
+
 				}
 
                 #endregion
@@ -4931,5 +5216,686 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             }
         }
-    }
+
+		public static IEnumerable<ReadRepairLogInfo> ParseReadRepairFromLog(DataTable dtroCLog,
+																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
+																			IEnumerable<string> ignoreKeySpaces)
+		{
+
+			if (dtroCLog.Rows.Count == 0)
+			{
+				return Enumerable.Empty<ReadRepairLogInfo>();
+			}
+
+			var globalReadRepairs = new Common.Patterns.Collections.ThreadSafe.List<ReadRepairLogInfo>();
+			{
+				var logItems = from dr in dtroCLog.AsEnumerable()
+							   let dcName = dr.Field<string>("Data Center")
+							   let ipAddress = dr.Field<string>("Node IPAddress")
+							   let item = dr.Field<string>("Item")
+							   let timestamp = dr.Field<DateTime>("Timestamp")
+							   let flagged = dr.Field<int?>("Flagged")
+							   let descr = dr.Field<string>("Description")?.Trim()
+							   let exception = dr.Field<string>("Exception")
+							   where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
+									   || (item == "RepairSession.java"
+											   && (descr.Contains("new session") || descr.Contains("session completed successfully")))
+									   || (item == "StreamingRepairTask.java"
+												&& descr.Contains("Performing streaming repair"))
+										|| (exception != null
+												&& (exception.StartsWith("Node Shutdown")
+														|| exception.StartsWith("Node Startup"))))
+							   group new
+							   {
+								   Task = dr.Field<string>("Task"),
+								   Item = item,
+								   Timestamp = timestamp,
+								   Flagged = flagged,
+								   Exception = exception,
+								   Description = descr
+							   }
+							   by new { dcName, ipAddress } into g
+							   select new
+							   {
+								   DCName = g.Key.dcName,
+								   IPAddress = g.Key.ipAddress,
+								   LogItems = (from l in g orderby l.Timestamp ascending select l)
+							   };
+
+				//Parallel.ForEach(logItems, logGroupItem =>
+				foreach (var logGroupItem in logItems)
+				{
+					DateTime oldestLogTimeStamp = DateTime.MaxValue;
+					var dtStatusLog = new DataTable(string.Format("NodeStatus-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+					var currentReadRepairs = new List<ReadRepairLogInfo>();
+					var optionsReadRepair = new List<Tuple<string, string>>(); //Keyspace, Options
+					var userRequests = new List<Tuple<string, string, bool>>(); //Start Range, Keyspace, User Request
+					var readRepairs = new List<ReadRepairLogInfo>();
+					var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
+
+					dtLogStatusStack.Push(dtStatusLog);
+					InitializeStatusDataTable(dtStatusLog);
+
+					foreach (var item in logGroupItem.LogItems)
+					{
+						oldestLogTimeStamp = item.Timestamp;
+
+						if (item.Item == "RepairSession.java")
+						{
+							#region RepairSession.java
+							//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
+							var regExNewSession = RegExRepairNewSessionLine.Split(item.Description);
+
+							if (regExNewSession.Length > 4)
+							{
+								#region New Session
+								if (ignoreKeySpaces.Contains(regExNewSession[4].Trim()))
+								{
+									continue;
+								}
+
+								ReadRepairLogInfo logInfo = currentReadRepairs.Find(r => r.Keyspace == regExNewSession[4].Trim()
+																							&& string.IsNullOrEmpty(r.Session));
+								if (logInfo == null)
+								{
+									logInfo = new ReadRepairLogInfo()
+									{
+										Session = regExNewSession[1].Trim(),
+										DataCenter = logGroupItem.DCName,
+										IPAddress = logGroupItem.IPAddress,
+										Keyspace = regExNewSession[4].Trim(),
+										Start = item.Timestamp,
+										//Finish;
+										TokenRangeStart = regExNewSession[2].Trim(),
+										TokenRangeEnd = regExNewSession[3].Trim(),
+										GroupInd = groupIndicator
+									};
+								}
+								else
+								{
+									logInfo.Session = regExNewSession[1].Trim();
+									logInfo.Start = item.Timestamp;
+									logInfo.TokenRangeStart = regExNewSession[2].Trim();
+									logInfo.TokenRangeEnd = regExNewSession[3].Trim();
+								}
+
+								var dataRow = dtStatusLog.NewRow();
+
+								dataRow["Timestamp"] = item.Timestamp;
+								dataRow["Data Center"] = logGroupItem.DCName;
+								dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+								dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Start";
+								dataRow["Reconciliation Reference"] = groupIndicator;
+
+								dataRow["Session"] = logInfo.Session;
+								dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
+								dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
+								dataRow["KeySpace"] = logInfo.Keyspace;
+								dataRow["Requested"] = !string.IsNullOrEmpty(logInfo.Options);
+
+								logInfo.Add();
+								currentReadRepairs.Add(logInfo);
+								readRepairs.Add(logInfo);
+								globalReadRepairs.Add(logInfo);
+
+								dataRow["Session Path"] = logInfo.SessionPath = string.Join("=>", currentReadRepairs.Select(r => r.Session));
+								dtStatusLog.Rows.Add(dataRow);
+								#endregion
+							}
+							else
+							{
+								//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
+								var regExEndSession = RegExRepairEndSessionLine.Split(item.Description);
+
+								if (regExEndSession.Length > 1)
+								{
+									#region Session Completed
+									var logInfo = currentReadRepairs.Find(r => r.Session == regExEndSession[1]);
+
+									if (logInfo != null)
+									{
+										var rrOption = optionsReadRepair.FindAll(u => u.Item1 == logInfo.Keyspace).LastOrDefault();
+										var userRequest = userRequests.FindAll(u => u.Item1 == logInfo.TokenRangeStart && u.Item2 == logInfo.Keyspace).LastOrDefault();
+										var dataRow = dtStatusLog.NewRow();
+
+										dataRow["Timestamp"] = item.Timestamp;
+										dataRow["Data Center"] = logGroupItem.DCName;
+										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+										dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Finished";
+										dataRow["Reconciliation Reference"] = groupIndicator;
+
+										dataRow["Session"] = logInfo.Session;
+										dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
+										dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
+										dataRow["KeySpace"] = logInfo.Keyspace;
+										dataRow["Nbr GCs"] = logInfo.GCs;
+										dataRow["Nbr Compactions"] = logInfo.Compactions;
+										dataRow["Nbr Exceptions"] = logInfo.Exceptions;
+										dataRow["Latency (ms)"] = logInfo.Duration;
+										if (logInfo.UserRequest) dataRow["Requested"] = logInfo.UserRequest;
+
+										currentReadRepairs.Remove(logInfo);
+
+										if(rrOption != null)
+										{
+											logInfo.Options = rrOption.Item2;
+											optionsReadRepair.Remove(rrOption);
+										}
+										if(userRequest != null)
+										{
+											logInfo.UserRequest = userRequest.Item3;
+											userRequests.Remove(userRequest);
+										}
+
+										logInfo.Completed(item.Timestamp);
+
+										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session)) + "X" + logInfo.Session;
+
+										dtStatusLog.Rows.Add(dataRow);
+									}
+									#endregion
+								}
+							}
+
+							#endregion
+						}
+						else if (item.Item == "StreamingRepairTask.java")
+						{
+							#region StreamingRepairTask.java
+
+							//[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
+							var regExNbrSession = RegExRepairNbrRangesLine.Split(item.Description);
+
+							if (regExNbrSession.Length > 4)
+							{
+								var gcInfo = currentReadRepairs.Find(r => r.Session == regExNbrSession[1].Trim());
+
+								if (gcInfo != null)
+								{
+									gcInfo.NbrRepairs += int.Parse(regExNbrSession[2]);
+
+									if(!gcInfo.ReceivingNodes.Contains(regExNbrSession[3]))
+									{
+										string ipAddress;
+										if (IPAddressStr(regExNbrSession[3], out ipAddress))
+										{
+											gcInfo.ReceivingNodes.Add(ipAddress);
+										}
+									}
+								}
+							}
+
+							#endregion
+						}
+						else if(item.Item == "StorageService.java")
+						{
+							#region StorageService.java
+							var regExRepairOpts = RegExRepairUserRequest1.Split(item.Description);
+
+							if (regExRepairOpts.Length == 4)
+							{
+								if (ignoreKeySpaces.Contains(regExRepairOpts[1].Trim()))
+								{
+									continue;
+								}
+								optionsReadRepair.Add(new Tuple<string, string>(regExRepairOpts[1].Trim(), regExRepairOpts[2].Trim()));
+							}
+							else
+							{
+								var regExRepairUseRequest = RegExRepairUserRequest.Split(item.Description);
+
+								if (regExRepairUseRequest.Length == 5)
+								{
+									if (ignoreKeySpaces.Contains(regExRepairUseRequest[3].Trim()))
+									{
+										continue;
+									}
+									userRequests.Add(new Tuple<string, string, bool>(regExRepairUseRequest[1].Trim(), regExRepairUseRequest[3].Trim(), true));
+								}
+							}
+							#endregion
+						}
+
+						#region Read Repair Aborted Porcessing
+						if (currentReadRepairs.Count > 0
+								&& !string.IsNullOrEmpty(item.Exception))
+						{
+							if (item.Exception.StartsWith("Node Shutdown") || item.Exception.StartsWith("Node Startup"))
+							{
+								currentReadRepairs.AsEnumerable().Reverse().ToArray().ForEach(r =>
+								{
+									if (!string.IsNullOrEmpty(r.Session))
+									{
+										var dataRow = dtStatusLog.NewRow();
+
+										dataRow["Timestamp"] = item.Timestamp;
+										dataRow["Data Center"] = logGroupItem.DCName;
+										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+										dataRow["Pool/Cache Type"] = "Read Repair (" + item.Exception + ") Aborted";
+										dataRow["Reconciliation Reference"] = groupIndicator;
+
+										dataRow["Session"] = r.Session;
+										dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+										dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+										dataRow["KeySpace"] = r.Keyspace;
+										dataRow["Nbr GCs"] = r.GCs;
+										dataRow["Nbr Compactions"] = r.Compactions;
+										dataRow["Nbr Exceptions"] = r.Exceptions;
+										dataRow["Latency (ms)"] = r.Duration;
+										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
+										dataRow["Aborted"] = 1;
+										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
+										currentReadRepairs.Remove(r);
+										dtStatusLog.Rows.Add(dataRow);
+									}
+
+									r.Abort(item.Timestamp, item.Exception);
+								});
+
+								currentReadRepairs.Clear();
+							}
+							else
+							{
+								currentReadRepairs.Where(r => r.Session != null && item.Description.Contains(r.Session)).ToArray().ForEach(r =>
+								{
+									var dataRow = dtStatusLog.NewRow();
+
+									dataRow["Timestamp"] = item.Timestamp;
+									dataRow["Data Center"] = logGroupItem.DCName;
+									dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+									dataRow["Pool/Cache Type"] = "Read Repair (Exception) Aborted";
+									dataRow["Reconciliation Reference"] = groupIndicator;
+
+									dataRow["Session"] = r.Session;
+									dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+									dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+									dataRow["KeySpace"] = r.Keyspace;
+									dataRow["Nbr GCs"] = r.GCs;
+									dataRow["Nbr Compactions"] = r.Compactions;
+									dataRow["Nbr Exceptions"] = r.Exceptions;
+									dataRow["Latency (ms)"] = r.Duration;
+									if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
+									dataRow["Aborted"] = 1;
+									dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
+
+									currentReadRepairs.Remove(r);
+									dtStatusLog.Rows.Add(dataRow);
+
+									r.Abort(item.Timestamp, item.Exception);
+								});
+
+								currentReadRepairs.ForEach(r =>
+								{
+									++r.Exceptions;
+								});
+							}
+						}
+						#endregion
+					}
+
+					#region Orphaned RRs
+					currentReadRepairs.Where(r => !string.IsNullOrEmpty(r.Session) && r.Finish == DateTime.MinValue).ToArray().ForEach(r =>
+					{
+						var dataRow = dtStatusLog.NewRow();
+
+						dataRow["Timestamp"] = oldestLogTimeStamp;
+						dataRow["Data Center"] = logGroupItem.DCName;
+						dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+						dataRow["Pool/Cache Type"] = "Read Repair Orphaned";
+						dataRow["Reconciliation Reference"] = groupIndicator;
+
+						dataRow["Session"] = r.Session;
+						dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+						dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+						dataRow["KeySpace"] = r.Keyspace;
+						dataRow["Nbr GCs"] = r.GCs;
+						dataRow["Nbr Compactions"] = r.Compactions;
+						dataRow["Nbr Exceptions"] = r.Exceptions;
+						dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
+						dataRow["Aborted"] = r.Aborted ? 1 : 0;
+						dataRow["Latency (ms)"] = r.Duration;
+						dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
+
+						dtStatusLog.Rows.Add(dataRow);
+
+						r.Abort(oldestLogTimeStamp, "Orphaned");
+					});
+					currentReadRepairs.Clear();
+					optionsReadRepair.Clear();
+					#endregion
+
+					if (readRepairs.Count > 0)
+					{
+						#region read repairs CFStats
+
+						{
+							Common.Patterns.Collections.ThreadSafe.List<CompactionLogInfo> nodeCompCollection = null;
+							Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
+							Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
+							var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
+
+							CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
+							GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
+							SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
+
+							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
+							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
+
+							readRepairs.ForEach(rrInfo =>
+								{
+									rrInfo.CompactionList = nodeCompCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+																									&& rrInfo.Start <= c.StartTime
+																									&& c.StartTime < rrInfo.Finish);
+									rrInfo.GCList = nodeGCCollection?.UnSafe.Where(c => rrInfo.Start <= c.StartTime
+																							&& c.StartTime < rrInfo.Finish);
+									rrInfo.SolrReIndexing = nodeSolrIdxCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+																									&& rrInfo.Start <= c.Start
+																									&& c.Start < rrInfo.Finish);
+								});
+
+							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\RR-{0}.txt", dcIpAddress.Replace('|', '-'))))
+							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(readRepairs, Newtonsoft.Json.Formatting.Indented));
+						}
+
+						var dtCFStats = new DataTable(string.Format("CFStats-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+
+						dtCFStatsStack.Push(dtCFStats);
+						initializeCFStatsDataTable(dtCFStats);
+
+						Logger.Instance.InfoFormat("Adding Read Repairs ({2}) to CFStats for \"{0}\" \"{1}\"", logGroupItem.DCName, logGroupItem.IPAddress, readRepairs.Count);
+
+						{
+							var readrepairStats = from repairItem in readRepairs
+												  where repairItem.Finish != DateTime.MinValue
+														  && !repairItem.Aborted
+												  group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
+														into g
+												  select new
+												  {
+													  DCName = g.Key.DataCenter,
+													  IpAdress = g.Key.IPAddress,
+													  KeySpace = g.Key.Keyspace,
+													  GrpInds = string.Join(", ", g.DuplicatesRemoved(i => i.GroupInd).Select(i => i.GroupInd)),
+													  Max = g.Max(s => s.Duration),
+													  Min = g.Min(s => s.Duration),
+													  Avg = (int)g.Average(s => s.Duration),
+													  Count = g.Count()
+												  };
+
+							foreach (var statItem in readrepairStats)
+							{
+								var dataRow = dtCFStats.NewRow();
+
+								dataRow["Source"] = "Cassandra Log";
+								dataRow["Data Center"] = statItem.DCName;
+								dataRow["Node IPAddress"] = statItem.IpAdress;
+								dataRow["KeySpace"] = statItem.KeySpace;
+								dataRow["Attribute"] = "Read Repair maximum latency";
+								dataRow["Reconciliation Reference"] = statItem.GrpInds;
+								dataRow["Value"] = statItem.Max;
+								dataRow["(Value)"] = statItem.Max;
+								dataRow["Unit of Measure"] = "ms";
+
+								dtCFStats.Rows.Add(dataRow);
+
+								dataRow = dtCFStats.NewRow();
+
+								dataRow["Source"] = "Cassandra Log";
+								dataRow["Data Center"] = statItem.DCName;
+								dataRow["Node IPAddress"] = statItem.IpAdress;
+								dataRow["KeySpace"] = statItem.KeySpace;
+								dataRow["Attribute"] = "Read Repair minimum latency";
+								dataRow["Reconciliation Reference"] = statItem.GrpInds;
+								dataRow["Value"] = statItem.Min;
+								dataRow["(Value)"] = statItem.Min;
+								dataRow["Unit of Measure"] = "ms";
+
+								dtCFStats.Rows.Add(dataRow);
+
+								dataRow = dtCFStats.NewRow();
+
+								dataRow["Source"] = "Cassandra Log";
+								dataRow["Data Center"] = statItem.DCName;
+								dataRow["Node IPAddress"] = statItem.IpAdress;
+								dataRow["KeySpace"] = statItem.KeySpace;
+								dataRow["Attribute"] = "Read Repair mean latency";
+								dataRow["Reconciliation Reference"] = statItem.GrpInds;
+								dataRow["Value"] = statItem.Avg;
+								dataRow["(Value)"] = statItem.Avg;
+								dataRow["Unit of Measure"] = "ms";
+
+								dtCFStats.Rows.Add(dataRow);
+
+								dataRow = dtCFStats.NewRow();
+
+								dataRow["Source"] = "Cassandra Log";
+								dataRow["Data Center"] = statItem.DCName;
+								dataRow["Node IPAddress"] = statItem.IpAdress;
+								dataRow["KeySpace"] = statItem.KeySpace;
+								dataRow["Attribute"] = "Read Repair occurrences";
+								dataRow["Reconciliation Reference"] = statItem.GrpInds;
+								dataRow["Value"] = statItem.Count;
+								dataRow["(Value)"] = statItem.Count;
+								//dataRow["Unit of Measure"] = "ms";
+
+								dtCFStats.Rows.Add(dataRow);
+							}
+						}
+						{
+							var readrepairAbortedStats = from repairItem in readRepairs
+														 where repairItem.Aborted
+														 group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
+															into g
+														 select new
+														 {
+															 DCName = g.Key.DataCenter,
+															 IpAdress = g.Key.IPAddress,
+															 KeySpace = g.Key.Keyspace,
+															 GrpInds = string.Join(", ", g.DuplicatesRemoved(i => i.GroupInd).Select(i => i.GroupInd)),
+															 Exceptions = string.Join(", ", g.DuplicatesRemoved(i => i.Exception).Select(i => i.Exception)),
+															 Count = g.Count()
+														 };
+
+							foreach (var statItem in readrepairAbortedStats)
+							{
+								var dataRow = dtCFStats.NewRow();
+
+								dataRow = dtCFStats.NewRow();
+
+								dataRow["Source"] = "Cassandra Log";
+								dataRow["Data Center"] = statItem.DCName;
+								dataRow["Node IPAddress"] = statItem.IpAdress;
+								dataRow["KeySpace"] = statItem.KeySpace;
+								dataRow["Attribute"] = "Read Repair Aborted occurrences";
+								dataRow["Reconciliation Reference"] = statItem.GrpInds;
+								dataRow["Value"] = statItem.Count;
+								dataRow["(Value)"] = statItem.Count;
+								//dataRow["Unit of Measure"] = "ms";
+
+								dtCFStats.Rows.Add(dataRow);
+							}
+						}
+						#endregion
+					}
+				}//);
+			}//end of scope for logItems
+
+			return globalReadRepairs.UnSafe;
+		}
+
+		public static void ReadRepairIntoDataTable(IEnumerable<ReadRepairLogInfo> readRepairs,
+													DataTable dtReadRepair)
+		{
+			#region Read Repair Table
+			if (dtReadRepair == null)
+			{
+				return;
+			}
+
+			if (dtReadRepair.Columns.Count == 0)
+			{
+				dtReadRepair.Columns.Add("Start Timestamp", typeof(DateTime)); //a
+				dtReadRepair.Columns.Add("Session Path", typeof(string));
+				dtReadRepair.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Node IPAddress", typeof(string));
+				dtReadRepair.Columns.Add("Type", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Table", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Log/Completion Timestamp", typeof(DateTime)).AllowDBNull = true; //h
+
+				//Read Repair
+				dtReadRepair.Columns.Add("Session", typeof(string)); //i
+				dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Token Range Start", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Token Range End", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr of Repairs", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Receiving Nodes", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //s
+				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //t
+				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //u
+
+				//GC
+				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //v
+				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //y
+
+				//Compaction
+				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //z
+				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//aa
+				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ab
+				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ac
+				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ad
+
+				//Solr Reindexing
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ae
+
+				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //af
+			}
+		#endregion
+
+			if (readRepairs.Count() > 0)
+			{
+				var readRepairItems = from rrItem in readRepairs
+									  orderby rrItem.Start ascending, rrItem.SessionPath ascending, rrItem.DataCenter, rrItem.IPAddress
+									  select rrItem;
+
+				foreach (var rrItem in readRepairItems)
+				{
+					var newDataRow = dtReadRepair.NewRow();
+
+
+					newDataRow["Start Timestamp"] = rrItem.Start;
+					newDataRow["Session Path"] = rrItem.SessionPath;
+					newDataRow["Data Center"] = rrItem.DataCenter;
+					newDataRow["Node IPAddress"] = rrItem.IPAddress;
+					newDataRow["Reconciliation Reference"] = rrItem.GroupInd;
+
+					//Read Repair
+					newDataRow["Type"] = "Read Repair";
+					newDataRow["KeySpace"] = rrItem.Keyspace;
+					newDataRow["Log/Completion Timestamp"] = rrItem.Finish;
+					newDataRow["Session"] = rrItem.Session;
+					newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
+					newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
+					newDataRow["Nbr of Repairs"] = rrItem.NbrRepairs;
+					newDataRow["Receiving Nodes"] = string.Join(", ", rrItem.ReceivingNodes);
+					newDataRow["Nbr GC Events"] = rrItem.GCs;
+					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
+					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
+					newDataRow["Nbr Exceptions"] = rrItem.Exceptions;
+					newDataRow["Aborted Read Repair"] = rrItem.Aborted ? 1 : 0;
+					newDataRow["Options"] = rrItem.Options;
+					newDataRow["Requested"] = rrItem.UserRequest ? 1 : 0;
+
+					dtReadRepair.Rows.Add(newDataRow);
+
+					if (rrItem.GCList != null)
+					{
+						foreach (var item in (from gc in rrItem.GCList
+											  let startTime = gc.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, gc.GCLatency))
+											  orderby startTime ascending
+											  select new { StartTime = startTime, GC = gc }))
+						{
+							newDataRow = dtReadRepair.NewRow();
+
+							newDataRow["Start Timestamp"] = item.StartTime;
+							newDataRow["Session Path"] = rrItem.SessionPath;
+							newDataRow["Data Center"] = item.GC.DataCenter;
+							newDataRow["Node IPAddress"] = item.GC.IPAddress;
+							newDataRow["Type"] = "GC";
+							newDataRow["Log/Completion Timestamp"] = item.GC.LogTimestamp;
+							newDataRow["Session"] = rrItem.Session;
+							newDataRow["GC Time (ms)"] = item.GC.GCLatency;
+							newDataRow["Eden Changed (mb)"] = item.GC.GCEdenTo - item.GC.GCEdenFrom;
+							newDataRow["Survivor Changed (mb)"] = item.GC.GCSurvivorTo - item.GC.GCSurvivorFrom;
+							newDataRow["Old Changed (mb)"] = item.GC.GCOldTo - item.GC.GCOldFrom;
+							newDataRow["Reconciliation Reference"] = item.GC.GroupIndicator;
+
+							dtReadRepair.Rows.Add(newDataRow);
+						}
+					}
+
+					if (rrItem.CompactionList != null)
+					{
+						foreach (var item in (from comp in rrItem.CompactionList
+											  let startTime = comp.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, comp.Latency))
+											  orderby startTime ascending
+											  select new { StartTime = startTime, Comp = comp }))
+						{
+							newDataRow = dtReadRepair.NewRow();
+
+							newDataRow["Start Timestamp"] = item.StartTime;
+							newDataRow["Session Path"] = rrItem.SessionPath;
+							newDataRow["Data Center"] = item.Comp.DataCenter;
+							newDataRow["Node IPAddress"] = item.Comp.IPAddress;
+							newDataRow["Type"] = "Compaction";
+							newDataRow["Log/Completion Timestamp"] = item.Comp.LogTimestamp;
+							newDataRow["Session"] = rrItem.Session;
+							newDataRow["KeySpace"] = item.Comp.Keyspace;
+							newDataRow["Table"] = item.Comp.Table;
+							newDataRow["SSTables"] = item.Comp.SSTables;
+							newDataRow["Old Size (mb)"] = item.Comp.OldSize;
+							newDataRow["New Size (mb)"] = item.Comp.NewSize;
+							newDataRow["Compaction Time (ms)"] = item.Comp.Latency;
+							newDataRow["Compaction IORate (mb/sec)"] = item.Comp.IORate;
+							newDataRow["Reconciliation Reference"] = item.Comp.GroupIndicator;
+
+							dtReadRepair.Rows.Add(newDataRow);
+						}
+					}
+
+					if (rrItem.SolrReIndexing != null)
+					{
+						foreach (var item in (from solrIdx in rrItem.SolrReIndexing
+											  orderby solrIdx.Start ascending
+											  select solrIdx))
+						{
+							newDataRow = dtReadRepair.NewRow();
+
+							newDataRow["Start Timestamp"] = item.Start;
+							newDataRow["Session Path"] = rrItem.SessionPath;
+							newDataRow["Data Center"] = item.DataCenter;
+							newDataRow["Node IPAddress"] = item.IPAddress;
+							newDataRow["Type"] = "Solr ReIndex";
+							newDataRow["Log/Completion Timestamp"] = item.Finish;
+							newDataRow["Session"] = rrItem.Session;
+							newDataRow["KeySpace"] = item.Keyspace;
+							newDataRow["Table"] = item.Table;
+							newDataRow["Solr ReIdx Duration"] = item.Duration;
+							newDataRow["Reconciliation Reference"] = item.GroupIndicator;
+
+							dtReadRepair.Rows.Add(newDataRow);
+						}
+					}
+				}
+			}
+		}
+	}
 }

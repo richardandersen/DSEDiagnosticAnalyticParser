@@ -25,7 +25,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1000000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("3000000")]
         public int MaxRowInExcelWorkBook {
             get {
                 return ((int)(this["MaxRowInExcelWorkBook"]));
@@ -34,7 +34,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("500000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000000")]
         public int MaxRowInExcelWorkSheet {
             get {
                 return ((int)(this["MaxRowInExcelWorkSheet"]));
@@ -601,8 +601,10 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "string>\r\n  <string>Tombstones query aborted occurences</string>\r\n  <string>Read " +
             "Repair maximum latency</string>\r\n  <string>Read Repair minimum latency</string>\r" +
             "\n  <string>Read Repair mean latency</string>\r\n  <string>Read Repair occurrences<" +
-            "/string>\r\n  <string>Read Repair Exceptions occurrences</string>\r\n  <string>Read " +
-            "Repair Exceptions</string>\r\n</ArrayOfString>")]
+            "/string>\r\n  <string>Read Repair Aborted occurrences</string>\r\n  <string>Solr rei" +
+            "ndex duration maximum</string>\r\n  <string>Solr reindex duration minimum</string>" +
+            "\r\n  <string>Solr reindex duration mean</string>\r\n  <string>Solr reindex duration" +
+            " stdev</string>\r\n  <string>Solr reindex occurrences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -693,7 +695,10 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ency</string>\r\n  <string>GC TimeFrame minimum latency</string>\r\n  <string>GC Tim" +
             "eFrame mean latency</string>\r\n  <string>GC TimeFrame occurrences</string>\r\n  <st" +
             "ring>GC TimeFrame latency</string>\r\n  <string>GC TimeFrame standard deviation la" +
-            "tency</string>\r\n  <string>GC TimeFrame percent</string>\r\n</ArrayOfString>")]
+            "tency</string>\r\n  <string>GC TimeFrame percent</string>\r\n  <string>Timedout Hint" +
+            "s Total</string>\r\n  <string>Timedout Hints maximum</string>\r\n  <string>Timedout " +
+            "Hints mean</string>\r\n  <string>Timedout Hints minimum</string>\r\n  <string>Timedo" +
+            "ut Hints occurrences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
@@ -976,6 +981,25 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public string StatsWorkBookFilterSort {
             get {
                 return ((string)(this["StatsWorkBookFilterSort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Read Repair History")]
+        public string ReadRepairWorkSheetName {
+            get {
+                return ((string)(this["ReadRepairWorkSheetName"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{\"Item1\":null,\"Item2\":\"[Start Timestamp] ASC, [Session Path] ASC, [Data Center], " +
+            "[Node IPAddress]\",\"Item3\":\"CurrentRows\"}")]
+        public string ReadRepairWorksheetFilterSort {
+            get {
+                return ((string)(this["ReadRepairWorksheetFilterSort"]));
             }
         }
     }

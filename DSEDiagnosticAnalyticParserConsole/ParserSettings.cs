@@ -139,10 +139,19 @@ namespace DSEDiagnosticAnalyticParserConsole
             /// </summary>
             Detect = 0x40000,
 
-            /// <summary>
-            /// Enables the loading of all worksheets into the main Excel workbook.
-            /// </summary>
-            LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets,
+			/// <summary>
+			/// Parses the logs for Read-Repair events including associated events like GC and compaction.
+			/// </summary>
+			ParseReadRepairs = 0x80000,
+			/// <summary>
+			/// Enables the creation of the Read-Repair worksheet (i.e., ParseReadRepairs)			
+			/// </summary>
+			LoadReadRepairWorkSheets = 0x100000,
+
+			/// <summary>
+			/// Enables the loading of all worksheets into the main Excel workbook.
+			/// </summary>
+			LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets | LoadReadRepairWorkSheets,
             /// <summary>
             /// Enables all settings.
             /// </summary>
@@ -160,7 +169,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     | ParseNodeStatsLogs
                                     | LoadAllWorkSheets
                                     | ProduceSummaryWorkbook
-                                    | ProduceStatsWorkbook,
+                                    | ProduceStatsWorkbook
+									| ParseReadRepairs,
             /// <summary>
             /// Enables only settings related to the log summary analysis
             /// </summary>
@@ -261,6 +271,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string ExcelWorkSheetSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetSummaryLogCassandra;
         public static string ExcelWorkSheetStatusLogCassandra = Properties.Settings.Default.ExcelWorkSheetStatusLogCassandra;
         public static string ExcelWorkSheetExceptionSummaryLogCassandra = Properties.Settings.Default.ExcelWorkSheetExceptionSummaryLogCassandra;
+		public static string ReadRepairWorkSheetName = Properties.Settings.Default.ReadRepairWorkSheetName;
 
         //Static Directory/File names
         public static string DiagNodeDir = Properties.Settings.Default.DiagNodeDir;
@@ -308,6 +319,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static Tuple<string, string, System.Data.DataViewRowState> SummaryLogWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.SummaryLogWorksheetFilterSort);
         public static Tuple<string, string, System.Data.DataViewRowState> CompactionHistWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.CompactionHistWorksheetFilterSort);
 		public static Tuple<string, string, System.Data.DataViewRowState> StatsWorkBookFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.StatsWorkBookFilterSort);
+		public static Tuple<string, string, System.Data.DataViewRowState> ReadRepairWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.ReadRepairWorksheetFilterSort);
 
 		public static Dictionary<string, string> CreateSnitchDictionary(string configString)
         {
