@@ -76,9 +76,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 var dtCFStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseCFStatsLogs) ? new DataTable("CFStats-Logs" + "-" + ipAddress) : null;
                                 var dtTPStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs) ? new DataTable("TPStats-Logs" + "-" + ipAddress) : null;
 
-                                dtLogStatusStack.Push(dtStatusLog);
+								if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
+								{
+									dtLogStatusStack.Push(dtStatusLog);
+								}
 
-                                if (dtCFStats != null) dtCFStatsStack.Push(dtCFStats);
+								if (dtCFStats != null) dtCFStatsStack.Push(dtCFStats);
                                 if (dtTPStats != null) dtTPStatsStack.Push(dtTPStats);
 
                                 Logger.Instance.InfoFormat("Status Log Processing File \"{0}\"", logFilePath.Path);
@@ -107,7 +110,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 foreach (IFilePath archiveElement in archiveFilePaths)
                 {
                     if (archiveElement.PathResolved != logFilePath.PathResolved)
-                    {						
+                    {
                         archTask = ProcessLogFileTasks(archiveElement,
                                                             excelWorkSheetLogCassandra,
                                                             dcName,
@@ -5281,7 +5284,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 					var readRepairs = new List<ReadRepairLogInfo>();
 					var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
 
-					dtLogStatusStack.Push(dtStatusLog);
+					if(dtLogStatusStack != null) dtLogStatusStack.Push(dtStatusLog);
+
 					InitializeStatusDataTable(dtStatusLog);
 
 					foreach (var item in logGroupItem.LogItems)
@@ -5607,7 +5611,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						var dtCFStats = new DataTable(string.Format("CFStats-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
 
-						dtCFStatsStack.Push(dtCFStats);
+						if(dtCFStatsStack != null) dtCFStatsStack.Push(dtCFStats);
 						initializeCFStatsDataTable(dtCFStats);
 
 						Logger.Instance.InfoFormat("Adding Read Repairs ({2}) to CFStats for \"{0}\" \"{1}\"", logGroupItem.DCName, logGroupItem.IPAddress, readRepairs.Count);

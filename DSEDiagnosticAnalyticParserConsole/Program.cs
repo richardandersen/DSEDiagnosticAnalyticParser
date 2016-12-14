@@ -1321,10 +1321,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             string.Join(", ", parsedLogList.Sort<string>()));
                                             });
 
-						Program.ConsoleParsingLog.Increment("Log Merge");
 						runLogMergedTask = runningLogTask.ContinueWith(action =>
-                                            {                                                
-                                                var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
+                                            {
+												Program.ConsoleParsingLog.Increment("Log Merge");
+												var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
                                                                                                                                                     "[Data Center], [Timestamp] DESC",
                                                                                                                                                     DataViewRowState.CurrentRows));
                                                 Program.ConsoleParsingLog.TaskEnd("Log Merge");
@@ -1336,12 +1336,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
 						{
-							Program.ConsoleParsingLog.Increment("Read Repair Processing");
 							runReadRepairProcess = runLogMergedTask.ContinueWith(logTask =>
-											{												
+											{
+												Program.ConsoleParsingLog.Increment("Read Repair Processing");
 												var readRepairCollection = ProcessFileTasks.ParseReadRepairFromLog(logTask.Result,
-																													dtLogStatusStack,
-																													dtCFStatsStack,
+																													ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+																														? dtLogStatusStack
+																														: null,
+																													ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
+																														? dtCFStatsStack
+																														: null,
 																													ParserSettings.IgnoreKeySpaces);
 
 												Program.ConsoleParsingLog.TaskEnd("Read Repair Processing");
@@ -1354,9 +1358,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
 							{
-								Program.ConsoleParsingLog.Increment("Read Repair Table");
 								runReadRepairTbl = runReadRepairProcess.ContinueWith(readRepairTask =>
-													{														
+													{
+														Program.ConsoleParsingLog.Increment("Read Repair Table");
 														var dtReadRepair = new DataTable("ReadRepair");
 
 														ProcessFileTasks.ReadRepairIntoDataTable(readRepairTask.Result, dtReadRepair);
@@ -1371,9 +1375,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 						}
 
-						Program.ConsoleParsingLog.Increment("Node Stats Updates");
 						var runContGCTask = runningLogTask.ContinueWith(action =>
-													{														
+													{
+														Program.ConsoleParsingLog.Increment("Continuous GC");
 														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
 														dtNodeStatsStack.Push(dtTPStats);
 														ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
@@ -1381,16 +1385,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 																											ParserSettings.ContinuousGCNbrInSeries,
 																											ParserSettings.GCTimeFrameDetection,
 																											ParserSettings.GCTimeFrameDetectionPercentage);
-														Program.ConsoleParsingLog.TaskEnd("Node Stats Updates");
+														Program.ConsoleParsingLog.TaskEnd("Continuous GC");
 													},
 												   TaskContinuationOptions.AttachedToParent
 													   | TaskContinuationOptions.LongRunning
 													   | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-						Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
 						runNodeStatsMergedTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask }, ignoreItem => { })
 															.ContinueWith(action =>
-															{																
+															{
+																Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
 																var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
 																Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
 																return dtNodeStatslog;
@@ -1426,20 +1430,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 else
                 {
-					Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
 					runNodeStatsMergedTask = Task.Factory.StartNew<DataTable>(() =>
-                                            {                                                
-                                                var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
+                                            {
+												Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+												var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
                                                 Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
                                                 return dtNodeStatslog;
                                             },
                                        TaskCreationOptions.LongRunning);
                 }
 
-				Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
 				tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
                                     {
-                                        var dtCFHist = taskResult.Result;
+										Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
+										var dtCFHist = taskResult.Result;
 
                                         if (dtCFHist.Rows.Count > 0)
                                         {
