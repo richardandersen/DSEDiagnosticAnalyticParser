@@ -55,6 +55,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     dtComplete.Load(dtReader);
                 }
+
+				dtItem.Clear();
             }
 
             dtComplete.EndLoadData();

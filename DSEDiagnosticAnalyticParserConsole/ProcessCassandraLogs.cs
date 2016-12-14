@@ -819,9 +819,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (parsedValues[4] == "BatchStatement.java")
                         {
-                            #region BatchStatement.java
-                            //BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
-                            if (nCell == itemPos)
+							#region BatchStatement.java
+							//BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
+							//WARN  [SharedPool-Worker-3] 2016-12-03 00:11:32,802  BatchStatement.java:252 - Batch of prepared statements for [Sandy.referral_source] is of size 71016, exceeding specified threshold of 65536 by 5480.
+
+							if (nCell == itemPos)
                             {
                                 var splitItems = SplitTableName(parsedValues[nCell]);
 
@@ -831,7 +833,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 int batchSize;
 
-                                if (int.TryParse(parsedValues[nCell], out batchSize))
+								if (int.TryParse(parsedValues[nCell].Replace(",", string.Empty), out batchSize))
                                 {
                                     dataRow["Associated Value"] = batchSize;
                                 }
@@ -5901,6 +5903,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 					}
 				}
 			}
+		}
+
+
+		public static void ReleaseGlobalLogCollections()
+		{
+			GCOccurrences.Clear();
+			CompactionOccurrences.Clear();
+			SolrReindexingOccurrences.Clear();
 		}
 	}
 }

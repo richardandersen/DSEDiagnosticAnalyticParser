@@ -82,8 +82,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     -1,
                                                     -1,
                                                     null,
-                                                    "A2");
-                }
+                                                    "A2");										
+				}
                
                 #endregion
             },

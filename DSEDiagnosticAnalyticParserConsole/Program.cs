@@ -27,7 +27,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public ConsoleDisplay ConsoleWarnings = null;
         static public ConsoleDisplay ConsoleErrors = null;
 
-        static void Main(string[] args)
+		static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
@@ -151,14 +151,20 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
             ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
 
-            #region Local Variables
+			//if (!System.Runtime.GCSettings.IsServerGC
+			//		&& System.Runtime.GCSettings.LatencyMode == System.Runtime.GCLatencyMode.Batch)
+			//{
+				GCMonitor.GetInstance().StartGCMonitoring();
+			//}
 
-            //Local Variables used for processing
-            bool opsCtrDiag = false;
+			#region Local Variables
+
+			//Local Variables used for processing
+			bool opsCtrDiag = false;
             var dtRingInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingInfo);
             var dtTokenRange = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingTokenRanges);
             var dtKeySpace = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLKeyspaces);
-            var dtTable = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLTables);
+            var dtDDLTable = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLTables);
             var cqlHashCheck = new Dictionary<string, int>();
             var dtCFStatsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var dtNodeStatsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
@@ -174,7 +180,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			Task<DataTable> tskdtCFHistogram = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             int nbrNodes = -1;
 
-            ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtTable);
+            ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtDDLTable);
 
             #endregion
 
@@ -263,11 +269,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         null,
                                                                         null,
                                                                         dtKeySpace,
-                                                                        dtTable,
+                                                                        dtDDLTable,
                                                                         cqlHashCheck,
                                                                         ParserSettings.IgnoreKeySpaces);
 
-                        foreach (DataRow dataRow in dtTable.Rows)
+                        foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
                             if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
                             {
@@ -321,11 +327,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         null,
                                                                         null,
                                                                         dtKeySpace,
-                                                                        dtTable,
+                                                                        dtDDLTable,
                                                                         cqlHashCheck,
                                                                         ParserSettings.IgnoreKeySpaces);
 
-                        foreach (DataRow dataRow in dtTable.Rows)
+                        foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
                             if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
                             {
@@ -420,7 +426,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFile.Path);
                                 var dtCompHist = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCompactionHist + "-" + ipAddress);
                                 dtCompHistStack.Push(dtCompHist);
-                                ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtCompHist, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
+                                ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtCompHist, dtDDLTable, ParserSettings.IgnoreKeySpaces, kstblNames);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
                             }
                             else if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
@@ -641,11 +647,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             null,
                                                                             null,
                                                                             dtKeySpace,
-                                                                            dtTable,
+                                                                            dtDDLTable,
                                                                             cqlHashCheck,
                                                                             ParserSettings.IgnoreKeySpaces);
 
-                            foreach (DataRow dataRow in dtTable.Rows)
+                            foreach (DataRow dataRow in dtDDLTable.Rows)
                             {
                                 if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
                                 {
@@ -703,11 +709,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         null,
                                                                         null,
                                                                         dtKeySpace,
-                                                                        dtTable,
+                                                                        dtDDLTable,
                                                                         cqlHashCheck,
                                                                         ParserSettings.IgnoreKeySpaces);
 
-                        foreach (DataRow dataRow in dtTable.Rows)
+                        foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
                             if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
                             {
@@ -910,7 +916,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", diagFilePath.Path);
                             var dtHistComp = new System.Data.DataTable(ParserSettings.ExcelWorkSheetCompactionHist + "-" + ipAddress);
                             dtCompHistStack.Push(dtHistComp);
-                            ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtHistComp, dtTable, ParserSettings.IgnoreKeySpaces, kstblNames);
+                            ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable(diagFilePath, ipAddress, dcName, dtHistComp, dtDDLTable, ParserSettings.IgnoreKeySpaces, kstblNames);
                             Program.ConsoleNonLogReadFiles.TaskEnd(diagFilePath);
                         }
                         else
@@ -935,15 +941,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     {
                                         IFilePath archivedFilePath = null;
 
-                                        if(diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
+										if (diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
                                         {
-                                            if(archivedFilePath.HasWildCardPattern())
+											Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
+
+											if (archivedFilePath.HasWildCardPattern())
                                             {
-                                                archivedFilePaths = archivedFilePath.GetWildCardMatches()
+												archivedFilePaths = archivedFilePath.GetWildCardMatches()
                                                                                         .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
                                                                                         .Cast<IFilePath>()
                                                                                         .ToArray();
-                                            }
+											}
                                             else
                                             {
                                                 archivedFilePaths = new IFilePath[] { archivedFilePath };
@@ -957,6 +965,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 												if (ProcessFileTasks.ExtractFileToFolder(archivedFilePaths[fIdx], out extractedDir))
 												{
+													Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
+																					archivedFilePaths[fIdx].PathResolved,
+																					extractedDir.PathResolved);
 													if (extractedDir.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
 													{
 														if (archivedFilePath.HasWildCardPattern())
@@ -987,6 +998,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		.GetRange(0, ParserSettings.MaxNbrAchievedLogFiles)
 																		.ToArray();
 											}
+
+											Program.ConsoleLogReadFiles.Decrement(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
 										}
 									}
 
@@ -1245,13 +1258,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 });
             #endregion
 
-            Task<DataTable> runLogParsingTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task<DataTable> runLogMergedTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             Task<Tuple<DataTable, DataTable, DateTimeRange>> runSummaryLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
-            Task<DataTable> runNodeStatsLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task<DataTable> runNodeStatsMergedTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             Task updateRingWYamlInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
-            Task<DataTable> runUpdateActiveTblStatus = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
-			Task<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>>();
+            Task<DataTable> runCFStatsMergedDDLUpdated = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task<DataTable> runReadRepairTbl = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+			Task<DataTable> runStatsLogMerged = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+			Task runReleaseDependentLogTask;
 
 			{
 				var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
@@ -1292,8 +1306,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             : Task<int>
                                                 .Factory
                                                 .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
+				Task<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>>();
 
-                if (logParsingTasks.Count > 0)
+				if (logParsingTasks.Count > 0)
                 {
                     if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
                     {
@@ -1306,10 +1321,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             string.Join(", ", parsedLogList.Sort<string>()));
                                             });
 
-
-                        runLogParsingTask = runningLogTask.ContinueWith(action =>
-                                            {
-                                                Program.ConsoleParsingLog.Increment("Log Merge");
+						Program.ConsoleParsingLog.Increment("Log Merge");
+						runLogMergedTask = runningLogTask.ContinueWith(action =>
+                                            {                                                
                                                 var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
                                                                                                                                                     "[Data Center], [Timestamp] DESC",
                                                                                                                                                     DataViewRowState.CurrentRows));
@@ -1322,9 +1336,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
 						{
-							runReadRepairProcess = runLogParsingTask.ContinueWith(logTask =>
-											{
-												Program.ConsoleParsingLog.Increment("Read Repair Processing");
+							Program.ConsoleParsingLog.Increment("Read Repair Processing");
+							runReadRepairProcess = runLogMergedTask.ContinueWith(logTask =>
+											{												
 												var readRepairCollection = ProcessFileTasks.ParseReadRepairFromLog(logTask.Result,
 																													dtLogStatusStack,
 																													dtCFStatsStack,
@@ -1340,9 +1354,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
 							{
+								Program.ConsoleParsingLog.Increment("Read Repair Table");
 								runReadRepairTbl = runReadRepairProcess.ContinueWith(readRepairTask =>
-													{
-														Program.ConsoleParsingLog.Increment("Read Repair Table");
+													{														
 														var dtReadRepair = new DataTable("ReadRepair");
 
 														ProcessFileTasks.ReadRepairIntoDataTable(readRepairTask.Result, dtReadRepair);
@@ -1357,9 +1371,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 						}
 
+						Program.ConsoleParsingLog.Increment("Node Stats Updates");
 						var runContGCTask = runningLogTask.ContinueWith(action =>
-													{
-														Program.ConsoleParsingLog.Increment("Node Stats Updates");
+													{														
 														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
 														dtNodeStatsStack.Push(dtTPStats);
 														ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
@@ -1373,10 +1387,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 													   | TaskContinuationOptions.LongRunning
 													   | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-						runNodeStatsLogTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask }, ignoreItem => { })
+						Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+						runNodeStatsMergedTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask }, ignoreItem => { })
 															.ContinueWith(action =>
-															{
-																Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+															{																
 																var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
 																Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
 																return dtNodeStatslog;
@@ -1388,7 +1402,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
                     {
-                        runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogParsingTask,
+						Program.ConsoleParsingLog.Increment("Processing Log Summary");
+						runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogMergedTask,
                                                                                                     ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                                     ParserSettings.LogSummaryPeriods,
                                                                                                     ParserSettings.LogSummaryPeriodRanges,
@@ -1399,7 +1414,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         runSummaryLogTask.ContinueWith(action =>
                                                 {
-                                                    Program.ConsoleParsingLog.Terminate();
+													Program.ConsoleParsingLog.TaskEnd("Processing Log Summary");
+													Program.ConsoleParsingLog.Terminate();
                                                 });
                     }
 
@@ -1410,9 +1426,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 else
                 {
-                    runNodeStatsLogTask = Task.Factory.StartNew<DataTable>(() =>
-                                            {
-                                                Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+					Program.ConsoleParsingLog.Increment("Node Stats Log Merge");
+					runNodeStatsMergedTask = Task.Factory.StartNew<DataTable>(() =>
+                                            {                                                
                                                 var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
                                                 Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
                                                 return dtNodeStatslog;
@@ -1420,29 +1436,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                                        TaskCreationOptions.LongRunning);
                 }
 
-                tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
+				Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
+				tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
                                     {
                                         var dtCFHist = taskResult.Result;
 
                                         if (dtCFHist.Rows.Count > 0)
                                         {
-
-                                            Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
-
-                                            var dtCFStat = new DataTable("CFHistogram");
+											var dtCFStat = new DataTable("CFHistogram");
 
                                             dtCFStatsStack.Push(dtCFStat);
                                             ProcessFileTasks.ProcessCFHistStats(dtCFHist, dtCFStat);
-
-                                            Program.ConsoleParsingNonLog.Decrement("TableHistogram => CFStats...");
                                         }
-                                        return dtCFHist;
+										Program.ConsoleParsingNonLog.TaskEnd("TableHistogram => CFStats...");
+										return dtCFHist;
                                     },
                                     TaskContinuationOptions.AttachedToParent
                                         | TaskContinuationOptions.LongRunning
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-                runUpdateActiveTblStatus = Task.Factory
+                runCFStatsMergedDDLUpdated = Task.Factory
                                             .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess }, ignoreItem => { })
                                             .ContinueWith(action =>
                                                 {
@@ -1454,7 +1467,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
 
                                                     Program.ConsoleParsingLog.Increment("DDL Active Table Update");
-                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtTable);
+                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtDDLTable);
                                                     Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
 
                                                     return dtCFTable;
@@ -1464,10 +1477,37 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 Task.Factory
-                       .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runUpdateActiveTblStatus, runNodeStatsLogTask },
+                       .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runCFStatsMergedDDLUpdated, runNodeStatsMergedTask },
                                            tasks => Program.ConsoleParsingNonLog.Terminate());
-            }
+
+				runReleaseDependentLogTask = Task.Factory
+											  .ContinueWhenAll(new Task[] { runLogMergedTask,
+																			runSummaryLogTask,
+																			runReadRepairProcess,
+																			runReadRepairTbl,
+																			runNodeStatsMergedTask,
+																			runCFStatsMergedDDLUpdated },
+																  tasks => ProcessFileTasks.ReleaseGlobalLogCollections());
+
+				Program.ConsoleParsingLog.Increment("Log Stats Merge");
+				runStatsLogMerged = Task.Factory
+											  .ContinueWhenAll<DataTable>(new Task[] { runLogMergedTask,
+																						runReadRepairProcess },
+																  tasks =>
+																  {
+																	  var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null
+																																												? ParserSettings.StatsWorkBookFilterSort.Item1
+																																												: ParserSettings.LogExcelWorkbookFilter,
+																																											ParserSettings.StatsWorkBookFilterSort.Item2,
+																																											ParserSettings.StatsWorkBookFilterSort.Item3));
+																	  Program.ConsoleParsingLog.TaskEnd("Log Stats Merge");
+
+																	  return dtLogStats;
+																  });
+			}
             #endregion
+
+			//Care should be taken below since DataTables are released after they are loaded into Excel...
 
             #region Excel Creation/Formatting
 
@@ -1529,15 +1569,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
                     {
-                        statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runLogParsingTask,
-																			   runReadRepairProcess,
-																			   dtLogStatusStack,
+                        statusLogToExcel = DTLoadIntoExcel.LoadStatusLog(runStatsLogMerged,
                                                                                excelFile.Path,
                                                                                ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                                ParserSettings.MaxRowInExcelWorkBook,
                                                                                ParserSettings.MaxRowInExcelWorkSheet,
-                                                                               ParserSettings.LogExcelWorkbookFilter);
+																			   ParserSettings.LogExcelWorkbookFilter);
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ProduceSummaryWorkbook.IsEnabled())
@@ -1549,10 +1587,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     Task.Factory
                             .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel }, tasks => { Program.ConsoleExcelLogStatus.Terminate(); });
+					Task.Factory
+							.ContinueWhenAll(new Task[] { runSummaryLogTask, summaryLogToExcel }, tasks =>
+					{
+						//Data Table should be loaded into Excel... Release rows to free up memory...
+						runSummaryLogTask.Result?.Item2?.Clear();
+					});
 
                     if (ParserSettings.LogParsingExcelOptions.CreateWorkbook.IsEnabled())
                     {
-                        logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogParsingTask,
+                        logToExcel = DTLoadIntoExcel.LoadCassandraLog(runLogMergedTask,
                                                                             excelFile.Path,
                                                                             ParserSettings.ExcelWorkSheetLogCassandra,
                                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp,
@@ -1566,7 +1610,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                         });
                     }
 
-                    runLogToExcel = Task.Factory
+					Task.Factory
+							.ContinueWhenAll(new Task[] { logToExcel, runLogMergedTask, runReleaseDependentLogTask }, tasks =>
+					{
+						//Data Table should be loaded into Excel... Release rows to free up memory...
+						runLogMergedTask.Result?.Clear();
+					});
+
+					runLogToExcel = Task.Factory
                                         .ContinueWhenAll(new Task[] { statusLogToExcel, summaryLogToExcel, logToExcel }, tasks => { });
                 }
 
@@ -1595,16 +1646,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 dtOSMachineInfo,
                                                                 ParserSettings.ExcelWorkSheetOSMachineInfo);
 
-                            runLogParsingTask?.Wait();
-                            runUpdateActiveTblStatus?.Wait();
-                            runNodeStatsLogTask?.Wait();
+                            runLogMergedTask?.Wait();
+                            runCFStatsMergedDDLUpdated?.Wait();
+                            runNodeStatsMergedTask?.Wait();
 
-                            DTLoadIntoExcel.LoadCFStats(excelPkg, runUpdateActiveTblStatus?.Result, ParserSettings.ExcelWorkSheetCFStats);
-                            DTLoadIntoExcel.LoadNodeStats(excelPkg, runNodeStatsLogTask?.Result, ParserSettings.ExcelWorkSheetNodeStats);
-                            DTLoadIntoExcel.LoadTableDDL(excelPkg, dtTable, ParserSettings.ExcelWorkSheetDDLTables);
-                        }
+                            DTLoadIntoExcel.LoadCFStats(excelPkg, runCFStatsMergedDDLUpdated?.Result, ParserSettings.ExcelWorkSheetCFStats);
+                            DTLoadIntoExcel.LoadNodeStats(excelPkg, runNodeStatsMergedTask?.Result, ParserSettings.ExcelWorkSheetNodeStats);
+                            DTLoadIntoExcel.LoadTableDDL(excelPkg, dtDDLTable, ParserSettings.ExcelWorkSheetDDLTables);
+						}
+						runCFStatsMergedDDLUpdated?.Result?.Clear();
+						runNodeStatsMergedTask?.Result?.Clear();
+						dtDDLTable?.Clear();
 
-                        if (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled())
+						if (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled())
                         {
                             runSummaryLogTask?.Wait();
 
@@ -1616,20 +1670,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 ProcessFileTasks.LogCassandraMaxMinTimestamp,
                                                                 runSummaryLogTask.Result.Item3,
                                                                 ParserSettings.LogExcelWorkbookFilter);
-                            }
+							}
                         }
+						runSummaryLogTask?.Result?.Item1?.Clear();
 
-                        if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+						if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
                         {
                             DTLoadIntoExcel.LoadCFHistogram(excelPkg, tskdtCFHistogram, ParserSettings.ExcelCFHistogramWorkSheet);
-                        }
+						}
+						tskdtCFHistogram?.Result?.Clear();
 
 						if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
 						{
 							DTLoadIntoExcel.LoadReadRepair(runReadRepairTbl, excelPkg, ParserSettings.ReadRepairWorkSheetName);
 						}
+						runReadRepairTbl?.Result?.Clear();
 
-                        DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
+						DTLoadIntoExcel.UpdateApplicationWs(excelPkg);
 
                         excelPkg.Save();
                         Program.ConsoleExcelWorkbook.Increment(excelFile);
@@ -1651,6 +1708,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             runLogToExcel?.Wait();
             Program.ConsoleExcelWorkbook.Terminate();
+			GCMonitor.GetInstance().StopGCMonitoring();
 
             var parsedItemCounts = new int[] { parsedCFHistList.Count,
                                                 parsedCFStatList.Count,

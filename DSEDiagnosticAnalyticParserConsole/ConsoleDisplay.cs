@@ -206,7 +206,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (EnableWriters)
             {
-                timer.Change(1000, 500);
+                timer.Change(100, Timeout.Infinite);
             }
         }
 
@@ -224,13 +224,15 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             var consoleWriter = (ConsoleWriter)state;
 
-			if(System.Threading.Interlocked.Read(ref TimerEntry) > 1)
-			{
-				return;
-			}
+			//timer.Change(Timeout.Infinite, Timeout.Infinite);
 
 			try
 			{
+				if (System.Threading.Interlocked.Read(ref TimerEntry) > 10)
+				{
+					return;
+				}
+
 				System.Threading.Interlocked.Increment(ref TimerEntry);
 
 				for (int nIndex = 0; nIndex < ConsoleDisplays.Count; ++nIndex)
@@ -255,7 +257,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 			finally
 			{
 				System.Threading.Interlocked.Decrement(ref TimerEntry);
+				timer.Change(1000, Timeout.Infinite);
 			}
-        }
+		}
     }
 }
