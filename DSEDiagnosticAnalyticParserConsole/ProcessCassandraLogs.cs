@@ -349,8 +349,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-                    if (line.Substring(0, 4).ToLower() == "... "
-                            || (!assertError && line.Substring(0, 3).ToLower() == "at "))
+					if (line.Substring(0, 4).ToLower() == "... "
+							|| (line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[
+							|| (!assertError && line.Substring(0, 3).ToLower() == "at "))
                     {
                         continue;
                     }
@@ -1084,7 +1085,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //StatusLogger.java:112 - ColumnFamily                Memtable ops,data
                             //StatusLogger.java:115 - dse_perf.node_slow_log           8150,3374559
 
-                            if (parsedValues[nCell] == "ColumnFamily")
+                            if (parsedValues[nCell] == "ColumnFamily" || parsedValues[nCell] == "Table")
                             {
                                 tableItem = parsedValues[4];
                                 tableItemPos = nCell;
@@ -1412,6 +1413,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 							#endregion
 						}
+						//Incremental Repair
+						//INFO  [CompactionExecutor:20738] 2016-12-11 03:03:14,042  CompactionManager.java:511 - Starting anticompaction for mobilepay_paymentsources_cards.schemaversions on 2/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-2-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
+						//INFO[CompactionExecutor: 20738] 2016 - 12 - 11 03:03:14,043  CompactionManager.java:540 - SSTable BigTableReader(path = '/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-2-big-Data.db') fully contained in range(-9223372036854775808, -9223372036854775808], mutating repairedAt instead of anticompacting
+						//INFO[CompactionExecutor:20738] 2016 - 12 - 11 03:03:14,049  CompactionManager.java:540 - SSTable BigTableReader(path = '/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range(-9223372036854775808, -9223372036854775808], mutating repairedAt instead of anticompacting
+						//INFO[CompactionExecutor:20738] 2016 - 12 - 11 03:03:14,050  CompactionManager.java:578 - Completed anticompaction successfully
+
 						else if (dataRow["Associated Value"] == DBNull.Value
                                     && LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
                         {
@@ -2099,7 +2106,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-		static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+new session:.+on range \(([0-9-]+)\,\s*([0-9-]+)\]\s+for\s+(.+)\.\[.+\]",
+		static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+session:.+on range\s+\[?\(([0-9-]+).*\,([0-9-]+)\]\]?\s+for\s+(.+)\.\[.+\]",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		//starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
 		static Regex RegExRepairUserRequest = new Regex(@".*starting\s+user-requested\s+repair.+range\s+\[?\(\s*([0-9-]+)\s*\,\s*([0-9-]+)\s*\]\]?\s+.+keyspace\s+(.+)\s+and.+",
@@ -2108,11 +2115,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 		static Regex RegExRepairUserRequest1 = new Regex(@".*Starting\s+repair\s+command\s.+keyspace\s+(.+)\s+\((.+)\)",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
-		static Regex RegExRepairEndSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+session completed\s+(.+)",
+		static Regex RegExRepairEndSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+session\s+(.+)\s+(.+)",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		//[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
 		static Regex RegExRepairNbrRangesLine = new Regex(@"\[.+\s+#(.+)\]\s+Performing streaming repair.+\s+(\d+)\s+ranges.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		//[repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
+		static Regex RegExRepairReceivedLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+merkle tree for\s+.+from.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
 		//Reindexing on keyspace account_owner and column family ew_account_owners
 		//Finished reindexing on keyspace prod_fcra and column family rtics_contribution
 		static Regex RegExSolrReIndex = new Regex(@".*Reindexing.+keyspace\s+(.+)\s+.+column\s+family\s+(.+)",
@@ -2199,7 +2210,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public bool Aborted;
 			public string Exception;
 			public int NbrRepairs;
-			public List<string> ReceivingNodes = new List<string>();
+			public List<string> RepairNodes = new List<string>();
+			public List<string> ReceivedNodes = new List<string>();
 			public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
 			public IEnumerable<GCLogInfo> GCList = null;
 			public IEnumerable<CompactionLogInfo> CompactionList = null;
@@ -2568,7 +2580,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (descr.StartsWith("Pool Name")
                              || descr.StartsWith("ColumnFamily ")
-                             || descr.StartsWith("Cache Type"))
+							 || descr.StartsWith("Table ")
+							 || descr.StartsWith("Cache Type"))
                         {
                             continue;
                         }
@@ -5250,7 +5263,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							   let exception = dr.Field<string>("Exception")
 							   where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
 									   || (item == "RepairSession.java"
-											   && (descr.Contains("new session") || descr.Contains("session completed successfully")))
+											   && (descr.Contains("new session")
+														|| descr.Contains("Session completed successfully")
+														|| descr.Contains("Received merkle tree")))
 									   || (item == "StreamingRepairTask.java"
 												&& descr.Contains("Performing streaming repair"))
 										|| (exception != null
@@ -5298,39 +5313,27 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
 							var regExNewSession = RegExRepairNewSessionLine.Split(item.Description);
 
-							if (regExNewSession.Length > 4)
+							if (regExNewSession.Length > 5 && regExNewSession[2] == "new")
 							{
 								#region New Session
-								if (ignoreKeySpaces.Contains(regExNewSession[4].Trim()))
+								if (ignoreKeySpaces.Contains(regExNewSession[5].Trim()))
 								{
 									continue;
 								}
 
-								ReadRepairLogInfo logInfo = currentReadRepairs.Find(r => r.Keyspace == regExNewSession[4].Trim()
-																							&& string.IsNullOrEmpty(r.Session));
-								if (logInfo == null)
+								var logInfo = new ReadRepairLogInfo()
 								{
-									logInfo = new ReadRepairLogInfo()
-									{
-										Session = regExNewSession[1].Trim(),
-										DataCenter = logGroupItem.DCName,
-										IPAddress = logGroupItem.IPAddress,
-										Keyspace = regExNewSession[4].Trim(),
-										Start = item.Timestamp,
-										//Finish;
-										TokenRangeStart = regExNewSession[2].Trim(),
-										TokenRangeEnd = regExNewSession[3].Trim(),
-										GroupInd = groupIndicator
-									};
-								}
-								else
-								{
-									logInfo.Session = regExNewSession[1].Trim();
-									logInfo.Start = item.Timestamp;
-									logInfo.TokenRangeStart = regExNewSession[2].Trim();
-									logInfo.TokenRangeEnd = regExNewSession[3].Trim();
-								}
-
+									Session = regExNewSession[1].Trim(),
+									DataCenter = logGroupItem.DCName,
+									IPAddress = logGroupItem.IPAddress,
+									Keyspace = regExNewSession[5].Trim(),
+									Start = item.Timestamp,
+									//Finish;
+									TokenRangeStart = regExNewSession[3].Trim(),
+									TokenRangeEnd = regExNewSession[4].Trim(),
+									GroupInd = groupIndicator
+								};
+								
 								var dataRow = dtStatusLog.NewRow();
 
 								dataRow["Timestamp"] = item.Timestamp;
@@ -5359,7 +5362,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
 								var regExEndSession = RegExRepairEndSessionLine.Split(item.Description);
 
-								if (regExEndSession.Length > 1)
+								if (regExEndSession.Length > 3 && regExEndSession[2] == "completed")
 								{
 									#region Session Completed
 									var logInfo = currentReadRepairs.Find(r => r.Session == regExEndSession[1]);
@@ -5388,12 +5391,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 										currentReadRepairs.Remove(logInfo);
 
-										if(rrOption != null)
+										if (rrOption != null)
 										{
 											logInfo.Options = rrOption.Item2;
 											optionsReadRepair.Remove(rrOption);
 										}
-										if(userRequest != null)
+										if (userRequest != null)
 										{
 											logInfo.UserRequest = userRequest.Item3;
 											userRequests.Remove(userRequest);
@@ -5407,8 +5410,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 									}
 									#endregion
 								}
-							}
+								else
+								{
+									#region Received Tree
+									// RepairSession.java:181 - [repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
+									var regExReceived = RegExRepairReceivedLine.Split(item.Description);
 
+									if (regExReceived.Length > 4 && regExReceived[2] == "Received")
+									{
+										var logInfo = currentReadRepairs.Find(r => r.Session == regExReceived[1]);
+
+										if (logInfo != null)
+										{
+											logInfo.ReceivedNodes.Add(regExReceived[3]);
+										}
+									}
+									#endregion
+								}
+							}
 							#endregion
 						}
 						else if (item.Item == "StreamingRepairTask.java")
@@ -5426,12 +5445,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 								{
 									gcInfo.NbrRepairs += int.Parse(regExNbrSession[2]);
 
-									if(!gcInfo.ReceivingNodes.Contains(regExNbrSession[3]))
+									if(!gcInfo.RepairNodes.Contains(regExNbrSession[3]))
 									{
 										string ipAddress;
 										if (IPAddressStr(regExNbrSession[3], out ipAddress))
 										{
-											gcInfo.ReceivingNodes.Add(ipAddress);
+											gcInfo.RepairNodes.Add(ipAddress);
 										}
 									}
 								}
@@ -5501,41 +5520,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dtStatusLog.Rows.Add(dataRow);
 									}
 
-									r.Abort(item.Timestamp, item.Exception);
+									r.Abort(r.Start, item.Exception);
 								});
 
 								currentReadRepairs.Clear();
 							}
 							else
 							{
-								currentReadRepairs.Where(r => r.Session != null && item.Description.Contains(r.Session)).ToArray().ForEach(r =>
-								{
-									var dataRow = dtStatusLog.NewRow();
-
-									dataRow["Timestamp"] = item.Timestamp;
-									dataRow["Data Center"] = logGroupItem.DCName;
-									dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-									dataRow["Pool/Cache Type"] = "Read Repair (Exception) Aborted";
-									dataRow["Reconciliation Reference"] = groupIndicator;
-
-									dataRow["Session"] = r.Session;
-									dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
-									dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
-									dataRow["KeySpace"] = r.Keyspace;
-									dataRow["Nbr GCs"] = r.GCs;
-									dataRow["Nbr Compactions"] = r.Compactions;
-									dataRow["Nbr Exceptions"] = r.Exceptions;
-									dataRow["Latency (ms)"] = r.Duration;
-									if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
-									dataRow["Aborted"] = 1;
-									dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
-
-									currentReadRepairs.Remove(r);
-									dtStatusLog.Rows.Add(dataRow);
-
-									r.Abort(item.Timestamp, item.Exception);
-								});
-
 								currentReadRepairs.ForEach(r =>
 								{
 									++r.Exceptions;
@@ -5570,7 +5561,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dtStatusLog.Rows.Add(dataRow);
 
-						r.Abort(oldestLogTimeStamp, "Orphaned");
+						r.Abort(DateTime.MinValue, "Orphaned");
 					});
 					currentReadRepairs.Clear();
 					optionsReadRepair.Clear();
@@ -5599,7 +5590,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 																									&& rrInfo.Start <= c.StartTime
 																									&& c.StartTime < rrInfo.Finish);
 									rrInfo.GCList = nodeGCCollection?.UnSafe.Where(c => rrInfo.Start <= c.StartTime
-																							&& c.StartTime < rrInfo.Finish);
+																							&& c.StartTime < rrInfo.Finish
+																							&& rrInfo.SessionPath == rrInfo.Session);
 									rrInfo.SolrReIndexing = nodeSolrIdxCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
 																									&& rrInfo.Start <= c.Start
 																									&& c.Start < rrInfo.Finish);
@@ -5747,7 +5739,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			if (dtReadRepair.Columns.Count == 0)
 			{
 				dtReadRepair.Columns.Add("Start Timestamp", typeof(DateTime)); //a
-				dtReadRepair.Columns.Add("Session Path", typeof(string));
+				dtReadRepair.Columns.Add("Session Path", typeof(string)); //b 2
 				dtReadRepair.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Node IPAddress", typeof(string));
 				dtReadRepair.Columns.Add("Type", typeof(string)).AllowDBNull = true;
@@ -5760,33 +5752,34 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Token Range Start", typeof(string)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Token Range End", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr of Repairs", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Receiving Nodes", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr of Repaired Ranges", typeof(int)).AllowDBNull = true; //m
+				dtReadRepair.Columns.Add("Updating Nodes", typeof(string)).AllowDBNull = true; //n 14
+				dtReadRepair.Columns.Add("Nbr Received Nodes", typeof(int)).AllowDBNull = true; //o
 				dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //s
-				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //t
-				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //u
+				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //t
+				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //u
+				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //v
 
 				//GC
-				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //v
+				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //w
 				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //y
+				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //z
 
 				//Compaction
-				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //z
-				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//aa
-				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ab
-				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ac
-				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ad
+				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //aa
+				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ab
+				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ac
+				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ad
+				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ae
 
 				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ae
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //af
 
-				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //af
+				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ag
 			}
 		#endregion
 
@@ -5815,8 +5808,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 					newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
 					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
 					newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
-					newDataRow["Nbr of Repairs"] = rrItem.NbrRepairs;
-					newDataRow["Receiving Nodes"] = string.Join(", ", rrItem.ReceivingNodes);
+					newDataRow["Nbr of Repaired Ranges"] = rrItem.NbrRepairs;
+					newDataRow["Updating Nodes"] = string.Join(", ", rrItem.RepairNodes);
+					newDataRow["Nbr Received Nodes"] = rrItem.ReceivedNodes.Count;
 					newDataRow["Nbr GC Events"] = rrItem.GCs;
 					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
 					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
@@ -5916,5 +5910,47 @@ namespace DSEDiagnosticAnalyticParserConsole
 			CompactionOccurrences.Clear();
 			SolrReindexingOccurrences.Clear();
 		}
+
+
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.cardticketmap on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.blobreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.schemaversions on 0/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-6-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-5-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.paymentidorderidmap on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapuseridtop2pidreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,558  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,560  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2paccountidtomobilepaynumberreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.symmetrickeyinfomodel on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.accountnumbertoprivateaccountidreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2paccountidtouseridreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
+
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.action_requests on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.schemaversions on 1/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,592  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.action_requests_by_userid on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
+
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
 	}
 }

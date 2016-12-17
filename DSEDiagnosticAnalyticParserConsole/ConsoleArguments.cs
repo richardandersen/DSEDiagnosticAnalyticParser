@@ -112,19 +112,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         [Option('L', "LogParsingExcelOption", HelpText = "A list of Log parsing and Excel workbook creation options. Multiple options should be separated by a comma (,).",
                     Required = false)]
-        public ParserSettings.LogParsingExcelOptions LogParsingExcelOption
+        public string LogParsingExcelOption
         {
-            get { return ParserSettings.LogParsingExcelOption; }
-            set { ParserSettings.LogParsingExcelOption = value; }
+            get { return ParserSettings.LogParsingExcelOption.ToString(); }
+            set { ParserSettings.LogParsingExcelOption = ParserSettings.ParseEnumString<ParserSettings.LogParsingExcelOptions>(value, ParserSettings.LogParsingExcelOption); }
         }
 
         [Option('E', "ParsingExcelOptions", HelpText = "A list of parsing and Excel workbook and worksheet creation options. Multiple options should be separated by a comma (,).",
                     Required = false)]
-        public ParserSettings.ParsingExcelOptions ParsingExcelOption
+        public string ParsingExcelOption
         {
-            get { return ParserSettings.ParsingExcelOption; }
-            set { ParserSettings.ParsingExcelOption = value; }
-        }
+            get { return ParserSettings.ParsingExcelOption.ToString(); }
+            set { ParserSettings.ParsingExcelOption = ParserSettings.ParseEnumString<ParserSettings.ParsingExcelOptions>(value, ParserSettings.ParsingExcelOption); }
+		}
 
         /// <summary>
         /// Location of the Excel Template File that is copied and updated with the DSE data.

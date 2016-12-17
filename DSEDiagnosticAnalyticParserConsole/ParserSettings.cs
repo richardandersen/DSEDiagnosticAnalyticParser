@@ -381,7 +381,28 @@ namespace DSEDiagnosticAnalyticParserConsole
 			return enumValue;
         }
 
-        public static bool IsEnabled(this LogParsingExcelOptions option)
+		public static T ParseEnumString<T>(string enumString, T appendValue)
+		{
+			enumString = enumString?.Trim();
+
+			if (string.IsNullOrEmpty(enumString))
+			{
+				return default(T);
+			}
+
+			if (enumString[0] == '+'
+					|| enumString[0] == '-'
+					|| enumString[0] == '|'
+					|| enumString[0] == ','
+					|| enumString[0] == '~')
+			{
+				return ParseEnumString<T>(appendValue.ToString() + " " + enumString);
+			}
+
+			return ParserSettings.ParseEnumString<T>(enumString);
+		}
+
+		public static bool IsEnabled(this LogParsingExcelOptions option)
         {
             return LogParsingExcelOption == option
                         ? true

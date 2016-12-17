@@ -27,23 +27,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["1:2"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
 												workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-												workSheet.Cells["I1:U1"].Style.WrapText = true;
-												workSheet.Cells["I1:U1"].Merge = true;
-												workSheet.Cells["I1:U1"].Value = "Read-Repair";
+												workSheet.Cells["I1:V1"].Style.WrapText = true;
+												workSheet.Cells["I1:V1"].Merge = true;
+												workSheet.Cells["I1:V1"].Value = "Read-Repair";
 												workSheet.Cells["I1:I2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-												workSheet.Cells["U1:U2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["V1:V2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-												workSheet.Cells["V1:Y1"].Style.WrapText = true;
-												workSheet.Cells["V1:Y1"].Merge = true;
-												workSheet.Cells["V1:Y1"].Value = "GC";
-												workSheet.Cells["V1:V2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-												workSheet.Cells["Y1:Y2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["W1:Z1"].Style.WrapText = true;
+												workSheet.Cells["W1:Z1"].Merge = true;
+												workSheet.Cells["W1:Z1"].Value = "GC";
+												workSheet.Cells["W1:W2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["Z1:Z2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
-												workSheet.Cells["Z1:AD1"].Style.WrapText = true;
-												workSheet.Cells["Z1:AD1"].Merge = true;
-												workSheet.Cells["Z1:AD1"].Value = "Compaction";
-												workSheet.Cells["Z1:Z2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-												workSheet.Cells["AD1:AD2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["AA1:AE1"].Style.WrapText = true;
+												workSheet.Cells["AA1:AE1"].Merge = true;
+												workSheet.Cells["AA1:AE1"].Value = "Compaction";
+												workSheet.Cells["AA1:AA2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["AE1:AE2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
 												workSheet.View.FreezePanes(3, 1);
 
@@ -55,22 +55,26 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["P:P"].Style.Numberformat.Format = "###,###,##0";
 												workSheet.Cells["Q:Q"].Style.Numberformat.Format = "###,###,##0";
 												workSheet.Cells["R:R"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["S:S"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["U:U"].Style.Numberformat.Format = "###,###,##0";
 												workSheet.Cells["V:V"].Style.Numberformat.Format = "###,###,##0";
-												workSheet.Cells["W:W"].Style.Numberformat.Format = "###,##0.0000";
+												workSheet.Cells["W:W"].Style.Numberformat.Format = "###,###,##0";
 												workSheet.Cells["X:X"].Style.Numberformat.Format = "###,##0.0000";
 												workSheet.Cells["Y:Y"].Style.Numberformat.Format = "###,##0.0000";
-												workSheet.Cells["Z:Z"].Style.Numberformat.Format = "###,###,##0";
-												workSheet.Cells["AA:AA"].Style.Numberformat.Format = "###,##0.0000";
-												workSheet.Cells["AB:AB"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["Z:Z"].Style.Numberformat.Format = "###,##0.0000";
+												workSheet.Cells["AA:AA"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["AB:AB"].Style.Numberformat.Format = "###,##0.0000";
 												workSheet.Cells["AC:AC"].Style.Numberformat.Format = "###,###,##0";
-												workSheet.Cells["AD:AD"].Style.Numberformat.Format = "###,###,##0.0000";
-												workSheet.Cells["AE:AE"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["AD:AD"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["AE:AE"].Style.Numberformat.Format = "###,###,##0.0000";
+												workSheet.Cells["AF:AF"].Style.Numberformat.Format = "###,###,##0";
 
 												//WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);
 
-												workSheet.Cells["A2:AF2"].AutoFilter = true;
+												workSheet.Cells["A2:AG2"].AutoFilter = true;
 												workSheet.Cells.AutoFitColumns();
-												workSheet.Column(2).Width = 45;
+												workSheet.Column(2).Width = 45; //b
+												workSheet.Column(14).Width = 15; //n
 											},
 											ParserSettings.ReadRepairWorksheetFilterSort,
 											"A2");

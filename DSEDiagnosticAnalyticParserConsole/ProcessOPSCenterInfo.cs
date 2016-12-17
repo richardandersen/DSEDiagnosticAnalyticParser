@@ -63,7 +63,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                         if (nodeInfo.ContainsKey("vnodes"))
                                         {                                            
-                                            var dataValue = nodeInfo["VNodes"];
+                                            var dataValue = nodeInfo["vnodes"];
                                             dataRow["VNodes"] = dataValue == null ? DBNull.Value : dataValue;
                                         }
 

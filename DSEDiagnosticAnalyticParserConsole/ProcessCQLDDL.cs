@@ -47,7 +47,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//l
                 dtTable.Columns.Add("Collections", typeof(int));//m
                 dtTable.Columns.Add("Counters", typeof(int));//n
-                dtTable.Columns.Add("Blobs", typeof(int));//o                
+                dtTable.Columns.Add("Blobs", typeof(int));//o
                 dtTable.Columns.Add("Static", typeof(int));//p
                 dtTable.Columns.Add("Frozen", typeof(int));//q
                 dtTable.Columns.Add("Total", typeof(int));//r
@@ -191,7 +191,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 //		'class': 'LeveledCompactionStrategy'
                                 //AND compression =
                                 //'sstable_compression': 'LZ4Compressor'
-                                //;					
+                                //;
                                 //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
                                 //AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
                                 //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
@@ -224,7 +224,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     dataRow["DDL"] = cqlStr.Substring(0, 32755) + "...";
                                     cqlStr.Dump(Logger.DumpType.Warning, "CQL DDL String exceed Excels Maximum Length of 32,760 ({0:###,##,##0}). CQL DDL String truncated to 32,775.", cqlStr.Length);
-                                    Program.ConsoleWarnings.Increment("CQL DDL Truncated");                                    
+                                    Program.ConsoleWarnings.Increment("CQL DDL Truncated");
                                 }
                                 else
                                 {
@@ -381,7 +381,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
                                     else if (optKeyword.StartsWith("compression", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}                                        
+                                        //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
                                         //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
                                         // AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
                                         var kwOptions = ParseKeyValuePair(optKeyword).Item2;
@@ -561,9 +561,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        static public void UpdateCQLDDLTableActiveStatus(DataTable dtTable)
+        static public void UpdateCQLDDLTableActiveStatus(DataTable dtDDLTable)
         {
-            foreach (DataRow dataRow in dtTable.Rows)
+            foreach (DataRow dataRow in dtDDLTable.Rows)
             {
                 var secondaryIndex = dataRow["Index"] == DBNull.Value ? false : (bool)dataRow["Index"];
 
@@ -575,7 +575,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     dataRow["Active"] = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
                                                                     + '.' + ((string)dataRow["Name"])
-                                                                    + (secondaryIndex ? " (Index)" : string.Empty));
+                                                                    + (secondaryIndex ? " (index)" : string.Empty));
                 }
             }
         }
