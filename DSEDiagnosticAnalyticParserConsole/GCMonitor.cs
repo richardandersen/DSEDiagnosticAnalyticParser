@@ -38,6 +38,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 		private GCMonitor()
 		{
 			isRunning = false;
+			#if !MONO
 			gcMonitorThreadStart = new ThreadStart(DoGCMonitoring);
 			gcMonitorThread = new Thread(gcMonitorThreadStart);
 			this.consolerWriter.ReserveRwWriteConsoleSpace("GCMonitor", 1, -1);
@@ -48,16 +49,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 			LogHelper.InfoFormat("GC Notification Registered for {0} in Mode {1}",
 									System.Runtime.GCSettings.IsServerGC ? "Server" : "Workstation",
 									System.Runtime.GCSettings.LatencyMode);
+			#endif
 		}
 
 		public void StartGCMonitoring()
 		{
+			#if !MONO
 			if (!isRunning)
 			{
 				GC.RegisterForFullGCNotification(10, 10);
 				isRunning = true;
 				gcMonitorThread.Start();
 			}
+			#endif
 		}
 
 		public void StopGCMonitoring()
@@ -65,11 +69,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 			if (isRunning)
 			{
 				isRunning = false;
+				#if !MONO
 				GC.CancelFullGCNotification();
 				if(!gcMonitorThread.Join(1000))
 				{
 					gcMonitorThread.Abort();
 				}
+				#endif
 			}
 		}
 
