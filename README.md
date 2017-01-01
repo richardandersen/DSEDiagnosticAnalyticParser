@@ -60,7 +60,7 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 	OpsCtrDiagStruct -- OpsCenter Diagnostic Tar-Ball structure
       		<MySpecialFolder> -- this is the location used for the diagnosticPath variable
         		|- <DSENodeIPAddress> (the IPAddress must be located at the beginning or the end of the folder name) e.g., 10.0.0.1, 10.0.0.1-DC1, Diag-10.0.0.1
-        		|       | - nodetool -- static folder name
+        		|	| - nodetool -- static folder name
         		|       |     | - cfstats 	-- This must be the output file from nodetool cfstats (static name)
         		|       |     | - ring		-- This must be the output file from nodetool ring (static name)
         		|       |     | - tpstats
