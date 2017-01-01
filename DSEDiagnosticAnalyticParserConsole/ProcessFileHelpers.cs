@@ -227,38 +227,41 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         static bool IPAddressStr(string ipAddress, out string formattedAddress)
         {
-            if(ipAddress[0] == '/')
-            {
-                ipAddress = ipAddress.Substring(1);
-            }
+			if (!string.IsNullOrEmpty(ipAddress))
+			{
+				if (ipAddress[0] == '/')
+				{
+					ipAddress = ipAddress.Substring(1);
+				}
 
-            if (IsIPv4(ipAddress))
-            {
-                var portPos = ipAddress.IndexOf(':');
-                string port = null;
-                System.Net.IPAddress objIP;
+				if (IsIPv4(ipAddress))
+				{
+					var portPos = ipAddress.IndexOf(':');
+					string port = null;
+					System.Net.IPAddress objIP;
 
-                if (portPos > 0)
-                {
-                    port = ipAddress.Substring(portPos);
-                    ipAddress = ipAddress.Substring(0, portPos);                    
-                }
-                
-                if (System.Net.IPAddress.TryParse(ipAddress, out objIP))
-                {
-                    if (port == null)
-                    {
-                        formattedAddress = objIP.ToString();
-                    }
-                    else
-                    {
-                        formattedAddress = objIP.ToString() + port;
-                    }
-                    return true;
-                }
-            }
+					if (portPos > 0)
+					{
+						port = ipAddress.Substring(portPos);
+						ipAddress = ipAddress.Substring(0, portPos);
+					}
 
-            formattedAddress = ipAddress;
+					if (System.Net.IPAddress.TryParse(ipAddress, out objIP))
+					{
+						if (port == null)
+						{
+							formattedAddress = objIP.ToString();
+						}
+						else
+						{
+							formattedAddress = objIP.ToString() + port;
+						}
+						return true;
+					}
+				}
+			}
+
+			formattedAddress = ipAddress;
             return false;
         }
 

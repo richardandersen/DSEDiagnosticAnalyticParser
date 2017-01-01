@@ -393,6 +393,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 			set { ParserSettings.MaxNbrAchievedLogFiles = value; }
 		}
 
+		[Option('r', "ReadRepairThresholdInMS", HelpText = "The number of milliseconds after a ReadRepair session is completed to still detect a GC or Compaction event for that session.",
+				   Required = false)]
+		public int ReadRepairThresholdInMS
+		{
+			get { return ParserSettings.ReadRepairThresholdInMS; }
+			set { ParserSettings.ReadRepairThresholdInMS = value; }
+		}
+
 		[Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
@@ -546,9 +554,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--IncludeOpsCenterKeyspace|-k {20} " +
                                     "--TableHistogramDirPath|-t \"{21}\" " +
                                     "--ToleranceContinuousGCInMS|-g {22} " +
-                                    "--NbrGCInSeriesToConsiderContinuous|-v {25} " +
+                                    "--NbrGCInSeriesToConsiderContinuous|-v {26} " +
                                     "--GCTimeFrameDetection|-f {23} " +
-                                    "--GCTimeFrameDetectionPercentage|-e {24}",
+                                    "--GCTimeFrameDetectionPercentage|-e {24} " +
+									"--ReadRepairThresholdInMS|-r {27}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -559,7 +568,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.LogExcelWorkbookFilter,
                                     this.ParsingExcelOption,
                                     this.LogParsingExcelOption,
-                                    null,
+                                    null, //10
                                     null,
                                     this.ExcelTemplateFilePath,
                                     this.ExcelFilePath,
@@ -569,13 +578,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.AlternativeDDLFilePath,
                                     this.IgnoreKeySpaces,
                                     this.IncludePerformanceKeyspaces,
-                                    this.IncludeOpsCenterKeyspace,
+                                    this.IncludeOpsCenterKeyspace, //20
                                     this.TableHistogramDirPath,
                                     this.ToleranceContinuousGCInMS,
                                     this.GCTimeFrameDetection,
                                     this.GCTimeFrameDetectionPercentage,
                                     this.NbrGCInSeriesToConsiderContinuous,
-                                    this.CompactionFlagThresholdAsIORate);
+                                    this.CompactionFlagThresholdAsIORate,
+									this.ReadRepairThresholdInMS);
         }
     }
 }

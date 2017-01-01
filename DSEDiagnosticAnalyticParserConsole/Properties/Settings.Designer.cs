@@ -595,7 +595,11 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "/string>\r\n  <string>Read Repair Aborted occurrences</string>\r\n  <string>Solr rei" +
             "ndex duration maximum</string>\r\n  <string>Solr reindex duration minimum</string>" +
             "\r\n  <string>Solr reindex duration mean</string>\r\n  <string>Solr reindex duration" +
-            " stdev</string>\r\n  <string>Solr reindex occurrences</string>\r\n</ArrayOfString>")]
+            " stdev</string>\r\n  <string>Solr reindex occurrences</string>\r\n  <string>AntiComp" +
+            "action maximum latency</string>\r\n  <string>AntiCompaction mean latency</string>\r" +
+            "\n  <string>AntiCompaction minimum latency</string>\r\n  <string>AntiCompaction occ" +
+            "urrences</string>\r\n  <string>AntiCompaction SSTable count</string>\r\n</ArrayOfStr" +
+            "ing>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -1033,6 +1037,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public int MaxNbrAchievedLogFiles {
             get {
                 return ((int)(this["MaxNbrAchievedLogFiles"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("150")]
+        public int ReadRepairThresholdInMS {
+            get {
+                return ((int)(this["ReadRepairThresholdInMS"]));
             }
         }
     }

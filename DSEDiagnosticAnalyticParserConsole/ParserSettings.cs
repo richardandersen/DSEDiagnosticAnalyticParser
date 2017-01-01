@@ -206,8 +206,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static TimeSpan GCTimeFrameDetection = Properties.Settings.Default.GCTimeFrameDetection;
         public static decimal GCTimeFrameDetectionPercentage = Properties.Settings.Default.GCTimeFrameDetectionPercentage;
         public static System.Text.RegularExpressions.Regex ExcludePathNamesRegEx = string.IsNullOrEmpty(Properties.Settings.Default.ExcludePathNamesRegEx) ? null : new System.Text.RegularExpressions.Regex(Properties.Settings.Default.ExcludePathNamesRegEx, System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+		public static int ReadRepairThresholdInMS = Properties.Settings.Default.ReadRepairThresholdInMS;
 
-        public static DateTime LogStartDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
+		public static DateTime LogStartDate = Properties.Settings.Default.LogCurrentDate; //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
         public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray(false);
         public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<DateTime, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriods);

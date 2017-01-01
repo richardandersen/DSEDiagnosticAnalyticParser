@@ -245,8 +245,30 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         separateParams[nIndex] = separateParams[nIndex].Substring(0, separateParams[nIndex].Length - 1);
 
+						if(nIndex + 1 == separateParams.Count)
+						{
+							keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
+																		string.Empty));
+							continue;
+						}
+
                         if (separateParams[nIndex + 1][separateParams[nIndex + 1].Length - 1] == ':')
                         {
+							if(separateParams[nIndex].EndsWith("_address")
+								|| separateParams[nIndex].EndsWith("_interface")
+								|| separateParams[nIndex].EndsWith("_password")
+								|| separateParams[nIndex].EndsWith("_host")
+								|| separateParams[nIndex].EndsWith("store")
+								|| separateParams[nIndex].EndsWith("directory")
+								|| separateParams[nIndex].EndsWith("_in_mb")
+								|| separateParams[nIndex].EndsWith("_in_ms")
+								|| separateParams[nIndex].EndsWith("_in_kb"))
+							{
+								keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
+																		string.Empty));
+								continue;
+							}
+
                             if (topSubCmd == null)
                             {
                                 subCmd = orgSubCmd + separateParams[nIndex] + '.';
@@ -280,7 +302,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         || separateParams[nIndex].EndsWith("_address")
                                         || separateParams[nIndex].EndsWith("_interface")
                                         || separateParams[nIndex].EndsWith("_password")
-                                        || separateParams[nIndex].EndsWith("_host");
+                                        || separateParams[nIndex].EndsWith("_host")
+										|| separateParams[nIndex].EndsWith("store")
+										|| separateParams[nIndex].EndsWith("directory");
 
                     if (keyWord
                             && nIndex + 3 <= separateParams.Count

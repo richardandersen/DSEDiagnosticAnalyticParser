@@ -999,7 +999,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		.ToArray();
 											}
 
-											Program.ConsoleLogReadFiles.Decrement(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
+											Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
 										}
 									}
 
@@ -1263,6 +1263,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             Task<DataTable> runNodeStatsMergedTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             Task updateRingWYamlInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<DataTable> runCFStatsMergedDDLUpdated = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+			Task runAntiCompactionTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
 			Task<DataTable> runReadRepairTbl = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task<DataTable> runStatsLogMerged = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task runReleaseDependentLogTask;
@@ -1334,27 +1335,47 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 | TaskContinuationOptions.LongRunning
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
+						runAntiCompactionTask = runLogMergedTask.ContinueWith(logTask =>
+												{
+													Program.ConsoleParsingLog.Increment("AntiCompaction Processing");
+													ProcessFileTasks.ParseAntiCompactionFromLog(logTask.Result,
+																								ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+																									? dtLogStatusStack
+																									: null,
+																								ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
+																									? dtCFStatsStack
+																									: null,
+																								ParserSettings.IgnoreKeySpaces);
+
+													Program.ConsoleParsingLog.TaskEnd("AntiCompaction Processing");
+												},
+												TaskContinuationOptions.AttachedToParent
+													| TaskContinuationOptions.LongRunning
+													| TaskContinuationOptions.OnlyOnRanToCompletion);
+
 						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
 						{
-							runReadRepairProcess = runLogMergedTask.ContinueWith(logTask =>
-											{
-												Program.ConsoleParsingLog.Increment("Read Repair Processing");
-												var readRepairCollection = ProcessFileTasks.ParseReadRepairFromLog(logTask.Result,
-																													ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
-																														? dtLogStatusStack
-																														: null,
-																													ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
-																														? dtCFStatsStack
-																														: null,
-																													ParserSettings.IgnoreKeySpaces);
+							runReadRepairProcess = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+																.ContinueWith(logTask =>
+																{
+																	Program.ConsoleParsingLog.Increment("Read Repair Processing");
+																	var readRepairCollection = ProcessFileTasks.ParseReadRepairFromLog(logTask.Result,
+																																		ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+																																			? dtLogStatusStack
+																																			: null,
+																																		ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
+																																			? dtCFStatsStack
+																																			: null,
+																																		ParserSettings.IgnoreKeySpaces,
+																																		ParserSettings.ReadRepairThresholdInMS);
 
-												Program.ConsoleParsingLog.TaskEnd("Read Repair Processing");
+																	Program.ConsoleParsingLog.TaskEnd("Read Repair Processing");
 
-												return readRepairCollection;
-											},
-										   TaskContinuationOptions.AttachedToParent
-											   | TaskContinuationOptions.LongRunning
-											   | TaskContinuationOptions.OnlyOnRanToCompletion);
+																	return readRepairCollection;
+																},
+															   TaskContinuationOptions.AttachedToParent
+																   | TaskContinuationOptions.LongRunning
+																   | TaskContinuationOptions.OnlyOnRanToCompletion);
 
 							if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
 							{
@@ -1460,7 +1481,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 runCFStatsMergedDDLUpdated = Task.Factory
-                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess }, ignoreItem => { })
+                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess, runAntiCompactionTask }, ignoreItem => { })
                                             .ContinueWith(action =>
                                                 {
                                                     Program.ConsoleParsingLog.Increment("CFStats Merge");
@@ -1496,7 +1517,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 				Program.ConsoleParsingLog.Increment("Log Stats Merge");
 				runStatsLogMerged = Task.Factory
 											  .ContinueWhenAll<DataTable>(new Task[] { runLogMergedTask,
-																						runReadRepairProcess },
+																						runReadRepairProcess,
+																						runAntiCompactionTask},
 																  tasks =>
 																  {
 																	  var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null
@@ -1708,7 +1730,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
             #endregion
-
 
             runLogToExcel?.Wait();
             Program.ConsoleExcelWorkbook.Terminate();

@@ -12,7 +12,7 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         public static Task LoadCassandraLog(Task<DataTable> runLogParsingTask,
                                                 string excelFilePath,
-                                                string excelWorkSheetLogCassandra,                                                
+                                                string excelWorkSheetLogCassandra,
                                                 DateTimeRange logCassandraMaxMinTimestamp,
                                                 int maxRowInExcelWorkBook,
                                                 int maxRowInExcelWorkSheet,
@@ -55,16 +55,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             break;
                                                         default:
                                                             break;
-                                                    }                                                    
+                                                    }
                                                 },
                                                 workSheet =>
                                                 {
                                                     workSheet.Cells["1:2"].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.LightGray;
                                                     workSheet.Cells["1:2"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
-                                                    workSheet.Cells["A1:M1"].Style.WrapText = true;
-                                                    workSheet.Cells["A1:M1"].Merge = true;
-                                                    workSheet.Cells["A1:M1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
+                                                    workSheet.Cells["A1:N1"].Style.WrapText = true;
+                                                    workSheet.Cells["A1:N1"].Merge = true;
+                                                    workSheet.Cells["A1:N1"].Value = string.IsNullOrEmpty(logExcelWorkbookFilter)
                                                                                                             ? string.Format("Log Timestamp range is from \"{0}\" ({3}) to \"{1}\" ({4}) ({2:d\\ hh\\:mm}).",
                                                                                                                                 logCassandraMaxMinTimestamp.Min,
                                                                                                                                 logCassandraMaxMinTimestamp.Max,
@@ -72,7 +72,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                                 logCassandraMaxMinTimestamp.Min.DayOfWeek,
                                                                                                                                 logCassandraMaxMinTimestamp.Max.DayOfWeek)
                                                                                                                 : logExcelWorkbookFilter;
-                                                    workSheet.Cells["A1:M1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                                                    workSheet.Cells["A1:N1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
 
 
                                                     //workSheet.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
@@ -80,15 +80,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                     workSheet.Cells["C:C"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
 
-                                                    workSheet.Cells["A2:J2"].AutoFilter = true;
-                                                    workSheet.Cells["A:F"].AutoFitColumns();
-                                                    workSheet.Cells["I:J"].AutoFitColumns();
+                                                    workSheet.Cells["A2:K2"].AutoFilter = true;
+                                                    workSheet.Cells["A:G"].AutoFitColumns();
+                                                    workSheet.Cells["J:K"].AutoFitColumns();
                                                 },
                                                     maxRowInExcelWorkBook,
                                                     maxRowInExcelWorkSheet,
                                                     null,
                                                     "A2");
-               
+
                 #endregion
             },
             TaskContinuationOptions.AttachedToParent
