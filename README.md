@@ -66,8 +66,8 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
         		|       |     | - tpstats
         		|       |     | - info
         		|       |     | - compactionhistory
-			|  	    | - logs -- static folder name
-        		|       | 	  | - Cassandra -- static folder name
+			|	|     | - logs -- static folder name
+        		|       |     | - Cassandra -- static folder name
         		|       |     |     | - system.log -- This must be the Cassandra log file from the node
         		| - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2	
 	IndivFiles -- All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
