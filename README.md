@@ -39,6 +39,8 @@ Below is a description of the application command line arguments:
 **GCTimeFrameDetection** -- A time frame (format of 00:00:00) used to determine the percent of GC activity based on 'GCTimeFrameDetectionPercentage'. If zero, this feature is disabled. The default is 00:05:00 (5 minutes).
 Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 minutes), these GC(s) will be reported in the GC worksheet.
 
+**ReadRepairThresholdInMS** -- Number of milliseconds after a read repair session ends that we consider a GC, compaction, solr rebuild index events that will be assocated with that read repair session. The default is 150ms.
+
 **LogCurrentDate** -- The date/time used to start collecting C* log entries. Log entries greater than and equal this date/time will be collected. If no value (null), all entries will be collected. Default is no value (all entries).
 
 **LogTimeSpanRange** -- Only valid if LogCurrentDate is defined. The time span from LogCurrentDate to collect the C* entries (e.g., the last 5 days from LogCurrentDate of 2016-09-15; From 2016-09-15 23:59:59 to 2016-09-10 00:00:00). Default 02:00:00 (2 days)
@@ -53,26 +55,36 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 
 **DiagnosticPath** -- The path of the folder that contains the diagnostic files. This can be an absolute or a relative path. This is a required field. The default is "[MyDocuments]\DataStax\TestData\OpsCenter-diagnostics-2016_08_30_19_08_03_UTC". Note the structure of the content of this folder is dependent on the value of DiagnosticNoSubFolders. 
 
-**DiagnosticNoSubFolders|DiagnosticSubFolders** -- This setting determines the structure of the diagnostic folder.
-Below explains this setting:
-  DiagnosticSubFolders -- Directory where files are located to parse DSE diagnostics files produced by DataStax OpsCenter diagnostics or a special directory structure where DSE diagnostics information is placed.
-    If the "special" directory is used it must follow the following structure:
-```
-      <MySpecialFolder> -- this is the location used for the diagnosticPath variable
-        |- <DSENodeIPAddress> (the IPAddress must be located at the beginning or the end of the folder name) e.g., 10.0.0.1, 10.0.0.1-DC1, Diag-10.0.0.1
-        |       | - nodetool -- static folder name
-        |       |     | - cfstats 	-- This must be the output file from nodetool cfstats (static name)
-        |       |     | - ring		-- This must be the output file from nodetool ring (static name)
-        |       |     | - tpstats
-        |       |     | - info
-        |       |     | - compactionhistory
-        |  	    | - logs -- static folder name
-        |       | 	  | - Cassandra -- static folder name
-        |       |     |     | - system.log -- This must be the Cassandra log file from the node
-        | - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2
-  ```
-  DiagnosticNoSubFolders -- All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
-    e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
+**FileParsingOption** -- Structure of the folders and file names used to determine the diagnostic content. The default is OpsCtrDiagStrut. Values are:
+...
+	OpsCtrDiagStruct -- OpsCenter Diagnostic Tar-Ball structure
+      		<MySpecialFolder> -- this is the location used for the diagnosticPath variable
+        		|- <DSENodeIPAddress> (the IPAddress must be located at the beginning or the end of the folder name) e.g., 10.0.0.1, 10.0.0.1-DC1, Diag-10.0.0.1
+        		|       | - nodetool -- static folder name
+        		|       |     | - cfstats 	-- This must be the output file from nodetool cfstats (static name)
+        		|       |     | - ring		-- This must be the output file from nodetool ring (static name)
+        		|       |     | - tpstats
+        		|       |     | - info
+        		|       |     | - compactionhistory
+			|  	    | - logs -- static folder name
+        		|       | 	  | - Cassandra -- static folder name
+        		|       |     |     | - system.log -- This must be the Cassandra log file from the node
+        		| - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2
+	
+	IndivFiles -- All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
+    			e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
+	NodeSubFldStruct -- Each file is within a folder where the Node's IP Adress (prefixed or suffix) is within the folder name.
+				All files within this folder are prefixed by the command (e.g., dsetool, nodetool, etc.) followed by the command's subcommand/action. Logs and configuration files are just their associated file name (e.g., system.log).
+				Example: 
+				<MySpecialFolder> -- this is the location used for the diagnosticPath variable
+					| 10.0.0.1 -- IPAdress is the folder name (IPAdress can be prefixed in the name (e.g., 10.0.0.1-MyFolderName)
+					|	|	nodetool.ring
+					|	|	nodetool.cfstats
+					|	|	dsetool.ring
+					|	|	cqlsh.describe.cql
+					|	|	system.log
+					|	|	cassandra.yaml		
+...
 
 Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or buckets:
 
@@ -100,9 +112,12 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
 
 **LogStartDate** -- Only import log entries from this date/time. MinDate ('1/1/0001 00:00:00') will parse all entries which is the default.
 
+**MaxNbrAchievedLogFiles** -- The maximum number of archived log files that are read per node. If the value is -1 (default), all file are read (disabled).
+
+
 Below settings are used for parsing of diagnostic fles and creation of the Excel worksheets/workbooks:
 
-**ParsingExcelOptions** -- A list of parsing and Excel workbook and worksheet creation options (flags). Multiple options should be separated by a comma (,). The options are split into "Parse" and "Produce" actions. "Parse" actions are used to parse certain segements of the diagnostic files. "Produce" actions are used to create/generate the corresponding Excel workbooks/worksheets. Typically, you specify the “Produce” actions and the corresponding “Parse” actions are selected by the application. The default is "ParseLoadWorksheets" (unless changed in the aplication config file). Below are the options:
+**ParsingExcelOptions** -- A list of parsing and Excel workbook and worksheet creation options (flags). Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The options are split into "Parse" and "Produce" actions. "Parse" actions are used to parse certain segements of the diagnostic files. "Produce" actions are used to create/generate the corresponding Excel workbooks/worksheets. Typically, you specify the “Produce” actions and the corresponding “Parse” actions are selected by the application. The default is "ParseLoadWorksheets" (unless changed in the aplication config file). Below are the options:
 ```
   ParseCFStatsFiles         -- Enables nodetool CFStats file parsing which is used by the analysis worksheets
   ParseTPStatsFiles         -- Enables nodetool TPStats file parsing which is used by the analysis worksheets
@@ -149,7 +164,7 @@ Below settings are used for parsing of diagnostic fles and creation of the Excel
   ParseLoadOnlySummaryLogs = ParseSummaryLogsOnlyOverlappingDateRanges | LoadSummaryWorkSheets | ProduceSummaryWorkbook
 ```
 
-**LogParsingExcelOption** -- A list of options around how logs are parsed and if seperate Ecel workbooks are created. Multiple options should be separated by a comma (,). The fefault is "Detect" (unless changed in the aplication config file). Below are the options:
+**LogParsingExcelOption** -- A list of options around how logs are parsed and if seperate Ecel workbooks are created. Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The default is "Detect" (unless changed in the aplication config file). Below are the options:
 ```
   Detect            -- If enabled, the log settings will be determined based on ParsingExcelOptions settings (above).
   Parse             -- If enabled, current log files will be included for parsing
