@@ -66,9 +66,9 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
         		|       |     | - tpstats
         		|       |     | - info
         		|       |     | - compactionhistory
-			|	|     | - logs -- static folder name
-        		|       |     | - Cassandra -- static folder name
-        		|       |     |     | - system.log -- This must be the Cassandra log file from the node
+                        |       |     | - logs -- static folder name
+        		|       |     |     | - Cassandra -- static folder name
+        		|       |     |     |      | - system.log -- This must be the Cassandra log file from the node
         		| - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2	
 	IndivFiles -- All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
     			e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
@@ -76,13 +76,13 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 				All files within this folder are prefixed by the command (e.g., dsetool, nodetool, etc.) followed by the command's subcommand/action. Logs and configuration files are just their associated file name (e.g., system.log).
 				Example: 
 				<MySpecialFolder> -- this is the location used for the diagnosticPath variable
-					| 10.0.0.1 -- IPAdress is the folder name (IPAdress can be prefixed in the name (e.g., 10.0.0.1-MyFolderName)
-					|	|	nodetool.ring
-					|	|	nodetool.cfstats
-					|	|	dsetool.ring
-					|	|	cqlsh.describe.cql
-					|	|	system.log
-					|	|	cassandra.yaml		
+					| - 10.0.0.1 -- IPAdress is the folder name (IPAdress can be prefixed in the name (e.g., 10.0.0.1-MyFolderName)
+					|	| - nodetool.ring
+					|	| - nodetool.cfstats
+					|	| - dsetool.ring
+					|	| - cqlsh.describe.cql
+					|	| - system.log
+					|	| - cassandra.yaml		
 ```
 
 Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or buckets:
