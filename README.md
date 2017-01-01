@@ -56,7 +56,7 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 **DiagnosticPath** -- The path of the folder that contains the diagnostic files. This can be an absolute or a relative path. This is a required field. The default is "[MyDocuments]\DataStax\TestData\OpsCenter-diagnostics-2016_08_30_19_08_03_UTC". Note the structure of the content of this folder is dependent on the value of DiagnosticNoSubFolders. 
 
 **FileParsingOption** -- Structure of the folders and file names used to determine the diagnostic content. The default is OpsCtrDiagStrut. Values are:
-...
+```
 	OpsCtrDiagStruct -- OpsCenter Diagnostic Tar-Ball structure
       		<MySpecialFolder> -- this is the location used for the diagnosticPath variable
         		|- <DSENodeIPAddress> (the IPAddress must be located at the beginning or the end of the folder name) e.g., 10.0.0.1, 10.0.0.1-DC1, Diag-10.0.0.1
@@ -69,8 +69,7 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 			|  	    | - logs -- static folder name
         		|       | 	  | - Cassandra -- static folder name
         		|       |     |     | - system.log -- This must be the Cassandra log file from the node
-        		| - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2
-	
+        		| - <NextDSENodeIPAddress> -- e.g., 10.0.0.2, 10.0.0.2-DC1, Diag-10.0.0.2	
 	IndivFiles -- All diagnostic files are located directly under diagnosticPath folder. Each file should have the IP address either in the beginning or end of the file name.
     			e.g., cfstats_10.192.40.7, system-10.192.40.7.log, 10.192.40.7_system.log, etc.
 	NodeSubFldStruct -- Each file is within a folder where the Node's IP Adress (prefixed or suffix) is within the folder name.
@@ -84,7 +83,7 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 					|	|	cqlsh.describe.cql
 					|	|	system.log
 					|	|	cassandra.yaml		
-...
+```
 
 Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or buckets:
 
