@@ -1211,18 +1211,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (parsedValues[4] == "RepairSession.java" || parsedValues[4] == "RepairJob.java")
                         {
-                            #region RepairSession.java RepairJob.java
-                            //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
-                            //INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
+							#region RepairSession.java RepairJob.java
+							//ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
+							//INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
+							//ERROR [AntiEntropySessions:1] 2016-10-19 10:42:49,900  RepairSession.java:303 - [repair #ff8f8db0-95eb-11e6-8ab5-71e7251f2ea8] session completed with the following error
 
-                            if (parsedValues[0] == "ERROR")
+							if (parsedValues[0] == "ERROR")
                             {
-                                if (parsedValues[nCell] == "Failed")
+                                if (parsedValues[nCell].ToLower() == "failed")
                                 {
                                     dataRow["Exception"] = "Read Repair Failed";
                                     itemPos = 0;
                                 }
-                                else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
+								else if (parsedValues[nCell].ToLower() == "session" && parsedValues[nCell+1] == "completed")
+								{
+									dataRow["Exception"] = "Read Repair Session completed with Error";
+									itemPos = 0;
+								}
+								else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
                                 {
                                     dataRow["Exception"] = "Read Repair Error";
                                 }
@@ -5334,18 +5340,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 							   let item = dr.Field<string>("Item")
 							   let timestamp = dr.Field<DateTime>("Timestamp")
 							   let flagged = dr.Field<int?>("Flagged")
-							   let descr = dr.Field<string>("Description")?.Trim()
+							   let descr = dr.Field<string>("Description")?.Trim().ToLower()
 							   let exception = dr.Field<string>("Exception")
 							   where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
 									   || (item == "RepairSession.java"
 											   && (descr.Contains("new session")
-														|| descr.Contains("Session completed successfully")
-														|| descr.Contains("Received merkle tree")))
+														|| descr.Contains("session completed")
+														|| descr.Contains("received merkle tree")))
 									   || (item == "StreamingRepairTask.java"
-												&& descr.Contains("Performing streaming repair"))
+												&& descr.Contains("streaming repair"))
 										|| (exception != null
-												&& (exception.StartsWith("Node Shutdown")
-														|| exception.StartsWith("Node Startup"))))
+												&& (exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
+														|| exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))))
 							   group new
 							   {
 								   Task = dr.Field<string>("Task"),
@@ -5353,7 +5359,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 								   Timestamp = timestamp,
 								   Flagged = flagged,
 								   Exception = exception,
-								   Description = descr
+								   Description = descr,
+								   AssocValue = dr.Field<string>("Associated Value")
 							   }
 							   by new { dcName, ipAddress } into g
 							   select new
@@ -5491,7 +5498,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									// RepairSession.java:181 - [repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
 									var regExReceived = RegExRepairReceivedLine.Split(item.Description);
 
-									if (regExReceived.Length > 4 && regExReceived[2] == "Received")
+									if (regExReceived.Length > 4 && regExReceived[2] == "received")
 									{
 										var logInfo = currentReadRepairs.Find(r => r.Session == regExReceived[1]);
 
@@ -5566,12 +5573,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 						if (currentReadRepairs.Count > 0
 								&& !string.IsNullOrEmpty(item.Exception))
 						{
-							if (item.Exception.StartsWith("Node Shutdown") || item.Exception.StartsWith("Node Startup"))
+							if (item.Exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
+									|| item.Exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))
 							{
 								currentReadRepairs.AsEnumerable().Reverse().ToArray().ForEach(r =>
 								{
 									if (!string.IsNullOrEmpty(r.Session))
 									{
+										r.Abort(item.Timestamp, item.Exception);
+										currentReadRepairs.Remove(r);
+
 										var dataRow = dtStatusLog.NewRow();
 
 										dataRow["Timestamp"] = item.Timestamp;
@@ -5591,14 +5602,50 @@ namespace DSEDiagnosticAnalyticParserConsole
 										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
 										dataRow["Aborted"] = 1;
 										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
-										currentReadRepairs.Remove(r);
+
 										dtStatusLog.Rows.Add(dataRow);
 									}
-
-									r.Abort(r.Start, item.Exception);
 								});
 
 								currentReadRepairs.Clear();
+							}
+							else if (!string.IsNullOrEmpty(item.AssocValue)
+											&& currentReadRepairs.Any(r => !string.IsNullOrEmpty(r.Session)
+																				&& item.AssocValue.Contains(r.Session)))
+							{
+								currentReadRepairs.ToArray().ForEach(r =>
+								{
+									if (!string.IsNullOrEmpty(r.Session)
+											&& item.AssocValue.Contains(r.Session))
+									{
+										r.Abort(item.Timestamp, item.Exception);
+										++r.Exceptions;
+
+										currentReadRepairs.Remove(r);
+
+										var dataRow = dtStatusLog.NewRow();
+
+										dataRow["Timestamp"] = item.Timestamp;
+										dataRow["Data Center"] = logGroupItem.DCName;
+										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+										dataRow["Pool/Cache Type"] = "Read Repair Session Failure";
+										dataRow["Reconciliation Reference"] = groupIndicator;
+
+										dataRow["Session"] = r.Session;
+										dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+										dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+										dataRow["KeySpace"] = r.Keyspace;
+										dataRow["Nbr GCs"] = r.GCs;
+										dataRow["Nbr Compactions"] = r.Compactions;
+										dataRow["Nbr Exceptions"] = r.Exceptions;
+										dataRow["Latency (ms)"] = r.Duration;
+										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
+										dataRow["Aborted"] = 1;
+										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
+
+										dtStatusLog.Rows.Add(dataRow);
+									}
+								});
 							}
 							else
 							{
@@ -5614,6 +5661,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 					#region Orphaned RRs
 					currentReadRepairs.Where(r => !string.IsNullOrEmpty(r.Session) && r.Finish == DateTime.MinValue).ToArray().ForEach(r =>
 					{
+						r.Abort(DateTime.MinValue, "Orphaned");
+
 						var dataRow = dtStatusLog.NewRow();
 
 						dataRow["Timestamp"] = oldestLogTimeStamp;
@@ -5631,12 +5680,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Nbr Exceptions"] = r.Exceptions;
 						dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
 						dataRow["Aborted"] = r.Aborted ? 1 : 0;
-						dataRow["Latency (ms)"] = r.Duration;
+						//dataRow["Latency (ms)"] = r.Duration;
 						dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
 
 						dtStatusLog.Rows.Add(dataRow);
-
-						r.Abort(DateTime.MinValue, "Orphaned");
 					});
 					currentReadRepairs.Clear();
 					optionsReadRepair.Clear();
@@ -5876,11 +5923,33 @@ namespace DSEDiagnosticAnalyticParserConsole
 					newDataRow["Reconciliation Reference"] = rrItem.GroupInd;
 
 					//Read Repair
-					newDataRow["Type"] = "Read Repair";
+					if (rrItem.Aborted)
+					{
+						if(string.IsNullOrEmpty(rrItem.Exception))
+						{
+							newDataRow["Type"] = "Read Repair (aborted)";
+						}
+						else if(rrItem.Exception.ToLower().Contains("shutdown")
+								 || rrItem.Exception.ToLower().Contains("startup"))
+						{
+							newDataRow["Type"] = "Read Repair (shutdown)";
+						}
+						else
+						{
+							newDataRow["Type"] = "Read Repair (exception)";
+						}
+					}
+					else
+					{
+						newDataRow["Type"] = "Read Repair";
+					}
 					newDataRow["KeySpace"] = rrItem.Keyspace;
-					newDataRow["Log/Completion Timestamp"] = rrItem.Finish;
 					newDataRow["Session"] = rrItem.Session;
-					newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+					if (rrItem.Finish != DateTime.MinValue)
+					{
+						newDataRow["Log/Completion Timestamp"] = rrItem.Finish;
+						newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+					}
 					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
 					newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
 					newDataRow["Nbr of Repaired Ranges"] = rrItem.NbrRepairs;
@@ -6074,8 +6143,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 												 LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
 											 };
 
-				//Parallel.ForEach(antiCompactionLogItems, logGroupItem =>
-				foreach (var logGroupItem in antiCompactionLogItems)
+				Parallel.ForEach(antiCompactionLogItems, logGroupItem =>
+				//foreach (var logGroupItem in antiCompactionLogItems)
 				{
 					AntiCompactionLogInfo currentAntiCompaction = null;
 					Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto> antiCompactionDCNodeList = null;
@@ -6094,7 +6163,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					foreach (var item in logGroupItem.LogItems)
 					{
-						if(item.Description.StartsWith("Completed anticompaction", StringComparison.CurrentCultureIgnoreCase))
+						if(item.Description.StartsWith("completed anticompaction", StringComparison.CurrentCultureIgnoreCase))
 						{
 							if (currentAntiCompaction != null)
 							{
@@ -6305,7 +6374,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
 					}
 					#endregion
-				}//);
+				});
 			}//end of scope for antiCompactionLogItems
 		}
 	}
