@@ -1048,5 +1048,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((int)(this["ReadRepairThresholdInMS"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{IndicatorPos:0,TaskPos:1,ItemPos:4,TimeStampPos:2,DescribePos:5}")]
+        public string CLogLineFormatPositions {
+            get {
+                return ((string)(this["CLogLineFormatPositions"]));
+            }
+        }
     }
 }

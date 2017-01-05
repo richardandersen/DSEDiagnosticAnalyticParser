@@ -11,7 +11,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
-        static public Task<int> ProcessLogFileTasks(IFilePath logFilePath,
+		static public Task<int> ProcessLogFileTasks(IFilePath logFilePath,
                                                         string excelWorkSheetLogCassandra,
                                                         string dcName,
                                                         string ipAddress,
@@ -528,7 +528,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     #region Timestamp/Number of lines Parsing
-                    if (DateTime.TryParse(parsedValues[2] + ' ' + parsedValues[3].Replace(',', '.'), out lineDateTime))
+                    if (DateTime.TryParse(parsedValues[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + parsedValues[ParserSettings.CLogLineFormats.TimeStampPos+1].Replace(',', '.'), out lineDateTime))
                     {
                         if (lineDateTime < onlyEntriesAfterThisTimeFrame)
                         {
@@ -588,11 +588,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     minmaxDate.SetMinMax(lineDateTime);
 
-                    dataRow["Indicator"] = parsedValues[0];
+                    dataRow["Indicator"] = parsedValues[ParserSettings.CLogLineFormats.IndicatorPos];
 
-                    if (parsedValues[1][0] == '[')
+                    if (parsedValues[ParserSettings.CLogLineFormats.TaskPos][0] == '[')
                     {
-                        string strItem = parsedValues[1];
+                        string strItem = parsedValues[ParserSettings.CLogLineFormats.TaskPos];
                         int nPos = strItem.IndexOf(':');
 
                         if (nPos > 2)
@@ -614,31 +614,31 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else
                     {
-                        dataRow["Task"] = parsedValues[1];
+                        dataRow["Task"] = parsedValues[ParserSettings.CLogLineFormats.TaskPos];
                     }
 
-                    if (parsedValues[4][parsedValues[4].Length - 1] == ')')
+                    if (parsedValues[ParserSettings.CLogLineFormats.ItemPos][parsedValues[ParserSettings.CLogLineFormats.ItemPos].Length - 1] == ')')
                     {
-                        var startPos = parsedValues[4].IndexOf('(');
+                        var startPos = parsedValues[ParserSettings.CLogLineFormats.ItemPos].IndexOf('(');
 
                         if (startPos >= 0)
                         {
-                            parsedValues[4] = parsedValues[4].Substring(0, startPos);
+                            parsedValues[ParserSettings.CLogLineFormats.ItemPos] = parsedValues[ParserSettings.CLogLineFormats.ItemPos].Substring(0, startPos);
                         }
                     }
-                    else if (parsedValues[4].Contains(":"))
+                    else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos].Contains(":"))
                     {
-                        var startPos = parsedValues[4].LastIndexOf(':');
+                        var startPos = parsedValues[ParserSettings.CLogLineFormats.ItemPos].LastIndexOf(':');
 
                         if (startPos >= 0)
                         {
-                            parsedValues[4] = parsedValues[4].Substring(0, startPos);
+                            parsedValues[ParserSettings.CLogLineFormats.ItemPos] = parsedValues[ParserSettings.CLogLineFormats.ItemPos].Substring(0, startPos);
                         }
                     }
 
-                    dataRow["Item"] = parsedValues[4];
+                    dataRow["Item"] = parsedValues[ParserSettings.CLogLineFormats.ItemPos];
 
-                    if (parsedValues[4] != tableItem)
+                    if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] != tableItem)
                     {
                         tableItemPos = -1;
                     }
@@ -651,7 +651,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     int itemValuePos = -1;
 
                     var logDesc = new StringBuilder();
-                    var startRange = parsedValues[5] == "-" ? 6 : 5;
+                    var startRange = parsedValues[ParserSettings.CLogLineFormats.DescribePos] == "-" ? ParserSettings.CLogLineFormats.DescribePos + 1 : ParserSettings.CLogLineFormats.DescribePos;
                     bool handled = false;
 
                     if (parsedValues[startRange][0] == '(')
@@ -674,7 +674,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                     {
 
-                        if (parsedValues[4] == "CompactionController.java")
+                        if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionController.java")
                         {
                             #region CompactionController.java
                             //Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
@@ -713,7 +713,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "SSTableWriter.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
                         {
                             #region SSTableWriter.java
                             //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
@@ -753,7 +753,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "GCInspector.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "GCInspector.java")
                         {
                             #region GCInspector.java
                             //GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
@@ -788,7 +788,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemPos = nCell + 4;
                             }
-                            else if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Heap" && parsedValues[nCell + 3] == "full")
+                            else if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" && parsedValues[nCell] == "Heap" && parsedValues[nCell + 3] == "full")
                             {
                                 decimal numValue;
 
@@ -804,7 +804,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "FailureDetector.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "FailureDetector.java")
                         {
                             #region FailureDetector.java
                             //Not marking nodes down due to local pause of 12817405727 > 5000000000
@@ -828,7 +828,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "BatchStatement.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "BatchStatement.java")
                         {
 							#region BatchStatement.java
 							//BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
@@ -859,7 +859,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[0] == "WARN" && parsedValues[4] == "NoSpamLogger.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" && parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "NoSpamLogger.java")
                         {
                             #region NoSpamLogger.java
                             //NoSpamLogger.java:94 - Unlogged batch covering 80 partitions detected against table[hlservicing.lvl1_bkfs_invoicechronology]. You should use a logged batch for atomicity, or asynchronous writes for performance.
@@ -913,7 +913,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "SliceQueryFilter.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SliceQueryFilter.java")
                         {
                             #region SliceQueryFilter.java
                             //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstone cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
@@ -963,7 +963,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 handled = true;
                             }
-                            else if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
+                            else if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR" && parsedValues[nCell] == "Scanned" && parsedValues[nCell + 1] == "over")
                             {
                                 itemPos = nCell + 5;
                                 itemValuePos = 2;
@@ -973,7 +973,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "HintedHandoffMetrics.java" || parsedValues[4] == "HintedHandOffManager.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "HintedHandoffMetrics.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "HintedHandOffManager.java")
                         {
 							#region HintedHandoffMetrics.java
 							//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
@@ -1018,7 +1018,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 							#endregion
 						}
-                        else if (parsedValues[4] == "StorageService.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "StorageService.java")
                         {
 							#region StorageService.java
 							//	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
@@ -1056,14 +1056,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Associated Item"] = ksName + "." + tblName;
                             }
 
-                            if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Flushing")
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" && parsedValues[nCell] == "Flushing")
                             {
                                 //dataRow["Associated Item"] = "Flushing CFS";
                                 dataRow["Exception"] = "CFS Flush";
                                 itemValuePos = nCell + 1;
                                 handled = true;
                             }
-                            else if (parsedValues[0] == "INFO" && parsedValues[nCell] == "Node")
+                            else if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "INFO" && parsedValues[nCell] == "Node")
                             {
                                 itemValuePos = nCell + 3;
                             }
@@ -1078,7 +1078,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
                             #endregion
                         }
-                        else if (parsedValues[4] == "StatusLogger.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "StatusLogger.java")
                         {
                             #region StatusLogger.java
                             //StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
@@ -1094,7 +1094,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             if (parsedValues[nCell] == "ColumnFamily" || parsedValues[nCell] == "Table")
                             {
-                                tableItem = parsedValues[4];
+                                tableItem = parsedValues[ParserSettings.CLogLineFormats.ItemPos];
                                 tableItemPos = nCell;
                             }
                             else if (parsedValues[nCell] == "Pool")
@@ -1116,7 +1116,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "MessagingService.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "MessagingService.java")
                         {
                             #region MessagingService.java
                             //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
@@ -1167,7 +1167,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "CompactionTask.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionTask.java")
                         {
                             #region CompactionTask.java
                             //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
@@ -1209,14 +1209,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "RepairSession.java" || parsedValues[4] == "RepairJob.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairSession.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairJob.java")
                         {
 							#region RepairSession.java RepairJob.java
 							//ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
 							//INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
 							//ERROR [AntiEntropySessions:1] 2016-10-19 10:42:49,900  RepairSession.java:303 - [repair #ff8f8db0-95eb-11e6-8ab5-71e7251f2ea8] session completed with the following error
 
-							if (parsedValues[0] == "ERROR")
+							if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR")
                             {
                                 if (parsedValues[nCell].ToLower() == "failed")
                                 {
@@ -1240,7 +1240,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "CqlSlowLogWriter.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CqlSlowLogWriter.java")
                         {
                             #region CqlSlowLogWriter.java
                             //INFO  [CqlSlowLog-Writer-thread-0] 2016-08-16 01:42:34,277  CqlSlowLogWriter.java:151 - Recording statements with duration of 60248 in slow log
@@ -1271,7 +1271,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "CqlSolrQueryExecutor.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CqlSolrQueryExecutor.java")
                         {
                             #region CqlSolrQueryExecutor.java
                             //ERROR [SharedPool-Worker-1] 2016-08-29 16:28:03,882  CqlSolrQueryExecutor.java:409 - No response after timeout: 60000
@@ -1282,12 +1282,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "SolrCore.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SolrCore.java")
                         {
                             #region SolrCore.java
                             //WARN  [SolrSecondaryIndex ks_invoice.invoice index initializer.] 2016-08-17 00:36:22,480  SolrCore.java:1726 - [ks_invoice.invoice] PERFORMANCE WARNING: Overlapping onDeckSearchers=2
 
-                            if (parsedValues[0] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" && parsedValues[nCell] == "PERFORMANCE" && parsedValues[nCell + 1] == "WARNING:")
                             {
                                 var splitItems = SplitTableName(parsedValues[nCell - 1]);
                                 var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
@@ -1298,13 +1298,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "JVMStabilityInspector.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "JVMStabilityInspector.java")
                         {
                             #region JVMStabilityInspector.java
                             //ERROR [MessagingService-Incoming-/10.12.49.27] 2016-09-28 18:53:54,898  JVMStabilityInspector.java:106 - JVM state determined to be unstable.  Exiting forcefully due to:
                             //java.lang.OutOfMemoryError: Java heap space
 
-                            if (parsedValues[0] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR" && parsedValues[nCell] == "JVM" && parsedValues.ElementAtOrDefault(nCell + 5) == "unstable")
                             {
                                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Associated Item"] = string.Join(" ", parsedValues.Skip(nCell + 5));
@@ -1312,13 +1312,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "WorkPool.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "WorkPool.java")
                         {
                             #region WorkPool.java
                             //WARN  [commitScheduler-4-thread-1] 2016-09-28 18:53:32,436  WorkPool.java:413 - Timeout while waiting for workers when flushing pool Index; current timeout is 300000 millis, consider increasing it, or reducing load on the node.
                             //Failure to flush may cause excessive growth of Cassandra commit log.
 
-                            if (parsedValues[0] == "WARN" && parsedValues[nCell] == "Timeout"
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" && parsedValues[nCell] == "Timeout"
                                     && parsedValues.ElementAtOrDefault(nCell + 4) == "workers"
                                     && parsedValues.ElementAtOrDefault(nCell + 6) == "flushing")
                             {
@@ -1336,7 +1336,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "QueryProcessor.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "QueryProcessor.java")
                         {
                             #region QueryProcessor.java
                             ////QueryProcessor.java:139 - 21 prepared statements discarded in the last minute because cache limit reached (66270208 bytes)
@@ -1353,7 +1353,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "ThriftServer.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ThriftServer.java")
                         {
                             #region ThriftServer.java
                             //INFO  [Thread-2] 2016-10-26 22:19:23,040  ThriftServer.java:136 - Listening for thrift clients...
@@ -1366,7 +1366,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[4] == "DseAuthenticator.java" && parsedValues[0] == "WARN")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "DseAuthenticator.java" && parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
                         {
                             #region DseAuthenticator.java
                             //WARN	SharedPool-Worker-1	DseAuthenticator.java					 Plain text authentication without client / server encryption is strongly discouraged
@@ -1380,9 +1380,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if ((parsedValues[4] == "PasswordAuthenticator.java"
-                                    || parsedValues[4] == "Auth.java")
-                                && parsedValues[0] == "WARN")
+                        else if ((parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "PasswordAuthenticator.java"
+                                    || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Auth.java")
+                                && parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
                         {
                             #region PasswordAuthenticator|Auth.java
                             //Auth.java					 Skipped default superuser setup: some nodes were not ready
@@ -1391,7 +1391,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     || (parsedValues[nCell] == "Skipped" && parsedValues[nCell + 2] == "superuser"))
                             {
                                 var lastOccurence = (from dr in dtCLog.AsEnumerable().TakeLast(10)
-                                                     where dr.Field<string>("Item") == (parsedValues[4] == "PasswordAuthenticator.java"
+                                                     where dr.Field<string>("Item") == (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "PasswordAuthenticator.java"
                                                                                          ? "Auth.java"
                                                                                          : "PasswordAuthenticator.java")
                                                      select new { Timestamp = dr.Field<DateTime>("Timestamp") }).LastOrDefault();
@@ -1407,7 +1407,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-						else if(parsedValues[4] == "AbstractSolrSecondaryIndex.java")
+						else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "AbstractSolrSecondaryIndex.java")
 						{
 							#region AbstractSolrSecondaryIndex
 							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:52:23,011  AbstractSolrSecondaryIndex.java:1566 - Finished reindexing on keyspace prod_fcra and column family rtics_contribution
@@ -1439,8 +1439,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         if (!handled
-                            && (parsedValues[0] == "WARN"
-                                    || parsedValues[0] == "ERROR")
+                            && (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN"
+                                    || parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR")
                             && nCell > 4
                                 && (parsedValues[nCell].ToLower().Contains("exception")
                                         || parsedValues[nCell].ToLower().Contains("error")

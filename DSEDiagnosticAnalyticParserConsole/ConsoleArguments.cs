@@ -401,6 +401,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 			set { ParserSettings.ReadRepairThresholdInMS = value; }
 		}
 
+		[Option('o', "CLogLineFormatPosition", HelpText = "C* Log line format layout. The default is \"{IndicatorPos:0,TaskPos:1,ItemPos:4,TimeStampPos:2,DescribePos:5}\"",
+				   Required = false)]
+		public string CLogLineFormatPosition
+		{
+			get { return Properties.Settings.Default.CLogLineFormatPositions; }
+			set
+			{
+				if (string.IsNullOrEmpty(value) || value == "null" || value == "\"\"")
+				{
+					ParserSettings.CLogLineFormats = new ParserSettings.CLogLineFormat();
+				}
+				else
+				{
+					ParserSettings.CLogLineFormats = Newtonsoft.Json.JsonConvert.DeserializeObject<ParserSettings.CLogLineFormat>(value);
+				}
+			}
+		}
+
 		[Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
@@ -537,7 +555,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--[C]ompactionFlagThresholdInMS {3} " +
                                     "--CompactionFlagThresholdAsIORate|-R {25}" +
                                     "--SlowLog[Q]ueryThresholdInMS {4} " +
-									"--MaxNbrAchievedLogFiles|A {5}" +
+									"--MaxNbrAchievedLogFiles|-A {5}" +
                                     "--LogStartDate|-Z \"{6}\" " +
                                     "--LogExcelWorkbook[F]ilter \"{7}\" " +
                                     "--Parsing[E]xcelOptions {{{8}}} " +
@@ -557,7 +575,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--NbrGCInSeriesToConsiderContinuous|-v {26} " +
                                     "--GCTimeFrameDetection|-f {23} " +
                                     "--GCTimeFrameDetectionPercentage|-e {24} " +
-									"--ReadRepairThresholdInMS|-r {27}",
+									"--ReadRepairThresholdInMS|-r {27} " +
+									"--CLogLineFormatPosition|-o {28}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -585,7 +604,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.GCTimeFrameDetectionPercentage,
                                     this.NbrGCInSeriesToConsiderContinuous,
                                     this.CompactionFlagThresholdAsIORate,
-									this.ReadRepairThresholdInMS);
+									this.ReadRepairThresholdInMS, //27
+									this.CLogLineFormatPosition);
         }
     }
 }

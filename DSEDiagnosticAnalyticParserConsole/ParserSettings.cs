@@ -195,7 +195,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 			/// </summary>
 			NodeSubFldStruct = 2
 		}
-        public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);
+
+		public class CLogLineFormat
+		{
+			//ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request;
+			public int IndicatorPos = 0; //ERROR
+			public int TaskPos = 1; //[SharedPool-Worker-3]
+			public int ItemPos = 4; //Message.java:53
+			public int TimeStampPos = 2; //2016-10-01 19:20:14,415
+			public int DescribePos = 5; //- Unexpected exception during request;
+		}
+
+		public static List<string> IgnoreKeySpaces = Properties.Settings.Default.IgnoreKeySpaces.ToList(false);
 
         public static int GCFlagThresholdInMS = Properties.Settings.Default.GCFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if GCInspector.java) and log worksheets
         public static int CompactionFlagThresholdInMS = Properties.Settings.Default.CompactionFlagThresholdInMS; //Defines a threshold that will flag a log entry in both the log summary (only if CompactionTask.java) and log worksheets
@@ -238,8 +249,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         //	[Description], string -- log's description
         //	[Flagged], bool, AllowDBNull -- if true this log entry was flagged because it matched some criteria (e.g., GC Pauses -- GCInspector.java exceeds GCPausedFlagThresholdInMS)
         public static string LogExcelWorkbookFilter = Properties.Settings.Default.LogExcelWorkbookFilter; //"[Timestamp] >= #2016-08-01#"; //if null no filter is used. Only used for loading data into Excel
+		public static CLogLineFormat CLogLineFormats = Newtonsoft.Json.JsonConvert.DeserializeObject<CLogLineFormat>(Properties.Settings.Default.CLogLineFormatPositions);
 
-        public static string ExcelTemplateFilePath = Properties.Settings.Default.ExcelTemplateFilePath;
+		public static string ExcelTemplateFilePath = Properties.Settings.Default.ExcelTemplateFilePath;
 
         //Location where this application will write or update the Excel file.
         public static string ExcelFilePath = Properties.Settings.Default.ExcelFilePath;
