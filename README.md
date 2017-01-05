@@ -113,6 +113,8 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
 
 **MaxNbrAchievedLogFiles** -- The maximum number of archived log files that are read per node. If the value is -1 (default), all file are read (disabled).
 
+**CLogLineFormatPosition** -- Defines how the C* Log line format layout is parsed where (zero based index) IndicatorPos is the position of the log indicator (e.g., INFO, WARN, ERROR), TaskPos is task value (e.g., [SharedPool-Worker-3]), ItemPos position (e.g., Message.java:53), TimeStampPos is the date/time position (e.g., 2016-10-01 19:20:14,415), and DescribePos is the beginning of the describe (e.g., - Unexpected exception during request;).  The default is {IndicatorPos:0, TaskPos:1 , ItemPos:4, TimeStampPos:2, DescribePos:5}"
+
 
 Below settings are used for parsing of diagnostic fles and creation of the Excel worksheets/workbooks:
 
