@@ -598,8 +598,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             " stdev</string>\r\n  <string>Solr reindex occurrences</string>\r\n  <string>AntiComp" +
             "action maximum latency</string>\r\n  <string>AntiCompaction mean latency</string>\r" +
             "\n  <string>AntiCompaction minimum latency</string>\r\n  <string>AntiCompaction occ" +
-            "urrences</string>\r\n  <string>AntiCompaction SSTable count</string>\r\n</ArrayOfStr" +
-            "ing>")]
+            "urrences</string>\r\n  <string>AntiCompaction SSTable count</string>\r\n  <string>Me" +
+            "mtable Flush maximum latency</string>\r\n  <string>Memtable Flush mean latency</st" +
+            "ring>\r\n  <string>Memtable Flush minimum latency</string>\r\n  <string>Memtable Flu" +
+            "sh occurrences</string>\r\n  <string>Memtable Flush maximum IORate</string>\r\n  <st" +
+            "ring>Memtable Flush mean IORate</string>\r\n  <string>Memtable Flush minimum IORat" +
+            "e</string>\r\n  <string>Memtable Flush maximum Storage</string>\r\n  <string>Memtabl" +
+            "e Flush mean Storage</string>\r\n  <string>Memtable Flush minimum Storage</string>" +
+            "\r\n  <string>Memtable Flush total Storage</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));

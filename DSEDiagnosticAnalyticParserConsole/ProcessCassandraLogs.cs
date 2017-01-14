@@ -261,7 +261,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             Exception = 1, //Includes Errors, Warns, etc. (Summary only)
             Stats = 2, //Stats and Summary
             ReadRepair = 3,
-			StatsOnly = 4 //Only Stats (no summary)
+			StatsOnly = 4, //Only Stats (no summary)
+			MemTblFlush = 5
         }
 
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
@@ -295,7 +296,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         System.Data.DataTable dtCLog,
                                                         out DateTime maxTimestamp,
                                                         int gcPausedFlagThresholdInMS,
-                                                        int compactionFllagThresholdInMS,
+                                                        int compactionFlagThresholdInMS,
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
@@ -713,7 +714,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
+						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ColumnFamilyStore.java")
+						{
+							#region ColumnFamilyStore.java
+							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+
+							if (parsedValues[nCell] == "Flushing"
+									|| (parsedValues[nCell] == "Enqueuing" && parsedValues[nCell+1] == "flush"))
+							{
+								dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
+								handled = true;
+							}
+							#endregion
+						}
+						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Memtable.java")
+						{
+							#region Memtable.java
+							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+
+							if (parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
+									&& (parsedValues[nCell] == "Writing" || parsedValues[nCell] == "Completed"))
+							{
+								dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
+								handled = true;
+							}
+							#endregion
+						}
+						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
                         {
                             #region SSTableWriter.java
                             //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
@@ -917,7 +950,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             #region SliceQueryFilter.java
                             //SliceQueryFilter.java (line 231) Read 14 live and 1344 tombstone cells in cma.mls_records_property (see tombstone_warn_threshold). 5000 columns was requested, slices=[-]
-                            // Scanned over 100000 tombstones in capitalonehomeloans.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
+                            // Scanned over 100000 tombstones in homeKS.homebase_he_operations_pt; query aborted (see tombstone_failure_threshold)
                             if (nCell == itemPos)
                             {
                                 var splitItems = SplitTableName(parsedValues[nCell]);
@@ -1192,9 +1225,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
 
                                 if (!handled
-                                        && compactionFllagThresholdInMS >= 0
+                                        && compactionFlagThresholdInMS >= 0
                                         && time is int
-                                        && (int)time >= compactionFllagThresholdInMS)
+                                        && (int)time >= compactionFlagThresholdInMS)
                                 {
                                     dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                     dataRow["Exception"] = "Compaction Latency Warning";
@@ -1426,12 +1459,6 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 							#endregion
 						}
-						//Incremental Repair
-						//INFO  [CompactionExecutor:20738] 2016-12-11 03:03:14,042  CompactionManager.java:511 - Starting anticompaction for mobilepay_paymentsources_cards.schemaversions on 2/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-2-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
-						//INFO[CompactionExecutor: 20738] 2016 - 12 - 11 03:03:14,043  CompactionManager.java:540 - SSTable BigTableReader(path = '/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-2-big-Data.db') fully contained in range(-9223372036854775808, -9223372036854775808], mutating repairedAt instead of anticompacting
-						//INFO[CompactionExecutor:20738] 2016 - 12 - 11 03:03:14,049  CompactionManager.java:540 - SSTable BigTableReader(path = '/var/lib/cassandra/data/mobilepay_paymentsources_cards/schemaversions-f4725b12bba211e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range(-9223372036854775808, -9223372036854775808], mutating repairedAt instead of anticompacting
-						//INFO[CompactionExecutor:20738] 2016 - 12 - 11 03:03:14,050  CompactionManager.java:578 - Completed anticompaction successfully
-
 						else if (dataRow["Associated Value"] == DBNull.Value
                                     && LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
                         {
@@ -1777,7 +1804,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									   let flagged = dr.Field<int?>("Flagged")
 									   let indicator = dr.Field<string>("Indicator")
 									   where element.Item1 >= timeStamp && element.Item2 < timeStamp
-												&& ((flagged.HasValue && (flagged.Value == 1 || flagged.Value == 2))
+												&& ((flagged.HasValue && (flagged.Value == (int) LogFlagStatus.Exception || flagged.Value == (int) LogFlagStatus.Stats))
 														|| !dr.IsNull("Exception")
 														|| indicator == "ERROR"
 														|| indicator == "WARN")
@@ -2178,7 +2205,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			long GroupIndicator { get;}
 			DateTime StartTime { get;}
 			DateTime CompletionTime { get;}
-			int Latency { get; }
+			int Duration { get; }
 
 			string Type { get; }
 		}
@@ -2192,9 +2219,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Table { get; set; }
 			public int SSTables { get; set; }
 			public long GroupIndicator { get; set; }
-			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Latency)); } }
+			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Duration)); } }
 			public DateTime CompletionTime { get { return this.LogTimestamp; } }
-			public int Latency { get; set; }
+			public int Duration { get; set; }
 			public string Type {  get { return "Compaction"; } }
 			#endregion
 
@@ -2218,7 +2245,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public long GroupIndicator { get; set; }
 			public DateTime StartTime { get; set; }
 			public DateTime CompletionTime { get; set; }
-			public int Latency
+			public int Duration
 			{
 				get
 				{
@@ -2228,7 +2255,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Type { get { return "AntiCompaction"; } }
 			#endregion
 
-			public List<Tuple<string, string>> Ranges = null;
+			public List<Tuple<string, string>> TokenRanges = null;
 
 			public void AddRange(string startRange, string endRange)
 			{
@@ -2240,15 +2267,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 					return;
 				}
 
-				if(this.Ranges == null)
+				if(this.TokenRanges == null)
 				{
-					this.Ranges = new List<Tuple<string, string>>() { new Tuple<string, string>(startRange, endRange) };
+					this.TokenRanges = new List<Tuple<string, string>>() { new Tuple<string, string>(startRange, endRange) };
 					return;
 				}
 
-				if(!this.Ranges.Exists(i => i.Item1 == startRange && i.Item2 == endRange))
+				if(!this.TokenRanges.Exists(i => i.Item1 == startRange && i.Item2 == endRange))
 				{
-					this.Ranges.Add(new Tuple<string, string>(startRange, endRange));
+					this.TokenRanges.Add(new Tuple<string, string>(startRange, endRange));
 				}
 			}
 			public bool Aborted { get; set; }
@@ -2268,6 +2295,234 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public int Duration { get { return (int)(Finish - Start).TotalMilliseconds; } }
 		}
 
+		public class MemTableFlushOccurrenceLogInfo
+		{
+			public MemTableFlushOccurrenceLogInfo(Guid session)
+			{
+				this.Session = session;
+			}
+
+			public DateTime Start;
+			public DateTime Finish;
+			public string DataCenter;
+			public string IPAddress;
+			public string Keyspace;
+			public string Table;
+			public int NbrWriteOPS;
+			//public decimal PreFlushOnHeapMemory;
+			//public decimal PreFlushOffHeapMemory;
+			public decimal FlushedStorage;
+			public string SSTableFilePath;
+			public int TaskId;
+			public long GroupIndicator;
+			public readonly Guid Session;
+
+			public int Duration { get { return (int)(Finish - Start).TotalMilliseconds; } }
+			public decimal IORate {  get { return this.Duration == 0 ? 0 : this.FlushedStorage / ((decimal)this.Duration / 1000M); } }
+		}
+
+		public class MemTableFlushLogInfo
+		{
+			public MemTableFlushLogInfo()
+			{
+				this.Session = Guid.NewGuid();
+			}
+
+			public DateTime Start { get { return this.EnqueuingStart; } }
+			public DateTime EnqueuingStart;
+			public string Type;
+			public string DataCenter;
+			public string IPAddress;
+			public string Keyspace;
+			public string Table;
+			public int TaskId;
+			public long GroupIndicator;
+			public bool Completed;
+			public DataRow LogDataRow;
+			public readonly Guid Session;
+
+			public int Duration
+			{
+				get
+				{
+					if(this.OccurrenceCount == 0)
+					{
+						return 0;
+					}
+
+					return this.Occurrences.Sum(i => i.Finish == DateTime.MinValue ? 0 : i.Duration);
+				}
+			}
+
+			public decimal MaxIORate
+			{
+				get { return this.Occurrences.Max(i => i.IORate); }
+			}
+			public decimal MinIORate
+			{
+				get { return this.Occurrences.Where(i => i.IORate > 0).Min(i => i.IORate); }
+			}
+			public decimal AvgIORate
+			{
+				get { return this.Occurrences.Where(i => i.IORate > 0).Average(i => i.IORate); }
+			}
+
+			public decimal IORate
+			{
+				get
+				{
+					var duration = this.Duration;
+
+					return duration == 0 ? 0 : this.FlushedStorage / ((decimal)duration / 1000M);
+				}
+			}
+
+			public int NbrWriteOPS
+			{
+				get { return this.Occurrences.Sum(i => i.NbrWriteOPS); }
+			}
+
+			public decimal FlushedStorage
+			{
+				get { return this.Occurrences.Sum(i => i.FlushedStorage); }
+			}
+
+			public DateTime Finish {  get { return this.Duration == 0 ? this.Start : this.Occurrences.Max(i => i.Finish); } }
+
+			public IEnumerable<MemTableFlushOccurrenceLogInfo> Occurrences = Enumerable.Empty<MemTableFlushOccurrenceLogInfo>();
+
+			public int OccurrenceCount
+			{
+				get
+				{
+					return this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>()
+								? 0
+								: this.Occurrences.Count(i => i.Finish != DateTime.MinValue); 
+				}
+			}
+
+			public MemTableFlushOccurrenceLogInfo AddOccurrence(MemTableFlushOccurrenceLogInfo occurence)
+			{
+				if(this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+				{
+					this.Occurrences = new List<MemTableFlushOccurrenceLogInfo>();
+				}
+
+				((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Add(occurence);
+
+				occurence.DataCenter = this.DataCenter;
+				occurence.IPAddress = this.IPAddress;
+
+				return occurence;
+			}
+
+			public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string table,
+																		DateTime timeStamp,
+																		int nbrOPS,
+																		int taskId,
+																		long groupId,
+																		bool alwaysCreateNewInstance = true)
+			{
+				if(this.TaskId == 0)
+				{
+					this.TaskId = taskId;
+				}
+
+				if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+				{
+					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+					{
+						Table = table,
+						Start = timeStamp,
+						TaskId = taskId,
+						GroupIndicator = groupId,
+						NbrWriteOPS = nbrOPS
+					});
+				}
+
+				var occurrence = alwaysCreateNewInstance
+										? null
+										: ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => string.IsNullOrEmpty(i.Keyspace)
+																												&& i.Table == table
+																												&& i.TaskId == taskId);
+
+				if (occurrence == null)
+				{
+					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+					{
+						Table = table,
+						Start = timeStamp,
+						TaskId = taskId,
+						GroupIndicator = groupId,
+						NbrWriteOPS = nbrOPS
+					});
+				}
+
+				return occurrence;
+			}
+
+			public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string keySpace,
+																		string table,
+																		string ssTableFilePath,
+																		DateTime timeStamp,
+																		decimal flushedStorage,
+																		int taskId,
+																		long groupId)
+			{
+				if(string.IsNullOrEmpty(this.Keyspace))
+				{
+					this.Keyspace = keySpace;
+				}
+				if (this.TaskId == 0)
+				{
+					this.TaskId = taskId;
+				}
+
+				if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+				{
+					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+					{
+						Keyspace = keySpace,
+						Table = table,
+						Start = timeStamp,
+						Finish = timeStamp,
+						TaskId = taskId,
+						GroupIndicator = groupId,
+						FlushedStorage = flushedStorage,
+						SSTableFilePath = ssTableFilePath
+					});
+				}
+
+				var occurrence = ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => string.IsNullOrEmpty(i.Keyspace)
+																										&& i.Table == table
+																										&& i.TaskId == taskId);
+
+				if(occurrence == null)
+				{
+					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+					{
+						Keyspace = keySpace,
+						Table = table,
+						Start = timeStamp,
+						Finish = timeStamp,
+						TaskId = taskId,
+						GroupIndicator = groupId,
+						FlushedStorage = flushedStorage,
+						SSTableFilePath = ssTableFilePath
+					});
+				}
+
+				occurrence.Keyspace = keySpace;
+				occurrence.Finish = timeStamp;
+				occurrence.FlushedStorage = flushedStorage;
+				occurrence.SSTableFilePath = ssTableFilePath;
+
+				return occurrence;
+			}
+
+
+		}
+
 		public class ReadRepairLogInfo
 		{
 			public string SessionPath;
@@ -2284,6 +2539,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string TokenRangeEnd;
 			public int GCs {  get { return this.GCList == null ? 0 : this.GCList.Count(); } }
 			public int Compactions { get { return this.CompactionList == null ? 0 : this.CompactionList.Count(); } }
+			public int MemTableFlushes { get { return this.MemTableFlushList == null ? 0 : this.MemTableFlushList.Count(); } }
 			public int Exceptions;
 
 			public long GroupInd;
@@ -2295,6 +2551,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
 			public IEnumerable<GCLogInfo> GCList = null;
 			public IEnumerable<ICompactionLogInto> CompactionList = null;
+			public IEnumerable<MemTableFlushLogInfo> MemTableFlushList = null;
 
 			public static string DCIPAddress(string dcName, string ipAdress)
 			{
@@ -2330,6 +2587,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
+		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
 
 		static void InitializeStatusDataTable(DataTable dtCStatusLog)
 		{
@@ -2378,11 +2636,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtCStatusLog.Columns.Add("End Token Range (inclusive)", typeof(string)).AllowDBNull = true; //ai
 				dtCStatusLog.Columns.Add("Nbr GCs", typeof(int)).AllowDBNull = true; //aj
 				dtCStatusLog.Columns.Add("Nbr Compactions", typeof(int)).AllowDBNull = true; //ak
-				dtCStatusLog.Columns.Add("Nbr Solr ReIdxs", typeof(int)).AllowDBNull = true; //al
-				dtCStatusLog.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true; //am
-				dtCStatusLog.Columns.Add("Requested", typeof(bool)).AllowDBNull = true; //an
-				dtCStatusLog.Columns.Add("Aborted", typeof(int)).AllowDBNull = true; //ao
-				dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //ap
+				dtCStatusLog.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //al
+				dtCStatusLog.Columns.Add("Nbr Solr ReIdxs", typeof(int)).AllowDBNull = true; //am
+				dtCStatusLog.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true; //an
+				dtCStatusLog.Columns.Add("Requested", typeof(bool)).AllowDBNull = true; //ao
+				dtCStatusLog.Columns.Add("Aborted", typeof(int)).AllowDBNull = true; //ap
+				dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //aq
 
 				//dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
 			}
@@ -2844,7 +3103,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									SSTables = dataRow.Field<int>("SSTables"),
 									OldSize = dataRow.Field<decimal>("From (mb)"),
 									NewSize = dataRow.Field<decimal>("To (mb)"),
-									Latency = (int)time,
+									Duration = (int)time,
 									IORate = rate,
 									PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
 									MergeCounts = dataRow.Field<string>("Merge Counts")
@@ -5483,7 +5742,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["KeySpace"] = logInfo.Keyspace;
 										dataRow["Nbr GCs"] = logInfo.GCs;
 										dataRow["Nbr Compactions"] = logInfo.Compactions;
+										dataRow["Nbr MemTable Flush Events"] = logInfo.MemTableFlushes;
 										dataRow["Nbr Exceptions"] = logInfo.Exceptions;
+										dataRow["Nbr Solr ReIdxs"] = logInfo.SolrReIndexing == null ? 0 : logInfo.SolrReIndexing.Count();
 										dataRow["Latency (ms)"] = logInfo.Duration;
 										if (logInfo.UserRequest) dataRow["Requested"] = logInfo.UserRequest;
 										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session)) + "X" + logInfo.Session;
@@ -5597,7 +5858,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["KeySpace"] = r.Keyspace;
 										dataRow["Nbr GCs"] = r.GCs;
 										dataRow["Nbr Compactions"] = r.Compactions;
+										dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
 										dataRow["Nbr Exceptions"] = r.Exceptions;
+										dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
 										dataRow["Latency (ms)"] = r.Duration;
 										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
 										dataRow["Aborted"] = 1;
@@ -5637,7 +5900,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["KeySpace"] = r.Keyspace;
 										dataRow["Nbr GCs"] = r.GCs;
 										dataRow["Nbr Compactions"] = r.Compactions;
+										dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
 										dataRow["Nbr Exceptions"] = r.Exceptions;
+										dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
 										dataRow["Latency (ms)"] = r.Duration;
 										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
 										dataRow["Aborted"] = 1;
@@ -5677,6 +5942,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["KeySpace"] = r.Keyspace;
 						dataRow["Nbr GCs"] = r.GCs;
 						dataRow["Nbr Compactions"] = r.Compactions;
+						dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
 						dataRow["Nbr Exceptions"] = r.Exceptions;
 						dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
 						dataRow["Aborted"] = r.Aborted ? 1 : 0;
@@ -5697,11 +5963,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 							Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto> nodeCompCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
+							Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo> nodeMemTblFlushCollection = null;
 							var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
 
 							CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
 							GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
 							SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
+							MemTableFlushOccurrences.TryGetValue(dcIpAddress, out nodeMemTblFlushCollection);
 
 							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
 							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
@@ -5717,6 +5985,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 									rrInfo.SolrReIndexing = nodeSolrIdxCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
 																									&& rrInfo.Start <= c.Start
 																									&& c.Start < rrInfo.Finish.AddMilliseconds(readrepairThreshold));
+									rrInfo.MemTableFlushList = nodeMemTblFlushCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+																											&& rrInfo.Start <= c.Start
+																											&& c.Start < rrInfo.Finish.AddMilliseconds(readrepairThreshold));
 								});
 
 							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\RR-{0}.txt", dcIpAddress.Replace('|', '-'))))
@@ -5871,7 +6142,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 				//Read Repair
 				dtReadRepair.Columns.Add("Session", typeof(string)); //i
-				dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true; //j
 				dtReadRepair.Columns.Add("Token Range Start", typeof(string)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Token Range End", typeof(string)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr of Repaired Ranges", typeof(int)).AllowDBNull = true; //m
@@ -5879,29 +6150,37 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Nbr Received Nodes", typeof(int)).AllowDBNull = true; //o
 				dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //r
 				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //t
-				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //u
-				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //v
+				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //u
+				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //v
+				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //w
 
 				//GC
-				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //w
+				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //x
 				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //z
+				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //aa
 
 				//Compaction
-				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //aa
-				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ab
-				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ac
-				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ad
-				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ae
+				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ab
+				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ac
+				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ad
+				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ae
+				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //af
+
+				//MemTable Flush
+				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ag
+				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//ah
+				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //ai
+				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //aj
+				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ak
 
 				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //af
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //al
 
-				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ag
+				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //am
 			}
 		#endregion
 
@@ -5958,6 +6237,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					newDataRow["Nbr GC Events"] = rrItem.GCs;
 					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
 					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
+					newDataRow["Nbr MemTable Flush Events"] = rrItem.MemTableFlushes;
 					newDataRow["Nbr Exceptions"] = rrItem.Exceptions;
 					newDataRow["Aborted Read Repair"] = rrItem.Aborted ? 1 : 0;
 					newDataRow["Options"] = rrItem.Options;
@@ -6010,7 +6290,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							newDataRow["KeySpace"] = item.Comp.Keyspace;
 							newDataRow["Table"] = item.Comp.Table;
 							newDataRow["SSTables"] = item.Comp.SSTables;
-							newDataRow["Compaction Time (ms)"] = item.Comp.Latency;
+							newDataRow["Compaction Time (ms)"] = item.Comp.Duration;
 							newDataRow["Reconciliation Reference"] = item.Comp.GroupIndicator;
 
 							if(item.Comp is CompactionLogInfo)
@@ -6019,6 +6299,35 @@ namespace DSEDiagnosticAnalyticParserConsole
 								newDataRow["New Size (mb)"] = ((CompactionLogInfo)item.Comp).NewSize;
 								newDataRow["Compaction IORate (mb/sec)"] = ((CompactionLogInfo)item.Comp).IORate;
 							}
+
+							dtReadRepair.Rows.Add(newDataRow);
+						}
+					}
+
+					if (rrItem.MemTableFlushList != null)
+					{
+						foreach (var item in (from memTbl in rrItem.MemTableFlushList
+											  let startTime = memTbl.Start
+											  orderby startTime ascending
+											  select new { StartTime = startTime, MemTbl = memTbl }))
+						{
+							newDataRow = dtReadRepair.NewRow();
+
+							newDataRow["Start Timestamp"] = item.StartTime;
+							newDataRow["Session Path"] = rrItem.SessionPath;
+							newDataRow["Data Center"] = item.MemTbl.DataCenter;
+							newDataRow["Node IPAddress"] = item.MemTbl.IPAddress;
+							newDataRow["Type"] = "MemTable Flush (" + item.MemTbl.Type + ")";
+							newDataRow["Log/Completion Timestamp"] = item.MemTbl.Finish;
+							newDataRow["Session"] = rrItem.Session;
+							newDataRow["KeySpace"] = item.MemTbl.Keyspace;
+							newDataRow["Table"] = item.MemTbl.Table;
+							newDataRow["Occurrences"] = item.MemTbl.OccurrenceCount;
+							newDataRow["Flushed to SSTable(s) Size (mb)"] = item.MemTbl.FlushedStorage;
+							newDataRow["Flush Time (ms)"] = item.MemTbl.Duration;
+							newDataRow["Write Rate (ops)"] = item.MemTbl.NbrWriteOPS;
+							newDataRow["Effective Flush IORate (mb/sec)"] = item.MemTbl.IORate;
+							newDataRow["Reconciliation Reference"] = item.MemTbl.GroupIndicator;
 
 							dtReadRepair.Rows.Add(newDataRow);
 						}
@@ -6057,8 +6366,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 			GCOccurrences.Clear();
 			CompactionOccurrences.Clear();
 			SolrReindexingOccurrences.Clear();
+			MemTableFlushOccurrences.Clear();
 		}
-
 
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.cardticketmap on 0/[] sstables
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
@@ -6249,11 +6558,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dtCStatusLogRow["KeySpace"] = antiComp.Keyspace;
 								dtCStatusLogRow["Table"] = antiComp.Table;
 								dtCStatusLogRow["SSTables"] = antiComp.SSTables;
-								dtCStatusLogRow["Latency (ms)"] = antiComp.Latency;
-								if (antiComp.Ranges != null && antiComp.Ranges.Count > 0)
+								dtCStatusLogRow["Latency (ms)"] = antiComp.Duration;
+								if (antiComp.TokenRanges != null && antiComp.TokenRanges.Count > 0)
 								{
-									dtCStatusLogRow["Start Token Range (exclusive)"] = string.Join(",", antiComp.Ranges.Select(i => i.Item1));
-									dtCStatusLogRow["End Token Range (inclusive)"] = string.Join(",", antiComp.Ranges.Select(i => i.Item2));
+									dtCStatusLogRow["Start Token Range (exclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item1));
+									dtCStatusLogRow["End Token Range (inclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item2));
 								}
 								if (antiComp.Aborted)
 								{
@@ -6278,11 +6587,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//AntiCompaction SSTable count
 
 							var grpStats = from item in localAntiCompList
-											 group new { Latency = item.Latency, SSTables = item.SSTables, GrpInd = item.GroupIndicator }
+											 group new { Latency = item.Duration, SSTables = item.SSTables, GrpInd = item.GroupIndicator }
 														by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
 											 select new
 											 {
-												 Max = g.Min(i => i.Latency),
+												 Max = g.Max(i => i.Latency),
 												 Min = g.Min(i => i.Latency),
 												 Mean = g.Average(i => i.Latency),
 												 SSTables = g.Sum(i => i.SSTables),
@@ -6377,5 +6686,519 @@ namespace DSEDiagnosticAnalyticParserConsole
 				});
 			}//end of scope for antiCompactionLogItems
 		}
+
+		//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+		//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,619  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx1@2015847477(1.824MiB serialized bytes, 65562 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,684  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx1-tmp-ka-15175-Data.db (607.611KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,702  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx2@649911595(1.816MiB serialized bytes, 68460 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,766  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx2-tmp-ka-15170-Data.db (591.472KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+
+		//INFO  [SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace='capitalonehomeloans', ColumnFamily='opus_ln_borrinfo') to free up room. Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.02/0.02
+		//INFO[SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:905 - Enqueuing flush of opus_ln_borrinfo: 81624365 (2%) on-heap, 0 (0%) off-heap
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,323  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo@771558518(12.749MiB serialized bytes, 919772 ops, 2%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,978  Memtable.java:382 - Completed flushing /mnt/dse/data1/capitalonehomeloans/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/capitalonehomeloans-opus_ln_borrinfo-tmp-ka-1533-Data.db (4.631MiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,024  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo.opus_ln_borrinfo_flag@1190857189(24.898KiB serialized bytes, 4724 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,027  Memtable.java:382 - Completed flushing /mnt/dse/data1/capitalonehomeloans/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/capitalonehomeloans-opus_ln_borrinfo.opus_ln_borrinfo_flag-tmp-ka-1622-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+
+		//INFO[ScheduledTasks:1] 2016-10-25 04:07:19,781  ColumnFamilyStore.java:917 - Enqueuing flush of peers: 3036 (0%) on-heap, 35032 (0%) off-heap
+		//INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,782  Memtable.java:347 - Writing Memtable-peers@2118996997(0.473KiB serialized bytes, 1344 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,783  Memtable.java:382 - Completed flushing /data/3/dse/data/system/peers-37f71aca7dc2383ba70672528af04d4f/system-peers-tmp-ka-404-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887341, position= 1392720)
+
+		//INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
+		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
+
+		//Group1					Group2
+		//"'homeKS'"	"'homebase_tasktracking_ops_l3'"
+		static Regex RegexMFFlushing = new Regex(@"Flushing.+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\).+",
+													RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		//Group1							Group2		Group3	Group4	Group5	Group6	Group 7
+		//"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
+		static Regex RegexMFEnqueuing = new Regex(@"Enqueuing\s+flush\s+of\s+([a-z0-9'-_$%+=@!?<>^*&]+)\s*\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap.+\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)",
+													RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		//Group1							Group2		Group3	Group4		Group5	Group6	Group7	Group8
+		//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"	"857621"	"7"		"%"		"0"		"%"
+		static Regex RegexMFWritingMemTbl = new Regex(@"Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+\(([0-9.]+)\s*([a-z]{0,3})\s+.+\,\s+([0-9,.]+)\s+ops\s*\,\s*([0-9,.]+)\s*(\%*)\s*\/\s*([0-9,.]+)\s*(\%*)\s*.*",
+														RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		//Group1																																			Group2		Group3
+		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
+		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)\s+\(([0-9,.]+)\s*([a-z]{0,3}).+",
+															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+		public static void ParseMemTblFlushFromLog(DataTable dtCLog,
+														Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+														Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStack,
+														List<CKeySpaceTableNames> kstblExists,
+														IEnumerable<string> ignoreKeySpaces,
+														int flushFlagThresholdInMS,
+														decimal flushFlagThresholdAsIORate)
+		{
+			if (dtCLog.Rows.Count == 0)
+			{
+				return;
+			}
+
+			ulong recNbr = 0;
+			var flushLogItems = from dr in dtCLog.AsEnumerable()
+									let dcName = dr.Field<string>("Data Center")
+									let ipAddress = dr.Field<string>("Node IPAddress")
+									let flagged = dr.Field<int?>("Flagged")
+									let taskId = dr.Field<int?>("TaskId")
+									where flagged.HasValue && flagged == (int)LogFlagStatus.MemTblFlush
+									group new
+									{
+										Timestamp = dr.Field<DateTime>("Timestamp"),
+										Description = dr.Field<string>("Description")?.Trim(),
+										Task = dr.Field<string>("Task"),
+										TaskId = taskId,
+										RecordNbr = ++recNbr,
+										DataRow = dr
+									}
+										by new { dcName, ipAddress } into g
+									select new
+									{
+										DCName = g.Key.dcName,
+										IPAddress = g.Key.ipAddress,
+										LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
+									};
+
+			Parallel.ForEach(flushLogItems, logGroupItem =>
+			//foreach (var logGroupItem in flushLogItems)
+			{
+				var currentFlushes = new List<MemTableFlushLogInfo>();
+				var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
+
+				foreach (var item in logGroupItem.LogItems)
+				{
+					#region Memtable Flush Processing
+					//New Flush Event
+					//Group1							Group2		Group3	Group4	Group5	Group6	Group 7
+					//"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
+					var splitInfo = RegexMFEnqueuing.Split(item.Description);
+
+					if (splitInfo.Length > 1)
+					{
+						var flushInfo = new MemTableFlushLogInfo()
+						{
+							DataCenter = logGroupItem.DCName,
+							IPAddress = logGroupItem.IPAddress,
+							EnqueuingStart = item.Timestamp,
+							Type = item.Task,
+							GroupIndicator = groupIndicator,
+							Table = RemoveQuotes(splitInfo[1].Trim()),
+							LogDataRow = item.DataRow
+						};
+
+						currentFlushes.Where(i => !i.Completed
+													&& i.Table == flushInfo.Table
+													&& !i.Occurrences.IsEmpty()
+													&& i.Occurrences.All(o => o.Finish != DateTime.MinValue))
+										.ForEach(i => i.Completed = true);
+						currentFlushes.Add(flushInfo);
+						continue;
+					}
+
+					//Group1							Group2		Group3	Group4		Group5	Group6	Group7	Group8
+					//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"	"857621"	"7"		"%"		"0"		"%"
+					splitInfo = RegexMFWritingMemTbl.Split(item.Description);
+
+					if(splitInfo.Length > 1)
+					{
+						var tableName = RemoveQuotes(splitInfo[1].Trim());
+						var flushInfo = currentFlushes.Find(i => (tableName == i.Table || tableName.StartsWith(i.Table + "."))
+																		&& (i.TaskId == 0 || (i.TaskId == item.TaskId.Value && !i.Completed))
+																		&& item.Timestamp >= i.Start);
+
+						if(flushInfo == null)
+						{
+							flushInfo = new MemTableFlushLogInfo()
+							{
+								DataCenter = logGroupItem.DCName,
+								IPAddress = logGroupItem.IPAddress,
+								EnqueuingStart = item.Timestamp,
+								Type = item.Task,
+								GroupIndicator = groupIndicator,
+								Table = RemoveQuotes(splitInfo[1].Trim()),
+								LogDataRow = item.DataRow
+							};
+							currentFlushes.Add(flushInfo);
+						}
+
+						flushInfo.AddUpdateOccurrence(tableName, item.Timestamp, int.Parse(splitInfo[4]), item.TaskId.Value, groupIndicator);
+						continue;
+					}
+
+					//Group1																																			Group2		Group3
+					//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
+					splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
+
+					if (splitInfo.Length > 1)
+					{
+						var fileNamePos = splitInfo[1].LastIndexOf('/');
+						var ssTableFileName = splitInfo[1].Substring(fileNamePos + 1);
+						var ksItem = kstblExists
+										.Where(e => ssTableFileName.StartsWith(e.LogName))
+										.OrderByDescending(e => e.LogName.Length).FirstOrDefault();
+
+						if (ksItem == null)
+						{
+							var flushInfo = currentFlushes.Find(i => !i.Completed
+																		&& i.TaskId == item.TaskId.Value
+																		&& ssTableFileName.Contains("-" + i.Table)
+																		&& item.Timestamp >= i.Start);
+
+							if (flushInfo != null)
+							{
+								var ksPos = ssTableFileName.IndexOf("-" + flushInfo.Table);
+								var ksName = ssTableFileName.Substring(0, ksPos);
+
+								if (ignoreKeySpaces.Contains(ksName))
+								{
+									currentFlushes.Remove(flushInfo);
+									continue;
+								}
+
+								flushInfo.AddUpdateOccurrence(ksName,
+																flushInfo.Table,
+																splitInfo[1],
+																item.Timestamp,
+																ConvertInToMB(splitInfo[2], splitInfo[3]),
+																item.TaskId.Value,
+																groupIndicator);
+								continue;
+							}
+						}
+						else
+						{
+							var flushInfo = currentFlushes.Find(i => !i.Completed
+																		&& (ksItem.TableName == i.Table || ksItem.TableName.StartsWith(i.Table + "."))
+																		&& i.TaskId == item.TaskId.Value
+																		&& item.Timestamp >= i.Start);
+
+							if (flushInfo != null)
+							{
+								if (ignoreKeySpaces.Contains(ksItem.KeySpaceName))
+								{
+									currentFlushes.Remove(flushInfo);
+									continue;
+								}
+
+								flushInfo.AddUpdateOccurrence(ksItem.KeySpaceName,
+																ksItem.TableName,
+																splitInfo[1],
+																item.Timestamp,
+																ConvertInToMB(splitInfo[2], splitInfo[3]),
+																item.TaskId.Value,
+																groupIndicator);
+								continue;
+							}
+						}
+					}
+					#endregion
+				}
+
+				currentFlushes.Where(i => !i.Completed && !i.Occurrences.IsEmpty() && i.Occurrences.All(o => o.Finish != DateTime.MinValue))
+								.ForEach(i => i.Completed = true);
+				MemTableFlushOccurrences.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
+														ignore => { return new Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>(currentFlushes.Where(i => i.Completed)); },
+														(ignore, gcList) =>
+														{
+															gcList.AddRange(currentFlushes.Where(i => i.Completed));
+															return gcList;
+														});
+
+				#region Log Status DT and Warnings
+				if (dtLogStatusStack != null)
+				{
+					var dtStatusLog = new DataTable(string.Format("NodeStatus-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+					InitializeStatusDataTable(dtStatusLog);
+					dtLogStatusStack.Push(dtStatusLog);
+
+					foreach (var memTblFlush in currentFlushes)
+					{
+						var dtStatusLogRow = dtStatusLog.NewRow();
+						dtStatusLogRow["Reconciliation Reference"] = memTblFlush.GroupIndicator;
+						dtStatusLogRow["Timestamp"] = memTblFlush.Start;
+						dtStatusLogRow["Data Center"] = memTblFlush.DataCenter;
+						dtStatusLogRow["Node IPAddress"] = memTblFlush.IPAddress;
+						dtStatusLogRow["Pool/Cache Type"] = string.Format("Memtable Flush ({0})", memTblFlush.Type);
+						dtStatusLogRow["KeySpace"] = memTblFlush.Keyspace;
+						dtStatusLogRow["Table"] = memTblFlush.Table;
+
+						dtStatusLogRow["Session"] = memTblFlush.Session;
+						dtStatusLogRow["Nbr MemTable Flush Events"] = memTblFlush.OccurrenceCount;
+						dtStatusLogRow["Duration (ms)"] = memTblFlush.Duration;
+						dtStatusLogRow["MemTable OPS"] = memTblFlush.NbrWriteOPS;
+						//dtStatusLogRow["Size(mb)"] = memTblFlush.
+						dtStatusLogRow["Data (mb)"] = memTblFlush.FlushedStorage;
+						dtStatusLogRow["Rate (MB/s)"] = memTblFlush.IORate;
+						dtStatusLogRow["Aborted"] = !memTblFlush.Completed;
+
+						dtStatusLog.Rows.Add(dtStatusLogRow);
+
+						foreach (var memTblOccurrence in memTblFlush.Occurrences)
+						{
+							dtStatusLogRow = dtStatusLog.NewRow();
+
+							dtStatusLogRow["Reconciliation Reference"] = memTblOccurrence.GroupIndicator;
+							dtStatusLogRow["Timestamp"] = memTblOccurrence.Start;
+							dtStatusLogRow["Data Center"] = memTblOccurrence.DataCenter;
+							dtStatusLogRow["Node IPAddress"] = memTblOccurrence.IPAddress;
+							dtStatusLogRow["Pool/Cache Type"] = "Memtable Flush";
+							dtStatusLogRow["KeySpace"] = memTblOccurrence.Keyspace;
+							dtStatusLogRow["Table"] = memTblOccurrence.Table;
+
+							dtStatusLogRow["Session"] = memTblOccurrence.Session;
+							dtStatusLogRow["Duration (ms)"] = memTblOccurrence.Duration;
+							dtStatusLogRow["MemTable OPS"] = memTblOccurrence.NbrWriteOPS;
+							//dtStatusLogRow["Size(mb)"] = memTblOccurrence
+							dtStatusLogRow["Data (mb)"] = memTblOccurrence.FlushedStorage;
+							dtStatusLogRow["Rate (MB/s)"] = memTblOccurrence.IORate;
+							dtStatusLogRow["Partitions Merged"] = memTblOccurrence.SSTableFilePath;
+
+							dtStatusLog.Rows.Add(dtStatusLogRow);
+						}
+
+						if (memTblFlush.LogDataRow != null
+								&& string.IsNullOrEmpty(memTblFlush.LogDataRow.Field<string>("Exception")))
+						{
+							if (flushFlagThresholdInMS > 0
+									&& memTblFlush.Duration >= flushFlagThresholdInMS)
+							{
+								memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
+							}
+							if (flushFlagThresholdAsIORate > 0
+									&& memTblFlush.IORate < flushFlagThresholdAsIORate)
+							{
+								memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
+							}
+						}
+					}
+				}
+				#endregion
+
+				#region CFStats DT
+
+				if (dtCFStack != null)
+				{
+					var dtCFStats = new DataTable(string.Format("CFStats-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+					initializeCFStatsDataTable(dtCFStats);
+					dtCFStack.Push(dtCFStats);
+
+					//Memtable Flush maximum latency
+					//Memtable Flush mean latency
+					//Memtable Flush minimum latency
+					//Memtable Flush occurrences
+					//Memtable Flush maximum IORate
+					//Memtable Flush mean IORate
+					//Memtable Flush minimum IORate
+					//Memtable Flush maximum Storage
+					//Memtable Flush mean Storage
+					//Memtable Flush minimum Storage
+					//Memtable Flush total Storage
+
+					var grpStats = from item in currentFlushes
+								   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
+												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
+								   select new
+								   {
+									   MaxLatency = g.Max(i => i.Latency),
+									   MinLatency = g.Min(i => i.Latency),
+									   MeanLatency = g.Average(i => i.Latency),
+									   MaxIORate = g.Max(i => i.IORate),
+									   MinIORate = g.Min(i => i.IORate),
+									   MeanIORate = g.Average(i => i.IORate),
+									   MaxSize = g.Max(i => i.FlushedStorage),
+									   MinSize = g.Min(i => i.FlushedStorage),
+									   MeanSize = g.Average(i => i.FlushedStorage),
+									   TotalSize = g.Sum(i => i.FlushedStorage),
+									   GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
+									   Count = g.Count(),
+									   DCName = g.Key.DataCenter,
+									   IPAddress = g.Key.IPAddress,
+									   KeySpace = g.Key.Keyspace,
+									   Table = g.Key.Table
+								   };
+
+					foreach (var stats in grpStats)
+					{
+						var dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush maximum latency";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MaxLatency;
+						dataRow["(Value)"] = stats.MaxLatency;
+						dataRow["Unit of Measure"] = "ms";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush mean latency";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MeanLatency;
+						dataRow["(Value)"] = stats.MeanLatency;
+						dataRow["Unit of Measure"] = "ms";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush minimum latency";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MinLatency;
+						dataRow["(Value)"] = stats.MinLatency;
+						dataRow["Unit of Measure"] = "ms";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush occurrences";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.Count;
+						dataRow["(Value)"] = stats.Count;
+						//dataRow["Unit of Measure"] = "";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush maximum IORate";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MaxIORate;
+						dataRow["(Value)"] = stats.MaxIORate;
+						dataRow["Unit of Measure"] = "MB/sec";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush mean IORate";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MeanIORate;
+						dataRow["(Value)"] = stats.MeanIORate;
+						dataRow["Unit of Measure"] = "MB/sec";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush minimum IORate";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MinIORate;
+						dataRow["(Value)"] = stats.MinIORate;
+						dataRow["Unit of Measure"] = "MB/sec";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush minimum Storage";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MinSize;
+						dataRow["(Value)"] = stats.MinSize;
+						dataRow["Unit of Measure"] = "MB";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush maximum Storage";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MaxSize;
+						dataRow["(Value)"] = stats.MaxSize;
+						dataRow["Unit of Measure"] = "MB";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush mean Storage";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.MeanSize;
+						dataRow["(Value)"] = stats.MeanSize;
+						dataRow["Unit of Measure"] = "MB";
+
+						dtCFStats.Rows.Add(dataRow);
+
+						dataRow = dtCFStats.NewRow();
+
+						dataRow["Source"] = "Cassandra Log";
+						dataRow["Data Center"] = stats.DCName;
+						dataRow["Node IPAddress"] = stats.IPAddress;
+						dataRow["KeySpace"] = stats.KeySpace;
+						dataRow["Table"] = stats.Table;
+						dataRow["Attribute"] = "Memtable Flush total Storage";
+						dataRow["Reconciliation Reference"] = stats.GrpInds;
+						dataRow["Value"] = stats.TotalSize;
+						dataRow["(Value)"] = stats.TotalSize;
+						dataRow["Unit of Measure"] = "MB";
+
+						dtCFStats.Rows.Add(dataRow);
+					}
+				}
+				#endregion
+
+				currentFlushes.Clear();
+			});
+		}
+
 	}
 }

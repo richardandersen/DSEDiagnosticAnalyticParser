@@ -80,12 +80,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     ipAddress = null;
                 }
-                
+
                 if(string.IsNullOrEmpty(ipAddress))
                 {
                     dcName = null;
                     return false;
-                }          
+                }
             }
 
             var dcRow = dtRingInfo.Rows.Count == 0 ? null : dtRingInfo.Rows.Find(ipAddress);
@@ -203,13 +203,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if(portPos > 0)
             {
-                quads[3] = quads[3].Substring(0, portPos); 
+                quads[3] = quads[3].Substring(0, portPos);
             }
             // for each quad
             foreach (var quad in quads)
             {
                 int q;
-                // if parse fails 
+                // if parse fails
                 // or length of parsed int != length of quad string (i.e.; '1' vs '001')
                 // or parsed int < 0
                 // or parsed int > 255
@@ -306,9 +306,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 		{
 			if (cqlTableName[0] == '[' || cqlTableName[0] == '(')
 			{
-				cqlTableName = cqlTableName.Substring(1, cqlTableName.Length - 2);				
+				cqlTableName = cqlTableName.Substring(1, cqlTableName.Length - 2);
 			}
-			
+
 			return SplitTableName(cqlTableName.Replace('/', '.'), null);
 		}
 
@@ -326,19 +326,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         const decimal BytesToMB = 1048576m;
         static decimal ConvertInToMB(string strSize, string type)
-        {			
+        {
             switch (type.ToLower())
             {
                 case "bytes":
                 case "byte":
                     return decimal.Parse(strSize, NumberStyles.AllowThousands) / BytesToMB;
                 case "kb":
+				case "kib":
                     return decimal.Parse(strSize, NumberStyles.Number) / 1024m;
                 case "mb":
+				case "mib":
                     return decimal.Parse(strSize, NumberStyles.Number);
                 case "gb":
+				case "gib":
                     return decimal.Parse(strSize, NumberStyles.Number) * 1024m;
                 case "tb":
+				case "tib":
                     return decimal.Parse(strSize, NumberStyles.Number) * 1048576m;
             }
 
@@ -491,7 +495,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var commentEndPos = line.LastIndexOf(strCommentStart);
 
                 return (line.Substring(0, commentStartPos)
-                            + (commentStartPos >= 0 
+                            + (commentStartPos >= 0
                                     ? line.Substring(commentEndPos + strCommentEnd.Length)
                                     : string.Empty)).TrimEnd();
             }
@@ -603,7 +607,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (jsonValue[0] == '[')
                 {
                     if (jsonValue[endPos] == ']')
-                    {                        
+                    {
                         var arrayValues = StringFunctions.Split(jsonValue.Substring(1, endPos - 1),
                                                                     ',',
                                                                     StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace | Common.StringFunctions.IgnoreWithinDelimiterFlag.Bracket,
@@ -625,7 +629,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         return ParseJson(jsonValue);
                     }
-                }                
+                }
             }
 
             return DetermineProperObjectFormat(jsonValue, true, false);

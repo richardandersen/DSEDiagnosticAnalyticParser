@@ -1264,6 +1264,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             Task updateRingWYamlInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<DataTable> runCFStatsMergedDDLUpdated = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task runAntiCompactionTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+			Task runMemTableFlushTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
 			Task<DataTable> runReadRepairTbl = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task<DataTable> runStatsLogMerged = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task runReleaseDependentLogTask;
@@ -1353,9 +1354,30 @@ namespace DSEDiagnosticAnalyticParserConsole
 													| TaskContinuationOptions.LongRunning
 													| TaskContinuationOptions.OnlyOnRanToCompletion);
 
+						runMemTableFlushTask = runLogMergedTask.ContinueWith(logTask =>
+												{
+													Program.ConsoleParsingLog.Increment("MemTable Flush Processing");
+													ProcessFileTasks.ParseMemTblFlushFromLog(logTask.Result,
+																								ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+																									? dtLogStatusStack
+																									: null,
+																								ParserSettings.ParsingExcelOptions.ParseCFStatsLogs.IsEnabled()
+																									? dtCFStatsStack
+																									: null,
+																								kstblNames,
+																								ParserSettings.IgnoreKeySpaces,
+																								ParserSettings.CompactionFlagThresholdInMS,
+																								ParserSettings.CompactionFlagThresholdAsIORate);
+
+													Program.ConsoleParsingLog.TaskEnd("MemTable Flush Processing");
+												},
+												TaskContinuationOptions.AttachedToParent
+													| TaskContinuationOptions.LongRunning
+													| TaskContinuationOptions.OnlyOnRanToCompletion);
+
 						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
 						{
-							runReadRepairProcess = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+							runReadRepairProcess = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runAntiCompactionTask, runMemTableFlushTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
 																.ContinueWith(logTask =>
 																{
 																	Program.ConsoleParsingLog.Increment("Read Repair Processing");
@@ -1428,7 +1450,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
                     {
 						Program.ConsoleParsingLog.Increment("Processing Log Summary");
-						runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(runLogMergedTask,
+						runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(Task.Factory
+																										.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask },
+																															tasks => ((Task<DataTable>)tasks[0]).Result),
                                                                                                     ParserSettings.ExcelWorkSheetLogCassandra,
                                                                                                     ParserSettings.LogSummaryPeriods,
                                                                                                     ParserSettings.LogSummaryPeriodRanges,
@@ -1481,7 +1505,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 runCFStatsMergedDDLUpdated = Task.Factory
-                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess, runAntiCompactionTask }, ignoreItem => { })
+                                            .ContinueWhenAll(new Task[] { tskdtCFHistogram, runningLogTask, runReadRepairProcess, runAntiCompactionTask, runMemTableFlushTask }, ignoreItem => { })
                                             .ContinueWith(action =>
                                                 {
                                                     Program.ConsoleParsingLog.Increment("CFStats Merge");
@@ -1508,6 +1532,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				runReleaseDependentLogTask = Task.Factory
 											  .ContinueWhenAll(new Task[] { runLogMergedTask,
 																			runSummaryLogTask,
+																			runMemTableFlushTask,
 																			runReadRepairProcess,
 																			runReadRepairTbl,
 																			runNodeStatsMergedTask,
@@ -1518,7 +1543,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 				runStatsLogMerged = Task.Factory
 											  .ContinueWhenAll<DataTable>(new Task[] { runLogMergedTask,
 																						runReadRepairProcess,
-																						runAntiCompactionTask},
+																						runAntiCompactionTask,
+																						runMemTableFlushTask},
 																  tasks =>
 																  {
 																	  var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null

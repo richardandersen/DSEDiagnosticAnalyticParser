@@ -221,7 +221,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 if (dataRow["Table"] != DBNull.Value)
                 {
-                    dataRow["Active"] = ActiveTables.Contains(((string)dataRow["KeySpace"]) + '.' + ((string)dataRow["Table"]));
+					if (dataRow["KeySpace"] == DBNull.Value)
+					{
+						dataRow["Active"] = ActiveTables.Contains(dataRow.Field<string>("Table"));
+					}
+					else
+					{
+						dataRow["Active"] = ActiveTables.Contains(((string)dataRow["KeySpace"]) + '.' + ((string)dataRow["Table"]));
+					}
                 }
             }
         }
