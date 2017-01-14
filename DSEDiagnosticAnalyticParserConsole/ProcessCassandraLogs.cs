@@ -2397,7 +2397,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				{
 					return this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>()
 								? 0
-								: this.Occurrences.Count(i => i.Finish != DateTime.MinValue); 
+								: this.Occurrences.Count(i => i.Finish != DateTime.MinValue);
 				}
 			}
 
@@ -6966,7 +6966,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
 
 						if (memTblFlush.LogDataRow != null
-								&& string.IsNullOrEmpty(memTblFlush.LogDataRow.Field<string>("Exception")))
+								&& string.IsNullOrEmpty(memTblFlush.LogDataRow.Field<string>("Exception"))
+								&& memTblFlush.Completed
+								&& memTblFlush.Duration > 0)
 						{
 							if (flushFlagThresholdInMS > 0
 									&& memTblFlush.Duration >= flushFlagThresholdInMS)
@@ -7004,6 +7006,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					//Memtable Flush total Storage
 
 					var grpStats = from item in currentFlushes
+								   where item.Completed && item.Duration > 0
 								   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
 												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
 								   select new
