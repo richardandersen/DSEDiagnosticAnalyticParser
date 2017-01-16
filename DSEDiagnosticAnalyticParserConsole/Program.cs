@@ -1421,7 +1421,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						var runContGCTask = runningLogTask.ContinueWith(action =>
 													{
 														Program.ConsoleParsingLog.Increment("Continuous GC");
-														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "GC");
+														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Continuous GC");
 														dtNodeStatsStack.Push(dtTPStats);
 														ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
 																											ParserSettings.ToleranceContinuousGCInMS,
@@ -1433,8 +1433,22 @@ namespace DSEDiagnosticAnalyticParserConsole
 												   TaskContinuationOptions.AttachedToParent
 													   | TaskContinuationOptions.LongRunning
 													   | TaskContinuationOptions.OnlyOnRanToCompletion);
+						var runConcurrentCompactionFlushTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+																.ContinueWith(logTask =>
+																{
+																	Program.ConsoleParsingLog.Increment("Concurrent Compaction/Memtable Flush Processing");
+																	var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Concurrent Compaction");
+																	dtNodeStatsStack.Push(dtTPStats);
+																	ProcessFileTasks.ConcurrentCompactionFlush(dtTPStats);
 
-						runNodeStatsMergedTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask }, ignoreItem => { })
+																	Program.ConsoleParsingLog.TaskEnd("Concurrent Compaction/Memtable Flush Processing");
+																},
+															   TaskContinuationOptions.AttachedToParent
+																   | TaskContinuationOptions.LongRunning
+																   | TaskContinuationOptions.OnlyOnRanToCompletion);
+
+
+						runNodeStatsMergedTask = Task.Factory.ContinueWhenAll(new Task[] { runningLogTask, runContGCTask, runConcurrentCompactionFlushTask }, ignoreItem => { })
 															.ContinueWith(action =>
 															{
 																Program.ConsoleParsingLog.Increment("Node Stats Log Merge");

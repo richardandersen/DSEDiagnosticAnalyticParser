@@ -28,12 +28,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["1:1"].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
                                                 //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                                 workSheet.Cells["E:L"].Style.Numberformat.Format = "#,###,###,##0";
-												workSheet.Cells["M:P"].Style.Numberformat.Format = "#,###,###,##0.00";
+												workSheet.Cells["M:Q"].Style.Numberformat.Format = "#,###,###,##0.00";
 
 												WorkSheetLoadColumnDefaults(workSheet, "D", ParserSettings.NodeStatsAttribs);
 
-                                                workSheet.Cells["A1:P1"].AutoFilter = true;
-                                                workSheet.Cells.AutoFitColumns();
+                                                workSheet.Cells["A1:Q1"].AutoFilter = true;
+                                                workSheet.Cells["A1:Q1"].AutoFitColumns();
                                                 workSheet.View.FreezePanes(2, 1);
                                             },
                                             ParserSettings.NodeStatsWorksheetFilterSort);

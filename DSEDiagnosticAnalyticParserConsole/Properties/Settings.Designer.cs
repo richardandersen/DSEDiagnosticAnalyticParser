@@ -699,7 +699,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "tency</string>\r\n  <string>GC TimeFrame percent</string>\r\n  <string>Timedout Hint" +
             "s Total</string>\r\n  <string>Timedout Hints maximum</string>\r\n  <string>Timedout " +
             "Hints mean</string>\r\n  <string>Timedout Hints minimum</string>\r\n  <string>Timedo" +
-            "ut Hints occurrences</string>\r\n</ArrayOfString>")]
+            "ut Hints occurrences</string>\r\n  <string>Concurrent Compaction maximum</string>\r" +
+            "\n  <string>Concurrent Compaction minimum</string>\r\n  <string>Concurrent Compacti" +
+            "on mean</string>\r\n  <string>Concurrent Compaction standard deviation</string>\r\n " +
+            " <string>Concurrent Compaction Total</string>\r\n  <string>Concurrent Compaction o" +
+            "ccurrences</string>\r\n  <string>Concurrent MemtableFlush maximum</string>\r\n  <str" +
+            "ing>Concurrent MemtableFlush minimum</string>\r\n  <string>Concurrent MemtableFlus" +
+            "h mean</string>\r\n  <string>Concurrent MemtableFlush standard deviation</string>\r" +
+            "\n  <string>Concurrent MemtableFlush Total</string>\r\n  <string>Concurrent Memtabl" +
+            "eFlush occurrences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));

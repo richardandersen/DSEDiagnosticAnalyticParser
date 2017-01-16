@@ -31,6 +31,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtTPStats.Columns.Add("GC Eden Space Change (mb)", typeof(decimal)).AllowDBNull = true;
 				dtTPStats.Columns.Add("GC Survivor Space Change (mb)", typeof(decimal)).AllowDBNull = true;
 				dtTPStats.Columns.Add("GC Old Space Change (mb)", typeof(decimal)).AllowDBNull = true; //p
+				dtTPStats.Columns.Add("IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //q
 				dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
             }
         }
