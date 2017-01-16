@@ -271,16 +271,13 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
 <ArrayOfString xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <string>dse_system</string>
   <string>system_auth</string>
-  <string>system_traces</string>
   <string>system_distributed</string>
   <string>system_schema</string>
   <string>system</string>
-  <string>dse_perf</string>
   <string>dse_security</string>
   <string>solr_admin</string>
   <string>dse_auth</string>
   <string>dse_leases</string>
-  <string>OpsCenter</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection IgnoreKeySpaces {
             get {
