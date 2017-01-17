@@ -412,6 +412,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 				return ParseEnumString<T>(appendValue.ToString() + " " + enumString);
 			}
 
+			if (enumString[0] == '!')
+			{
+				return ParseEnumString<T>(appendValue.ToString() + ", " + enumString);
+			}
+
 			return ParserSettings.ParseEnumString<T>(enumString);
 		}
 

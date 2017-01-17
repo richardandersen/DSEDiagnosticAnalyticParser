@@ -50,7 +50,23 @@ namespace DSEDiagnosticAnalyticParserConsole
             List<string> parsedValue;
             string currentKS = null;
             string currentTbl = null;
-            object numericValue;
+			bool warningFlag = false;
+			string warningTbl = null;
+			var warrningItems = Properties.Settings.Default.TableUseWarning
+									.ToEnumerable()
+									.Where(i => !string.IsNullOrEmpty(i))
+									.Select(i =>
+									{
+										var parts = i.Split('.');
+
+										if(parts.Length == 1)
+										{
+											return new Tuple<string, string>(parts[0].Trim(), null);
+										}
+										return new Tuple<string, string>(parts[0].Trim(), parts[1].Trim());
+									});
+
+			object numericValue;
 
             foreach (var element in fileLines)
             {
@@ -67,83 +83,119 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
                         {
-                            currentKS = null;
+							var warningItem = warrningItems.SingleOrDefault(i => i.Item1 == parsedLine[1]);
+
+							warningTbl = null;
+							warningFlag = false;
+							currentKS = null;
+							currentTbl = null;
+
+							if (warningItem != null)
+							{
+								currentKS = parsedLine[1];
+								warningTbl = warningItem.Item2;
+								warningFlag = true;
+							}
                         }
                         else
                         {
                             currentKS = parsedLine[1];
                         }
-                        currentTbl = null;
+
+						continue;
                     }
-                    else if (currentKS == null)
+
+					if (currentKS == null)
                     {
                         continue;
                     }
-                    else if (parsedLine[0] == "Table")
+
+					if (parsedLine[0] == "Table")
                     {
                         currentTbl = parsedLine[1];
+						continue;
                     }
-                    else if (parsedLine[0] == "Table (index)")
+
+					if (parsedLine[0] == "Table (index)")
                     {
                         currentTbl = parsedLine[1] + " (index)";
+						continue;
                     }
-                    else
+
+					if(warningTbl != null && warningTbl != currentTbl)
+					{
+						continue;
+					}
+
+					try
                     {
-                        try
-                        {                        
-                            dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-                            dataRow["Source"] = "CFStats";
-                            dataRow["Data Center"] = dcName;
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["KeySpace"] = currentKS;
-                            dataRow["Table"] = currentTbl;
-                            dataRow["Attribute"] = parsedLine[0];
+                        dataRow["Source"] = "CFStats";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["KeySpace"] = currentKS;
+                        dataRow["Table"] = currentTbl;
+                        dataRow["Attribute"] = parsedLine[0];
 
-                            parsedValue = Common.StringFunctions.Split(parsedLine[1],
-                                                                        ' ',
-                                                                        Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                        Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                        parsedValue = Common.StringFunctions.Split(parsedLine[1],
+                                                                    ' ',
+                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
+                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
 
-                            if (Common.StringFunctions.ParseIntoNumeric(parsedValue[0], out numericValue, true))
+                        if (Common.StringFunctions.ParseIntoNumeric(parsedValue[0], out numericValue, true))
+                        {
+
+							if(warningFlag)
+							{
+								if(((dynamic)numericValue) <= 0 
+										|| currentTbl == null
+										|| !(parsedLine[0] == "Local write count" || parsedLine[0] == "Local read count"))
+								{
+									continue;
+								}
+
+								dataRow["Table"] = string.Format("{0} ({1}--Warning)", currentTbl, currentKS);
+
+								//WarningInformationList.Add(new WarningInformation() { KeySpace = currentKS, Table = currentTbl, Count = (dynamic)numericValue });
+							}
+
+                            dataRow["Value"] = numericValue;
+                            dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? 0 : numericValue;
+
+                            if (parsedValue.Count() > 1)
                             {
-                                dataRow["Value"] = numericValue;
-                                dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? 0 : numericValue;
+                                dataRow["Unit of Measure"] = parsedValue[1];
+                            }
 
-                                if (parsedValue.Count() > 1)
+                            if (addToMBColumn != null)
+                            {
+                                var decNbr = decimal.Parse(numericValue.ToString());
+
+                                foreach (var item in addToMBColumn)
                                 {
-                                    dataRow["Unit of Measure"] = parsedValue[1];
-                                }
-
-                                if (addToMBColumn != null)
-                                {
-                                    var decNbr = decimal.Parse(numericValue.ToString());
-
-                                    foreach (var item in addToMBColumn)
+                                    if (parsedLine[0].ToLower().Contains(item))
                                     {
-                                        if (parsedLine[0].ToLower().Contains(item))
-                                        {
-                                            dataRow["Size in MB"] = decNbr / BytesToMB;
-                                            break;
-                                        }
+                                        dataRow["Size in MB"] = decNbr / BytesToMB;
+                                        break;
                                     }
                                 }
                             }
-                            else
-                            {
-                                dataRow["Unit of Measure"] = parsedLine[1];
-                            }
-
-                            dtCFStats.Rows.Add(dataRow);
                         }
-                        catch (System.Exception ex)
+                        else
                         {
-                            Logger.Instance.Error(string.Format("Parsing for CFStats for Node {0} failed during parsing of line \"{1}\". Line skipped.",
-                                                            ipAddress,
-                                                            line),
-                                                    ex);
-                            Program.ConsoleWarnings.Increment("CCFStats Parsing Exception; Line Skipped");
+                            dataRow["Unit of Measure"] = parsedLine[1];
                         }
+
+                        dtCFStats.Rows.Add(dataRow);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Logger.Instance.Error(string.Format("Parsing for CFStats for Node {0} failed during parsing of line \"{1}\". Line skipped.",
+                                                        ipAddress,
+                                                        line),
+                                                ex);
+                        Program.ConsoleWarnings.Increment("CCFStats Parsing Exception; Line Skipped");
                     }
                 }
             }
