@@ -81,14 +81,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (parsedLine[0] == "Keyspace")
                     {
-                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
+						warningTbl = null;
+						warningFlag = false;
+						currentKS = null;
+						currentTbl = null;
+
+						if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
                         {
 							var warningItem = warrningItems.SingleOrDefault(i => i.Item1 == parsedLine[1]);
-
-							warningTbl = null;
-							warningFlag = false;
-							currentKS = null;
-							currentTbl = null;
 
 							if (warningItem != null)
 							{
@@ -122,7 +122,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						continue;
                     }
 
-					if(warningTbl != null && warningTbl != currentTbl)
+					if(warningFlag && warningTbl != null && warningTbl != currentTbl)
 					{
 						continue;
 					}
@@ -148,14 +148,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							if(warningFlag)
 							{
-								if(((dynamic)numericValue) <= 0 
+								if(((dynamic)numericValue) <= 0
 										|| currentTbl == null
-										|| !(parsedLine[0] == "Local write count" || parsedLine[0] == "Local read count"))
+										|| !(parsedLine[0].StartsWith("Local write") || parsedLine[0].StartsWith("Local read")))
 								{
 									continue;
 								}
 
-								dataRow["Table"] = string.Format("{0} ({1}--Warning)", currentTbl, currentKS);
+								dataRow["Table"] = string.Format("{0} ({1} -- Warning)", currentTbl, currentKS);
 
 								//WarningInformationList.Add(new WarningInformation() { KeySpace = currentKS, Table = currentTbl, Count = (dynamic)numericValue });
 							}
@@ -182,7 +182,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                             }
                         }
-                        else
+						else if (warningFlag)
+						{
+							continue;
+						}
+						else
                         {
                             dataRow["Unit of Measure"] = parsedLine[1];
                         }
