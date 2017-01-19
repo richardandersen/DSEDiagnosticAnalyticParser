@@ -21,12 +21,21 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             if (dtKeySpace.Columns.Count == 0)
             {
-                dtKeySpace.Columns.Add("Name", typeof(string));
-
+                dtKeySpace.Columns.Add("Name", typeof(string));//a
                 dtKeySpace.Columns.Add("Replication Strategy", typeof(string));
                 dtKeySpace.Columns.Add("Data Center", typeof(string));
-                dtKeySpace.Columns.Add("Replication Factor", typeof(int));
-                dtKeySpace.Columns.Add("DDL", typeof(string));
+                dtKeySpace.Columns.Add("Replication Factor", typeof(int));//d
+				dtKeySpace.Columns.Add("Tables", typeof(int)).AllowDBNull = true;//e
+				dtKeySpace.Columns.Add("Indexes", typeof(int)).AllowDBNull = true;//f
+				dtKeySpace.Columns.Add("solr", typeof(int)).AllowDBNull = true;
+				dtKeySpace.Columns.Add("Total", typeof(int)).AllowDBNull = true;//h
+				dtKeySpace.Columns.Add("STCS", typeof(int)).AllowDBNull = true;//i
+				dtKeySpace.Columns.Add("LCS", typeof(int)).AllowDBNull = true;//j
+				dtKeySpace.Columns.Add("DTCS", typeof(int)).AllowDBNull = true;//l
+				dtKeySpace.Columns.Add("TCS", typeof(int)).AllowDBNull = true;//l
+				dtKeySpace.Columns.Add("TWCS", typeof(int)).AllowDBNull = true;//m
+				dtKeySpace.Columns.Add("Other Strategies", typeof(int)).AllowDBNull = true;//n
+				dtKeySpace.Columns.Add("DDL", typeof(string));//o
 
                 dtKeySpace.PrimaryKey = new System.Data.DataColumn[] { dtKeySpace.Columns["Name"], dtKeySpace.Columns["Data Center"] };
             }
@@ -180,7 +189,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Replication Factor"] = int.Parse(RemoveQuotes(parsedComponent[1]));
                                     dataRow["DDL"] = cqlStr;
 
-                                    dtKeySpace.Rows.Add(dataRow);
+									dtKeySpace.Rows.Add(dataRow);
                                 }
                                 #endregion
                             }
@@ -547,6 +556,47 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
+
+				var tableStats = from dr in dtKeySpace.AsEnumerable().DuplicatesRemoved(i => i.Field<string>("Name"))
+								let ksName = dr.Field<string>("Name")
+								where !string.IsNullOrEmpty(ksName)
+								select new
+								{
+									KSDataRow = dr,
+									TblItems = (from tblDr in dtTable.AsEnumerable()
+												where tblDr.Field<string>("Keyspace Name") == ksName
+												let index = tblDr.Field<bool?>("Index")
+												select new
+												{
+													Compaction = tblDr.Field<string>("Compaction Strategy"),
+													Index = index.HasValue ? index.Value : false
+												})
+								};
+
+				foreach (var tblItem in tableStats)
+				{
+					tblItem.KSDataRow.BeginEdit();
+
+					tblItem.KSDataRow["Tables"] = tblItem.TblItems.Count(i => !i.Index);
+					tblItem.KSDataRow["Indexes"] = tblItem.TblItems.Count(i => i.Index && (string.IsNullOrEmpty(i.Compaction) || i.Compaction != "Cql3SolrSecondaryIndex"));
+					tblItem.KSDataRow["Total"] = tblItem.TblItems.Count();
+					tblItem.KSDataRow["STCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "SizeTieredCompactionStrategy");
+					tblItem.KSDataRow["LCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "LeveledCompactionStrategy");
+					tblItem.KSDataRow["DTCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "DateTieredCompactionStrategy");
+					tblItem.KSDataRow["TCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "TieredCompactionStrategy");
+					tblItem.KSDataRow["TWCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "TimeWindowCompactionStrategy");
+					tblItem.KSDataRow["solr"] = tblItem.TblItems.Count(i => i.Index && i.Compaction == "Cql3SolrSecondaryIndex");
+
+					tblItem.KSDataRow["Other Strategies"] = (int)tblItem.KSDataRow["Tables"]
+																- ((int)tblItem.KSDataRow["STCS"]
+																	+ (int)tblItem.KSDataRow["LCS"]
+																	+ (int)tblItem.KSDataRow["DTCS"]
+																	+ (int)tblItem.KSDataRow["TCS"]
+																	+ (int)tblItem.KSDataRow["TWCS"]);
+					
+					tblItem.KSDataRow.EndEdit();
+				}
+
             }
             catch (System.Exception ex)
             {
