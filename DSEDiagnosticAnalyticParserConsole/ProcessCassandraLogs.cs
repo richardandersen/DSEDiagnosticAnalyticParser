@@ -6589,11 +6589,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 							var grpStats = from item in localAntiCompList
 											 group new { Latency = item.Duration, SSTables = item.SSTables, GrpInd = item.GroupIndicator }
 														by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
+											 let latencyEnum = g.Select(i => i.Latency)
+											 let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
 											 select new
 											 {
-												 Max = g.Max(i => i.Latency),
-												 Min = g.Where(i => i.Latency > 0).Min(i => i.Latency),
-												 Mean = g.Where(i => i.Latency > 0).Average(i => i.Latency),
+												 Max = latencyEnum.Max(),
+												 Min = latencyEnum1.Min(),
+												 Mean = latencyEnum1.Average(),
 												 SSTables = g.Sum(i => i.SSTables),
 												 GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
 												 Count = g.Count(),
@@ -7018,18 +7020,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 								   where item.Completed && item.Duration > 0
 								   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
 												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
+								   let latencyEnum = g.Select(i => i.Latency)
+								   let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
+								   let iorateEnum = g.Select(i => i.IORate)
+								   let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
+								   let sizeEnum = g.Select(i => i.FlushedStorage)
+								   let sizeEnum1 = sizeEnum.Where(i => i > 0).DefaultIfEmpty()
 								   select new
 								   {
-									   MaxLatency = g.Max(i => i.Latency),
-									   MinLatency = g.Min(i => i.Latency),
-									   MeanLatency = g.Average(i => i.Latency),
-									   MaxIORate = g.Max(i => i.IORate),
-									   MinIORate = g.Where(i => i.IORate > 0).Min(i => i.IORate),
-									   MeanIORate = g.Where(i => i.IORate > 0).Average(i => i.IORate),
-									   MaxSize = g.Max(i => i.FlushedStorage),
-									   MinSize = g.Where(i => i.FlushedStorage > 0).Min(i => i.FlushedStorage),
-									   MeanSize = g.Where(i => i.FlushedStorage > 0).Average(i => i.FlushedStorage),
-									   TotalSize = g.Sum(i => i.FlushedStorage),
+									   MaxLatency = latencyEnum.Max(),
+									   MinLatency = latencyEnum1.Min(),
+									   MeanLatency = latencyEnum1.Average(),
+									   MaxIORate = iorateEnum.Max(),
+									   MinIORate = iorateEnum1.Min(),
+									   MeanIORate = iorateEnum1.Average(),
+									   MaxSize = sizeEnum.Max(),
+									   MinSize = sizeEnum1.Min(),
+									   MeanSize = sizeEnum1.Average(),
+									   TotalSize = sizeEnum.Sum(),
 									   GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
 									   Count = g.Count(),
 									   DCName = g.Key.DataCenter,
@@ -7351,13 +7359,28 @@ namespace DSEDiagnosticAnalyticParserConsole
 					{
 						var dataRow = dtNodeStats.NewRow();
 
+						var maxDuration = item.ConcurrentList.Max(i => i.Duration);
+						var maxIORate = item.ConcurrentList.Max(i => i.IORate);
+						var minDuration = item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().Min();
+						var minIORate = item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().Min();
+						var avgDuration = (int)item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().Average();
+						var avgIORate = item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().Average();
+						var stdDevDuration = (int)item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+						var stdDevIORate = (decimal)item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+
 						dataRow["Source"] = "Cassandra Log";
 						dataRow["Data Center"] = item.DCName;
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = item.ConcurrentList.Max(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Max(i => i.IORate);
+						if (maxDuration > 0)
+						{
+							dataRow["Latency (ms)"] = maxDuration;
+						}
+						if (maxIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = maxIORate;
+						}
 						dataRow["Occurrences"] = item.ConcurrentList.Count();
 
 						dtNodeStats.Rows.Add(dataRow);
@@ -7369,9 +7392,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = item.ConcurrentList.Where(i => i.Duration > 0).Min(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Where(i => i.IORate > 0).Min(i => i.IORate);
-						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
+						if (minDuration > 0)
+						{
+							dataRow["Latency (ms)"] = minDuration;
+						}
+						if (minIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = minIORate;
+						}
+						dataRow["Occurrences"] = item.ConcurrentList.Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7382,9 +7411,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Where(i => i.Duration > 0).Average(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Where(i => i.IORate > 0).Average(i => i.IORate);
-						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
+						if (avgDuration > 0)
+						{
+							dataRow["Latency (ms)"] = avgDuration;
+						}
+						if (avgIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = avgIORate;
+						}
+						dataRow["Occurrences"] = item.ConcurrentList.Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7395,9 +7430,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Where(i => i.Duration > 0).Select(i => i.Duration).StandardDeviationP();
-						dataRow["IORate (mb/sec)"] = (decimal) item.ConcurrentList.Where(i => i.IORate > 0).Select(i => i.IORate).StandardDeviationP();
-						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
+						if (stdDevDuration > 0)
+						{
+							dataRow["Latency (ms)"] = stdDevDuration;
+						}
+						if (stdDevIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = stdDevIORate;
+						}
+						dataRow["Occurrences"] = item.ConcurrentList.Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7417,6 +7458,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					var concurrentTypes = from typeItem in item.ConcurrentList
 										  group typeItem by typeItem.Type into g
+										  let durationEnum = g.Select(i => i.Duration)
+										  let iorateEnum = g.Select(i => i.IORate)
+										  let durationEnum1 = durationEnum.Where(i => i > 0).DefaultIfEmpty()
+										  let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
 										  select new
 										  {
 											  DCName = item.DCName,
@@ -7425,16 +7470,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 											  RefIds = g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id),
 											  RefId = "#" + nbrAdded + "|" + string.Join(",", g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)),
 											  TimeStamps = g.Select(i => i.Start),
-											  MaxDuration = g.Max(i => i.Duration),
-											  MinDuration = g.Where(i => i.Duration > 0).Min(i => i.Duration),
-											  AvgDuration = (int) g.Where(i => i.Duration > 0).Average(i => i.Duration),
-											  StdDuration = (int) g.Where(i => i.Duration > 0).Select(i => i.Duration).StandardDeviationP(),
-											  TotalDuration = g.Sum(i => i.Duration),
-											  MaxIORate = g.Max(i => i.IORate),
-											  MinIORate = g.Where(i => i.IORate > 0).Min(i => i.IORate),
-											  AvgIORate = g.Where(i => i.IORate > 0).Average(i => i.IORate),
-											  StdIORate = (decimal) g.Where(i => i.IORate > 0).Select(i => i.IORate).StandardDeviationP(),
-											  TotalIORate = g.Sum(i => i.IORate),
+											  MaxDuration = durationEnum.Max(),
+											  MinDuration = durationEnum1.Min(),
+											  AvgDuration = (int)durationEnum1.Average(),
+											  StdDuration = (int)durationEnum1.StandardDeviationP(),
+											  TotalDuration = durationEnum.Sum(),
+											  MaxIORate = iorateEnum.Max(),
+											  MinIORate = iorateEnum1.Min(),
+											  AvgIORate = iorateEnum1.Average(),
+											  StdIORate = (decimal)iorateEnum1.StandardDeviationP(),
+											  TotalIORate = iorateEnum.Sum(),
 											  Occurrences = g.Count()
 										  };
 
