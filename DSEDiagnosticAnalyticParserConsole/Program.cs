@@ -644,7 +644,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled()
-                            && !preFilesProcessed[2]
+                            //&& !preFilesProcessed[2]
                             && nodeDirs[fileIndex].MakeFile(ParserSettings.CQLDDLDirFile, out filePath))
                     {
                         if (filePath.Exist())
@@ -669,7 +669,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             parsedDDLList.TryAdd(filePath.PathResolved);
                             Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
 
-                            preFilesProcessed[2] = true;
+                            //preFilesProcessed[2] = true;
                         }
                         else
                         {
@@ -1544,7 +1544,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     Program.ConsoleParsingLog.TaskEnd("CFStats Merge");
 
                                                     Program.ConsoleParsingLog.Increment("DDL Active Table Update");
-                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtDDLTable);
+                                                    ProcessFileTasks.UpdateCQLDDLTableActiveStatus(dtDDLTable, dtKeySpace);
                                                     Program.ConsoleParsingLog.TaskEnd("DDL Active Table Update");
 
                                                     return dtCFTable;

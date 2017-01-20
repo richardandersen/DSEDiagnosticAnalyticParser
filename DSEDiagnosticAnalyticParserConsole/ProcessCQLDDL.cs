@@ -29,13 +29,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtKeySpace.Columns.Add("Indexes", typeof(int)).AllowDBNull = true;//f
 				dtKeySpace.Columns.Add("solr", typeof(int)).AllowDBNull = true;
 				dtKeySpace.Columns.Add("Total", typeof(int)).AllowDBNull = true;//h
-				dtKeySpace.Columns.Add("STCS", typeof(int)).AllowDBNull = true;//i
-				dtKeySpace.Columns.Add("LCS", typeof(int)).AllowDBNull = true;//j
+				dtKeySpace.Columns.Add("Active", typeof(int)).AllowDBNull = true;//i
+				dtKeySpace.Columns.Add("STCS", typeof(int)).AllowDBNull = true;//j
+				dtKeySpace.Columns.Add("LCS", typeof(int)).AllowDBNull = true;//k
 				dtKeySpace.Columns.Add("DTCS", typeof(int)).AllowDBNull = true;//l
-				dtKeySpace.Columns.Add("TCS", typeof(int)).AllowDBNull = true;//l
-				dtKeySpace.Columns.Add("TWCS", typeof(int)).AllowDBNull = true;//m
-				dtKeySpace.Columns.Add("Other Strategies", typeof(int)).AllowDBNull = true;//n
-				dtKeySpace.Columns.Add("DDL", typeof(string));//o
+				dtKeySpace.Columns.Add("TCS", typeof(int)).AllowDBNull = true;//m
+				dtKeySpace.Columns.Add("TWCS", typeof(int)).AllowDBNull = true;//n
+				dtKeySpace.Columns.Add("Other Strategies", typeof(int)).AllowDBNull = true;//o
+				dtKeySpace.Columns.Add("DDL", typeof(string));//p
 
                 dtKeySpace.PrimaryKey = new System.Data.DataColumn[] { dtKeySpace.Columns["Name"], dtKeySpace.Columns["Data Center"] };
             }
@@ -59,9 +60,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTable.Columns.Add("Blobs", typeof(int));//o
                 dtTable.Columns.Add("Static", typeof(int));//p
                 dtTable.Columns.Add("Frozen", typeof(int));//q
-                dtTable.Columns.Add("Total", typeof(int));//r
-                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//s
-                dtTable.Columns.Add("DDL", typeof(string));//t
+				dtTable.Columns.Add("Type", typeof(int));//r
+				dtTable.Columns.Add("Total", typeof(int));//s
+                dtTable.Columns.Add("Associated Table", typeof(string)).AllowDBNull = true;//t
+                dtTable.Columns.Add("DDL", typeof(string));//u
 
                 dtTable.PrimaryKey = new System.Data.DataColumn[] { dtTable.Columns["Keyspace Name"], dtTable.Columns["Name"] };
             }
@@ -82,6 +84,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var strCQL = new StringBuilder();
             List<string> parsedValues;
             List<string> parsedComponent;
+			Dictionary<string, IEnumerable<string>> types = new Dictionary<string, IEnumerable<string>>();
             string currentKeySpace = null;
             DataRow dataRow;
 
@@ -160,7 +163,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 var ksName = RemoveQuotes(parsedComponent[parsedComponent.Count() - 4]);
 
-                                if (ignoreKeySpaces.Contains(ksName))
+                                if (ignoreKeySpaces.Contains(ksName) && !Properties.Settings.Default.AlwayIncludeDLLKeyspacess.Contains(ksName))
                                 {
                                     continue;
                                 }
@@ -175,7 +178,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 for (int nIndex = 2; nIndex < parsedValues.Count - 1; ++nIndex)
                                 {
-                                    dataRow = dtKeySpace.NewRow();
+									dataRow = dtKeySpace.NewRow();
                                     dataRow["Name"] = ksName;
                                     dataRow["Replication Strategy"] = ksStratery;
 
@@ -189,23 +192,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Replication Factor"] = int.Parse(RemoveQuotes(parsedComponent[1]));
                                     dataRow["DDL"] = cqlStr;
 
+									if (dtKeySpace.AsEnumerable().Any(i => i.Field<string>("Name") == ksName
+																				&& i.Field<string>("Replication Strategy") == ksStratery
+																				&& i.Field<string>("Data Center") == (string) dataRow["Data Center"]
+																				&& i.Field<int>("Replication Factor") == (int)dataRow["Replication Factor"]))
+									{
+										continue;
+									}
+
 									dtKeySpace.Rows.Add(dataRow);
                                 }
                                 #endregion
                             }
-                            else if (parsedValues[0].Substring(6, 6).TrimStart().ToLower() == "table")
+                            else if (parsedValues[0].Substring(6, 6).TrimStart().ToLower() == "table" || parsedValues[0].Substring(6, 5).TrimStart().ToLower() == "type")
                             {
-                                #region table
-                                //CREATE TABLE account_payables(date int, org_key text, product_type text, product_id bigint, product_update_id bigint, vendor_type text, parent_product_id bigint, parent_product_type text, parent_product_update_id bigint, user_id bigint, vendor_detail text, PRIMARY KEY((date, org_key), product_type, product_id, product_update_id, vendor_type)) WITH bloom_filter_fp_chance = 0.100000 AND caching = 'KEYS_ONLY' AND comment = '' AND dclocal_read_repair_chance = 0.100000 AND gc_grace_seconds = 864000 AND index_interval = 128 AND read_repair_chance = 0.000000 AND replicate_on_write = 'true' AND populate_io_cache_on_flush = 'false' AND default_time_to_live = 0 AND speculative_retry = '99.0PERCENTILE' AND memtable_flush_period_in_ms = 0 AND compaction =
-                                //		'class': 'LeveledCompactionStrategy'
-                                //AND compression =
-                                //'sstable_compression': 'LZ4Compressor'
-                                //;
-                                //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-                                //AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
-                                //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
-                                //  s text STATIC,
-                                var startParan = cqlStr.IndexOf('(');
+								#region table/type
+								//CREATE TABLE account_payables(date int, org_key text, product_type text, product_id bigint, product_update_id bigint, vendor_type text, parent_product_id bigint, parent_product_type text, parent_product_update_id bigint, user_id bigint, vendor_detail text, PRIMARY KEY((date, org_key), product_type, product_id, product_update_id, vendor_type)) WITH bloom_filter_fp_chance = 0.100000 AND caching = 'KEYS_ONLY' AND comment = '' AND dclocal_read_repair_chance = 0.100000 AND gc_grace_seconds = 864000 AND index_interval = 128 AND read_repair_chance = 0.000000 AND replicate_on_write = 'true' AND populate_io_cache_on_flush = 'false' AND default_time_to_live = 0 AND speculative_retry = '99.0PERCENTILE' AND memtable_flush_period_in_ms = 0 AND compaction =
+								//		'class': 'LeveledCompactionStrategy'
+								//AND compression =
+								//'sstable_compression': 'LZ4Compressor'
+								//;
+								//AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+								//AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'}
+								//compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
+								//  s text STATIC,
+								//
+								//CREATE TYPE nfl_assets.udt_week (id text, created_date timestamp, last_modified_date timestamp, season_value int, week_value int, week_order int, week_type text, season_type text);
+
+								var createType = parsedValues[0].Substring(6, 5).TrimStart().ToLower() == "type";
+								var startParan = cqlStr.IndexOf('(');
                                 var endParan = cqlStr.LastIndexOf(')');
                                 var strFrtTbl = cqlStr.Substring(0, startParan);
                                 var strColsTbl = cqlStr.Substring(startParan + 1, endParan - startParan - 1);
@@ -225,9 +240,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     continue;
                                 }
 
-                                dataRow = dtTable.NewRow();
+								var tableName = createType ? kstblName.Item2 + " (Type)" : kstblName.Item2;
+								var keyspacetableName = kstblName.Item1 + "." + kstblName.Item2;
+
+								if (dtTable.AsEnumerable().Any(i => i.Field<string>("Keyspace Name") == kstblName.Item1
+																				&& i.Field<string>("Name") == tableName))
+								{
+									continue;
+								}
+
+								dataRow = dtTable.NewRow();
                                 dataRow["Keyspace Name"] = kstblName.Item1;
-                                dataRow["Name"] = kstblName.Item2;
+                                dataRow["Name"] = tableName;
 
                                 if (cqlStr.Length > 32760)
                                 {
@@ -299,7 +323,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     //look for keyword Primary Key
                                     var pkVar = tblColumns.Find(c => c.EndsWith("primary key", StringComparison.OrdinalIgnoreCase));
 
-                                    dataRow["Partition Key"] = pkVar.Substring(0, pkVar.Length - 11).TrimEnd();
+                                    dataRow["Partition Key"] = pkVar?.Substring(0, pkVar.Length - 11).TrimEnd();
                                     dataRow["Cluster Key"] = null;
                                 }
 
@@ -316,6 +340,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 int nbrBlobs = 0;
                                 int nbrStatic = 0;
                                 int nbrFrozen = 0;
+								int nbrType = 0;
 
                                 for (int nIndex = 0; nIndex < endParan; ++nIndex)
                                 {
@@ -335,24 +360,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         ++nbrFrozen;
                                     }
 
-                                    if (tblColumns[nIndex].EndsWith(" counter", StringComparison.OrdinalIgnoreCase))
+									if (tblColumns[nIndex].IndexOf(" list", StringComparison.OrdinalIgnoreCase) > 3
+												|| tblColumns[nIndex].IndexOf(" map", StringComparison.OrdinalIgnoreCase) > 3
+												|| tblColumns[nIndex].IndexOf(" set", StringComparison.OrdinalIgnoreCase) > 3
+												|| tblColumns[nIndex].IndexOf("<list", StringComparison.OrdinalIgnoreCase) > 3
+												|| tblColumns[nIndex].IndexOf("<map", StringComparison.OrdinalIgnoreCase) > 3
+												|| tblColumns[nIndex].IndexOf("<set", StringComparison.OrdinalIgnoreCase) > 3)
+									{
+										++nbrCollections;
+									}
+
+									var typePos = tblColumns[nIndex].LastIndexOfAny(new char[] { ' ', '<' });
+									var typeName = tblColumns[nIndex].Substring(typePos + 1).Trim(new char[] { ' ', '>', '<' }).ToLower();
+
+									if (typeName == "counter")
                                     {
                                         ++nbrCounters;
                                     }
                                     else
-                                    if (tblColumns[nIndex].EndsWith(" blob", StringComparison.OrdinalIgnoreCase))
+                                    if (typeName == "blob")
                                     {
                                         ++nbrBlobs;
                                     }
-                                    else if (tblColumns[nIndex].IndexOf(" list", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf(" map", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf(" set", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf("<list", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf("<map", StringComparison.OrdinalIgnoreCase) > 3
-                                                || tblColumns[nIndex].IndexOf("<set", StringComparison.OrdinalIgnoreCase) > 3)
-                                    {
-                                        ++nbrCollections;
-                                    }
+									else
+									{
+										if(types.ContainsKey(kstblName.Item1 + "." + typeName))
+										{
+											++nbrType;
+										}
+									}
                                 }
 
                                 dataRow["Collections"] = nbrCollections;
@@ -360,107 +396,119 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Blobs"] = nbrBlobs;
                                 dataRow["Static"] = nbrStatic;
                                 dataRow["Frozen"] = nbrFrozen;
-                                dataRow["Total"] = endParan;
+								dataRow["Type"] = nbrType;
+								dataRow["Total"] = endParan;
 
-                                //parse options...
-                                parsedComponent = Common.StringFunctions.Split(strOtpsTbl.Substring(5).TrimStart(),
-                                                                                " and ",
-                                                                                StringComparison.OrdinalIgnoreCase,
-                                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
-                                                                                Common.StringFunctions.SplitBehaviorOptions.Default
-                                                                                    | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
-                                string optKeyword;
+								if(createType)
+								{
+									if (!types.ContainsKey(keyspacetableName))
+									{
+										types.Add(keyspacetableName, tblColumns);
+									}
+								}
 
-                                for (int nIndex = 0; nIndex < parsedComponent.Count; ++nIndex)
-                                {
-                                    optKeyword = parsedComponent[nIndex].Trim();
+								//parse options...
+								if (strOtpsTbl.Length > 6)
+								{
+									parsedComponent = Common.StringFunctions.Split(strOtpsTbl.Substring(5).TrimStart(),
+																					" and ",
+																					StringComparison.OrdinalIgnoreCase,
+																					Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
+																					Common.StringFunctions.SplitBehaviorOptions.Default
+																						| Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+									string optKeyword;
 
-                                    if (optKeyword[optKeyword.Length - 1] == ';')
-                                    {
-                                        optKeyword = optKeyword.Substring(0, optKeyword.Length - 1);
-                                    }
+									for (int nIndex = 0; nIndex < parsedComponent.Count; ++nIndex)
+									{
+										optKeyword = parsedComponent[nIndex].Trim();
 
-                                    if (optKeyword.StartsWith("compaction", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var kwOptions = ParseKeyValuePair(optKeyword).Item2;
-                                        var classPos = kwOptions.IndexOf("class");
-                                        var classSplit = kwOptions.Substring(classPos).Split(new char[] { ':', ',', '}' });
-                                        var strategy = classSplit[1].Trim();
-                                        dataRow["Compaction Strategy"] = RemoveNamespace(strategy);
-                                    }
-                                    else if (optKeyword.StartsWith("compression", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        //AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-                                        //compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
-                                        // AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
-                                        var kwOptions = ParseKeyValuePair(optKeyword).Item2;
-                                        var jsonItems = ParseJson(kwOptions);
+										if (optKeyword[optKeyword.Length - 1] == ';')
+										{
+											optKeyword = optKeyword.Substring(0, optKeyword.Length - 1);
+										}
 
-                                        if(jsonItems.ContainsKey("cipher_algorithm"))
-                                        {
-                                            dataRow["Compression"] = RemoveNamespace((string) jsonItems["cipher_algorithm"]);
-                                        }
-                                        else if(jsonItems.ContainsKey("sstable_compression"))
-                                        {
-                                            dataRow["Compression"] = RemoveNamespace((string)jsonItems["sstable_compression"]);
-                                        }
-                                        else if (jsonItems.ContainsKey("class"))
-                                        {
-                                            dataRow["Compression"] = RemoveNamespace((string)jsonItems["class"]);
-                                        }
-                                    }
-                                    else if (optKeyword.StartsWith("dclocal_read_repair_chance", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var assignmentSignPos = optKeyword.IndexOf('=');
+										if (optKeyword.StartsWith("compaction", StringComparison.OrdinalIgnoreCase))
+										{
+											var kwOptions = ParseKeyValuePair(optKeyword).Item2;
+											var classPos = kwOptions.IndexOf("class");
+											var classSplit = kwOptions.Substring(classPos).Split(new char[] { ':', ',', '}' });
+											var strategy = classSplit[1].Trim();
+											dataRow["Compaction Strategy"] = RemoveNamespace(strategy);
+										}
+										else if (optKeyword.StartsWith("compression", StringComparison.OrdinalIgnoreCase))
+										{
+											//AND compression = {'sstable_compression': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+											//compression = { 'sstable_compression' : 'Encryptor', 'cipher_algorithm' : 'AES/ECB/PKCS5Padding', 'secret_key_strength' : 128, 'chunk_length_kb' : 1}
+											// AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+											var kwOptions = ParseKeyValuePair(optKeyword).Item2;
+											var jsonItems = ParseJson(kwOptions);
 
-                                        if (assignmentSignPos > 0)
-                                        {
-                                            var numValue = optKeyword.Substring(assignmentSignPos + 1);
-                                            decimal numObj;
+											if (jsonItems.ContainsKey("cipher_algorithm"))
+											{
+												dataRow["Compression"] = RemoveNamespace((string)jsonItems["cipher_algorithm"]);
+											}
+											else if (jsonItems.ContainsKey("sstable_compression"))
+											{
+												dataRow["Compression"] = RemoveNamespace((string)jsonItems["sstable_compression"]);
+											}
+											else if (jsonItems.ContainsKey("class"))
+											{
+												dataRow["Compression"] = RemoveNamespace((string)jsonItems["class"]);
+											}
+										}
+										else if (optKeyword.StartsWith("dclocal_read_repair_chance", StringComparison.OrdinalIgnoreCase))
+										{
+											var assignmentSignPos = optKeyword.IndexOf('=');
 
-                                            if (decimal.TryParse(numValue, out numObj))
-                                            {
-                                                dataRow["DC Chance"] = numObj;
-                                            }
-                                        }
-                                    }
-                                    else if (optKeyword.StartsWith("gc_grace_seconds", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var assignmentSignPos = optKeyword.IndexOf('=');
+											if (assignmentSignPos > 0)
+											{
+												var numValue = optKeyword.Substring(assignmentSignPos + 1);
+												decimal numObj;
 
-                                        if (assignmentSignPos > 0)
-                                        {
-                                            var numValue = optKeyword.Substring(assignmentSignPos + 1);
+												if (decimal.TryParse(numValue, out numObj))
+												{
+													dataRow["DC Chance"] = numObj;
+												}
+											}
+										}
+										else if (optKeyword.StartsWith("gc_grace_seconds", StringComparison.OrdinalIgnoreCase))
+										{
+											var assignmentSignPos = optKeyword.IndexOf('=');
 
-                                            dataRow["GC Grace Period"] = new TimeSpan(0, 0, 0, int.Parse(numValue));
-                                        }
-                                    }
-                                    else if (optKeyword.StartsWith("read_repair_chance", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var assignmentSignPos = optKeyword.IndexOf('=');
+											if (assignmentSignPos > 0)
+											{
+												var numValue = optKeyword.Substring(assignmentSignPos + 1);
 
-                                        if (assignmentSignPos > 0)
-                                        {
-                                            var numValue = optKeyword.Substring(assignmentSignPos + 1);
-                                            decimal numObj;
+												dataRow["GC Grace Period"] = new TimeSpan(0, 0, 0, int.Parse(numValue));
+											}
+										}
+										else if (optKeyword.StartsWith("read_repair_chance", StringComparison.OrdinalIgnoreCase))
+										{
+											var assignmentSignPos = optKeyword.IndexOf('=');
 
-                                            if (decimal.TryParse(numValue, out numObj))
-                                            {
-                                                dataRow["Chance"] = numObj;
-                                            }
-                                        }
-                                    }
-                                    else if (optKeyword.StartsWith("speculative_retry", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        var assignmentSignPos = optKeyword.IndexOf('=');
+											if (assignmentSignPos > 0)
+											{
+												var numValue = optKeyword.Substring(assignmentSignPos + 1);
+												decimal numObj;
 
-                                        if (assignmentSignPos > 0)
-                                        {
-                                            dataRow["Policy"] = RemoveQuotes(optKeyword.Substring(assignmentSignPos + 1).Trim());
-                                        }
-                                    }
+												if (decimal.TryParse(numValue, out numObj))
+												{
+													dataRow["Chance"] = numObj;
+												}
+											}
+										}
+										else if (optKeyword.StartsWith("speculative_retry", StringComparison.OrdinalIgnoreCase))
+										{
+											var assignmentSignPos = optKeyword.IndexOf('=');
 
-                                }
+											if (assignmentSignPos > 0)
+											{
+												dataRow["Policy"] = RemoveQuotes(optKeyword.Substring(assignmentSignPos + 1).Trim());
+											}
+										}
+
+									}
+								}
 
                                 dtTable.Rows.Add(dataRow);
                                 #endregion
@@ -497,10 +545,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     continue;
                                 }
 
-                                dataRow = dtTable.NewRow();
+								var kstblName = ksTbl.Item2 + "." + indexKSTbl.Item2;
+
+								if (dtTable.AsEnumerable().Any(i => i.Field<string>("Keyspace Name") == indexKSTbl.Item1
+																				&& i.Field<string>("Name") == kstblName))
+								{
+									continue;
+								}
+
+								dataRow = dtTable.NewRow();
                                 dataRow["Keyspace Name"] = indexKSTbl.Item1;
-                                dataRow["Name"] = ksTbl.Item2 + "." + indexKSTbl.Item2;
-                                dataRow["DDL"] = cqlStr;
+								dataRow["Name"] = kstblName;
+								dataRow["DDL"] = cqlStr;
                                 dataRow["Associated Table"] = ksTbl.Item1 + "." + ksTbl.Item2;
                                 dataRow["Index"] = true;
 
@@ -525,11 +581,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     if (!string.IsNullOrEmpty(cqlDDL))
                                     {
-                                        var colPos = cqlDDL.IndexOf(indexCol);
+										var cqlStartColPos = cqlDDL.IndexOf("(");
+										var strCols = cqlDDL.Substring(cqlStartColPos);
+                                        var colPos = strCols.IndexOf(indexCol);
 
                                         if (colPos > 0)
                                         {
-                                            var strCol = cqlDDL.Substring(colPos);
+                                            var strCol = strCols.Substring(colPos);
                                             var colEndPos = strCol.IndexOfAny(new char[] { ',', ')' });
 
                                             if (colEndPos > 0)
@@ -578,14 +636,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 					tblItem.KSDataRow.BeginEdit();
 
 					tblItem.KSDataRow["Tables"] = tblItem.TblItems.Count(i => !i.Index);
-					tblItem.KSDataRow["Indexes"] = tblItem.TblItems.Count(i => i.Index && (string.IsNullOrEmpty(i.Compaction) || i.Compaction != "Cql3SolrSecondaryIndex"));
+					tblItem.KSDataRow["Indexes"] = tblItem.TblItems.Count(i => i.Index && (string.IsNullOrEmpty(i.Compaction) || !(i.Compaction == "Cql3SolrSecondaryIndex" || i.Compaction == "ThriftSolrSecondaryIndex")));
 					tblItem.KSDataRow["Total"] = tblItem.TblItems.Count();
 					tblItem.KSDataRow["STCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "SizeTieredCompactionStrategy");
 					tblItem.KSDataRow["LCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "LeveledCompactionStrategy");
 					tblItem.KSDataRow["DTCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "DateTieredCompactionStrategy");
 					tblItem.KSDataRow["TCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "TieredCompactionStrategy");
 					tblItem.KSDataRow["TWCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "TimeWindowCompactionStrategy");
-					tblItem.KSDataRow["solr"] = tblItem.TblItems.Count(i => i.Index && i.Compaction == "Cql3SolrSecondaryIndex");
+					tblItem.KSDataRow["solr"] = tblItem.TblItems.Count(i => i.Index && (i.Compaction == "Cql3SolrSecondaryIndex" || i.Compaction == "ThriftSolrSecondaryIndex"));
+					tblItem.KSDataRow["Active"] = 0;
 
 					tblItem.KSDataRow["Other Strategies"] = (int)tblItem.KSDataRow["Tables"]
 																- ((int)tblItem.KSDataRow["STCS"]
@@ -593,7 +652,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																	+ (int)tblItem.KSDataRow["DTCS"]
 																	+ (int)tblItem.KSDataRow["TCS"]
 																	+ (int)tblItem.KSDataRow["TWCS"]);
-					
+
 					tblItem.KSDataRow.EndEdit();
 				}
 
@@ -611,21 +670,40 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        static public void UpdateCQLDDLTableActiveStatus(DataTable dtDDLTable)
+        static public void UpdateCQLDDLTableActiveStatus(DataTable dtDDLTable, DataTable dtDDLKeyspace)
         {
             foreach (DataRow dataRow in dtDDLTable.Rows)
             {
                 var secondaryIndex = dataRow["Index"] == DBNull.Value ? false : (bool)dataRow["Index"];
 
-                if (secondaryIndex && (string) dataRow["Compaction Strategy"] == "Cql3SolrSecondaryIndex")
+                if (secondaryIndex 
+						&& ((string) dataRow["Compaction Strategy"] == "Cql3SolrSecondaryIndex"
+								|| (string)dataRow["Compaction Strategy"] == "ThriftSolrSecondaryIndex"))
                 {
                     continue;
                 }
+				else if(((string)dataRow["Name"]).EndsWith(" (Type)"))
+				{
+					continue;
+				}
                 else
                 {
-                    dataRow["Active"] = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
+                    var activeTbl = ActiveTables.Contains(((string)dataRow["Keyspace Name"])
                                                                     + '.' + ((string)dataRow["Name"])
                                                                     + (secondaryIndex ? " (index)" : string.Empty));
+					dataRow["Active"] = activeTbl;
+
+					if (activeTbl && dtDDLKeyspace != null)
+					{
+						var ksDR = dtDDLKeyspace.AsEnumerable().FirstOrDefault(dr => dr.Field<int?>("Active").HasValue && dr.Field<string>("Name") == dataRow.Field<string>("Keyspace Name"));
+
+						if (ksDR != null)
+						{
+							var ksActiveCnt = ksDR.Field<int>("Active");
+
+							ksDR.SetField<int>("Active", ksActiveCnt + 1);
+						}
+					}
                 }
             }
         }

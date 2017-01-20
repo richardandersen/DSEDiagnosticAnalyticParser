@@ -38,10 +38,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["L:L"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["M:M"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["N:N"].Style.Numberformat.Format = "#,###";
+												workSheet.Cells["O:O"].Style.Numberformat.Format = "#,###";
 
 												workSheet.View.FreezePanes(2, 1);
-                                                workSheet.Cells["A1:N1"].AutoFilter = true;
-                                                workSheet.Cells["A:N"].AutoFitColumns();
+                                                workSheet.Cells["A1:O1"].AutoFilter = true;
+                                                workSheet.Cells["A:O"].AutoFitColumns();
                                             },
                                             ParserSettings.DDLKeyspaceWorksheetFilterSort);
 

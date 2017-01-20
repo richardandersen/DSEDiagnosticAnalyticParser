@@ -152,7 +152,6 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
 							DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
-							DTLoadIntoExcel.LoadKeySpaceDDL(excelPkg, dtKeySpace, ParserSettings.ExcelWorkSheetDDLKeyspaces);
 
 							DTLoadIntoExcel.LoadYamlRingOSInfo(updateRingWYamlInfoTask,
 																excelPkg,
@@ -166,6 +165,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 							DTLoadIntoExcel.LoadCFStats(excelPkg, runCFStatsMergedDDLUpdated?.Result, ParserSettings.ExcelWorkSheetCFStats);
 							DTLoadIntoExcel.LoadNodeStats(excelPkg, runNodeStatsMergedTask?.Result, ParserSettings.ExcelWorkSheetNodeStats);
+							DTLoadIntoExcel.LoadKeySpaceDDL(excelPkg, dtKeySpace, ParserSettings.ExcelWorkSheetDDLKeyspaces);
 							DTLoadIntoExcel.LoadTableDDL(excelPkg, dtDDLTable, ParserSettings.ExcelWorkSheetDDLTables);
 						}
 						runCFStatsMergedDDLUpdated?.Result?.Clear();

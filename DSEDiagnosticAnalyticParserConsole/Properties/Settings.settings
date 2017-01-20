@@ -625,7 +625,21 @@
 &lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
   &lt;string&gt;system.paxos&lt;/string&gt;
   &lt;string&gt;system_traces&lt;/string&gt;
-  &lt;string&gt;dse_perf.node_slow_log&lt;/string&gt;
+  &lt;string&gt;dse_perf&lt;/string&gt;
+  &lt;string&gt;system_auth&lt;/string&gt;
+  &lt;string&gt;dse_security&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="AlwayIncludeDLLKeyspacess" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;system_distributed&lt;/string&gt;
+  &lt;string&gt;dse_perf&lt;/string&gt;
+  &lt;string&gt;system_auth&lt;/string&gt;
+  &lt;string&gt;dse_security&lt;/string&gt;
+  &lt;string&gt;system_traces&lt;/string&gt;
+  &lt;string&gt;dse_leases&lt;/string&gt;
+  &lt;string&gt;OpsCenter&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
   </Settings>
