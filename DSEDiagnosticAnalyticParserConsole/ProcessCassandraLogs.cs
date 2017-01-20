@@ -6592,8 +6592,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 											 select new
 											 {
 												 Max = g.Max(i => i.Latency),
-												 Min = g.Min(i => i.Latency),
-												 Mean = g.Average(i => i.Latency),
+												 Min = g.Where(i => i.Latency > 0).Min(i => i.Latency),
+												 Mean = g.Where(i => i.Latency > 0).Average(i => i.Latency),
 												 SSTables = g.Sum(i => i.SSTables),
 												 GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
 												 Count = g.Count(),
@@ -6614,8 +6614,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Table"] = stats.Table;
 								dataRow["Attribute"] = "AntiCompaction maximum latency";
 								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								dataRow["Value"] = stats.Max;
-								dataRow["(Value)"] = stats.Max;
+								if (stats.Max > 0)
+								{
+									dataRow["Value"] = stats.Max;
+									dataRow["(Value)"] = stats.Max;
+								}
 								dataRow["Unit of Measure"] = "ms";
 
 								dtCFStats.Rows.Add(dataRow);
@@ -6629,8 +6632,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Table"] = stats.Table;
 								dataRow["Attribute"] = "AntiCompaction mean latency";
 								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								dataRow["Value"] = stats.Mean;
-								dataRow["(Value)"] = stats.Mean;
+								if (stats.Mean > 0)
+								{
+									dataRow["Value"] = stats.Mean;
+									dataRow["(Value)"] = stats.Mean;
+								}
 								dataRow["Unit of Measure"] = "ms";
 
 								dtCFStats.Rows.Add(dataRow);
@@ -6644,8 +6650,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Table"] = stats.Table;
 								dataRow["Attribute"] = "AntiCompaction minimum latency";
 								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								dataRow["Value"] = stats.Min;
-								dataRow["(Value)"] = stats.Min;
+								if (stats.Min > 0)
+								{
+									dataRow["Value"] = stats.Min;
+									dataRow["(Value)"] = stats.Min;
+								}
 								dataRow["Unit of Measure"] = "ms";
 
 								dtCFStats.Rows.Add(dataRow);
