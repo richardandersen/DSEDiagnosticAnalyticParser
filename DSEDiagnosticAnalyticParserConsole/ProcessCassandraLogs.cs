@@ -7015,11 +7015,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 									   MinLatency = g.Min(i => i.Latency),
 									   MeanLatency = g.Average(i => i.Latency),
 									   MaxIORate = g.Max(i => i.IORate),
-									   MinIORate = g.Min(i => i.IORate),
-									   MeanIORate = g.Average(i => i.IORate),
+									   MinIORate = g.Where(i => i.IORate > 0).Min(i => i.IORate),
+									   MeanIORate = g.Where(i => i.IORate > 0).Average(i => i.IORate),
 									   MaxSize = g.Max(i => i.FlushedStorage),
-									   MinSize = g.Min(i => i.FlushedStorage),
-									   MeanSize = g.Average(i => i.FlushedStorage),
+									   MinSize = g.Where(i => i.FlushedStorage > 0).Min(i => i.FlushedStorage),
+									   MeanSize = g.Where(i => i.FlushedStorage > 0).Average(i => i.FlushedStorage),
 									   TotalSize = g.Sum(i => i.FlushedStorage),
 									   GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
 									   Count = g.Count(),
@@ -7040,8 +7040,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush maximum latency";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MaxLatency;
-						dataRow["(Value)"] = stats.MaxLatency;
+						if (stats.MaxLatency > 0)
+						{
+							dataRow["Value"] = stats.MaxLatency;
+							dataRow["(Value)"] = stats.MaxLatency;
+						}
 						dataRow["Unit of Measure"] = "ms";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7055,8 +7058,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush mean latency";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MeanLatency;
-						dataRow["(Value)"] = stats.MeanLatency;
+						if (stats.MeanLatency > 0)
+						{
+							dataRow["Value"] = stats.MeanLatency;
+							dataRow["(Value)"] = stats.MeanLatency;
+						}
 						dataRow["Unit of Measure"] = "ms";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7070,8 +7076,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush minimum latency";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MinLatency;
-						dataRow["(Value)"] = stats.MinLatency;
+						if (stats.MinLatency > 0)
+						{
+							dataRow["Value"] = stats.MinLatency;
+							dataRow["(Value)"] = stats.MinLatency;
+						}
 						dataRow["Unit of Measure"] = "ms";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7100,8 +7109,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush maximum IORate";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MaxIORate;
-						dataRow["(Value)"] = stats.MaxIORate;
+						if (stats.MaxIORate > 0)
+						{
+							dataRow["Value"] = stats.MaxIORate;
+							dataRow["(Value)"] = stats.MaxIORate;
+						}
 						dataRow["Unit of Measure"] = "MB/sec";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7115,8 +7127,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush mean IORate";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MeanIORate;
-						dataRow["(Value)"] = stats.MeanIORate;
+						if (stats.MeanIORate > 0)
+						{
+							dataRow["Value"] = stats.MeanIORate;
+							dataRow["(Value)"] = stats.MeanIORate;
+						}
 						dataRow["Unit of Measure"] = "MB/sec";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7130,8 +7145,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush minimum IORate";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MinIORate;
-						dataRow["(Value)"] = stats.MinIORate;
+						if (stats.MinIORate > 0)
+						{
+							dataRow["Value"] = stats.MinIORate;
+							dataRow["(Value)"] = stats.MinIORate;
+						}
 						dataRow["Unit of Measure"] = "MB/sec";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7145,8 +7163,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush minimum Storage";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MinSize;
-						dataRow["(Value)"] = stats.MinSize;
+						if (stats.MinSize > 0)
+						{
+							dataRow["Value"] = stats.MinSize;
+							dataRow["(Value)"] = stats.MinSize;
+						}
 						dataRow["Unit of Measure"] = "MB";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7160,8 +7181,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush maximum Storage";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MaxSize;
-						dataRow["(Value)"] = stats.MaxSize;
+						if (stats.MaxSize > 0)
+						{
+							dataRow["Value"] = stats.MaxSize;
+							dataRow["(Value)"] = stats.MaxSize;
+						}
 						dataRow["Unit of Measure"] = "MB";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7175,8 +7199,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Table"] = stats.Table;
 						dataRow["Attribute"] = "Memtable Flush mean Storage";
 						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.MeanSize;
-						dataRow["(Value)"] = stats.MeanSize;
+						if (stats.MeanSize > 0)
+						{
+							dataRow["Value"] = stats.MeanSize;
+							dataRow["(Value)"] = stats.MeanSize;
+						}
 						dataRow["Unit of Measure"] = "MB";
 
 						dtCFStats.Rows.Add(dataRow);
@@ -7333,9 +7360,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = item.ConcurrentList.Min(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Min(i => i.IORate);
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
+						dataRow["Latency (ms)"] = item.ConcurrentList.Where(i => i.Duration > 0).Min(i => i.Duration);
+						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Where(i => i.IORate > 0).Min(i => i.IORate);
+						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7346,9 +7373,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Average(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Average(i => i.IORate);
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
+						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Where(i => i.Duration > 0).Average(i => i.Duration);
+						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Where(i => i.IORate > 0).Average(i => i.IORate);
+						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7359,9 +7386,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
 						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Select(i => i.Duration).StandardDeviationP();
-						dataRow["IORate (mb/sec)"] = (decimal) item.ConcurrentList.Select(i => i.IORate).StandardDeviationP();
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
+						dataRow["Latency (ms)"] = (int) item.ConcurrentList.Where(i => i.Duration > 0).Select(i => i.Duration).StandardDeviationP();
+						dataRow["IORate (mb/sec)"] = (decimal) item.ConcurrentList.Where(i => i.IORate > 0).Select(i => i.IORate).StandardDeviationP();
+						dataRow["Occurrences"] = item.ConcurrentList.Where(i => i.Duration > 0).Count();
 
 						dtNodeStats.Rows.Add(dataRow);
 
@@ -7390,18 +7417,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 											  RefId = "#" + nbrAdded + "|" + string.Join(",", g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)),
 											  TimeStamps = g.Select(i => i.Start),
 											  MaxDuration = g.Max(i => i.Duration),
-											  MinDuration = g.Min(i => i.Duration),
-											  AvgDuration = (int) g.Average(i => i.Duration),
-											  StdDuration = (int) g.Select(i => i.Duration).StandardDeviationP(),
+											  MinDuration = g.Where(i => i.Duration > 0).Min(i => i.Duration),
+											  AvgDuration = (int) g.Where(i => i.Duration > 0).Average(i => i.Duration),
+											  StdDuration = (int) g.Where(i => i.Duration > 0).Select(i => i.Duration).StandardDeviationP(),
 											  TotalDuration = g.Sum(i => i.Duration),
 											  MaxIORate = g.Max(i => i.IORate),
-											  MinIORate = g.Min(i => i.IORate),
-											  AvgIORate = g.Average(i => i.IORate),
-											  StdIORate = (decimal) g.Select(i => i.IORate).StandardDeviationP(),
+											  MinIORate = g.Where(i => i.IORate > 0).Min(i => i.IORate),
+											  AvgIORate = g.Where(i => i.IORate > 0).Average(i => i.IORate),
+											  StdIORate = (decimal) g.Where(i => i.IORate > 0).Select(i => i.IORate).StandardDeviationP(),
 											  TotalIORate = g.Sum(i => i.IORate),
 											  Occurrences = g.Count()
 										  };
-				
+
 					foreach (var typeItem in concurrentTypes)
 					{
 						var dataRow = dtNodeStats.NewRow();
@@ -7411,8 +7438,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = typeItem.IPAddress;
 						dataRow["Attribute"] = string.Format("Concurrent {0} maximum", typeItem.Type);
 						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						dataRow["Latency (ms)"] = typeItem.MaxDuration;
-						dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
+						if (typeItem.MaxDuration > 0)
+						{
+							dataRow["Latency (ms)"] = typeItem.MaxDuration;
+						}
+						if (typeItem.MaxIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
+						}
 						dataRow["Occurrences"] = typeItem.Occurrences;
 
 						dtNodeStats.Rows.Add(dataRow);
@@ -7424,8 +7457,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = typeItem.IPAddress;
 						dataRow["Attribute"] = string.Format("Concurrent {0} minimum", typeItem.Type);
 						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						dataRow["Latency (ms)"] = typeItem.MinDuration;
-						dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
+						if (typeItem.MinDuration > 0)
+						{
+							dataRow["Latency (ms)"] = typeItem.MinDuration;
+						}
+						if (typeItem.MinIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
+						}
 						dataRow["Occurrences"] = typeItem.Occurrences;
 
 						dtNodeStats.Rows.Add(dataRow);
@@ -7437,8 +7476,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = typeItem.IPAddress;
 						dataRow["Attribute"] = string.Format("Concurrent {0} mean", typeItem.Type);
 						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						dataRow["Latency (ms)"] = (int) typeItem.AvgDuration;
-						dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
+						if (typeItem.AvgDuration > 0)
+						{
+							dataRow["Latency (ms)"] = typeItem.AvgDuration;
+						}
+						if (typeItem.AvgIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
+						}
 						dataRow["Occurrences"] = typeItem.Occurrences;
 
 						dtNodeStats.Rows.Add(dataRow);
@@ -7450,8 +7495,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = typeItem.IPAddress;
 						dataRow["Attribute"] = string.Format("Concurrent {0} standard deviation", typeItem.Type);
 						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						dataRow["Latency (ms)"] = (int)typeItem.StdDuration;
-						dataRow["IORate (mb/sec)"] = (decimal) typeItem.StdIORate;
+						if (typeItem.StdDuration > 0)
+						{
+							dataRow["Latency (ms)"] = typeItem.StdDuration;
+						}
+						if (typeItem.StdIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = typeItem.StdIORate;
+						}
 						dataRow["Occurrences"] = typeItem.Occurrences;
 
 						dtNodeStats.Rows.Add(dataRow);
@@ -7463,8 +7514,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Node IPAddress"] = typeItem.IPAddress;
 						dataRow["Attribute"] = string.Format("Concurrent {0} Total", typeItem.Type);
 						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						dataRow["Latency (ms)"] = (int)typeItem.TotalDuration;
-						dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
+						if (typeItem.TotalDuration > 0)
+						{
+							dataRow["Latency (ms)"] = typeItem.TotalDuration;
+						}
+						if (typeItem.TotalIORate > 0)
+						{
+							dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
+						}
 						dataRow["Occurrences"] = typeItem.Occurrences;
 
 						dtNodeStats.Rows.Add(dataRow);
