@@ -706,7 +706,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ing>Concurrent MemtableFlush minimum</string>\r\n  <string>Concurrent MemtableFlus" +
             "h mean</string>\r\n  <string>Concurrent MemtableFlush standard deviation</string>\r" +
             "\n  <string>Concurrent MemtableFlush Total</string>\r\n  <string>Concurrent Memtabl" +
-            "eFlush occurrences</string>\r\n</ArrayOfString>")]
+            "eFlush occurrences</string>\r\n  <string>Concurrent Compaction/Flush Performance W" +
+            "arnings maximum</string>\r\n  <string>Concurrent Compaction/Flush Performance Warn" +
+            "ings minimum</string>\r\n  <string>Concurrent Compaction/Flush Performance Warning" +
+            "s mean</string>\r\n  <string>Concurrent Compaction/Flush Performance Warnings stan" +
+            "dard deviation</string>\r\n  <string>Concurrent Compaction/Flush GC maximum</strin" +
+            "g>\r\n  <string>Concurrent Compaction/Flush GC minimum</string>\r\n  <string>Concurr" +
+            "ent Compaction/Flush GC mean</string>\r\n  <string>Concurrent Compaction/Flush GC " +
+            "standard deviation</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));

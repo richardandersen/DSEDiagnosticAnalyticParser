@@ -141,7 +141,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 													workSheet.Cells["AD2"].AddComment("Number of Partitions Merged to", "Rich Andersen");
 
 													workSheet.Cells["A2:AQ2"].AutoFilter = true;
-													workSheet.Cells.AutoFitColumns();
+													workSheet.Cells["A:AC"].AutoFitColumns();
+													workSheet.Cells["AF:AP"].AutoFitColumns();
+													workSheet.Column(30).Width = 38; //AD
+													workSheet.Column(31).Width = 38; //AE
 												},
 											maxRowInExcelWorkBook,
 											maxRowInExcelWorkSheet,

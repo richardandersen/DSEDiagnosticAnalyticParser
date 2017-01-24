@@ -51,6 +51,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["AK1:AK2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 												workSheet.Cells["AJ1:AJ2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
 
+												workSheet.Cells["AL1:AM1"].Style.WrapText = true;
+												workSheet.Cells["AL1:AM1"].Merge = true;
+												workSheet.Cells["AL1:AM1"].Value = "Performance Warnings";
+												workSheet.Cells["AL1:AL2"].Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+												workSheet.Cells["AM1:AM2"].Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+
 												workSheet.View.FreezePanes(3, 1);
 
 												workSheet.Cells["A:A"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
@@ -88,10 +94,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["AJ:AJ"].Style.Numberformat.Format = "###,###,##0";
 												workSheet.Cells["AK:AK"].Style.Numberformat.Format = "###,###,##0.0000";
 
+												//Perfomance Warnings
+												workSheet.Cells["AL:AL"].Style.Numberformat.Format = "###,###,##0";
+												workSheet.Cells["AM:AM"].Style.Numberformat.Format = "###,###,##0";
+
 												//WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);
 
-												workSheet.Cells["A2:AM2"].AutoFilter = true;
-												workSheet.Cells.AutoFitColumns();
+												workSheet.Cells["A2:AO2"].AutoFilter = true;
+												workSheet.Cells["A:A"].AutoFitColumns();
+												workSheet.Cells["C:M"].AutoFitColumns();
+												workSheet.Cells["O:AM"].AutoFitColumns();
 												workSheet.Column(2).Width = 45; //b
 												workSheet.Column(14).Width = 15; //n
 											},

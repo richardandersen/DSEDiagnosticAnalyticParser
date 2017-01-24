@@ -1279,6 +1279,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			Task<DataTable> runReadRepairTbl = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task<DataTable> runStatsLogMerged = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task runReleaseDependentLogTask;
+			Task runConcurrentCompactionFlushTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
 
 			{
 				var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
@@ -1447,13 +1448,17 @@ namespace DSEDiagnosticAnalyticParserConsole
 												   TaskContinuationOptions.AttachedToParent
 													   | TaskContinuationOptions.LongRunning
 													   | TaskContinuationOptions.OnlyOnRanToCompletion);
-						var runConcurrentCompactionFlushTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+						runConcurrentCompactionFlushTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
 																.ContinueWith(logTask =>
 																{
 																	Program.ConsoleParsingLog.Increment("Concurrent Compaction/Memtable Flush Processing");
-																	var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Concurrent Compaction");
-																	dtNodeStatsStack.Push(dtTPStats);
-																	ProcessFileTasks.ConcurrentCompactionFlush(dtTPStats);
+
+																	ProcessFileTasks.ConcurrentCompactionFlush(ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
+																													? dtLogStatusStack
+																													: null,
+																												ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
+																													? dtNodeStatsStack
+																													: null);
 
 																	Program.ConsoleParsingLog.TaskEnd("Concurrent Compaction/Memtable Flush Processing");
 																},
@@ -1572,7 +1577,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 											  .ContinueWhenAll<DataTable>(new Task[] { runLogMergedTask,
 																						runReadRepairProcess,
 																						runAntiCompactionTask,
-																						runMemTableFlushTask},
+																						runMemTableFlushTask,
+																						runConcurrentCompactionFlushTask},
 																  tasks =>
 																  {
 																	  var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null

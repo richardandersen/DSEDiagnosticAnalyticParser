@@ -30,7 +30,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Read-Repair Service Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;

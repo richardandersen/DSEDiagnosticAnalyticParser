@@ -93,7 +93,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 if (infoObject.all_tasks != null
                                         && infoObject.all_tasks.Any((c => (string)((object[])c)[0] == (string)dataRow["Node IPAddress"])))
                                 {
-                                    dataRow["Read-Repair Service Enabled"] = true;
+                                    dataRow["Repair Service Enabled"] = true;
                                 }
                             }                          
                         }

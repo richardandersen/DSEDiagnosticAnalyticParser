@@ -271,7 +271,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 if (includeGroupIndiator)
                 {
-                    dtCLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+                    dtCLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
                 }
                 dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Node IPAddress", typeof(string));
@@ -1765,7 +1765,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCSummaryLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true; //I
                 dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true; //J
 				dtCSummaryLog.Columns.Add("Occurrences", typeof(int)); //K
-                dtCSummaryLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //L
+                dtCSummaryLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true; //L
                 dtCSummaryLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true; //M
                 dtCSummaryLog.Columns.Add("Table", typeof(string)).AllowDBNull = true; //N
 
@@ -2190,7 +2190,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public decimal GCSurvivorTo;
 			public decimal GCOldFrom;
 			public decimal GCOldTo;
-			public long GroupIndicator;
+			public object GroupIndicator;
 
 			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.GCLatency)); } }
 		}
@@ -2202,7 +2202,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			string Keyspace { get;}
 			string Table { get;}
 			int SSTables { get;}
-			long GroupIndicator { get;}
+			object GroupIndicator { get;}
 			DateTime StartTime { get;}
 			DateTime CompletionTime { get;}
 			int Duration { get; }
@@ -2218,7 +2218,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Keyspace { get; set; }
 			public string Table { get; set; }
 			public int SSTables { get; set; }
-			public long GroupIndicator { get; set; }
+			public object GroupIndicator { get; set; }
 			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Duration)); } }
 			public DateTime CompletionTime { get { return this.LogTimestamp; } }
 			public int Duration { get; set; }
@@ -2242,7 +2242,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Keyspace { get; set; }
 			public string Table { get; set; }
 			public int SSTables { get; set; }
-			public long GroupIndicator { get; set; }
+			public object GroupIndicator { get; set; }
 			public DateTime StartTime { get; set; }
 			public DateTime CompletionTime { get; set; }
 			public int Duration
@@ -2290,7 +2290,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Keyspace;
 			public string Table;
 			public int NbrUpdates;
-			public long GroupIndicator;
+			public object GroupIndicator;
 
 			public int Duration { get { return (int)(Finish - Start).TotalMilliseconds; } }
 		}
@@ -2314,7 +2314,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public decimal FlushedStorage;
 			public string SSTableFilePath;
 			public int TaskId;
-			public long GroupIndicator;
+			public object GroupIndicator;
 			public readonly Guid Session;
 
 			public int Duration { get { return (int)(Finish - Start).TotalMilliseconds; } }
@@ -2330,13 +2330,20 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 			public DateTime Start { get { return this.EnqueuingStart; } }
 			public DateTime EnqueuingStart;
-			public string Type;
+
+			private string _type;
+			public string Type
+			{
+				get { return string.IsNullOrEmpty(this._type) ? this._type : "MemTable Flush (" + this._type + ")"; }
+				set { this._type = value; }
+			}
+
 			public string DataCenter;
 			public string IPAddress;
 			public string Keyspace;
 			public string Table;
 			public int TaskId;
-			public long GroupIndicator;
+			public object GroupIndicator;
 			public bool Completed;
 			public DataRow LogDataRow;
 			public readonly Guid Session;
@@ -2420,7 +2427,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		DateTime timeStamp,
 																		int nbrOPS,
 																		int taskId,
-																		long groupId,
+																		decimal groupId,
 																		bool alwaysCreateNewInstance = true)
 			{
 				if(this.TaskId == 0)
@@ -2467,7 +2474,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		DateTime timeStamp,
 																		decimal flushedStorage,
 																		int taskId,
-																		long groupId)
+																		decimal groupId)
 			{
 				if(string.IsNullOrEmpty(this.Keyspace))
 				{
@@ -2493,7 +2500,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					});
 				}
 
-				var occurrence = ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => string.IsNullOrEmpty(i.Keyspace)
+				var occurrence = ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => (string.IsNullOrEmpty(i.Keyspace) || i.Keyspace == keySpace)
 																										&& i.Table == table
 																										&& i.TaskId == taskId);
 
@@ -2542,7 +2549,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public int MemTableFlushes { get { return this.MemTableFlushList == null ? 0 : this.MemTableFlushList.Count(); } }
 			public int Exceptions;
 
-			public long GroupInd;
+			public object GroupInd;
 			public bool Aborted;
 			public string Exception;
 			public int NbrRepairs;
@@ -2552,6 +2559,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public IEnumerable<GCLogInfo> GCList = null;
 			public IEnumerable<ICompactionLogInto> CompactionList = null;
 			public IEnumerable<MemTableFlushLogInfo> MemTableFlushList = null;
+			public IEnumerable<PerformanceInfo> PerformanceWarningList = null;
 
 			public static string DCIPAddress(string dcName, string ipAdress)
 			{
@@ -2584,16 +2592,51 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 		}
 
+		public class PerformanceInfo
+		{
+			public string Type;
+			public string DataCenter;
+			public string IPAddress;
+			public string Keyspace;
+			public string Table;
+			public object GroupInd;
+			public DateTime? Timestamp
+			{
+				get { return this.Start; }
+				set { this.Start = value; }
+			}
+
+			public DateTime? Start;
+			public DateTime? Finish;
+			public int Duration
+			{
+				get
+				{
+					if (this.Start.HasValue && this.Finish.HasValue)
+					{
+						return (int)(Finish.Value - Start.Value).TotalMilliseconds;
+					}
+
+					return this.Latency.HasValue ? 0 : this.Latency.Value;
+				}
+			}
+
+			public int? Latency;
+		}
+
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInto>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
+		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>> PerformanceOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>>();
+
+		const decimal ReferenceIncrementValue = 0.000001m;
 
 		static void InitializeStatusDataTable(DataTable dtCStatusLog)
 		{
 			if (dtCStatusLog.Columns.Count == 0)
 			{
-				dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true;
+				dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
 
 				dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
 				dtCStatusLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
@@ -2711,7 +2754,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Description", typeof(string));
                 //		dtCLog.Columns.Add("Flagged", typeof(int)).AllowDBNull = true;
-                var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
 				var statusLogItem = from dr in dtroCLog.AsEnumerable()
 									let item = dr.Field<string>("Item")
 									let timestamp = dr.Field<DateTime>("Timestamp")
@@ -2750,6 +2792,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 				var droppedMutations = new List<int>();
                 var maxMemoryAllocFailed = new List<int>();
 				var solrReindexing = new List<SolrReIndexingLogInfo>();
+				long grpInd = CLogSummaryInfo.IncrementGroupInicator();
+				var refCnt = (decimal)grpInd;
 
 				foreach (var item in statusLogItem)
                 {
@@ -2758,7 +2802,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-                    if (item.Item == "GCInspector.java")
+					refCnt += ReferenceIncrementValue;
+
+					if (item.Item == "GCInspector.java")
                     {
                         #region GCInspector.java
 
@@ -2780,7 +2826,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-ParNew";
                             dataRow["GC Time (ms)"] = (long)((dynamic)time);
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
 							dtCStatusLog.Rows.Add(dataRow);
                             gcLatencies.Add((int)((dynamic)time));
@@ -2797,7 +2843,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-CMS";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
 							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2825,7 +2871,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-G1";
                             dataRow["GC Time (ms)"] = (long) ((dynamic) time);
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
 							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
@@ -2857,7 +2903,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								DataCenter = dcName,
 								IPAddress = ipAddress,
 								GCLatency = (int)((dynamic)time),
-								GroupIndicator = groupIndicator,
+								GroupIndicator = refCnt,
 								GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
 								GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
 								GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
@@ -2889,7 +2935,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC Pause";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
                             if (time.HasValue)
                             {
@@ -2937,7 +2983,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = splits[1];
-                                    dataRow["Reconciliation Reference"] = groupIndicator;
+                                    dataRow["Reconciliation Reference"] = refCnt;
                                     dataRow["Size (mb)"] = ConvertInToMB(splits[2], "bytes");
                                     dataRow["Capacity (mb)"] = ConvertInToMB(splits[3], "bytes");
                                     dataRow["KeysToSave"] = splits[4];
@@ -2963,8 +3009,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Pool/Cache Type"] = "ColumnFamily";
                                     dataRow["KeySpace"] = ksTable.Item1;
                                     dataRow["Table"] = ksTable.Item2;
-                                    dataRow["Reconciliation Reference"] = groupIndicator;
-                                    dataRow["MemTable OPS"] = long.Parse(splits[2]);
+									dataRow["Reconciliation Reference"] = refCnt;
+									dataRow["MemTable OPS"] = long.Parse(splits[2]);
                                     dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
 
                                     dtCStatusLog.Rows.Add(dataRow);
@@ -2990,9 +3036,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = splits[1];
-                                    dataRow["Reconciliation Reference"] = groupIndicator;
+									dataRow["Reconciliation Reference"] = refCnt;
 
-                                    if (splits.Length == 8)
+									if (splits.Length == 8)
                                     {
                                         dataRow["Active"] = long.Parse(splits[2]);
                                         dataRow["Pending"] = long.Parse(splits[3]);
@@ -3076,7 +3122,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Data Center"] = dcName;
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["Pool/Cache Type"] = "Compaction";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = refCnt;
 
                                 dataRow["KeySpace"] = ksItem.KeySpaceName;
                                 dataRow["Table"] = ksItem.TableName;
@@ -3097,7 +3143,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									LogTimestamp = item.Timestamp,
 									DataCenter = dcName,
 									IPAddress = ipAddress,
-									GroupIndicator = groupIndicator,
+									GroupIndicator = refCnt,
 									Keyspace = ksItem.KeySpaceName,
 									Table = ksItem.TableName,
 									SSTables = dataRow.Field<int>("SSTables"),
@@ -3148,7 +3194,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Pool/Cache Type"] = "Partition Size";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = refCnt;
 
                         dataRow["KeySpace"] = kstblSplit.Item1;
                         dataRow["Table"] = kstblSplit.Item2;
@@ -3195,7 +3241,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Pool/Cache Type"] = indType;
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = refCnt;
 
                         dataRow["KeySpace"] = kstblSplit.Item1;
                         dataRow["Table"] = kstblSplit.Item2;
@@ -3223,13 +3269,34 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "Slow Query latency";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
                             dataRow["Latency (ms)"] = time.Value;
 
                             dtCStatusLog.Rows.Add(dataRow);
 
-                            tpSlowQueries.Add(time.Value);
-                        }
+							tpSlowQueries.Add(time.Value);
+
+							var performanceInfo = new PerformanceInfo()
+							{
+								Type = "Slow Query",
+								DataCenter = dcName,
+								IPAddress = ipAddress,
+								GroupInd = refCnt,
+								Timestamp = item.Timestamp,
+								Latency = time.Value
+							};
+
+							PerformanceOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+									ignore =>
+									{
+										return new Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>() { performanceInfo };
+									},
+									(ignore, performanceList) =>
+									{
+										performanceList.Add(performanceInfo);
+										return performanceList;
+									});
+						}
 
                         #endregion
                     }
@@ -3258,7 +3325,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Pool/Cache Type"] = "Batch size";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = refCnt;
                         dataRow["KeySpace"] = kstblSplit.Item1;
                         dataRow["Table"] = kstblSplit.Item2;
                         dataRow["Completed"] = (long)batchSize.Value;
@@ -3286,7 +3353,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = exceptionName;
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
                             dtCStatusLog.Rows.Add(dataRow);
 
@@ -3312,7 +3379,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = exceptionName;
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
                             dtCStatusLog.Rows.Add(dataRow);
 
@@ -3350,7 +3417,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = item.Exception;
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
                             dataRow["KeySpace"] = ksName;
                             dataRow["Table"] = tblName;
 
@@ -3377,7 +3444,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Data Center"] = dcName;
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["Pool/Cache Type"] = item.Exception;
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = refCnt;
                                 dataRow["Completed"] = (long)nbrDropped.Value;
 
                                 dtCStatusLog.Rows.Add(dataRow);
@@ -3409,7 +3476,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Data Center"] = dcName;
 								dataRow["Node IPAddress"] = ipAddress;
 								dataRow["Pool/Cache Type"] = item.Exception;
-								dataRow["Reconciliation Reference"] = groupIndicator;
+								dataRow["Reconciliation Reference"] = refCnt;
 								dataRow["Completed"] = (long)nbrCompleted.Value;
 
 								dtCStatusLog.Rows.Add(dataRow);
@@ -3456,7 +3523,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         var kytbl = SplitTableName(kytblName);
                                                         return new { Keyspace = kytbl.Item1, Table = kytbl.Item2 };
                                                     });
-
                                 foreach (var keyTbl in keyTbls)
                                 {
                                     if(ignoreKeySpaces.Contains(keyTbl.Keyspace))
@@ -3470,7 +3536,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = item.Exception + " Count";
-                                    dataRow["Reconciliation Reference"] = groupIndicator;
+                                    dataRow["Reconciliation Reference"] = refCnt;
                                     dataRow["KeySpace"] = keyTbl.Keyspace;
                                     dataRow["Table"] = keyTbl.Table;
                                     dataRow["Completed"] = (long)assocValue.Value;
@@ -3478,6 +3544,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dtCStatusLog.Rows.Add(dataRow);
 
                                     batchSizes.Add(new Tuple<string, string, string, int>(item.Exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
+
+									refCnt += ReferenceIncrementValue;
                                 }
                             }
                         }
@@ -3490,7 +3558,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "Allocation Failed Maximum Memory Reached";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
                             if (assocValue.HasValue)
                             {
@@ -3522,7 +3590,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "Dropped Mutation";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = refCnt;
 
                             dataRow["Completed"] = (long) assocValue.Value;
                             droppedMutations.Add(assocValue.Value);
@@ -3569,7 +3637,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									if(solrReIndx != null)
 									{
 										solrReIndx.Finish = item.Timestamp;
-										solrReIndx.GroupIndicator = groupIndicator;
+										solrReIndx.GroupIndicator = refCnt;
 
 										var dataRow = dtCStatusLog.NewRow();
 
@@ -3579,7 +3647,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
 										dataRow["KeySpace"] = solrReIndx.Keyspace;
 										dataRow["Table"] = solrReIndx.Table;
-										dataRow["Reconciliation Reference"] = groupIndicator;
+										dataRow["Reconciliation Reference"] = refCnt;
 										dataRow["Latency (ms)"] = solrReIndx.Duration;
 
 										dtCStatusLog.Rows.Add(dataRow);
@@ -3595,7 +3663,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									IPAddress = ipAddress,
 									Keyspace = regExSolrReIndex[1].Trim(),
 									Table = regExSolrReIndex[2].Trim(),
-									GroupIndicator = groupIndicator
+									GroupIndicator = refCnt
 								};
 
 								solrReindexing.Add(solrReIndx);
@@ -3632,7 +3700,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								Keyspace = regExSolrReIndex[2].Trim(),
 								Table = regExSolrReIndex[3].Trim(),
 								NbrUpdates = int.Parse(regExSolrReIndex[1]),
-								GroupIndicator = groupIndicator
+								GroupIndicator = refCnt
 							};
 
 							solrReindexing.Add(solrReIndx);
@@ -3687,7 +3755,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								if (solrReIndx != null)
 								{
 									solrReIndx.Finish = item.Timestamp;
-									solrReIndx.GroupIndicator = groupIndicator;
+									solrReIndx.GroupIndicator = refCnt;
 
 									var dataRow = dtCStatusLog.NewRow();
 
@@ -3697,7 +3765,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 									dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
 									dataRow["KeySpace"] = solrReIndx.Keyspace;
 									dataRow["Table"] = solrReIndx.Table;
-									dataRow["Reconciliation Reference"] = groupIndicator;
+									dataRow["Reconciliation Reference"] = refCnt;
 									dataRow["Latency (ms)"] = solrReIndx.Duration;
 									dtCStatusLog.Rows.Add(dataRow);
 								}
@@ -3734,7 +3802,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC minimum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3745,7 +3813,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC maximum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3756,7 +3824,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC mean latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3767,7 +3835,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "GC occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Occurrences"] = gcLatencies.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3793,7 +3861,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query minimum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = slowMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3804,7 +3872,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query maximum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = slowMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3815,7 +3883,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query mean latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = slowAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3826,7 +3894,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Slow Query occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Occurrences"] = tpSlowQueries.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3883,7 +3951,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " maximum";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Active"] = tpItem.maxItem2;
                             dataRow["Pending"] = tpItem.maxItem3;
                             dataRow["Completed"] = tpItem.maxItem4;
@@ -3898,7 +3966,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " minimum";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Active"] = tpItem.minItem2;
                             dataRow["Pending"] = tpItem.minItem3;
                             dataRow["Completed"] = tpItem.minItem4;
@@ -3913,7 +3981,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " mean";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Active"] = tpItem.avgItem2;
                             dataRow["Pending"] = tpItem.avgItem3;
                             dataRow["Completed"] = tpItem.avgItem4;
@@ -3928,7 +3996,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " Total";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Active"] = tpItem.totItem2;
                             dataRow["Pending"] = tpItem.totItem3;
                             dataRow["Completed"] = tpItem.totItem4;
@@ -3943,7 +4011,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = tpItem.Item1 + " occurrences";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Occurrences"] = tpItem.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -3968,7 +4036,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause minimum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcMin;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3979,7 +4047,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause maximum latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcMax;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -3990,7 +4058,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause mean latency";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Latency (ms)"] = gcAvg;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -4001,7 +4069,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Pause occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Occurrences"] = pauses.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -4029,7 +4097,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = RemoveNamespace(jvmGrp.item) + " occurrences";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Occurrences"] = jvmGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -4058,7 +4126,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = RemoveNamespace(wpGrp.item) + " occurrences";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Occurrences"] = wpGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -4088,7 +4156,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Attribute"] = statusGrp.item + " occurrences";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Occurrences"] = statusGrp.Count;
 
                             dtTPStats.Rows.Add(dataRow);
@@ -4119,7 +4187,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints Total";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedTotalNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4131,7 +4199,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints maximum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedMaxNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4143,7 +4211,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints mean";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedAvgNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4155,7 +4223,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints minimum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedMinNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4167,7 +4235,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Hints occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         //dataRow["Value"] = droppedMinNbr;
                         dataRow["Occurrences"] = droppedOccurences;
 
@@ -4198,7 +4266,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["Attribute"] = "Timedout Hints Total";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Reconciliation Reference"] = grpInd;
 						dataRow["Completed"] = timedoutTotalNbr;
 						//dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4210,7 +4278,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["Attribute"] = "Timedout Hints maximum";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Reconciliation Reference"] = grpInd;
 						dataRow["Completed"] = timedoutMaxNbr;
 						//dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4222,7 +4290,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["Attribute"] = "Timedout Hints mean";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Reconciliation Reference"] = grpInd;
 						dataRow["Completed"] = timedoutAvgNbr;
 						//dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4234,7 +4302,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["Attribute"] = "Timedout Hints minimum";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Reconciliation Reference"] = grpInd;
 						dataRow["Completed"] = timedoutMinNbr;
 						//dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4246,7 +4314,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["Attribute"] = "Timedout Hints occurrences";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+						dataRow["Reconciliation Reference"] = grpInd;
 						//dataRow["Value"] = droppedMinNbr;
 						dataRow["Occurrences"] = timedoutOccurences;
 
@@ -4277,7 +4345,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached Total";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Size (mb)"] = ((decimal) allocTotalMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4289,7 +4357,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached maximum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Size (mb)"] = ((decimal)allocMaxMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4301,7 +4369,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached mean";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Size (mb)"] = allocAvgMem/BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4313,7 +4381,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached minimum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Size (mb)"] = ((decimal) allocMinMem)/BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4325,7 +4393,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Occurrences"] = allocMemOccurences;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -4355,7 +4423,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation Total";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedTotalNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4367,7 +4435,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation maximum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedMaxNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4379,7 +4447,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation mean";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedAvgNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4391,7 +4459,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation minimum";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         dataRow["Dropped"] = droppedMinNbr;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
@@ -4403,7 +4471,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Data Center"] = dcName;
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Dropped Mutation occurrences";
-                        dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Reconciliation Reference"] = grpInd;
                         //dataRow["Value"] = droppedMinNbr;
                         dataRow["Occurrences"] = droppedOccurences;
 
@@ -4450,7 +4518,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction maximum latency";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(Value)"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "ms";
@@ -4465,7 +4533,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction minimum latency";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "ms";
@@ -4480,7 +4548,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction mean latency";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "ms";
@@ -4495,7 +4563,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction occurrences";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "ms";
@@ -4541,7 +4609,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction maximum rate";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(Value)"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -4556,7 +4624,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction minimum rate";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -4571,7 +4639,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Compaction mean rate";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "mb/sec";
@@ -4617,7 +4685,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large maximum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.Max * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Max;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4632,7 +4700,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large minimum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.Min * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Min;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4647,7 +4715,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large mean";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.Avg * BytesToMB);
                                 dataRow["Size in MB"] = statItem.Avg;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4662,7 +4730,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "Partition large occurrences";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
 
@@ -4710,7 +4778,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " Total";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Total;
                                 dataRow["(value)"] = statItem.Total;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4725,7 +4793,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " maximum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Max;
                                 dataRow["(value)"] = statItem.Max;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4740,7 +4808,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " minimum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4755,7 +4823,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " mean";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4770,7 +4838,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " occurrences";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4820,7 +4888,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS maximum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.maxItem3;
                                 dataRow["(value)"] = statItem.maxItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -4835,7 +4903,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS minimum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.minItem3;
                                 dataRow["(value)"] = statItem.minItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -4850,7 +4918,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable OPS mean";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.avgItem3;
                                 dataRow["(value)"] = statItem.avgItem3;
                                 dataRow["Unit of Measure"] = "Operations per Second";
@@ -4865,7 +4933,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable occurrences";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
 
@@ -4880,7 +4948,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size maximum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (int)(statItem.maxItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.maxItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4895,7 +4963,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size minimum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (int)(statItem.minItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.minItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4910,7 +4978,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size mean";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (int)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
@@ -4958,7 +5026,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " Total";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Total;
                                 dataRow["(value)"] = statItem.Total;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4973,7 +5041,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " maximum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -4988,7 +5056,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " minimum";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Min;
                                 dataRow["(Value)"] = statItem.Min;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -5003,7 +5071,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " mean";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Avg;
                                 dataRow["(Value)"] = statItem.Avg;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -5018,7 +5086,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = statItem.Attr + " occurrences";
-                                dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
                                 //dataRow["Unit of Measure"] = "bytes";
@@ -5056,7 +5124,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["KeySpace"] = statusGrp.KeySpace;
                             dataRow["Table"] = statusGrp.Table;
                             dataRow["Attribute"] = statusGrp.item + " occurrences";
-                            dataRow["Reconciliation Reference"] = groupIndicator;
+                            dataRow["Reconciliation Reference"] = grpInd;
                             dataRow["Value"] = statusGrp.Count;
                             dataRow["(value)"] = statusGrp.Count;
 
@@ -5094,7 +5162,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["KeySpace"] = statusGrp.KeySpace;
 							dataRow["Table"] = statusGrp.Table;
 							dataRow["Attribute"] = "Solr reindex duration maximum";
-							dataRow["Reconciliation Reference"] = groupIndicator;
+							dataRow["Reconciliation Reference"] = grpInd;
 							dataRow["Value"] = statusGrp.Max;
 							dataRow["(value)"] = statusGrp.Max;
 							dataRow["Unit of Measure"] = "ms";
@@ -5109,7 +5177,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["KeySpace"] = statusGrp.KeySpace;
 							dataRow["Table"] = statusGrp.Table;
 							dataRow["Attribute"] = "Solr reindex duration minimum";
-							dataRow["Reconciliation Reference"] = groupIndicator;
+							dataRow["Reconciliation Reference"] = grpInd;
 							dataRow["Value"] = statusGrp.Min;
 							dataRow["(value)"] = statusGrp.Min;
 							dataRow["Unit of Measure"] = "ms";
@@ -5124,7 +5192,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["KeySpace"] = statusGrp.KeySpace;
 							dataRow["Table"] = statusGrp.Table;
 							dataRow["Attribute"] = "Solr reindex duration mean";
-							dataRow["Reconciliation Reference"] = groupIndicator;
+							dataRow["Reconciliation Reference"] = grpInd;
 							dataRow["Value"] = statusGrp.Avg;
 							dataRow["(value)"] = statusGrp.Avg;
 							dataRow["Unit of Measure"] = "ms";
@@ -5139,7 +5207,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["KeySpace"] = statusGrp.KeySpace;
 							dataRow["Table"] = statusGrp.Table;
 							dataRow["Attribute"] = "Solr reindex duration stdev";
-							dataRow["Reconciliation Reference"] = groupIndicator;
+							dataRow["Reconciliation Reference"] = grpInd;
 							dataRow["Value"] = statusGrp.Std;
 							dataRow["(value)"] = statusGrp.Std;
 							dataRow["Unit of Measure"] = "ms";
@@ -5154,7 +5222,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["KeySpace"] = statusGrp.KeySpace;
 							dataRow["Table"] = statusGrp.Table;
 							dataRow["Attribute"] = "Solr reindex occurrences";
-							dataRow["Reconciliation Reference"] = groupIndicator;
+							dataRow["Reconciliation Reference"] = grpInd;
 							dataRow["Value"] = statusGrp.Count;
 							dataRow["(value)"] = statusGrp.Count;
 
@@ -5184,7 +5252,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 			public string Node;
             public List<int> Latencies;
-            public List<long> GroupRefIds;
+            public List<object> GroupRefIds;
             public List<DateTime> Timestamps;
 			public List<SpaceChanged> GCSpacePoolChanges;
             public string Type;
@@ -5218,7 +5286,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             {
                                                                 Node = gcInfo.Key,
                                                                 Latencies = new List<int>() { gcInfoTimeLine.First().GCLatency },
-                                                                GroupRefIds = new List<long>() { gcInfoTimeLine.First().GroupIndicator },
+                                                                GroupRefIds = new List<object>() { gcInfoTimeLine.First().GroupIndicator },
                                                                 Timestamps = new List<DateTime>() { gcInfoTimeLine.First().LogTimestamp },
 																GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
 																{
@@ -5260,7 +5328,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     Node = gcInfo.Key,
                                     Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).GCLatency, gcInfoTimeLine.ElementAt(nIndex).GCLatency },
-                                    GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex - 1).GroupIndicator },
+                                    GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex - 1).GroupIndicator },
                                     Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp },
 									GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
 														{
@@ -5316,7 +5384,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 Node = gcInfo.Key,
                                 Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).GCLatency },
-                                GroupRefIds = new List<long>() { gcInfoTimeLine.ElementAt(nIndex).GroupIndicator },
+                                GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex).GroupIndicator },
                                 Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).LogTimestamp },
 								GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
 													{
@@ -5745,7 +5813,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["Nbr MemTable Flush Events"] = logInfo.MemTableFlushes;
 										dataRow["Nbr Exceptions"] = logInfo.Exceptions;
 										dataRow["Nbr Solr ReIdxs"] = logInfo.SolrReIndexing == null ? 0 : logInfo.SolrReIndexing.Count();
-										dataRow["Latency (ms)"] = logInfo.Duration;
+										dataRow["Duration (ms)"] = logInfo.Duration;
 										if (logInfo.UserRequest) dataRow["Requested"] = logInfo.UserRequest;
 										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session)) + "X" + logInfo.Session;
 
@@ -5861,7 +5929,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 										dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
 										dataRow["Nbr Exceptions"] = r.Exceptions;
 										dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
-										dataRow["Latency (ms)"] = r.Duration;
+										dataRow["Duration (ms)"] = r.Duration;
 										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
 										dataRow["Aborted"] = 1;
 										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
@@ -5946,7 +6014,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Nbr Exceptions"] = r.Exceptions;
 						dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
 						dataRow["Aborted"] = r.Aborted ? 1 : 0;
-						//dataRow["Latency (ms)"] = r.Duration;
+						//dataRow["Duration (ms)"] = r.Duration;
 						dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
 
 						dtStatusLog.Rows.Add(dataRow);
@@ -5964,12 +6032,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 							Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo> nodeMemTblFlushCollection = null;
+							Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
 							var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
 
 							CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
 							GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
 							SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
 							MemTableFlushOccurrences.TryGetValue(dcIpAddress, out nodeMemTblFlushCollection);
+							PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
 
 							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
 							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
@@ -5986,6 +6056,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 																									&& rrInfo.Start <= c.Start
 																									&& c.Start < rrInfo.Finish.AddMilliseconds(readrepairThreshold));
 									rrInfo.MemTableFlushList = nodeMemTblFlushCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+																											&& rrInfo.Start <= c.Start
+																											&& c.Start < rrInfo.Finish.AddMilliseconds(readrepairThreshold));
+									rrInfo.PerformanceWarningList = nodePerfCollection?.UnSafe.Where(c => (c.Keyspace == null || rrInfo.Keyspace == c.Keyspace)
 																											&& rrInfo.Start <= c.Start
 																											&& c.Start < rrInfo.Finish.AddMilliseconds(readrepairThreshold));
 								});
@@ -6177,10 +6250,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //aj
 				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ak
 
-				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //al
+				//Performance Warnings
+				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //al
+				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//am
 
-				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //am
+				//Solr Reindexing
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //an
+
+				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ao
 			}
 		#endregion
 
@@ -6317,7 +6394,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							newDataRow["Session Path"] = rrItem.SessionPath;
 							newDataRow["Data Center"] = item.MemTbl.DataCenter;
 							newDataRow["Node IPAddress"] = item.MemTbl.IPAddress;
-							newDataRow["Type"] = "MemTable Flush (" + item.MemTbl.Type + ")";
+							newDataRow["Type"] = item.MemTbl.Type;
 							newDataRow["Log/Completion Timestamp"] = item.MemTbl.Finish;
 							newDataRow["Session"] = rrItem.Session;
 							newDataRow["KeySpace"] = item.MemTbl.Keyspace;
@@ -6328,6 +6405,32 @@ namespace DSEDiagnosticAnalyticParserConsole
 							newDataRow["Write Rate (ops)"] = item.MemTbl.NbrWriteOPS;
 							newDataRow["Effective Flush IORate (mb/sec)"] = item.MemTbl.IORate;
 							newDataRow["Reconciliation Reference"] = item.MemTbl.GroupIndicator;
+
+							dtReadRepair.Rows.Add(newDataRow);
+						}
+					}
+
+					if (rrItem.PerformanceWarningList != null)
+					{
+						foreach (var item in (from perfItem in rrItem.PerformanceWarningList
+											  let startTime = perfItem.Start
+											  orderby startTime ascending
+											  select new { StartTime = startTime, PerfItem = perfItem }))
+						{
+							newDataRow = dtReadRepair.NewRow();
+
+							newDataRow["Start Timestamp"] = item.StartTime;
+							newDataRow["Session Path"] = rrItem.SessionPath;
+							newDataRow["Data Center"] = item.PerfItem.DataCenter;
+							newDataRow["Node IPAddress"] = item.PerfItem.IPAddress;
+							newDataRow["Type"] = "Performance Warning(" + item.PerfItem.Type + ")";
+							newDataRow["Log/Completion Timestamp"] = item.PerfItem.Timestamp;
+							newDataRow["Session"] = rrItem.Session;
+							newDataRow["KeySpace"] = item.PerfItem.Keyspace;
+							newDataRow["Table"] = item.PerfItem.Table;
+							newDataRow["Reconciliation Reference"] = item.PerfItem.GroupInd;
+							newDataRow["Perf Warnings"] = 1;
+							newDataRow["Perf Average Latency"] = item.PerfItem.Latency;
 
 							dtReadRepair.Rows.Add(newDataRow);
 						}
@@ -6367,47 +6470,48 @@ namespace DSEDiagnosticAnalyticParserConsole
 			CompactionOccurrences.Clear();
 			SolrReindexingOccurrences.Clear();
 			MemTableFlushOccurrences.Clear();
+			PerformanceOccurrences.Clear();
 		}
 
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.cardticketmap on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.blobreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.blobreadmodel on 0/[] sstables
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.schemaversions on 0/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-6-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-5-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.schemaversions on 0/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-6-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-5-big-Data.db')] sstables
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.paymentidorderidmap on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.paymentidorderidmap on 0/[] sstables
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapuseridtop2pidreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,558  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,560  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapuseridtop2pidreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,558  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,560  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2paccountidtomobilepaynumberreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtotestksnumberreadmodel on 0/[] sstables
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.symmetrickeyinfomodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.symmetrickeyinfomodel on 0/[] sstables
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.accountnumbertoprivateaccountidreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.accountnumbertoprivateaccountidreadmodel on 0/[] sstables
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2paccountidtouseridreadmodel on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtouseridreadmodel on 0/[] sstables
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
 
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.action_requests on 0/[] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.schemaversions on 1/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,592  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests on 0/[] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.schemaversions on 1/[BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,592  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:511 - Starting anticompaction for mobilepay_usersettings.action_requests_by_userid on 0/[] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests_by_userid on 0/[] sstables
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
 
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for mobilepay_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/mobilepay_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
 		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
 		//
 		static Regex RegExAntiCompStarting = new Regex(@".*Starting\s+anticompaction\s+for\s+(.+)\.(.+)\s+on\s+(\d+)\/.*",
@@ -6707,12 +6811,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,702  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx2@649911595(1.816MiB serialized bytes, 68460 ops, 0%/0% of on/off-heap limit)
 		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,766  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx2-tmp-ka-15170-Data.db (591.472KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
 
-		//INFO  [SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace='capitalonehomeloans', ColumnFamily='opus_ln_borrinfo') to free up room. Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.02/0.02
+		//INFO  [SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace='testks', ColumnFamily='opus_ln_borrinfo') to free up room. Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.02/0.02
 		//INFO[SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:905 - Enqueuing flush of opus_ln_borrinfo: 81624365 (2%) on-heap, 0 (0%) off-heap
 		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,323  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo@771558518(12.749MiB serialized bytes, 919772 ops, 2%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,978  Memtable.java:382 - Completed flushing /mnt/dse/data1/capitalonehomeloans/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/capitalonehomeloans-opus_ln_borrinfo-tmp-ka-1533-Data.db (4.631MiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,978  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo-tmp-ka-1533-Data.db (4.631MiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
 		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,024  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo.opus_ln_borrinfo_flag@1190857189(24.898KiB serialized bytes, 4724 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,027  Memtable.java:382 - Completed flushing /mnt/dse/data1/capitalonehomeloans/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/capitalonehomeloans-opus_ln_borrinfo.opus_ln_borrinfo_flag-tmp-ka-1622-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,027  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo.opus_ln_borrinfo_flag-tmp-ka-1622-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
 
 		//INFO[ScheduledTasks:1] 2016-10-25 04:07:19,781  ColumnFamilyStore.java:917 - Enqueuing flush of peers: 3036 (0%) on-heap, 35032 (0%) off-heap
 		//INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,782  Memtable.java:347 - Writing Memtable-peers@2118996997(0.473KiB serialized bytes, 1344 ops, 0%/0% of on/off-heap limit)
@@ -6721,6 +6825,17 @@ namespace DSEDiagnosticAnalyticParserConsole
 		//INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
 		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
 		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
+
+		//INFO  [BatchlogTasks:1] 2017-01-18 08:41:09,879  ColumnFamilyStore.java:905 - Enqueuing flush of batchlog: 116840 (0%) on-heap, 0 (0%) off-heap
+		//INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,879  Memtable.java:347 - Writing Memtable-batchlog@1865343912(61.708KiB serialized bytes, 425 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,880  Memtable.java:393 - Completed flushing /var/lib/cassandra/data/system/batchlog-0290003c977e397cac3efdfdc01d626b/system-batchlog-tmp-ka-46277-Data.db; nothing needed to be retained.Commitlog position was ReplayPosition(segmentId= 1483652760453, position= 4126122)
+
+		//INFO  [ValidationExecutor:306] 2017-01-16 08:07:41,862  ColumnFamilyStore.java:905 - Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
+		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,862  Memtable.java:347 - Writing Memtable-inode.cfs_parent_path@663956474(0.051KiB serialized bytes, 2 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,863  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
+		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,872  Memtable.java:347 - Writing Memtable-inode.cfs_path@911188026(0.051KiB serialized bytes, 1 ops, 0%/0% of on/off-heap limit)
+		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,873  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_path-tmp-ka-107-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
+
 
 		//Group1					Group2
 		//"'homeKS'"	"'homebase_tasktracking_ops_l3'"
@@ -6739,7 +6854,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 		//Group1																																			Group2		Group3
 		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
-		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)\s+\(([0-9,.]+)\s*([a-z]{0,3}).+",
+		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,3}))|\;.+nothing\s+needed.+retained).+",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		public static void ParseMemTblFlushFromLog(DataTable dtCLog,
@@ -6783,7 +6898,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			//foreach (var logGroupItem in flushLogItems)
 			{
 				var currentFlushes = new List<MemTableFlushLogInfo>();
-				var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
+				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
 
 				foreach (var item in logGroupItem.LogItems)
 				{
@@ -6801,7 +6916,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							IPAddress = logGroupItem.IPAddress,
 							EnqueuingStart = item.Timestamp,
 							Type = item.Task,
-							GroupIndicator = groupIndicator,
+							GroupIndicator = groupIndicator += ReferenceIncrementValue,
 							Table = RemoveQuotes(splitInfo[1].Trim()),
 							LogDataRow = item.DataRow
 						};
@@ -6834,7 +6949,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								IPAddress = logGroupItem.IPAddress,
 								EnqueuingStart = item.Timestamp,
 								Type = item.Task,
-								GroupIndicator = groupIndicator,
+								GroupIndicator = groupIndicator += ReferenceIncrementValue,
 								Table = RemoveQuotes(splitInfo[1].Trim()),
 								LogDataRow = item.DataRow
 							};
@@ -6847,6 +6962,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					//Group1																																			Group2		Group3
 					//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
+					// /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db
 					splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
 
 					if (splitInfo.Length > 1)
@@ -6868,6 +6984,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							{
 								var ksPos = ssTableFileName.IndexOf("-" + flushInfo.Table);
 								var ksName = ssTableFileName.Substring(0, ksPos);
+								string tblName = null;
 
 								if (ignoreKeySpaces.Contains(ksName))
 								{
@@ -6875,11 +6992,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 									continue;
 								}
 
+								tblName = flushInfo.Occurrences.Where(i => ssTableFileName.Contains(i.Table))
+																		.OrderByDescending(e => e.Table.Length).FirstOrDefault()?.Table;
+
 								flushInfo.AddUpdateOccurrence(ksName,
-																flushInfo.Table,
+																tblName == null ? flushInfo.Table : tblName,
 																splitInfo[1],
 																item.Timestamp,
-																ConvertInToMB(splitInfo[2], splitInfo[3]),
+																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
 																item.TaskId.Value,
 																groupIndicator);
 								continue;
@@ -6904,7 +7024,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																ksItem.TableName,
 																splitInfo[1],
 																item.Timestamp,
-																ConvertInToMB(splitInfo[2], splitInfo[3]),
+																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
 																item.TaskId.Value,
 																groupIndicator);
 								continue;
@@ -6938,7 +7058,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dtStatusLogRow["Timestamp"] = memTblFlush.Start;
 						dtStatusLogRow["Data Center"] = memTblFlush.DataCenter;
 						dtStatusLogRow["Node IPAddress"] = memTblFlush.IPAddress;
-						dtStatusLogRow["Pool/Cache Type"] = string.Format("Memtable Flush ({0})", memTblFlush.Type);
+						dtStatusLogRow["Pool/Cache Type"] = memTblFlush.Type;
 						dtStatusLogRow["KeySpace"] = memTblFlush.Keyspace;
 						dtStatusLogRow["Table"] = memTblFlush.Table;
 
@@ -7019,7 +7139,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					var grpStats = from item in currentFlushes
 								   where item.Completed && item.Duration > 0
 								   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
-												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
+												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table, item.Type } into g
 								   let latencyEnum = g.Select(i => i.Latency)
 								   let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
 								   let iorateEnum = g.Select(i => i.IORate)
@@ -7043,14 +7163,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 									   DCName = g.Key.DataCenter,
 									   IPAddress = g.Key.IPAddress,
 									   KeySpace = g.Key.Keyspace,
-									   Table = g.Key.Table
+									   Table = g.Key.Table,
+									   Type = g.Key.Type
 								   };
 
 					foreach (var stats in grpStats)
 					{
 						var dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7068,7 +7189,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7086,7 +7207,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7104,7 +7225,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7119,7 +7240,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7137,7 +7258,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7155,7 +7276,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7173,7 +7294,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7191,7 +7312,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7209,7 +7330,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7227,7 +7348,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
 						dataRow["Data Center"] = stats.DCName;
 						dataRow["Node IPAddress"] = stats.IPAddress;
 						dataRow["KeySpace"] = stats.KeySpace;
@@ -7258,16 +7379,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public int Duration;
 			public string Type;
 			public decimal IORate;
-			public long GroupIndicator;
+			public object GroupIndicator;
 		}
 
 		private class ConcurrentInfo
 		{
-			public ConcurrentInfo(ConcurrentItemInfo itemInfo)
+			public ConcurrentInfo(ConcurrentItemInfo itemInfo, DateTime? startTime = null)
 			{
 				this.DCName = itemInfo.DCName;
 				this.IPAddress = itemInfo.IPAddress;
-				this.StartFinish = new DateTimeRange(itemInfo.Start, itemInfo.Finish);
+				this.StartFinish = new DateTimeRange(startTime.HasValue ? startTime.Value : itemInfo.Start, itemInfo.Finish);
 				this.ConcurrentList.Add(itemInfo);
 			}
 
@@ -7277,7 +7398,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public List<ConcurrentItemInfo> ConcurrentList = new List<ConcurrentItemInfo>();
 		}
 
-		public static void ConcurrentCompactionFlush(DataTable dtNodeStats)
+		public static void ConcurrentCompactionFlush(Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack)
 		{
 			var compactionCollection = from info1 in CompactionOccurrences.Values.SelectMany(i => i)
 											 where info1 is CompactionLogInfo
@@ -7293,7 +7415,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												 Duration = compactionInfo.Duration,
 												 IORate = compactionInfo.IORate,
 												 GroupIndicator = compactionInfo.GroupIndicator,
-												 Type = "Compaction"
+												 Type = info1.Type
 											 };
 			var memtableFlushCollection = from info in MemTableFlushOccurrences.Values.SelectMany(i => i)
 											select new ConcurrentItemInfo()
@@ -7307,12 +7429,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 												 Duration = info.Duration,
 												 IORate = info.IORate,
 												 GroupIndicator = info.GroupIndicator,
-												 Type = "MemtableFlush"
+												 Type = info.Type
 											 };
 			ConcurrentInfo currentConcurrentItem = null;
 			var concurrentCollection = from info in compactionCollection.Union(memtableFlushCollection)
-									   group new { Item = info } by new { info.DCName, info.IPAddress } into g
-									   select (from i in g orderby i.Item.Start ascending, i.Item.Finish descending select i.Item)
+									   group new { Item = info } by new { info.DCName, info.IPAddress} into g
+									   select (from i in g orderby i.Item.Start ascending, i.Item.Finish ascending select i.Item)
 												.SelectWithPrevious((prevInfo, currentInfo)
 																			=>
 																		{
@@ -7337,7 +7459,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																			}
 																			if(prevInfo.Finish > currentInfo.Start)
 																			{
-																				currentConcurrentItem = new ConcurrentInfo(prevInfo);
+																				currentConcurrentItem = new ConcurrentInfo(prevInfo, currentInfo.Start);
 																				currentConcurrentItem.ConcurrentList.Add(currentInfo);
 																			}
 
@@ -7348,256 +7470,502 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 			if(concurrentCollection.Count() > 0)
 			{
-				initializeTPStatsDataTable(dtNodeStats);
-				int nbrAdded = 0;
+				DataTable dtNodeStats = null;
+				DataTable dtCStatusLog = null;
+				decimal nbrAdded = CLogSummaryInfo.IncrementGroupInicator();
+
+				if (dtLogStatusStack != null)
+				{
+					dtCStatusLog = new DataTable(ParserSettings.ExcelWorkSheetNodeStats + " Workbook - Concurrent Compaction");
+					InitializeStatusDataTable(dtCStatusLog);
+					dtLogStatusStack.Push(dtCStatusLog);
+				}
+
+				if (dtNodeStatsStack != null)
+				{
+					dtNodeStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Concurrent Compaction");
+					dtNodeStatsStack.Push(dtNodeStats);
+
+					initializeTPStatsDataTable(dtNodeStats);
+				}
 
 				foreach (var item in concurrentCollection.SelectMany(i => i))
 				{
-					#region NodeStats
-					++nbrAdded;
+					nbrAdded += ReferenceIncrementValue;
 
+					var listItemsDuration = item.ConcurrentList.Select(i => i.Duration);
+					var listItemsIORate = item.ConcurrentList.Select(i => i.IORate);
+					var maxDuration = listItemsDuration.Max();
+					var maxIORate = listItemsIORate.Max();
+					var minDuration = listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Min();
+					var minIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Min();
+					var avgDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Average();
+					var avgIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Average();
+					var stdDevDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+					var stdDevIORate = (decimal)listItemsIORate.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+
+					Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
+					var dcIpAddress = (item.DCName == null ? string.Empty : item.DCName) + "|" + item.IPAddress;
+					PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
+					var perfItems = nodePerfCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.Start.Value));
+					Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
+					GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
+					var gcItems = nodeGCCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.StartTime));
+
+					if (dtCStatusLog != null)
 					{
-						var dataRow = dtNodeStats.NewRow();
+						var compflushType = item.ConcurrentList.First().Type;
+						var keyspaces = string.Join(", ", item.ConcurrentList.Select(i => i.Keyspace).DuplicatesRemoved(i => i));
 
-						var maxDuration = item.ConcurrentList.Max(i => i.Duration);
-						var maxIORate = item.ConcurrentList.Max(i => i.IORate);
-						var minDuration = item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().Min();
-						var minIORate = item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().Min();
-						var avgDuration = (int)item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().Average();
-						var avgIORate = item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().Average();
-						var stdDevDuration = (int)item.ConcurrentList.Select(i => i.Duration).Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-						var stdDevIORate = (decimal)item.ConcurrentList.Select(i => i.IORate).Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+						var dataRow = dtCStatusLog.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Timestamp"] = item.StartFinish.Min;
 						dataRow["Data Center"] = item.DCName;
 						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						if (maxDuration > 0)
-						{
-							dataRow["Latency (ms)"] = maxDuration;
-						}
-						if (maxIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = maxIORate;
-						}
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
+						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Start";
+						dataRow["Reconciliation Reference"] = nbrAdded;
+						dataRow["Active"] = item.ConcurrentList.Count;
+						dataRow["KeySpace"] = keyspaces;
 
-						dtNodeStats.Rows.Add(dataRow);
+						dtCStatusLog.Rows.Add(dataRow);
 
-						dataRow = dtNodeStats.NewRow();
+						dataRow = dtCStatusLog.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
+						dataRow["Timestamp"] = item.StartFinish.Max;
 						dataRow["Data Center"] = item.DCName;
 						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						if (minDuration > 0)
-						{
-							dataRow["Latency (ms)"] = minDuration;
-						}
-						if (minIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = minIORate;
-						}
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
+						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Finish";
+						dataRow["Reconciliation Reference"] = nbrAdded;
+						dataRow["Completed"] = item.ConcurrentList.Count();
+						dataRow["KeySpace"] = keyspaces;
+						dataRow["Nbr GCs"] = gcItems == null ? 0 : gcItems.Count();
+						dataRow["Nbr Compactions"] = compflushType.StartsWith("Compaction") ? item.ConcurrentList.Count : 0;
+						dataRow["Nbr MemTable Flush Events"] = compflushType.StartsWith("MemTable") ? item.ConcurrentList.Count : 0;
+						dataRow["Nbr Exceptions"] = perfItems == null ? 0 : perfItems.Count();
+						dataRow["Latency (ms)"] = avgDuration;
+						dataRow["Rate (MB/s)"] = avgIORate;
+						dataRow["Duration (ms)"] = item.StartFinish.TimeSpan().TotalMilliseconds;
 
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = item.DCName;
-						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						if (avgDuration > 0)
-						{
-							dataRow["Latency (ms)"] = avgDuration;
-						}
-						if (avgIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = avgIORate;
-						}
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = item.DCName;
-						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						if (stdDevDuration > 0)
-						{
-							dataRow["Latency (ms)"] = stdDevDuration;
-						}
-						if (stdDevIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = stdDevIORate;
-						}
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = item.DCName;
-						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded;
-						dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
-						dataRow["IORate (mb/sec)"] = item.ConcurrentList.Sum(i => i.IORate);
-						dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-						dtNodeStats.Rows.Add(dataRow);
+						dtCStatusLog.Rows.Add(dataRow);
 					}
 
-					var concurrentTypes = from typeItem in item.ConcurrentList
-										  group typeItem by typeItem.Type into g
-										  let durationEnum = g.Select(i => i.Duration)
-										  let iorateEnum = g.Select(i => i.IORate)
-										  let durationEnum1 = durationEnum.Where(i => i > 0).DefaultIfEmpty()
-										  let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
-										  select new
-										  {
-											  DCName = item.DCName,
-											  IPAddress = item.IPAddress,
-											  Type = g.Key,
-											  RefIds = g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id),
-											  RefId = "#" + nbrAdded + "|" + string.Join(",", g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)),
-											  TimeStamps = g.Select(i => i.Start),
-											  MaxDuration = durationEnum.Max(),
-											  MinDuration = durationEnum1.Min(),
-											  AvgDuration = (int)durationEnum1.Average(),
-											  StdDuration = (int)durationEnum1.StandardDeviationP(),
-											  TotalDuration = durationEnum.Sum(),
-											  MaxIORate = iorateEnum.Max(),
-											  MinIORate = iorateEnum1.Min(),
-											  AvgIORate = iorateEnum1.Average(),
-											  StdIORate = (decimal)iorateEnum1.StandardDeviationP(),
-											  TotalIORate = iorateEnum.Sum(),
-											  Occurrences = g.Count()
-										  };
-
-					foreach (var typeItem in concurrentTypes)
+					if (dtNodeStats != null)
 					{
-						var dataRow = dtNodeStats.NewRow();
+						#region NodeStats
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} maximum", typeItem.Type);
-						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						if (typeItem.MaxDuration > 0)
 						{
-							dataRow["Latency (ms)"] = typeItem.MaxDuration;
+							var dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
+							dataRow["Reconciliation Reference"] = nbrAdded;
+							if (maxDuration > 0)
+							{
+								dataRow["Latency (ms)"] = maxDuration;
+							}
+							if (maxIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = maxIORate;
+							}
+							dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
+							dataRow["Reconciliation Reference"] = nbrAdded;
+							if (minDuration > 0)
+							{
+								dataRow["Latency (ms)"] = minDuration;
+							}
+							if (minIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = minIORate;
+							}
+							dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
+							dataRow["Reconciliation Reference"] = nbrAdded;
+							if (avgDuration > 0)
+							{
+								dataRow["Latency (ms)"] = avgDuration;
+							}
+							if (avgIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = avgIORate;
+							}
+							dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
+							dataRow["Reconciliation Reference"] = nbrAdded;
+							if (stdDevDuration > 0)
+							{
+								dataRow["Latency (ms)"] = stdDevDuration;
+							}
+							if (stdDevIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = stdDevIORate;
+							}
+							dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
+							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
+							dataRow["IORate (mb/sec)"] = item.ConcurrentList.Sum(i => i.IORate);
+							dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+							dtNodeStats.Rows.Add(dataRow);
 						}
-						if (typeItem.MaxIORate > 0)
+
+						var concurrentTypes = from typeItem in item.ConcurrentList
+											  group typeItem by typeItem.Type into g
+											  let durationEnum = g.Select(i => i.Duration)
+											  let iorateEnum = g.Select(i => i.IORate)
+											  let durationEnum1 = durationEnum.Where(i => i > 0).DefaultIfEmpty()
+											  let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
+											  let refIds = g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)
+											  select new
+											  {
+												  DCName = item.DCName,
+												  IPAddress = item.IPAddress,
+												  Type = g.Key,
+												  RefIds = refIds,
+												  RefId = nbrAdded.ToString() + "|" + string.Join(",", refIds),
+												  TimeStamps = g.Select(i => i.Start),
+												  MaxDuration = durationEnum.Max(),
+												  MinDuration = durationEnum1.Min(),
+												  AvgDuration = (int)durationEnum1.Average(),
+												  StdDuration = (int)durationEnum1.StandardDeviationP(),
+												  TotalDuration = durationEnum.Sum(),
+												  MaxIORate = iorateEnum.Max(),
+												  MinIORate = iorateEnum1.Min(),
+												  AvgIORate = iorateEnum1.Average(),
+												  StdIORate = (decimal)iorateEnum1.StandardDeviationP(),
+												  TotalIORate = iorateEnum.Sum(),
+												  Occurrences = g.Count()
+											  };
+
+						foreach (var typeItem in concurrentTypes)
 						{
-							dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
+							var dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} maximum", typeItem.Type);
+							dataRow["Reconciliation Reference"] = typeItem.RefId;
+							if (typeItem.MaxDuration > 0)
+							{
+								dataRow["Latency (ms)"] = typeItem.MaxDuration;
+							}
+							if (typeItem.MaxIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
+							}
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} minimum", typeItem.Type);
+							dataRow["Reconciliation Reference"] = typeItem.RefId;
+							if (typeItem.MinDuration > 0)
+							{
+								dataRow["Latency (ms)"] = typeItem.MinDuration;
+							}
+							if (typeItem.MinIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
+							}
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} mean", typeItem.Type);
+							dataRow["Reconciliation Reference"] = typeItem.RefId;
+							if (typeItem.AvgDuration > 0)
+							{
+								dataRow["Latency (ms)"] = typeItem.AvgDuration;
+							}
+							if (typeItem.AvgIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
+							}
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} standard deviation", typeItem.Type);
+							dataRow["Reconciliation Reference"] = typeItem.RefId;
+							if (typeItem.StdDuration > 0)
+							{
+								dataRow["Latency (ms)"] = typeItem.StdDuration;
+							}
+							if (typeItem.StdIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = typeItem.StdIORate;
+							}
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} Total", typeItem.Type);
+							dataRow["Reconciliation Reference"] = typeItem.RefId;
+							if (typeItem.TotalDuration > 0)
+							{
+								dataRow["Latency (ms)"] = typeItem.TotalDuration;
+							}
+							if (typeItem.TotalIORate > 0)
+							{
+								dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
+							}
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = typeItem.DCName;
+							dataRow["Node IPAddress"] = typeItem.IPAddress;
+							dataRow["Attribute"] = string.Format("Concurrent {0} occurrences", typeItem.Type);
+							dataRow["Reconciliation Reference"] = nbrAdded.ToString() + "|["
+																	+ string.Join(", ", typeItem.RefIds
+																							.SelectWithIndex((refId, idx)
+																								=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+																													refId,
+																													typeItem.TimeStamps.ElementAtOrDefault(idx)))) + "]";
+							dataRow["Occurrences"] = typeItem.Occurrences;
+
+							dtNodeStats.Rows.Add(dataRow);
 						}
-						dataRow["Occurrences"] = typeItem.Occurrences;
 
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} minimum", typeItem.Type);
-						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						if (typeItem.MinDuration > 0)
+						if (perfItems != null && perfItems.Count() > 0)
 						{
-							dataRow["Latency (ms)"] = typeItem.MinDuration;
+							//Concurrent Compaction/Flush Performance Warnings maximum
+							// Concurrent Compaction/Flush Performance Warnings minimum
+							// Concurrent Compaction/Flush Performance Warnings mean
+							//Concurrent Compaction/Flush Performance Warnings standard deviation
+
+							var perfCount = perfItems.Count();
+							var perfLatencies = perfItems.Select(i => i.Latency.Value);
+							var maxPerfLatency = perfLatencies.Max();
+							var minPerfLatency = perfLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
+							var avgPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
+							var stddevPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+							var refIds = nbrAdded.ToString() + "|["
+											+ string.Join(", ", perfItems
+																	.SelectWithIndex((refId, idx)
+																		=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+																							refId.GroupInd,
+																							perfItems.ElementAtOrDefault(idx).Timestamp.Value))) + "]";
+							var dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings maximum";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (maxPerfLatency > 0)
+							{
+								dataRow["Latency (ms)"] = maxPerfLatency;
+							}
+
+							dataRow["Occurrences"] = perfCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings minimum";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (minPerfLatency > 0)
+							{
+								dataRow["Latency (ms)"] = minPerfLatency;
+							}
+
+							dataRow["Occurrences"] = perfCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings mean";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (minPerfLatency > 0)
+							{
+								dataRow["Latency (ms)"] = avgPerfLatency;
+							}
+
+							dataRow["Occurrences"] = perfCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings standard deviation";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (stddevPerfLatency > 0)
+							{
+								dataRow["Latency (ms)"] = stddevPerfLatency;
+							}
+
+							dataRow["Occurrences"] = perfCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
 						}
-						if (typeItem.MinIORate > 0)
+
+						if (gcItems != null && gcItems.Count() > 0)
 						{
-							dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
+							//Concurrent Compaction/Flush GC maximum
+							// Concurrent Compaction/Flush GC minimum
+							// Concurrent Compaction/Flush GC mean
+							//Concurrent Compaction/Flush GC standard deviation
+
+							var gcCount = gcItems.Count();
+							var gcLatencies = gcItems.Select(i => i.GCLatency);
+							var maxGCLatency = gcLatencies.Max();
+							var minGCLatency = gcLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
+							var avgGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
+							var stddevGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+							var refIds = nbrAdded.ToString() + "|["
+											+ string.Join(", ", gcItems
+																	.SelectWithIndex((refId, idx)
+																		=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+																							refId.GroupIndicator,
+																							gcItems.ElementAtOrDefault(idx).LogTimestamp))) + "]";
+							var dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush GC maximum";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (maxGCLatency > 0)
+							{
+								dataRow["Latency (ms)"] = maxGCLatency;
+							}
+
+							dataRow["Occurrences"] = gcCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush GC minimum";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (minGCLatency > 0)
+							{
+								dataRow["Latency (ms)"] = minGCLatency;
+							}
+
+							dataRow["Occurrences"] = gcCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush GC mean";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (minGCLatency > 0)
+							{
+								dataRow["Latency (ms)"] = avgGCLatency;
+							}
+
+							dataRow["Occurrences"] = gcCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
+							dataRow = dtNodeStats.NewRow();
+
+							dataRow["Source"] = "Cassandra Log";
+							dataRow["Data Center"] = item.DCName;
+							dataRow["Node IPAddress"] = item.IPAddress;
+							dataRow["Attribute"] = "Concurrent Compaction/Flush GC standard deviation";
+							dataRow["Reconciliation Reference"] = refIds;
+
+							if (stddevGCLatency > 0)
+							{
+								dataRow["Latency (ms)"] = stddevGCLatency;
+							}
+
+							dataRow["Occurrences"] = gcCount;
+
+							dtNodeStats.Rows.Add(dataRow);
+
 						}
-						dataRow["Occurrences"] = typeItem.Occurrences;
 
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} mean", typeItem.Type);
-						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						if (typeItem.AvgDuration > 0)
-						{
-							dataRow["Latency (ms)"] = typeItem.AvgDuration;
-						}
-						if (typeItem.AvgIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
-						}
-						dataRow["Occurrences"] = typeItem.Occurrences;
-
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} standard deviation", typeItem.Type);
-						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						if (typeItem.StdDuration > 0)
-						{
-							dataRow["Latency (ms)"] = typeItem.StdDuration;
-						}
-						if (typeItem.StdIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = typeItem.StdIORate;
-						}
-						dataRow["Occurrences"] = typeItem.Occurrences;
-
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} Total", typeItem.Type);
-						dataRow["Reconciliation Reference"] = typeItem.RefId;
-						if (typeItem.TotalDuration > 0)
-						{
-							dataRow["Latency (ms)"] = typeItem.TotalDuration;
-						}
-						if (typeItem.TotalIORate > 0)
-						{
-							dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
-						}
-						dataRow["Occurrences"] = typeItem.Occurrences;
-
-						dtNodeStats.Rows.Add(dataRow);
-
-						dataRow = dtNodeStats.NewRow();
-
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = typeItem.DCName;
-						dataRow["Node IPAddress"] = typeItem.IPAddress;
-						dataRow["Attribute"] = string.Format("Concurrent {0} occurrences", typeItem.Type);
-						dataRow["Reconciliation Reference"] = "#" + nbrAdded + "|["
-																+ string.Join(", ", typeItem.RefIds
-																						.SelectWithIndex((refId, idx)
-																							=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
-																												refId,
-																												typeItem.TimeStamps.ElementAtOrDefault(idx)))) + "]";
-						dataRow["Occurrences"] = typeItem.Occurrences;
-
-						dtNodeStats.Rows.Add(dataRow);
+						#endregion
 					}
-
-					#endregion
 				}
 
 				Logger.Instance.InfoFormat("Adding Concurrent Compactions/Flushes Occurrences ({0}) to TPStats", nbrAdded);
