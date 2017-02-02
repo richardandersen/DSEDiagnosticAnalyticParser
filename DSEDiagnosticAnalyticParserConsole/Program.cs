@@ -482,7 +482,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled() && !string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
-                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
+                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
                     IEnumerable<IFilePath> alterFiles;
 
                     if (alterPath.HasWildCardPattern())
@@ -511,8 +511,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         string ipAddress;
                         string dcName;
+						var nodeInfoFound = ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName);
 
-                        if (ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName))
+						//No Node Info, look at parent directories...
+						if (!nodeInfoFound && element.ParentDirectoryPath != null)
+						{
+							nodeInfoFound = element.ParentDirectoryPath.PathResolved.Replace(diagPath.PathResolved, string.Empty)
+												.Split(System.IO.Path.DirectorySeparatorChar)
+												.Any(f => ProcessFileTasks.DetermineIPDCFromFileName(f, dtRingInfo, out ipAddress, out dcName));
+						}
+
+						if (nodeInfoFound)
                         {
                             if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                             {
@@ -757,10 +766,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Logger.Dump("DDL was not found which can cause missing information in the Excel workbooks.", Logger.DumpType.Warning);
                     Program.ConsoleWarnings.Increment("DDL Not Found");
                 }
-
-                if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
+				#endregion
+				#region alternative file paths (log)
+				if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
-                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
+                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
                     List<IFilePath> alterFiles = null;
 
                     if (alterPath.HasWildCardPattern())
@@ -783,8 +793,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         string ipAddress;
                         string dcName;
+						var nodeInfoFound = ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName);
 
-                        if (ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName))
+						//No Node Info, look at parent directories...
+						if(!nodeInfoFound && element.ParentDirectoryPath != null)
+						{
+							nodeInfoFound = element.ParentDirectoryPath.PathResolved.Replace(diagPath.PathResolved, string.Empty)
+												.Split(System.IO.Path.DirectorySeparatorChar)
+												.Any(f => ProcessFileTasks.DetermineIPDCFromFileName(f, dtRingInfo, out ipAddress, out dcName));
+						}
+
+						if (nodeInfoFound)
                         {
                             if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                             {
@@ -949,14 +968,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     {
                                         IFilePath archivedFilePath = null;
 
-										if (diagFilePath.ParentDirectoryPath.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
+										if (diagFilePath.ParentDirectoryPath.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
+																						out archivedFilePath))
                                         {
 											Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
 
 											if (archivedFilePath.HasWildCardPattern())
                                             {
 												archivedFilePaths = archivedFilePath.GetWildCardMatches()
-                                                                                        .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
+                                                                                        .Where(p => p.IsFilePath
+																										&& p.PathResolved != diagFilePath.PathResolved
+																										&& !ParserSettings.ExcludePathName(p.Name))
                                                                                         .Cast<IFilePath>()
                                                                                         .ToArray();
 											}
@@ -1002,9 +1024,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 											if(ParserSettings.MaxNbrAchievedLogFiles > 0)
 											{
 												archivedFilePaths = archivedFilePaths
-																		.OrderByDescending(p => p.FileName)
+																		.OrderByDescending(p => p.GetLastWriteTime())
+																		.ThenBy(p => p.FileName)
 																		.GetRange(0, ParserSettings.MaxNbrAchievedLogFiles)
 																		.ToArray();
+												Logger.Instance.InfoFormat("Node: {0} Achieved Files: {1}",
+																			ipAddress,
+																			string.Join(", ", archivedFilePaths.Select(i => i.FileName)));
 											}
 
 											Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
@@ -1323,7 +1349,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             : Task<int>
                                                 .Factory
                                                 .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
-				Task<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.ReadRepairLogInfo>>();
+				Task<IEnumerable<ProcessFileTasks.RepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.RepairLogInfo>>();
 
 				if (logParsingTasks.Count > 0)
                 {
