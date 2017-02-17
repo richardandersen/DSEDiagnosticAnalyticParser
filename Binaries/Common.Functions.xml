@@ -4213,7 +4213,7 @@
             <typeparam name="T">Source collection&apos;s type</typeparam>
             <param name="source">Source colleciton that will be selected</param>
             <returns>
-            Returns true when more than one occurrence exists in the source collection or false otherwise 
+            Returns true when more than one occurrence exists in the source collection or false otherwise
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.HasAtLeastOneElement``1(System.Collections.Generic.IEnumerable{``0})">
@@ -4233,109 +4233,109 @@
             <returns>True to indicate that the collection has no elements</returns>
         </member>
         <member name="M:Common.LinqExtensions.SelectWithPrevious``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,``1})">
-            <summary>
-            Selects the current and prior elements in the collection.
-            </summary>
-            <typeparam name="TSource">Source collection&apos;s type</typeparam>
-            <typeparam name="TResult">Return type</typeparam>
-            <param name="source">Source colleciton that will be selected</param>
-            <param name="projection">
-            The function to apply to each source elements. 
+             <summary>
+             Selects the current and prior elements in the collection.
+             </summary>
+             <typeparam name="TSource">Source collection&apos;s type</typeparam>
+             <typeparam name="TResult">Return type</typeparam>
+             <param name="source">Source colleciton that will be selected</param>
+             <param name="projection">
+             The function to apply to each source elements.
             
-                The first parameter of the function represents the first element upon initial entry and the prior element on additional iterations. 
-                The second parameter of the function represents the second element upon initial entry and the currently selected element on additional iterations.
-                The third parameter is the returned result of type TResult.
-            </param>
-            <returns>A collection of transfored elements based on the projection function</returns>
-            <example>
-            <code>
-                var list = new List&lt;DateTime&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01), new DateTime(2013, 02, 01)};
-                var query = list.SelectWithPrevious((prior, current) => new { Kind = current.Kind, Prior = prior, Current = current, DateDiff = (current - prior).Days });
-                
-                /*
-                    This code produces the following output:
-                    
-                    IEnumerable&lt;&gt; (3 items) 
-                    Kind        Prior                   Current                 DateDiff
-                    Unspecified 1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM    31 
-                    Unspecified 2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM    335 
-                    Unspecified 1/1/2013 12:00:00 AM    2/1/2013 12:00:00 AM    31  
-               */
-            </code>
-                
-            </example>
+                 The first parameter of the function represents the first element upon initial entry and the prior element on additional iterations.
+                 The second parameter of the function represents the second element upon initial entry and the currently selected element on additional iterations.
+                 The third parameter is the returned result of type TResult.
+             </param>
+             <returns>A collection of transfored elements based on the projection function</returns>
+             <example>
+             <code>
+                 var list = new List&lt;DateTime&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01), new DateTime(2013, 02, 01)};
+                 var query = list.SelectWithPrevious((prior, current) => new { Kind = current.Kind, Prior = prior, Current = current, DateDiff = (current - prior).Days });
+            
+                 /*
+                     This code produces the following output:
+            
+                     IEnumerable&lt;&gt; (3 items)
+                     Kind        Prior                   Current                 DateDiff
+                     Unspecified 1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM    31
+                     Unspecified 2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM    335
+                     Unspecified 1/1/2013 12:00:00 AM    2/1/2013 12:00:00 AM    31
+                */
+             </code>
+            
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.SelectWithIndex``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Int32,``1})">
-            <summary>
-            Selects the current element with it&apos;s assocated index within the collection.
-            </summary>
-            <typeparam name="TSource">Source collection&apos;s type</typeparam>
-            <typeparam name="TResult">Return type</typeparam>
-            <param name="source">Source colleciton that will be selected</param>
-            <param name="projection">
-            The function to apply to each source elements. 
+             <summary>
+             Selects the current element with it&apos;s assocated index within the collection.
+             </summary>
+             <typeparam name="TSource">Source collection&apos;s type</typeparam>
+             <typeparam name="TResult">Return type</typeparam>
+             <param name="source">Source colleciton that will be selected</param>
+             <param name="projection">
+             The function to apply to each source elements.
             
-                The first parameter of the function represents the selected element. 
-                The second parameter of the function represents the selected element&apos;s index within the collection.
-                The third parameter is the returned result of type TResult.
-            </param>
-            <returns>A collection of transfored elements based on the projection function</returns>
-            <example>
-            <code>
-                var list = new List&lt;DateTime&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01), new DateTime(2013, 02, 01)};
-                var query = list.SelectWithIndex((current, index) => new { Current = current, Index = index });
-                
-                /*
-                    This code produces the following output:
-                    
-                    IEnumerable&lt;&gt; (4 items) 
-                    Current                 Index   
-                    1/1/2012 12:00:00 AM    0
-                    2/1/2012 12:00:00 AM    1
-                    1/1/2013 12:00:00 AM    2
-                    2/1/2013 12:00:00 AM    3
-               */
-            </code>
-                
-            </example>
-            <remarks>
-                In .Net 4.5 framework Linq Select method now has a version that contains the index. 
-            </remarks>
+                 The first parameter of the function represents the selected element.
+                 The second parameter of the function represents the selected element&apos;s index within the collection.
+                 The third parameter is the returned result of type TResult.
+             </param>
+             <returns>A collection of transfored elements based on the projection function</returns>
+             <example>
+             <code>
+                 var list = new List&lt;DateTime&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01), new DateTime(2013, 02, 01)};
+                 var query = list.SelectWithIndex((current, index) => new { Current = current, Index = index });
+            
+                 /*
+                     This code produces the following output:
+            
+                     IEnumerable&lt;&gt; (4 items)
+                     Current                 Index
+                     1/1/2012 12:00:00 AM    0
+                     2/1/2012 12:00:00 AM    1
+                     1/1/2013 12:00:00 AM    2
+                     2/1/2013 12:00:00 AM    3
+                */
+             </code>
+            
+             </example>
+             <remarks>
+                 In .Net 4.5 framework Linq Select method now has a version that contains the index.
+             </remarks>
         </member>
         <member name="M:Common.LinqExtensions.GetRange``2(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32,System.Func{``0,System.Int32,``1})">
-            <summary>
-            Returns a sub-range within the collection based on startIndex and nbrElements. 
-            Each element with the startIndex and nbrElments can be transformed with the projection expression.
-            </summary>
-            <typeparam name="TSource">Element Type within the Collection</typeparam>
-            <typeparam name="TResult">New Element Type transformed within the result collection</typeparam>
-            <param name="source">source collection</param>
-            <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.        
-            </param>
-            <param name="nbrElements">
-            Number of elements to included in the result collection.
+             <summary>
+             Returns a sub-range within the collection based on startIndex and nbrElements.
+             Each element with the startIndex and nbrElments can be transformed with the projection expression.
+             </summary>
+             <typeparam name="TSource">Element Type within the Collection</typeparam>
+             <typeparam name="TResult">New Element Type transformed within the result collection</typeparam>
+             <param name="source">source collection</param>
+             <param name="startIndex">
+             Starting index within the source collection. If index is out of range, an empty collection is returned.
+             </param>
+             <param name="nbrElements">
+             Number of elements to included in the result collection.
             
-            The number of elements can be greater then the resulting collection. 
-            </param>
-            <param name="projection">
-            Expression used to transform TSource element.
-            </param>
-            <returns>
-            Result collection or an empty collection
-            </returns>
+             The number of elements can be greater then the resulting collection.
+             </param>
+             <param name="projection">
+             Expression used to transform TSource element.
+             </param>
+             <returns>
+             Result collection or an empty collection
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.GetRange``2(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{``0,System.Int32,``1})">
             <summary>
-            Returns a sub-range within the collection based on startIndex. 
+            Returns a sub-range within the collection based on startIndex.
             Each element with the startIndex and nbrElments can be transformed with the projection expression.
             </summary>
             <typeparam name="TSource">Element Type within the Collection</typeparam>
             <typeparam name="TResult">New Element Type transformed within the result collection</typeparam>
             <param name="source">source collection</param>
             <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.        
-            </param>        
+            Starting index within the source collection. If index is out of range, an empty collection is returned.
+            </param>
             <param name="projection">
             Expression used to transform TSource element.
             </param>
@@ -4345,14 +4345,14 @@
         </member>
         <member name="M:Common.LinqExtensions.GetRange``2(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{``0,System.Int32,System.Boolean},System.Func{``0,System.Int32,``1})">
             <summary>
-            Returns a sub-range within the collection based on startIndex. 
+            Returns a sub-range within the collection based on startIndex.
             Each element with the startIndex and nbrElments can be transformed with the projection expression.
             </summary>
             <typeparam name="TSource">Element Type within the Collection</typeparam>
             <typeparam name="TResult">New Element Type transformed within the result collection</typeparam>
             <param name="source">source collection</param>
             <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.        
+            Starting index within the source collection. If index is out of range, an empty collection is returned.
             </param>
             <param name="until">
             Predicate used to determine end of iteration (returns true). First argument is the element and the second is the index.
@@ -4365,126 +4365,126 @@
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.GetRange``1(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32)">
-            <summary>
-            Returns a sub-range within the collection based on startIndex and nbrElements. 
-            </summary>
-            <typeparam name="TSource">Element Type within the Collection</typeparam>        
-            <param name="source">source collection</param>
-            <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.       
-            </param>
-            <param name="nbrElements">
-            Number of elements to included in the result collection.
+             <summary>
+             Returns a sub-range within the collection based on startIndex and nbrElements.
+             </summary>
+             <typeparam name="TSource">Element Type within the Collection</typeparam>
+             <param name="source">source collection</param>
+             <param name="startIndex">
+             Starting index within the source collection. If index is out of range, an empty collection is returned.
+             </param>
+             <param name="nbrElements">
+             Number of elements to included in the result collection.
             
-            The number of elements can be greater then the resulting collection. 
-            </param>
-            <returns>
-            Result collection or an empty collection
-            </returns>
+             The number of elements can be greater then the resulting collection.
+             </param>
+             <returns>
+             Result collection or an empty collection
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.GetRange``1(System.Collections.Generic.IEnumerable{``0},System.Int32)">
             <summary>
             Returns a sub-range within the collection based on startIndex for all remaining items.
             </summary>
-            <typeparam name="TSource">Element Type within the Collection</typeparam>        
+            <typeparam name="TSource">Element Type within the Collection</typeparam>
             <param name="source">source collection</param>
             <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.      
-            </param>        
+            Starting index within the source collection. If index is out of range, an empty collection is returned.
+            </param>
             <returns>
             Result collection or an empty collection
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.GetRange``1(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{``0,System.Int32,System.Boolean})">
             <summary>
-            Returns a sub-range within the collection based on startIndex. 
+            Returns a sub-range within the collection based on startIndex.
             Each element with the startIndex and nbrElments can be transformed with the projection expression.
             </summary>
-            <typeparam name="TSource">Element Type within the Collection</typeparam>       
+            <typeparam name="TSource">Element Type within the Collection</typeparam>
             <param name="source">source collection</param>
             <param name="startIndex">
-            Starting index within the source collection. If index is out of range, an empty collection is returned.        
+            Starting index within the source collection. If index is out of range, an empty collection is returned.
             </param>
             <param name="until">
             Predicate used to determine end of iteration (returns true). First argument is the element and the second is the index.
-            </param>       
+            </param>
             <returns>
             Result collection or an empty collection
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.CopyTo``1(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32,``0[]@,System.Int32)">
-            <summary>
-            This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
-            </summary>
-            <typeparam name="T">The elemnet type of the array and range</typeparam>
-            <param name="target">The array that will be updated/appended to</param>
-            <param name="targetStartingIndex">The starting index into the array where the elements from source will be added from</param>
-            <param name="source">The source range where the elements will be taken copied from</param>
-            <param name="sourceStartingIndex">The starting index into the source range</param>
-            <param name="sourceCount">The number of elements that will be copied from the source</param>
-            <example>
-            <code>
-            	var targetArray = new int[] { 1, 2, 3, 4, 5 };
-            	var sourceList = new List&lt;int&gt;() { 5, 6, 7, 8, 9 };
-            	
-            	sourceList.CopyTo(1, 3, ref targetArray, 5);
-            	
-            	Dump(targetArray); // { 1, 2, 3, 4, 5, 6, 7, 8 }
-            	
-            	targetArray = new int[] { 1, 2, 3, 4, 5 };
-            	sourceList = new List&lt;int&gt; { 3, 4, 5, 6, 7, 8, 9 };
-            	
-            	sourceList.CopyTo(0, 6, ref targetArray);
-            	
-            	Dump(targetArray); // { 1, 2, 3, 4, 5, 6, 7, 8 }
+             <summary>
+             This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
+             </summary>
+             <typeparam name="T">The elemnet type of the array and range</typeparam>
+             <param name="target">The array that will be updated/appended to</param>
+             <param name="targetStartingIndex">The starting index into the array where the elements from source will be added from</param>
+             <param name="source">The source range where the elements will be taken copied from</param>
+             <param name="sourceStartingIndex">The starting index into the source range</param>
+             <param name="sourceCount">The number of elements that will be copied from the source</param>
+             <example>
+             <code>
+            		var targetArray = new int[] { 1, 2, 3, 4, 5 };
+            		var sourceList = new List&lt;int&gt;() { 5, 6, 7, 8, 9 };
             
-            </code>
-            </example>
-            <seealso cref="M:Common.ArrayExtensions.AddRange``1(``0[],System.Int32,System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32)"/>
+            		sourceList.CopyTo(1, 3, ref targetArray, 5);
+            
+            		Dump(targetArray); // { 1, 2, 3, 4, 5, 6, 7, 8 }
+            
+            		targetArray = new int[] { 1, 2, 3, 4, 5 };
+            		sourceList = new List&lt;int&gt; { 3, 4, 5, 6, 7, 8, 9 };
+            
+            		sourceList.CopyTo(0, 6, ref targetArray);
+            
+            		Dump(targetArray); // { 1, 2, 3, 4, 5, 6, 7, 8 }
+            
+             </code>
+             </example>
+             <seealso cref="M:Common.ArrayExtensions.AddRange``1(``0[],System.Int32,System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32)"/>
         </member>
         <member name="M:Common.LinqExtensions.CopyTo``1(System.Collections.Generic.IEnumerable{``0},``0[]@,System.Int32)">
-            <summary>
-            This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
-            </summary>
-            <typeparam name="T">The elemnet type of the array and range</typeparam>
-            <param name="target">The array that will be updated/appended to</param>
-            <param name="targetStartingIndex">The starting index into the array where the elements from source will be added from</param>
-            <param name="source">The source range where the elements will be taken copied from</param>		
-            <example>
-            <code>
-            	var targetArray = new int[] { 1, 2, 3, 4, 5 };
-            	var sourceList = new List&lt;int&gt;() { 6, 7, 8, 9 };
-            	
-            	sourceList.CopyTo(ref targetArray, 0);
-            	
-            	Dump(targetArray); // { 6, 7, 8, 9, 5 }
-            			
-            </code>
-            </example>
-            <seealso cref="M:Common.ArrayExtensions.AddRange``1(``0[]@,System.Int32,System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32)"/>
+             <summary>
+             This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
+             </summary>
+             <typeparam name="T">The elemnet type of the array and range</typeparam>
+             <param name="target">The array that will be updated/appended to</param>
+             <param name="targetStartingIndex">The starting index into the array where the elements from source will be added from</param>
+             <param name="source">The source range where the elements will be taken copied from</param>
+             <example>
+             <code>
+            		var targetArray = new int[] { 1, 2, 3, 4, 5 };
+            		var sourceList = new List&lt;int&gt;() { 6, 7, 8, 9 };
+            
+            		sourceList.CopyTo(ref targetArray, 0);
+            
+            		Dump(targetArray); // { 6, 7, 8, 9, 5 }
+            
+             </code>
+             </example>
+             <seealso cref="M:Common.ArrayExtensions.AddRange``1(``0[]@,System.Int32,System.Collections.Generic.IEnumerable{``0},System.Int32,System.Int32)"/>
         </member>
         <member name="M:Common.LinqExtensions.CopyTo``1(System.Collections.Generic.IEnumerable{``0},``0[]@)">
-            <summary>
-            This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
-            </summary>
-            <typeparam name="T">The elemnet type of the array and range</typeparam>
-            <param name="target">The array that will be updated/appended to</param>
-            <param name="source">The source range where the elements will be taken copied from</param>		
-            <example>
-            <code>
-            	var targetArray = new int[] { 1, 2, 3, 4, 5 };
-            	var sourceList = new List&lt;int&gt;() { 6, 7, 8, 9 };
-            	
-            	sourceList.CopyTo(ref targetArray);
-            	
-            	Dump(targetArray); // { 6, 7, 8, 9, 5 }
-            			
-            </code>
-            </example>
+             <summary>
+             This will copy the source range into the target array and if needed the target array will grow only if the source elements cannot otherwise be added.
+             </summary>
+             <typeparam name="T">The elemnet type of the array and range</typeparam>
+             <param name="target">The array that will be updated/appended to</param>
+             <param name="source">The source range where the elements will be taken copied from</param>
+             <example>
+             <code>
+            		var targetArray = new int[] { 1, 2, 3, 4, 5 };
+            		var sourceList = new List&lt;int&gt;() { 6, 7, 8, 9 };
+            
+            		sourceList.CopyTo(ref targetArray);
+            
+            		Dump(targetArray); // { 6, 7, 8, 9, 5 }
+            
+             </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.Concat``1(System.Collections.Generic.IEnumerable{``0},``0)">
             <summary>
-            Concatenates (Adds) item to the end of the collection. 
+            Concatenates (Adds) item to the end of the collection.
             </summary>
             <typeparam name="TSource">a collection of TSource type items</typeparam>
             <param name="source">The collection used to add/concatenate the item into</param>
@@ -4521,87 +4521,87 @@
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.WithContext``1(System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            Selects the prior, current, and next elements in the collection returning a collection of ElementWithContext structures.
-            </summary>
-            <typeparam name="T">Source element&apos;s data type</typeparam>
-            <param name="source">A collection of elements</param>
-            <returns>a collection of ElementWithContext structures</returns>
-            <remarks>
-                Upon initial iteration the Previous property of the ElementWithContext structure will contain the default value of the element&apos;s data type.
-                Upon the last iteration the Next property of the ElementWithContext structure will contain the default value of the element&apos;s data type.
-                
-                To determine if a value type is valid upon initial and/or last iteration a nullable type can be used.
-            </remarks>
-            <example>
-            <code>
-            var list = new List&lt;DateTime?&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01)};
-            var query = list.WithContext();
+             <summary>
+             Selects the prior, current, and next elements in the collection returning a collection of ElementWithContext structures.
+             </summary>
+             <typeparam name="T">Source element&apos;s data type</typeparam>
+             <param name="source">A collection of elements</param>
+             <returns>a collection of ElementWithContext structures</returns>
+             <remarks>
+                 Upon initial iteration the Previous property of the ElementWithContext structure will contain the default value of the element&apos;s data type.
+                 Upon the last iteration the Next property of the ElementWithContext structure will contain the default value of the element&apos;s data type.
             
-                /*
-                    This code produces the following output:
-                    
-                    IEnumerable&lt;ElementWithContext&lt;DateTime?&gt;&gt; (3 items)  
-                    Previous                Current                 Next                     
-                    null                    1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM    
-                    1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM    
-                    2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM    null                    
-               */
-                       
-            </code>
-            </example>
+                 To determine if a value type is valid upon initial and/or last iteration a nullable type can be used.
+             </remarks>
+             <example>
+             <code>
+             var list = new List&lt;DateTime?&gt;() { new DateTime(2012, 01, 01), new DateTime(2012, 02, 01), new DateTime(2013, 01, 01)};
+             var query = list.WithContext();
+            
+                 /*
+                     This code produces the following output:
+            
+                     IEnumerable&lt;ElementWithContext&lt;DateTime?&gt;&gt; (3 items)
+                     Previous                Current                 Next
+                     null                    1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM
+                     1/1/2012 12:00:00 AM    2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM
+                     2/1/2012 12:00:00 AM    1/1/2013 12:00:00 AM    null
+                */
+            
+             </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.Scalar``2(System.Collections.Generic.IEnumerable{``0},System.Int32,System.Func{``0,``1[],System.Boolean},System.Func{``1,``1,``1},``1)">
-            <summary>
-            Returns the Scalar Value of a collection of objects across multiple fields.
-            </summary>
-            <typeparam name="TSource">The type of object within the collection</typeparam>
-            <typeparam name="TElement">Element type of the field within the object</typeparam>
-            <param name="source">Collection of objects</param>
-            <param name="nbrFields">The number of fields used to determine the Scalar value</param>
-            <param name="getValueAccessor">
-            The function that is used to access the fields with the object. 
+             <summary>
+             Returns the Scalar Value of a collection of objects across multiple fields.
+             </summary>
+             <typeparam name="TSource">The type of object within the collection</typeparam>
+             <typeparam name="TElement">Element type of the field within the object</typeparam>
+             <param name="source">Collection of objects</param>
+             <param name="nbrFields">The number of fields used to determine the Scalar value</param>
+             <param name="getValueAccessor">
+             The function that is used to access the fields with the object.
             
-            This function will take two arguments. They are:
-                The source Object from the collection
-                An array of element of TSource types where each index represents one of the fields used to determine the Scalar Value.
-                Note that the previous values stored within the array will be presented on the next iteration of the collection.
-                
-            This function should return true to indicate that it should be used in the call to the Scalar function.
-            </param>
-            <param name="scalarFuncation">
-            The Scalar function used to determine the returned value.
+             This function will take two arguments. They are:
+                 The source Object from the collection
+                 An array of element of TSource types where each index represents one of the fields used to determine the Scalar Value.
+                 Note that the previous values stored within the array will be presented on the next iteration of the collection.
             
-            The Scalar function takes two arguments. They are:
-                The first argument is the previous Scalar value from the last call the the Scalar function.
-                The second argument is the element from within the accessors array populated by the getValueAccessor function. 
-                
-            This function returns a value based on the arguments.
-            </param>
-            <param name="defaultInitialValue">
-            The initial default value used in the initial call of the Scalar Function (first argument).
+             This function should return true to indicate that it should be used in the call to the Scalar function.
+             </param>
+             <param name="scalarFuncation">
+             The Scalar function used to determine the returned value.
             
-            Note that the accessor array will contain the data type&apos;s default value on initial call to the getValueAccessor function (second argument).
-            </param>
-            <returns>
-            The Scalar value based on a set of fields within a collection.
-            </returns>
-            <example>
-                <code>
-                    var source = new Tuple&lt;int, int&gt;[] { new Tuple&lt;int, int&gt;(){ 1 , 2 },
-                                                            new Tuple&lt;int, int&gt;(){ 3 , 4 },
-                                                            new Tuple&lt;int, int&gt;(){ 5 , 6 },
-                                                            new Tuple&lt;int, int&gt;(){ 7 , 8 },
-                                                            new Tuple&lt;int, int&gt;(){ 9 , 10 } };
-                    var minValue = source.Scalar(2, //Two fields (Item1 and Item2 within Tuple)
-                                                    (tupleItem, accessorArray) =&gt; { accessorArray[0] = tupleItem.Item1; accessorArray[1] = tupleItem.Item2; return true },
-                                                    (minValue, tupleValue) =&gt; Math.Min(minValue, tupleValue) );
-                                                    
-                    var maxValue = source.Scalar(2, //Two fields (Item1 and Item2 within Tuple)
-                                                    (tupleItem, accessorArray) =&gt; { accessorArray[0] = tupleItem.Item1; accessorArray[1] = tupleItem.Item2; return true },
-                                                    (minValue, tupleValue) =&gt; Math.Max(minValue, tupleValue) );
-                </code>
-            </example>
+             The Scalar function takes two arguments. They are:
+                 The first argument is the previous Scalar value from the last call the the Scalar function.
+                 The second argument is the element from within the accessors array populated by the getValueAccessor function.
+            
+             This function returns a value based on the arguments.
+             </param>
+             <param name="defaultInitialValue">
+             The initial default value used in the initial call of the Scalar Function (first argument).
+            
+             Note that the accessor array will contain the data type&apos;s default value on initial call to the getValueAccessor function (second argument).
+             </param>
+             <returns>
+             The Scalar value based on a set of fields within a collection.
+             </returns>
+             <example>
+                 <code>
+                     var source = new Tuple&lt;int, int&gt;[] { new Tuple&lt;int, int&gt;(){ 1 , 2 },
+                                                             new Tuple&lt;int, int&gt;(){ 3 , 4 },
+                                                             new Tuple&lt;int, int&gt;(){ 5 , 6 },
+                                                             new Tuple&lt;int, int&gt;(){ 7 , 8 },
+                                                             new Tuple&lt;int, int&gt;(){ 9 , 10 } };
+                     var minValue = source.Scalar(2, //Two fields (Item1 and Item2 within Tuple)
+                                                     (tupleItem, accessorArray) =&gt; { accessorArray[0] = tupleItem.Item1; accessorArray[1] = tupleItem.Item2; return true },
+                                                     (minValue, tupleValue) =&gt; Math.Min(minValue, tupleValue) );
+            
+                     var maxValue = source.Scalar(2, //Two fields (Item1 and Item2 within Tuple)
+                                                     (tupleItem, accessorArray) =&gt; { accessorArray[0] = tupleItem.Item1; accessorArray[1] = tupleItem.Item2; return true },
+                                                     (minValue, tupleValue) =&gt; Math.Max(minValue, tupleValue) );
+                 </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.Scalar2``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1[],System.Boolean},System.Func{``1,``1,``1},System.Func{``1,``1,``1},``1,``1)">
              <summary>
@@ -4612,39 +4612,39 @@
              <param name="source">The collection that will be used to determine the Scalar values</param>
              <param name="getValueAccessor">
              The access function used to retrieve the values used by the Scalar functions.
-             
+            
              This function take two arguments. They are:
                  The first argument is the collection element item.
                  The second argument is a two-dimensional array:
                      the first element would be the value used with the Scalar function one
                      the second element would be the value used with the Scalar function two
                     Note that previous values from the last iteration will be presented on the current iteration.
-                     
+            
                  This function should return true to indicate that these values should be used with the Scalar functions.
              </param>
              <param name="scalarFunction1">
             The Scalar function used to determine the first item with the returned Tuple value.
-             
+            
              The Scalar function takes two arguments. They are:
                  The first argument is the previous Scalar one value from the last call the the Scalar function.
-                 The second argument is the element from within the accessors array populated by the getValueAccessor function. 
-                 
+                 The second argument is the element from within the accessors array populated by the getValueAccessor function.
+            
              This function returns a value based on the arguments.
              </param>
              <param name="scalarFunction2">
             The Scalar function used to determine the second item with the returned Tuple value.
-             
+            
              The Scalar function takes two arguments. They are:
                  The first argument is the previous Scalar two value from the last call the the Scalar function.
-                 The second argument is the element from within the accessors array populated by the getValueAccessor function. 
-                 
+                 The second argument is the element from within the accessors array populated by the getValueAccessor function.
+            
              This function returns a value based on the arguments.
              </param>
              <param name="defaultInitalValue1">
-             The initial default value used in the initial call of the first Scalar Function (first argument). 
+             The initial default value used in the initial call of the first Scalar Function (first argument).
              </param>
              <param name="defaultInitialValue2">
-             The initial default value used in the initial call of the second Scalar Function (first argument). 
+             The initial default value used in the initial call of the second Scalar Function (first argument).
              </param>
              <returns>
              Returns a Tuple where Item1 is the Scalar one Function&apos;s value and Item2 is the Scalar two Function&apos;s value.
@@ -4658,76 +4658,76 @@
                                                              new Tuple&lt;int, int&gt;(){ 7 , 8 },
                                                              new Tuple&lt;int, int&gt;(){ 9 , 10 } };
                      var maxminValue = source.Scalar((tupleItem, accessorArray) =&gt; { accessorArray[0] = tupleItem.Item1; accessorArray[1] = tupleItem.Item2; return true },
-                                                     (maxValue, valueOne) =&gt; Math.Max(maxValue, valueOne) 
+                                                     (maxValue, valueOne) =&gt; Math.Max(maxValue, valueOne)
                                                      (minValue, valueTwo) =&gt; Math.Min(minValue, valueTwo) );
-                                                     
+            
                  </code>
              </example>
         </member>
         <member name="M:Common.LinqExtensions.Max(System.Collections.Generic.IEnumerable{Common.DateTimeRange},System.Func{Common.DateTimeRange,System.Boolean})">
-            <summary>
-            Returns the Maximum value for the items in the collection that are selected by the selector function.
-            </summary>
-            <param name="source">a collection of itmes where the maximum value is determined based on the selector function.</param>
-            <param name="selector">
-            A selection function that determines if the item should be considered for selection.
+             <summary>
+             Returns the Maximum value for the items in the collection that are selected by the selector function.
+             </summary>
+             <param name="source">a collection of itmes where the maximum value is determined based on the selector function.</param>
+             <param name="selector">
+             A selection function that determines if the item should be considered for selection.
             
-            If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
-            </param>       
-            <returns>
-            The Maximum value of the items selected.
-            </returns>
+             If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
+             </param>
+             <returns>
+             The Maximum value of the items selected.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Max``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},System.Func{``0,Common.DateTimeRange})">
-            <summary>
-            Returns the Maximum value for the items in the collection that are selected by the selector function and transformed by the transformer.
-            </summary>
-            <typeparam name="TSource">data type of the items within the collection</typeparam>
-            <param name="source">a collection of itmes where the maximum value is determined based on the selector function.</param>
-            <param name="selector">
-            A selection function that determines if the item should be considered for selection to determine if it should be transformed.
+             <summary>
+             Returns the Maximum value for the items in the collection that are selected by the selector function and transformed by the transformer.
+             </summary>
+             <typeparam name="TSource">data type of the items within the collection</typeparam>
+             <param name="source">a collection of itmes where the maximum value is determined based on the selector function.</param>
+             <param name="selector">
+             A selection function that determines if the item should be considered for selection to determine if it should be transformed.
             
-            If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
-            </param>
-            <param name="transformer">
-            A function that will transform the item into the result type. Note that only items that have been selected will be presented to the transformer function.
-            </param>        
-            <returns>
-            The Maximum value of the items selected and transformed.
-            </returns>
+             If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
+             </param>
+             <param name="transformer">
+             A function that will transform the item into the result type. Note that only items that have been selected will be presented to the transformer function.
+             </param>
+             <returns>
+             The Maximum value of the items selected and transformed.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Min(System.Collections.Generic.IEnumerable{Common.DateTimeRange},System.Func{Common.DateTimeRange,System.Boolean})">
-            <summary>
-            Returns the Minimum value for the items in the collection that are selected by the selector function.
-            </summary>
-            <param name="source">a collection of itmes where the minimum value is determined based on the selector function.</param>
-            <param name="selector">
-            A selection function that determines if the item should be selected.
+             <summary>
+             Returns the Minimum value for the items in the collection that are selected by the selector function.
+             </summary>
+             <param name="source">a collection of itmes where the minimum value is determined based on the selector function.</param>
+             <param name="selector">
+             A selection function that determines if the item should be selected.
             
-            If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
-            </param>       
-            <returns>
-            The Minimum value of the items selected.
-            </returns>
+             If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
+             </param>
+             <returns>
+             The Minimum value of the items selected.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.Min``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Boolean},System.Func{``0,Common.DateTimeRange})">
-            <summary>
-            Returns the Minimum value for the items in the collection that are selected by the selector function and transformed by the transformer.
-            </summary>
-            <typeparam name="TSource">data type of the items within the collection</typeparam>
-            <typeparam name="TResult"></typeparam>
-            <param name="source">a collection of itmes where the minimum value is determined based on the selector function.</param>
-            <param name="selector">
-            A selection function that determines if the item should be considered for selection to determine if it should be transformed.
+             <summary>
+             Returns the Minimum value for the items in the collection that are selected by the selector function and transformed by the transformer.
+             </summary>
+             <typeparam name="TSource">data type of the items within the collection</typeparam>
+             <typeparam name="TResult"></typeparam>
+             <param name="source">a collection of itmes where the minimum value is determined based on the selector function.</param>
+             <param name="selector">
+             A selection function that determines if the item should be considered for selection to determine if it should be transformed.
             
-            If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
-            </param>
-            <param name="transformer">
-            A function that will transform the item into the result type. Note that only items that have been selected will be presented to the transformer function.
-            </param>        
-            <returns>
-            The Minimum value of the items selected and transformed.
-            </returns>
+             If this function returns true, the item would be considered (selected). If false, the item would NOT be considered (selected)
+             </param>
+             <param name="transformer">
+             A function that will transform the item into the result type. Note that only items that have been selected will be presented to the transformer function.
+             </param>
+             <returns>
+             The Minimum value of the items selected and transformed.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.MaxMin(System.Collections.Generic.IEnumerable{Common.DateTimeRange})">
             <summary>
@@ -4757,88 +4757,88 @@
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.MaxMinRange(System.Collections.Generic.IEnumerable{Common.DateTimeRange})">
-            <summary>
-            Returns the Max and Min DateTime of the values within the collection.
-            </summary>
-            <param name="source">Collection of DateTimeRange values</param>
-            <returns>
-            A tuple where the Item1 is the Max DateTime and Item2 is the Min DateTime.
+             <summary>
+             Returns the Max and Min DateTime of the values within the collection.
+             </summary>
+             <param name="source">Collection of DateTimeRange values</param>
+             <returns>
+             A tuple where the Item1 is the Max DateTime and Item2 is the Min DateTime.
             
-            If the collection is empty, Two DateTimeRange Empty items will be returned.
-            </returns>
+             If the collection is empty, Two DateTimeRange Empty items will be returned.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.FirstWithPrevious``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``0,System.Boolean},System.Func{``0,``0,``1})">
-            <summary>
-            Returns the first and previous items that satifice the source function. If no items are found, the default value of the projection item (TResult) is returned.
-            </summary>
-            <typeparam name="TSource">The data type of the items within the collection</typeparam>
-            <typeparam name="TResult">The resulting data type from the projection function</typeparam>
-            <param name="source">A collection of items where an item might be selected</param>
-            <param name="selector">
-            The function used to select the first item. Return true to indicate that the item should be selected.
+             <summary>
+             Returns the first and previous items that satifice the source function. If no items are found, the default value of the projection item (TResult) is returned.
+             </summary>
+             <typeparam name="TSource">The data type of the items within the collection</typeparam>
+             <typeparam name="TResult">The resulting data type from the projection function</typeparam>
+             <param name="source">A collection of items where an item might be selected</param>
+             <param name="selector">
+             The function used to select the first item. Return true to indicate that the item should be selected.
             
-            Note that the first argument is the prior item, and the second is the current item.
-            </param>
-            <param name="projection">
-            The function used to create the resulting item. Note that this is only called when the selector returns true.
+             Note that the first argument is the prior item, and the second is the current item.
+             </param>
+             <param name="projection">
+             The function used to create the resulting item. Note that this is only called when the selector returns true.
             
-            Note that the first argument is the prior item and the second item is the current item.
-            </param>
-            <returns>
-            The transformed selected item or the resulting item data type&apos;s default value if nothing was selected.
-            </returns>
+             Note that the first argument is the prior item and the second item is the current item.
+             </param>
+             <returns>
+             The transformed selected item or the resulting item data type&apos;s default value if nothing was selected.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.FirstWithIndex``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Int32,System.Boolean},System.Func{``0,System.Int32,``1})">
-            <summary>
-            Returns the first item selected by the selector function. If no items are found, the default value of the projection item (TResult) is returned.
-            </summary>
-            <typeparam name="TSource">The data type of the items within the collection</typeparam>
-            <typeparam name="TResult">The resulting data type from the projection function</typeparam>
-            <param name="source">A collection of items where an item might be selected</param>
-            <param name="selector">
-            The function used to select the first item. Return true to indicate that the item should be selected.
+             <summary>
+             Returns the first item selected by the selector function. If no items are found, the default value of the projection item (TResult) is returned.
+             </summary>
+             <typeparam name="TSource">The data type of the items within the collection</typeparam>
+             <typeparam name="TResult">The resulting data type from the projection function</typeparam>
+             <param name="source">A collection of items where an item might be selected</param>
+             <param name="selector">
+             The function used to select the first item. Return true to indicate that the item should be selected.
             
-            Note that the first argument is the current item and the second argument is the current index of this item within the collection.
-            </param>
-            <param name="projection">
-            The function used to create the resulting item. Note that this is only called when the selector returns true.
+             Note that the first argument is the current item and the second argument is the current index of this item within the collection.
+             </param>
+             <param name="projection">
+             The function used to create the resulting item. Note that this is only called when the selector returns true.
             
-            Note that the first argument is the current item and the second argument is the current index of this item within the collection.
-            </param>
-            <returns>
-            The transformed selected item or the resulting item data type&apos;s default value if nothing was selected.
-            </returns>
+             Note that the first argument is the current item and the second argument is the current index of this item within the collection.
+             </param>
+             <returns>
+             The transformed selected item or the resulting item data type&apos;s default value if nothing was selected.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.LastWithIndex``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Int32,System.Boolean},System.Func{``0,System.Int32,``1})">
-            <summary>
-            Returns the last item selected by the selector function. If no items are found, the default value of the projection item (TResult) is returned.
-            </summary>
-            <typeparam name="TSource">The data type of the item within the collection</typeparam>
-            <typeparam name="TResult">The resulting data type</typeparam>
-            <param name="source">The collection of items used to determine the last item</param>
-            <param name="selector">
-            The function used to select the item from within the collection.
+             <summary>
+             Returns the last item selected by the selector function. If no items are found, the default value of the projection item (TResult) is returned.
+             </summary>
+             <typeparam name="TSource">The data type of the item within the collection</typeparam>
+             <typeparam name="TResult">The resulting data type</typeparam>
+             <param name="source">The collection of items used to determine the last item</param>
+             <param name="selector">
+             The function used to select the item from within the collection.
             
-            This function takes two arguments:
-                The first argument is the current item within the collection.
-                The second argument is the current index within the collection.
-                
-            This function returns true to indicate that this item should be selected. Once selected the projection function is called.   
+             This function takes two arguments:
+                 The first argument is the current item within the collection.
+                 The second argument is the current index within the collection.
             
-            Note that the collection items are called in reverse order.
-            </param>
-            <param name="projection">
-            The function that is used to transform the selected item into the resulting item.
+             This function returns true to indicate that this item should be selected. Once selected the projection function is called.
             
-            This function takes two arguments:
-                The first argument is the selected item within the collection.
-                The second argument is the selected index within the collection.
-                
-            This function returns the new resulting item.
-            </param>
-            <returns>
-            The resulting item based on the last item selected or the resulting item data type&apos;s default value if nothing was selected.
-            </returns>
+             Note that the collection items are called in reverse order.
+             </param>
+             <param name="projection">
+             The function that is used to transform the selected item into the resulting item.
+            
+             This function takes two arguments:
+                 The first argument is the selected item within the collection.
+                 The second argument is the selected index within the collection.
+            
+             This function returns the new resulting item.
+             </param>
+             <returns>
+             The resulting item based on the last item selected or the resulting item data type&apos;s default value if nothing was selected.
+             </returns>
         </member>
         <member name="M:Common.LinqExtensions.ForEach``1(System.Collections.Generic.IEnumerable{``0},System.Action{``0})">
             <summary>
@@ -4897,19 +4897,19 @@
             <returns>Returns a new collection of type U</returns>
         </member>
         <member name="M:Common.LinqExtensions.Complement``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
-            <summary>
-            Returns a collection of elements from colection1 that are NOT contained within collection2.
-            </summary>
-            <typeparam name="T">type of element within each collection</typeparam>
-            <param name="collection1">the collection of elements that are used to determine if they exists in collection2</param>
-            <param name="collection2">the collection of elements that are used as the source to check element from collectino1</param>
-            <returns>Returns a collection of elements that are NOT found within collection2</returns>
-            <example>
-            <code>
-            	Complement(new int[] {1, 2, 3, 4, 5}, new int[] { 2, 4, 5, 6, 7 }) ==&gt; {1, 3}
-            	
-            </code>
-            </example>
+             <summary>
+             Returns a collection of elements from colection1 that are NOT contained within collection2.
+             </summary>
+             <typeparam name="T">type of element within each collection</typeparam>
+             <param name="collection1">the collection of elements that are used to determine if they exists in collection2</param>
+             <param name="collection2">the collection of elements that are used as the source to check element from collectino1</param>
+             <returns>Returns a collection of elements that are NOT found within collection2</returns>
+             <example>
+             <code>
+            		Complement(new int[] {1, 2, 3, 4, 5}, new int[] { 2, 4, 5, 6, 7 }) ==&gt; {1, 3}
+            
+             </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.Except``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0})">
             <summary>
@@ -4945,18 +4945,18 @@
             </remarks>
         </member>
         <member name="M:Common.LinqExtensions.SkipLastN``1(System.Collections.Generic.IEnumerable{``0},System.Int32)">
-            <summary>
-            Takes all elements except the last N elements. 
-            </summary>
-            <typeparam name="T">the type of Eleement within the collection</typeparam>
-            <param name="collection">items with in the collection that are taken excpet the last N elements</param>
-            <param name="skipLastNElements">Number of elements to skip from the end</param>
-            <returns>A new collection where the last N elements have been skipped</returns>
-            <remarks>
-            This will internally use a Queue object to aid in the skipping process by queuing the the last read N elements. 
+             <summary>
+             Takes all elements except the last N elements.
+             </summary>
+             <typeparam name="T">the type of Eleement within the collection</typeparam>
+             <param name="collection">items with in the collection that are taken excpet the last N elements</param>
+             <param name="skipLastNElements">Number of elements to skip from the end</param>
+             <returns>A new collection where the last N elements have been skipped</returns>
+             <remarks>
+             This will internally use a Queue object to aid in the skipping process by queuing the the last read N elements.
             
-            To skip only the last element it is recommended to use TakeAllButLast since it does not use a Queue object...
-            </remarks>
+             To skip only the last element it is recommended to use TakeAllButLast since it does not use a Queue object...
+             </remarks>
         </member>
         <member name="M:Common.LinqExtensions.TakeLast``1(System.Collections.Generic.IList{``0},System.Int32)">
             <summary>
@@ -5099,118 +5099,148 @@
             </returns>
         </member>
         <member name="M:Common.LinqExtensions.DuplicatesWithRecord``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1})">
-            <summary>
-            Returns any found duplicates with the associated fields of the source items (record). 
-            </summary>
-            <typeparam name="T">Element type of the source collection</typeparam>
-            <typeparam name="U">Element type of the item being grouped</typeparam>
-            <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
-            <param name="groupSelector">The function that is used to determine which fields will be grouped</param>
-            <returns>A KeyValuePair collection where the Key is the duplicated item based on the groupSelector and the Value are a list of the associated records</returns>
-            <example>
-                <code>
-                    class MyRecord { public string A; public string B; public int C; public int D;};
-                    
-                    var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
-                                                                        new MyRecord() { A="A", B="B", C = 3, D = 4 },
-                                                                        new MyRecord() { A="C", B="D", C = 5, D = 6 },
-                                                                        new MyRecord() { A="E", B="F", C = 7, D = 8 },
-                                                                        new MyRecord() { A="E", B="F", C = 9, D = 10 }};
-                                                                    
-                    var findDups = dupCollection.DuplicatesWithRecord(record => new { record.A, record.B } );
-                    
-                        findDups.Dump(); 
-                        // { Key={"A", "B" }, Value={ { A="A", B="B", C = 1, D = 2 },
-                        //                              { A="A", B="B", C = 3, D = 4 } } },
-                        // { Key={"E", "F" }, Value={ { A="E", B="F", C = 7, D = 8 },
-                        //                              { A="E", B="F", C = 9, D = 10 } } },
-                </code>
-            </example>
+             <summary>
+             Returns any found duplicates with the associated fields of the source items (record).
+             </summary>
+             <typeparam name="T">Element type of the source collection</typeparam>
+             <typeparam name="U">Element type of the item being grouped</typeparam>
+             <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
+             <param name="groupSelector">The function that is used to determine which fields will be grouped</param>
+             <returns>A KeyValuePair collection where the Key is the duplicated item based on the groupSelector and the Value are a list of the associated records</returns>
+             <example>
+                 <code>
+                     class MyRecord { public string A; public string B; public int C; public int D;};
+            
+                     var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
+                                                                         new MyRecord() { A="A", B="B", C = 3, D = 4 },
+                                                                         new MyRecord() { A="C", B="D", C = 5, D = 6 },
+                                                                         new MyRecord() { A="E", B="F", C = 7, D = 8 },
+                                                                         new MyRecord() { A="E", B="F", C = 9, D = 10 }};
+            
+                     var findDups = dupCollection.DuplicatesWithRecord(record => new { record.A, record.B } );
+            
+                         findDups.Dump();
+                         // { Key={"A", "B" }, Value={ { A="A", B="B", C = 1, D = 2 },
+                         //                              { A="A", B="B", C = 3, D = 4 } } },
+                         // { Key={"E", "F" }, Value={ { A="E", B="F", C = 7, D = 8 },
+                         //                              { A="E", B="F", C = 9, D = 10 } } },
+                 </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.DuplicatesWithCount``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1})">
-            <summary>
-            Returns any found duplicates with the number of occurrences.
-            </summary>
-            <typeparam name="T">Element type of the source collection</typeparam>
-            <typeparam name="U">Element type of the item being grouped</typeparam>
-            <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
-            <param name="groupSelector">The function that is used to determine which fields will be grouped</param>       
-            <returns>A KeyValuePair collection where the Key is the duplicated item based on the groupSelector and the Value the number of occurrences of the duplicated item</returns>        
-            <example>
-                <code>
-                    class MyRecord { public string A; public string B; public int C; public int D;};
-                    
-                    var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
-                                                                        new MyRecord() { A="A", B="B", C = 3, D = 4 },
-                                                                        new MyRecord() { A="C", B="D", C = 5, D = 6 },
-                                                                        new MyRecord() { A="E", B="F", C = 7, D = 8 },
-                                                                        new MyRecord() { A="E", B="F", C = 9, D = 10 },
-                                                                        new MyRecord() { A="E", B="F", C = 11, D = 12 }};
-                                                                    
-                    var findDups = dupCollection.DuplicatesWithCount(record => new { record.A, record.B } );
-                    
-                        findDups.Dump(); 
-                        // { Key={"A", "B" }, Value=2 },
-                        // { Key={"E", "F" }, Value=3 },
-                </code>
-            </example>
+             <summary>
+             Returns any found duplicates with the number of occurrences.
+             </summary>
+             <typeparam name="T">Element type of the source collection</typeparam>
+             <typeparam name="U">Element type of the item being grouped</typeparam>
+             <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
+             <param name="groupSelector">The function that is used to determine which fields will be grouped</param>
+             <returns>A KeyValuePair collection where the Key is the duplicated item based on the groupSelector and the Value the number of occurrences of the duplicated item</returns>
+             <example>
+                 <code>
+                     class MyRecord { public string A; public string B; public int C; public int D;};
+            
+                     var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
+                                                                         new MyRecord() { A="A", B="B", C = 3, D = 4 },
+                                                                         new MyRecord() { A="C", B="D", C = 5, D = 6 },
+                                                                         new MyRecord() { A="E", B="F", C = 7, D = 8 },
+                                                                         new MyRecord() { A="E", B="F", C = 9, D = 10 },
+                                                                         new MyRecord() { A="E", B="F", C = 11, D = 12 }};
+            
+                     var findDups = dupCollection.DuplicatesWithCount(record => new { record.A, record.B } );
+            
+                         findDups.Dump();
+                         // { Key={"A", "B" }, Value=2 },
+                         // { Key={"E", "F" }, Value=3 },
+                 </code>
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.DuplicatesRemoved``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1})">
-            <summary>
-            Returns a new enumerable where the duplicates has been removed. Note that the first occurrence of the duplicate is always returned. 
-            </summary>
-            <typeparam name="T">Element type of the source collection</typeparam>
-            <typeparam name="U">Element type of the item being grouped</typeparam>
-            <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
-            <param name="groupSelector">The function that is used to determine which fields will be grouped</param>       
-            <returns>A distinct collection of items where the first occurrence of the duplicate is part of the colleciton (remainder of the duplicates are discoarded)</returns>        
-            <example>
-                <code>
-                    class MyRecord { public string A; public string B; public int C; public int D;};
-                    
-                    var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
-                                                                        new MyRecord() { A="A", B="B", C = 3, D = 4 },
-                                                                        new MyRecord() { A="C", B="D", C = 5, D = 6 },
-                                                                        new MyRecord() { A="E", B="F", C = 7, D = 8 },
-                                                                        new MyRecord() { A="E", B="F", C = 9, D = 10 },
-                                                                        new MyRecord() { A="E", B="F", C = 11, D = 12 }};
-                                                                    
-                    var findDups = dupCollection.DuplicatesRemoved(record => new { record.A, record.B } );
-                    
-                        findDups.Dump(); 
-                        // { A="A", B="B", C = 1, D = 2 },
-                        // { A="C", B="D", C = 5, D = 6 },
-                        // { A="E", B="F", C = 7, D = 8 }
-                </code>
-            </example>
+             <summary>
+             Returns a new enumerable where the duplicates has been removed. Note that the first occurrence of the duplicate is always returned.
+             </summary>
+             <typeparam name="T">Element type of the source collection</typeparam>
+             <typeparam name="U">Element type of the item being grouped</typeparam>
+             <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
+             <param name="groupSelector">The function that is used to determine which fields will be grouped</param>
+             <returns>A distinct collection of items where the first occurrence of the duplicate is part of the colleciton (remainder of the duplicates are discoarded)</returns>
+             <example>
+                 <code>
+                     class MyRecord { public string A; public string B; public int C; public int D;};
+            
+                     var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
+                                                                         new MyRecord() { A="A", B="B", C = 3, D = 4 },
+                                                                         new MyRecord() { A="C", B="D", C = 5, D = 6 },
+                                                                         new MyRecord() { A="E", B="F", C = 7, D = 8 },
+                                                                         new MyRecord() { A="E", B="F", C = 9, D = 10 },
+                                                                         new MyRecord() { A="E", B="F", C = 11, D = 12 }};
+            
+                     var findDups = dupCollection.DuplicatesRemoved(record => new { record.A, record.B } );
+            
+                         findDups.Dump();
+                         // { A="A", B="B", C = 1, D = 2 },
+                         // { A="C", B="D", C = 5, D = 6 },
+                         // { A="E", B="F", C = 7, D = 8 }
+                 </code>
+             </example>
+        </member>
+        <member name="M:Common.LinqExtensions.DuplicatesRemovedWithCount``2(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1})">
+             <summary>
+             Returns a new enumerable where the duplicates has been removed and the total number of duplicates for that match.
+             Note that the first occurrence of the duplicate is always returned.
+             </summary>
+             <typeparam name="T">Element type of the source collection</typeparam>
+             <typeparam name="U">Element type of the item being grouped</typeparam>
+             <param name="collection">Source Collection used to determine if there are any duplicates within this collection</param>
+             <param name="groupSelector">The function that is used to determine which fields will be grouped (matched)</param>
+             <returns>A distinct collection of items where the first occurrence of the duplicate is part of the colleciton (remainder of the duplicates are discoarded)</returns>
+             <example>
+                 <code>
+                     class MyRecord { public string A; public string B; public int C; public int D;};
+            
+                     var dupCollection = new List&lt;MyRecord&gt;() { new MyRecord() { A="A", B="B", C = 1, D = 2 },
+                                                                         new MyRecord() { A="A", B="B", C = 3, D = 4 },
+                                                                         new MyRecord() { A="C", B="D", C = 5, D = 6 },
+                                                                         new MyRecord() { A="E", B="F", C = 7, D = 8 },
+                                                                         new MyRecord() { A="E", B="F", C = 9, D = 10 },
+                                                                         new MyRecord() { A="E", B="F", C = 11, D = 12 }};
+            
+                     var findDups = dupCollection.DuplicatesRemovedWithCount(record => new { record.A, record.B } );
+            
+                         findDups.Dump();
+                         // {Key={ A="A", B="B", C = 1, D = 2 }, Value=2 ),
+                         // {Key={ A="C", B="D", C = 5, D = 6 }, Value=1 ),
+                         // {Key={ A="E", B="F", C = 7, D = 8 }, Value=3 }
+                 </code>
+             </example>
         </member>
         <member name="T:Common.LinqExtensions.SelectorEqualityComparer`2">
-            <summary>
-            Defines a generic IEqualityComparer that can be used as a selector and define a Equality function.
-            </summary>
-            <typeparam name="T">Base object used to obtain the value of Type U based on the selector function</typeparam>
-            <typeparam name="U">Object(s) that will be used as the comparer value</typeparam>
-            <example>
-                Below example uses the member variable "A" as the equality comparer.
-            <code>
-                public class MyClass
-                {
-            	    public string A;
-                }
-                
-                void Main()
-                {
-            	    var x = new MyClass() { A = "One" };
-            	    var y = new MyClass() { A = "Two" };
-            	
-            	    var listA = new List&lt;MyClass&gt;() { x, y};
-            	
-            	    listA.Contains(y, new SelectorEqualityComparer&lt;MyClass,string&gt;((x1) => x1.A, (x2,y2) => x2 == y2)).Dump();	
-                }
-            </code>
+             <summary>
+             Defines a generic IEqualityComparer that can be used as a selector and define a Equality function.
+             </summary>
+             <typeparam name="T">Base object used to obtain the value of Type U based on the selector function</typeparam>
+             <typeparam name="U">Object(s) that will be used as the comparer value</typeparam>
+             <example>
+                 Below example uses the member variable "A" as the equality comparer.
+             <code>
+                 public class MyClass
+                 {
+             	    public string A;
+                 }
             
-                Returns true.
-            </example>
+                 void Main()
+                 {
+             	    var x = new MyClass() { A = "One" };
+             	    var y = new MyClass() { A = "Two" };
+            
+             	    var listA = new List&lt;MyClass&gt;() { x, y};
+            
+             	    listA.Contains(y, new SelectorEqualityComparer&lt;MyClass,string&gt;((x1) => x1.A, (x2,y2) => x2 == y2)).Dump();
+                 }
+             </code>
+            
+                 Returns true.
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.SelectorEqualityComparer`2.#ctor(System.Func{`0,`1},System.Func{`1,`1,System.Boolean})">
             <summary>
@@ -5229,65 +5259,65 @@
             </remarks>
         </member>
         <member name="T:Common.LinqExtensions.SelectorStringEqualityComparer`1">
-            <summary>
-            Defines a generic IEqualityComparer that can be used as a selector that must return a string for equality comparison.
-            </summary>
-            <typeparam name="T">Base object used to obtain the string value from the selector function</typeparam>        
-            <example>
-                Below example uses the member variable "A" as the equality comparer.
-            <code>
-                public class MyClass
-                {
-            	    public string A;
-                }
-                
-                void Main()
-                {
-            	    var x = new MyClass() { A = "One" };
-            	    var y = new MyClass() { A = "Two" };
-            	
-            	    var listA = new List&lt;MyClass&gt;() { x, y};
-            	
-            	    listA.Contains(y, new SelectorStringEqualityComparer&lt;MyClass&gt;((x1) => x1.A).Dump();	
-                }
-            </code>
+             <summary>
+             Defines a generic IEqualityComparer that can be used as a selector that must return a string for equality comparison.
+             </summary>
+             <typeparam name="T">Base object used to obtain the string value from the selector function</typeparam>
+             <example>
+                 Below example uses the member variable "A" as the equality comparer.
+             <code>
+                 public class MyClass
+                 {
+             	    public string A;
+                 }
             
-                Returns true.
-            </example>
+                 void Main()
+                 {
+             	    var x = new MyClass() { A = "One" };
+             	    var y = new MyClass() { A = "Two" };
+            
+             	    var listA = new List&lt;MyClass&gt;() { x, y};
+            
+             	    listA.Contains(y, new SelectorStringEqualityComparer&lt;MyClass&gt;((x1) => x1.A).Dump();
+                 }
+             </code>
+            
+                 Returns true.
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.SelectorStringEqualityComparer`1.#ctor(System.Func{`0,System.String})">
             <summary>
             Constructor used to create the generic equality comparer
             </summary>
-            <param name="selector">Fuction used to select the string that will be compared</param>           
+            <param name="selector">Fuction used to select the string that will be compared</param>
         </member>
         <member name="T:Common.LinqExtensions.SelectorComparer`2">
-            <summary>
-            Defines a generic IComparer that can be used as a selector and define a comparer function.
-            </summary>
-            <typeparam name="T">Base object used to obtain the value of Type U based on the selector function</typeparam>
-            <typeparam name="U">Object(s) that will be used to as the comparing value(s)</typeparam>
-            <example>
-                Below example uses the member variable "A" as the equality comparer.
-            <code>
-                public class MyClass
-                {
-            	    public string A;
-                }
-                
-                void Main()
-                {
-            	    var x = new MyClass() { A = "One" };
-            	    var y = new MyClass() { A = "Two" };
-            	
-            	    var listA = new List&lt;MyClass&gt;() { y, x }; //Reverse X and Y so that we can actually perform a sort!
-            	
-            	    listA.Sort(new SelectorComparer&lt;MyClass,string&gt;((x1) => x1.A, (x2,y2) => x2.CompareTo(y2))).Dump();	
-                }
-            </code>
+             <summary>
+             Defines a generic IComparer that can be used as a selector and define a comparer function.
+             </summary>
+             <typeparam name="T">Base object used to obtain the value of Type U based on the selector function</typeparam>
+             <typeparam name="U">Object(s) that will be used to as the comparing value(s)</typeparam>
+             <example>
+                 Below example uses the member variable "A" as the equality comparer.
+             <code>
+                 public class MyClass
+                 {
+             	    public string A;
+                 }
             
-                Returns {{A="One"}, {A="Two"}}.
-            </example>
+                 void Main()
+                 {
+             	    var x = new MyClass() { A = "One" };
+             	    var y = new MyClass() { A = "Two" };
+            
+             	    var listA = new List&lt;MyClass&gt;() { y, x }; //Reverse X and Y so that we can actually perform a sort!
+            
+             	    listA.Sort(new SelectorComparer&lt;MyClass,string&gt;((x1) => x1.A, (x2,y2) => x2.CompareTo(y2))).Dump();
+                 }
+             </code>
+            
+                 Returns {{A="One"}, {A="Two"}}.
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.SelectorComparer`2.#ctor(System.Func{`0,`1},System.Func{`1,`1,System.Int32})">
             <summary>
@@ -5301,37 +5331,37 @@
             </param>
         </member>
         <member name="T:Common.LinqExtensions.SelectorStringComparer`1">
-            <summary>
-            Defines a generic IComparer that can be used as a selector to return a string value.
-            </summary>
-            <typeparam name="T">Base object used to obtain the string value</typeparam>
-            <example>
-                Below example uses the member variable "A" as the equality comparer.
-            <code>
-                public class MyClass
-                {
-            	    public string A;
-                }
-                
-                void Main()
-                {
-            	    var x = new MyClass() { A = "One" };
-            	    var y = new MyClass() { A = "Two" };
-            	
-            	    var listA = new List&lt;MyClass&gt;() { y, x }; //Reverse X and Y so that we can actually perform a sort!
-            	
-            	    listA.Sort(new SelectorStringComparer&lt;MyClass,string&gt;((x1) => x1.A).Dump();	
-                }
-            </code>
+             <summary>
+             Defines a generic IComparer that can be used as a selector to return a string value.
+             </summary>
+             <typeparam name="T">Base object used to obtain the string value</typeparam>
+             <example>
+                 Below example uses the member variable "A" as the equality comparer.
+             <code>
+                 public class MyClass
+                 {
+             	    public string A;
+                 }
             
-                Returns {{A="One"}, {A="Two"}}.
-            </example>
+                 void Main()
+                 {
+             	    var x = new MyClass() { A = "One" };
+             	    var y = new MyClass() { A = "Two" };
+            
+             	    var listA = new List&lt;MyClass&gt;() { y, x }; //Reverse X and Y so that we can actually perform a sort!
+            
+             	    listA.Sort(new SelectorStringComparer&lt;MyClass,string&gt;((x1) => x1.A).Dump();
+                 }
+             </code>
+            
+                 Returns {{A="One"}, {A="Two"}}.
+             </example>
         </member>
         <member name="M:Common.LinqExtensions.SelectorStringComparer`1.#ctor(System.Func{`0,System.String})">
             <summary>
             Constructor used to create the generic comparer
             </summary>
-            <param name="selector">Fuction used to select the string value that will be compared</param>           
+            <param name="selector">Fuction used to select the string value that will be compared</param>
         </member>
         <member name="M:Common.LinqExtensions.GetEnumerator(System.Collections.Specialized.StringCollection)">
             <summary>
