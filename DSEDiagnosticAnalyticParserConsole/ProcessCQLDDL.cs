@@ -96,7 +96,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (string.IsNullOrEmpty(line)
                             || line.Substring(0, 2) == "//"
-                            || line.Substring(0, 2) == "--")
+                            || line.Substring(0, 2) == "--"
+                            || line[0] == '\u001b')
                     {
                         continue;
                     }

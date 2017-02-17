@@ -629,7 +629,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else
                         {
-                            Logger.Instance.InfoFormat("NodeTool Ring file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                            Logger.Instance.InfoFormat("NodeTool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
                         }
                     }
 
@@ -648,7 +648,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else
                         {
-                            Logger.Instance.InfoFormat("DSETool Ring file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                            Logger.Instance.InfoFormat("DSETool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
                         }
                     }
 
@@ -682,7 +682,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else
                         {
-                            Logger.Instance.InfoFormat("CQL DDL file for \"{0}\" is missing. Trying next node folder", filePath.ParentDirectoryPath.PathResolved);
+                            Logger.Instance.InfoFormat("CQL DDL file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
                         }
                     }
                 }
@@ -998,7 +998,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 													Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
 																					archivedFilePaths[fIdx].PathResolved,
 																					extractedDir.PathResolved);
-													if (extractedDir.MakeFile(ParserSettings.LogCassandraSystemLogFileArchive, out archivedFilePath))
+													if (extractedDir.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
+                                                                                out archivedFilePath))
 													{
 														if (archivedFilePath.HasWildCardPattern())
 														{

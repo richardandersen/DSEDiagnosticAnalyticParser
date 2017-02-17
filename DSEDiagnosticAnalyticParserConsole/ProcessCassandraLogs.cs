@@ -6385,7 +6385,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 					if (rrItem.CompletionTime != DateTime.MinValue)
 					{
 						newDataRow["Log/Completion Timestamp"] = rrItem.CompletionTime;
-						newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+                        if (rrItem.Duration >= 0)
+                        {
+                            newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+                        }
 					}
 					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
 					newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
