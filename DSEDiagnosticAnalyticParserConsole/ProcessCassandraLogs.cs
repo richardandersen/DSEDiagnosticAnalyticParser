@@ -863,15 +863,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "BatchStatement.java")
                         {
-							#region BatchStatement.java
-							//BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
-							//WARN  [SharedPool-Worker-3] 2016-12-03 00:11:32,802  BatchStatement.java:252 - Batch of prepared statements for [Sandy.referral_source] is of size 71016, exceeding specified threshold of 65536 by 5480.
-
-							if (nCell == itemPos)
+                            #region BatchStatement.java
+                            //BatchStatement.java (line 226) Batch of prepared statements for [clearcore.documents_case] is of size 71809, exceeding specified threshold of 65536 by 6273.
+                            //WARN  [SharedPool-Worker-3] 2016-12-03 00:11:32,802  BatchStatement.java:252 - Batch of prepared statements for [Sandy.referral_source] is of size 71016, exceeding specified threshold of 65536 by 5480.
+                            //WARN  [SharedPool-Worker-4] 2016-10-31 22:49:07,808  BatchStatement.java:253 - Batch of prepared statements for [usprodofrs.newoffer_3_2_10, usprodofrs.identificationoffer_3_0_1, usprodofrs.promotooffer_3_0_1] is of size 68486, exceeding specified threshold of 65536 by 2950.
+                            if (nCell == itemPos)
                             {
-                                var splitItems = SplitTableName(parsedValues[nCell]);
+                                if (parsedValues[nCell].Contains(','))
+                                {
+                                    var splitKSTbls = parsedValues[nCell].Split(',');
 
-                                dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+                                    dataRow["Associated Item"] = string.Join(",", splitKSTbls.Select(i =>
+                                                                                {
+                                                                                    var splitItems = SplitTableName(parsedValues[nCell]);
+
+                                                                                    return splitItems.Item1 + '.' + splitItems.Item2;
+                                                                                }));
+                                }
+                                else
+                                {
+                                    var splitItems = SplitTableName(parsedValues[nCell]);
+
+                                    dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+                                }
                             }
                             if (nCell == itemValuePos)
                             {
@@ -1002,6 +1016,54 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 itemValuePos = 2;
                                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Exception"] = "Query Tombstones Aborted";
+                                handled = true;
+                            }
+                            #endregion
+                        }
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ReadCommand.java")
+                        {
+                            #region ReadCommand.java
+                            // ReadCommand.java:509 - Read 1000 live rows and 2506 tombstone cells for query SELECT * FROM ods.d_account WHERE token(accnt_id, tenant_id) > token(1:2017853945, 1) AND token(accnt_id, tenant_id) <= 2028415374372988170 AND () = () LIMIT 1000 (see tombstone_warn_threshold)
+                            if (nCell > itemPos && parsedValues[nCell].ToLower() == "from")
+                            {
+                                var splitItems = SplitTableName(parsedValues[nCell + 1]);
+                                string tableName = splitItems.Item2;
+
+                                if (tableName[tableName.Length - 1] == ';')
+                                {
+                                    tableName = tableName.Substring(0, tableName.Length - 1);
+                                }
+
+                                dataRow["Associated Item"] = splitItems.Item1 + '.' + tableName;
+                            }
+                            else if (parsedValues[nCell] == "tombstone")
+                            {
+                                object tbNum;
+                                int tombStones = 0;
+                                int reads = 0;
+
+                                if (StringFunctions.ParseIntoNumeric(parsedValues[nCell - 1], out tbNum))
+                                {
+                                    tombStones = (int)tbNum;
+                                }
+                                if (StringFunctions.ParseIntoNumeric(parsedValues[nCell - 5], out tbNum))
+                                {
+                                    reads = (int)tbNum;
+                                }
+
+                                if (tombStones > reads)
+                                {
+                                    dataRow["Associated Value"] = tombStones;
+                                    dataRow["Exception"] = "Query Tombstones Warning";
+                                }
+                                else
+                                {
+                                    dataRow["Associated Value"] = reads;
+                                    dataRow["Exception"] = "Query Reads Warning";
+                                }
+
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                itemPos = nCell + 1;
                                 handled = true;
                             }
                             #endregion
@@ -3287,7 +3349,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
-                    else if (item.Item == "SliceQueryFilter.java")
+                    else if (item.Item == "SliceQueryFilter.java" || item.Item == "ReadCommand.java")
                     {
                         #region SliceQueryFilter
 
@@ -3385,35 +3447,40 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region BatchSize
 
-                        var kstblName = item.AssocItem;
+                        var kstblNames = item.AssocItem;
                         var batchSize = item.AssocValue as int?;
 
-                        if (kstblName == null || !batchSize.HasValue)
+                        if (kstblNames == null || !batchSize.HasValue)
                         {
                             continue;
                         }
 
-                        var kstblSplit = SplitTableName(kstblName, null);
+                        var multiKSTblNames = kstblNames.Contains(',');
 
-                        if (ignoreKeySpaces.Contains(kstblSplit.Item1))
+                        foreach (var kstblName in multiKSTblNames ? kstblNames.Split(',') : new string[] { kstblNames })
                         {
-                            continue;
+                            var kstblSplit = SplitTableName(kstblName, null);
+
+                            if (ignoreKeySpaces.Contains(kstblSplit.Item1))
+                            {
+                                continue;
+                            }
+
+                            var dataRow = dtCStatusLog.NewRow();
+
+                            dataRow["Timestamp"] = item.Timestamp;
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Pool/Cache Type"] = "Batch size";
+                            dataRow["Reconciliation Reference"] = refCnt;
+                            dataRow["KeySpace"] = kstblSplit.Item1;
+                            dataRow["Table"] = kstblSplit.Item2;
+                            dataRow["Completed"] = (long)batchSize.Value;
+
+                            dtCStatusLog.Rows.Add(dataRow);
+
+                            batchSizes.Add(new Tuple<string, string, string, int>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
                         }
-
-                        var dataRow = dtCStatusLog.NewRow();
-
-                        dataRow["Timestamp"] = item.Timestamp;
-                        dataRow["Data Center"] = dcName;
-                        dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["Pool/Cache Type"] = "Batch size";
-                        dataRow["Reconciliation Reference"] = refCnt;
-                        dataRow["KeySpace"] = kstblSplit.Item1;
-                        dataRow["Table"] = kstblSplit.Item2;
-                        dataRow["Completed"] = (long)batchSize.Value;
-
-                        dtCStatusLog.Rows.Add(dataRow);
-
-                        batchSizes.Add(new Tuple<string, string, string, int>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
 
                         #endregion
                     }
