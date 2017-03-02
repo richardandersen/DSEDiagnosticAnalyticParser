@@ -126,7 +126,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             : parsedLine[8 + offSet])
                                                                 / 100m;
                         }
-                        dataRow["Nbr VNodes"] = int.Parse(parsedLine[9 + offSet][0] == '%' ? parsedLine[10 + offSet] : parsedLine[9 + offSet]);
+                        try
+                        {
+                            dataRow["Nbr VNodes"] = int.Parse(parsedLine[9 + offSet][0] == '%' ? parsedLine[10 + offSet] : parsedLine[9 + offSet]);
+                        }
+                        catch(System.Exception e)
+                        {
+                            Program.ConsoleErrors.Increment("Invalid VNode Value in dsetool ring for node " + ipAddress);
+                            Logger.Instance.Error("Invalid VNode Value in dsetool ring for node " + ipAddress, e);
+                        }
 
                         if (dse5Format)
                         {

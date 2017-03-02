@@ -654,8 +654,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     var logDesc = new StringBuilder();
                     var startRange = parsedValues[ParserSettings.CLogLineFormats.DescribePos] == "-" ? ParserSettings.CLogLineFormats.DescribePos + 1 : ParserSettings.CLogLineFormats.DescribePos;
                     bool handled = false;
-
-                    if (parsedValues[startRange][0] == '(')
+                    
+                    if (parsedValues.Count > startRange && parsedValues[startRange][0] == '(')
                     {
                         ++startRange;
                     }
