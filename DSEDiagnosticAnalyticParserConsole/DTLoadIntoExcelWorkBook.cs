@@ -74,7 +74,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (loadRange != null && worksheetAction != null)
             {
-                worksheetAction(workSheet);
+                try
+                {
+                    worksheetAction(workSheet);
+                }
+                catch(System.Exception ex)
+                {
+                    Logger.Instance.Error(string.Format("Exception Occurred in Worksheet \"{0}\" for Workbook \"{1}\"", workSheetName, excelPkg?.File?.FullName), ex);
+                }
             }
 
             Program.ConsoleExcel.TaskEnd(string.Format("{0} - {1}", workSheetName, dtExcel.TableName));
