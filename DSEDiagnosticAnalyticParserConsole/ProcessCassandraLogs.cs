@@ -732,14 +732,20 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
 						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Memtable.java")
 						{
-							#region Memtable.java
-							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
-							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
-							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
-							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+                            #region Memtable.java
+                            //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+                            //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+                            //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+                            //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
 
-							if (parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
-									&& (parsedValues[nCell] == "Writing" || parsedValues[nCell] == "Completed"))
+                            //INFO [FlushWriter:262] 2017-03-06 17:37:15,303 Memtable.java (line 362) Writing Memtable-readerdata@354586264(3332/33320 serialized/live bytes, 70 ops)
+                            //INFO[FlushWriter: 262] 2017 - 03 - 06 17:37:15,320 Memtable.java(line 402) Completed flushing / var / lib / cassandra / data / ampdata / readerdata / ampdata - readerdata - jb - 116694 - Data.db(4876 bytes) for commitlog position ReplayPosition(segmentId = 1488732865093, position = 30876408)
+
+
+
+                            if ((parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
+                                    || (parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("FlushWriter")))
+                                            && (parsedValues[nCell] == "Writing" || parsedValues[nCell] == "Completed"))
 							{
 								dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
 								handled = true;
@@ -6953,59 +6959,66 @@ namespace DSEDiagnosticAnalyticParserConsole
 			}//end of scope for antiCompactionLogItems
 		}
 
-		//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
-		//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,619  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx1@2015847477(1.824MiB serialized bytes, 65562 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,684  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx1-tmp-ka-15175-Data.db (607.611KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,702  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx2@649911595(1.816MiB serialized bytes, 68460 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,766  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx2-tmp-ka-15170-Data.db (591.472KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+        //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+        //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,619  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx1@2015847477(1.824MiB serialized bytes, 65562 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,684  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx1-tmp-ka-15175-Data.db (607.611KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,702  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3.tasktracking_l3_idx2@649911595(1.816MiB serialized bytes, 68460 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,766  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3.tasktracking_l3_idx2-tmp-ka-15170-Data.db (591.472KiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
 
-		//INFO  [SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace='testks', ColumnFamily='opus_ln_borrinfo') to free up room. Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.02/0.02
-		//INFO[SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:905 - Enqueuing flush of opus_ln_borrinfo: 81624365 (2%) on-heap, 0 (0%) off-heap
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,323  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo@771558518(12.749MiB serialized bytes, 919772 ops, 2%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,978  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo-tmp-ka-1533-Data.db (4.631MiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,024  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo.opus_ln_borrinfo_flag@1190857189(24.898KiB serialized bytes, 4724 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,027  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo.opus_ln_borrinfo_flag-tmp-ka-1622-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+        //INFO  [SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace='testks', ColumnFamily='opus_ln_borrinfo') to free up room. Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.02/0.02
+        //INFO[SlabPoolCleaner] 2016-09-12 10:40:18,320  ColumnFamilyStore.java:905 - Enqueuing flush of opus_ln_borrinfo: 81624365 (2%) on-heap, 0 (0%) off-heap
+        //INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,323  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo@771558518(12.749MiB serialized bytes, 919772 ops, 2%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:18,978  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo-tmp-ka-1533-Data.db (4.631MiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
+        //INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,024  Memtable.java:347 - Writing Memtable-opus_ln_borrinfo.opus_ln_borrinfo_flag@1190857189(24.898KiB serialized bytes, 4724 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1305] 2016-09-12 10:40:19,027  Memtable.java:382 - Completed flushing /mnt/dse/data1/testks/opus_ln_borrinfo-d7f40650ec5411e5bca01f8c6828163a/testks-opus_ln_borrinfo.opus_ln_borrinfo_flag-tmp-ka-1622-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1473454297127, position= 20482314)
 
-		//INFO[ScheduledTasks:1] 2016-10-25 04:07:19,781  ColumnFamilyStore.java:917 - Enqueuing flush of peers: 3036 (0%) on-heap, 35032 (0%) off-heap
-		//INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,782  Memtable.java:347 - Writing Memtable-peers@2118996997(0.473KiB serialized bytes, 1344 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,783  Memtable.java:382 - Completed flushing /data/3/dse/data/system/peers-37f71aca7dc2383ba70672528af04d4f/system-peers-tmp-ka-404-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887341, position= 1392720)
+        //INFO[ScheduledTasks:1] 2016-10-25 04:07:19,781  ColumnFamilyStore.java:917 - Enqueuing flush of peers: 3036 (0%) on-heap, 35032 (0%) off-heap
+        //INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,782  Memtable.java:347 - Writing Memtable-peers@2118996997(0.473KiB serialized bytes, 1344 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1698] 2016-10-25 04:07:19,783  Memtable.java:382 - Completed flushing /data/3/dse/data/system/peers-37f71aca7dc2383ba70672528af04d4f/system-peers-tmp-ka-404-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887341, position= 1392720)
 
-		//INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
-		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
+        //INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
+        //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
 
-		//INFO  [BatchlogTasks:1] 2017-01-18 08:41:09,879  ColumnFamilyStore.java:905 - Enqueuing flush of batchlog: 116840 (0%) on-heap, 0 (0%) off-heap
-		//INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,879  Memtable.java:347 - Writing Memtable-batchlog@1865343912(61.708KiB serialized bytes, 425 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,880  Memtable.java:393 - Completed flushing /var/lib/cassandra/data/system/batchlog-0290003c977e397cac3efdfdc01d626b/system-batchlog-tmp-ka-46277-Data.db; nothing needed to be retained.Commitlog position was ReplayPosition(segmentId= 1483652760453, position= 4126122)
+        //INFO  [BatchlogTasks:1] 2017-01-18 08:41:09,879  ColumnFamilyStore.java:905 - Enqueuing flush of batchlog: 116840 (0%) on-heap, 0 (0%) off-heap
+        //INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,879  Memtable.java:347 - Writing Memtable-batchlog@1865343912(61.708KiB serialized bytes, 425 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,880  Memtable.java:393 - Completed flushing /var/lib/cassandra/data/system/batchlog-0290003c977e397cac3efdfdc01d626b/system-batchlog-tmp-ka-46277-Data.db; nothing needed to be retained.Commitlog position was ReplayPosition(segmentId= 1483652760453, position= 4126122)
 
-		//INFO  [ValidationExecutor:306] 2017-01-16 08:07:41,862  ColumnFamilyStore.java:905 - Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
-		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,862  Memtable.java:347 - Writing Memtable-inode.cfs_parent_path@663956474(0.051KiB serialized bytes, 2 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,863  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
-		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,872  Memtable.java:347 - Writing Memtable-inode.cfs_path@911188026(0.051KiB serialized bytes, 1 ops, 0%/0% of on/off-heap limit)
-		//INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,873  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_path-tmp-ka-107-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
+        //INFO  [ValidationExecutor:306] 2017-01-16 08:07:41,862  ColumnFamilyStore.java:905 - Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
+        //INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,862  Memtable.java:347 - Writing Memtable-inode.cfs_parent_path@663956474(0.051KiB serialized bytes, 2 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,863  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
+        //INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,872  Memtable.java:347 - Writing Memtable-inode.cfs_path@911188026(0.051KiB serialized bytes, 1 ops, 0%/0% of on/off-heap limit)
+        //INFO[MemtableFlushWriter:340] 2017-01-16 08:07:41,873  Memtable.java:382 - Completed flushing /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_path-tmp-ka-107-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1484061347184, position= 32293737)
+
+        //INFO [ValidationExecutor:221] 2017-03-06 17:40:28,151 ColumnFamilyStore.java (line 808) Enqueuing flush of Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
+        //INFO[FlushWriter:263] 2017-03-06 17:40:28,151 Memtable.java (line 362) Writing Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
+        //INFO[FlushWriter:263] 2017-03-06 17:40:28,178 Memtable.java (line 402) Completed flushing /var/lib/cassandra/data/user_id_data/user_ids/user_id_data-user_ids.user_ids_gid-jb-3492-Data.db (501 bytes) for commitlog position ReplayPosition(segmentId= 1488732865093, position= 31029258)
 
 
-		//Group1					Group2
-		//"'homeKS'"	"'homebase_tasktracking_ops_l3'"
-		static Regex RegexMFFlushing = new Regex(@"Flushing.+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\).+",
+        //Group1					Group2
+        //"'homeKS'"	"'homebase_tasktracking_ops_l3'"
+        static Regex RegexMFFlushing = new Regex(@"Flushing.+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\).+",
 													RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1							Group2		Group3	Group4	Group5	Group6	Group 7
-		//"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
-		static Regex RegexMFEnqueuing = new Regex(@"Enqueuing\s+flush\s+of\s+([a-z0-9'-_$%+=@!?<>^*&]+)\s*\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap.+\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)",
+        //Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
+        //"inode"	"971"	"0"		"%"		"0"		"0"		"%"
+        //
+        //Enqueuing flush of Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
+        //"user_ids.user_ids_gid"	"1890"	
+        static Regex RegexMFEnqueuing = new Regex(@"Enqueuing\s+flush\s+of\s+(?:Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+|([a-z0-9'-_$%+=@!?<>^*&]+))\s*(?:\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap.+\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)|\(([0-9,.]+)\/.+\))",
 													RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1							Group2		Group3	Group4		Group5	Group6	Group7	Group8
-		//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"	"857621"	"7"		"%"		"0"		"%"
-		static Regex RegexMFWritingMemTbl = new Regex(@"Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+\(([0-9.]+)\s*([a-z]{0,3})\s+.+\,\s+([0-9,.]+)\s+ops\s*\,\s*([0-9,.]+)\s*(\%*)\s*\/\s*([0-9,.]+)\s*(\%*)\s*.*",
+		//Group1							Group2		Group3	    Group4		
+		//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"85762"
+		static Regex RegexMFWritingMemTbl = new Regex(@"Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+\(([0-9.]+)\s*([a-z]{0,5})?.+serialized.+\,\s+([0-9,.]+)\s+ops\s*",
 														RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		//Group1																																			Group2		Group3
 		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
-		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,3}))|\;.+nothing\s+needed.+retained).+",
+		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;.+nothing\s+needed.+retained).+",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		public static void ParseMemTblFlushFromLog(DataTable dtCLog,
@@ -7081,8 +7094,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 						continue;
 					}
 
-					//Group1							Group2		Group3	Group4		Group5	Group6	Group7	Group8
-					//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"	"857621"	"7"		"%"		"0"		"%"
+					//Group1							Group2		Group3	    Group4
+					//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"857621"
 					splitInfo = RegexMFWritingMemTbl.Split(item.Description);
 
 					if(splitInfo.Length > 1)

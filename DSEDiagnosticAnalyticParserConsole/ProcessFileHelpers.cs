@@ -331,6 +331,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 case "bytes":
                 case "byte":
+                case "byt":
                     return decimal.Parse(strSize, NumberStyles.AllowThousands) / BytesToMB;
                 case "kb":
 				case "kib":
