@@ -70,6 +70,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 dtExcel.TableName, workSheet.Name, viewFilterSortRowStateOpts.Item1, dtExcel.Rows.Count);
             }
 
+            if(dtExcel.Rows.Count > ExcelPackage.MaxRows)
+            {
+                throw new ArgumentOutOfRangeException("dtExcel.Rows.Count",
+                                                        string.Format("Table \"{0}\" with {1:###,###,##0} rows exceed maximum number of rows allowed by EPPlus (Max. Limit of {2:###,###,##0}). Maybe seperate the clusters into different datacenters.",
+                                                                        dtExcel.TableName,
+                                                                        dtExcel.Rows.Count,
+                                                                        ExcelPackage.MaxRows));
+            }
+
             var loadRange = workSheet.Cells[startingWSCell].LoadFromDataTable(dtExcel, true);
 
             if (loadRange != null && worksheetAction != null)

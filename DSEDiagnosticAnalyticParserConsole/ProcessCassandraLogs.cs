@@ -5103,7 +5103,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size maximum";
                                 dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = (int)(statItem.maxItem4 * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.maxItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.maxItem4;
                                 dataRow["Unit of Measure"] = "bytes";
 
@@ -5118,7 +5118,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size minimum";
                                 dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = (int)(statItem.minItem4 * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.minItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.minItem4;
                                 dataRow["Unit of Measure"] = "bytes";
 
@@ -5133,7 +5133,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Table"] = statItem.Table;
                                 dataRow["Attribute"] = "MemTable Size mean";
                                 dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = (int)(statItem.avgItem4 * BytesToMB);
+                                dataRow["Value"] = (long)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
                                 dtCFStats.Rows.Add(dataRow);
@@ -7268,12 +7268,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 							if (flushFlagThresholdInMS > 0
 									&& memTblFlush.Duration >= flushFlagThresholdInMS)
 							{
-								memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
+                                memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
 							}
 							if (flushFlagThresholdAsIORate > 0
 									&& memTblFlush.IORate < flushFlagThresholdAsIORate)
 							{
-								memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
+                                memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
 							}
 						}
 					}
