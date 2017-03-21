@@ -78,6 +78,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         newDC = true;
                         currentDC = line.Substring(12).Trim();
+                        continue;
                     }
                     else if (newDC)
                     {
@@ -88,62 +89,81 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             newDC = false;
                             rangeStart = true;
-                            currentStartToken = long.Parse(line);
-                        }
-                    }
-                    else
-                    {
 
-                        //Address         Rack        Status State   Load Type            Owns                Token (end)
-                        parsedLine = Common.StringFunctions.Split(line,
-                                                                    ' ',
-                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                            long lngToken;
 
-                        if (Char.IsDigit(parsedLine[0][0]) || parsedLine[0][0] == '-')
-                        {
-                            IPAddressStr(parsedLine[0], out ipAddress);
-
-                            dataRow = dtRingInfo.Rows.Find(ipAddress);
-
-                            if (dataRow == null)
+                            if(long.TryParse(line, out lngToken))
                             {
-                                dataRow = dtRingInfo.NewRow();
-
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["Data Center"] = currentDC;
-                                dataRow["Rack"] = parsedLine[1];
-                                dataRow["Status"] = parsedLine[2];
-
-                                dtRingInfo.Rows.Add(dataRow);
-                            }
-
-                            dataRow = dtTokenRange.NewRow();
-
-                            dataRow["Data Center"] = currentDC;
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Start Token (exclusive)"] = currentStartToken.ToString();
-                            endToken = long.Parse(parsedLine[7]);
-                            dataRow["End Token (inclusive)"] = endToken.ToString();
-
-                            if (rangeStart)
-                            {
-                                rangeStart = false;
-                                dataRow["Slots"] = ((endToken - long.MinValue)
-                                                        + (long.MaxValue - currentStartToken.Value)).ToString("###,###,###,###,##0");
+                                currentStartToken = lngToken;
+                                continue;
                             }
                             else
                             {
-                                dataRow["Slots"] = Math.Abs(endToken - currentStartToken.Value).ToString("###,###,###,###,##0");
+                                currentStartToken = null;
                             }
-
-                            dataRow["Load(MB)"] = ConvertInToMB(parsedLine[4], parsedLine[5]);
-
-                            currentStartToken = endToken;
-
-                            dtTokenRange.Rows.Add(dataRow);
+                        }
+                        else
+                        {
+                            continue;
                         }
                     }
+                   
+                    //Address         Rack        Status State   Load Type            Owns                Token (end)
+                    parsedLine = Common.StringFunctions.Split(line,
+                                                                ' ',
+                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
+                                                                Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+
+                    if (Char.IsDigit(parsedLine[0][0]) || parsedLine[0][0] == '-')
+                    {
+                        IPAddressStr(parsedLine[0], out ipAddress);
+
+                        dataRow = dtRingInfo.Rows.Find(ipAddress);
+
+                        if (dataRow == null)
+                        {
+                            dataRow = dtRingInfo.NewRow();
+
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["Data Center"] = currentDC;
+                            dataRow["Rack"] = parsedLine[1];
+                            dataRow["Status"] = parsedLine[2];
+
+                            dtRingInfo.Rows.Add(dataRow);
+                        }
+
+                        dataRow = dtTokenRange.NewRow();
+
+                        dataRow["Data Center"] = currentDC;
+                        dataRow["Node IPAddress"] = ipAddress;
+
+                        endToken = long.Parse(parsedLine[7]);
+
+                        if(!currentStartToken.HasValue)
+                        {
+                            currentStartToken = endToken;
+                        }
+
+                        dataRow["Start Token (exclusive)"] = currentStartToken.ToString();                        
+                        dataRow["End Token (inclusive)"] = endToken.ToString();
+
+                        if (rangeStart)
+                        {
+                            rangeStart = false;
+                            dataRow["Slots"] = ((endToken - long.MinValue)
+                                                    + (long.MaxValue - currentStartToken.Value)).ToString("###,###,###,###,##0");
+                        }
+                        else
+                        {
+                            dataRow["Slots"] = Math.Abs(endToken - currentStartToken.Value).ToString("###,###,###,###,##0");
+                        }
+
+                        dataRow["Load(MB)"] = ConvertInToMB(parsedLine[4], parsedLine[5]);
+
+                        currentStartToken = endToken;
+
+                        dtTokenRange.Rows.Add(dataRow);
+                    }                    
                 }
             }
         }

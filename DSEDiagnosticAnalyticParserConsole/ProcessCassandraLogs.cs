@@ -675,10 +675,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                     {
 
-                        if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionController.java")
+                        if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionController.java"
+                                || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "BigTableWriter.java")
                         {
-                            #region CompactionController.java
+                            #region CompactionController.java || BigTableWriter.java
                             //Compacting large row billing/account_payables:20160726:FMCC (348583137 bytes)
+                            //Writing large partition oats/order_cycles:nasusnop01:2017-01-31 (139296027 bytes)
 
                             if (itemPos == nCell)
                             {
@@ -709,7 +711,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemPos = nCell + 2;
                                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
-                                dataRow["Exception"] = "Compacting large row";
+                                dataRow["Exception"] = parsedValues[nCell - 1] + " large row";
+                                handled = true;
+                            }
+                            else if (parsedValues[nCell] == "large" && parsedValues.ElementAtOrDefault(nCell + 1) == "partition")
+                            {
+                                itemPos = nCell + 2;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Exception"] = parsedValues[nCell - 1] + " large partition";
                                 handled = true;
                             }
                             #endregion
@@ -1658,6 +1667,12 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
 
             dataRow.BeginEdit();
+
+            if(exception == "java.lang.OutOfMemoryError")
+            {
+                //Flag it so that it can be included in the stats
+                dataRow["Flagged"] = (int)LogFlagStatus.Stats;                                
+            }
 
             UpdateRowColumn(dataRow, "Exception Description", dataRow["Exception Description"] as string, exception + "(" + exceptionDesc + ")");
 
@@ -3318,9 +3333,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
                         #endregion
                     }
-                    else if (item.Item == "CompactionController.java" || item.Item == "SSTableWriter.java")
+                    else if (item.Item == "CompactionController.java" 
+                                || item.Item == "SSTableWriter.java"
+                                || item.Item == "BigTableWriter.java")
                     {
-                        #region CompactionController or SSTableWriter
+                        #region CompactionController or SSTableWriter or BigTableWriter
 
                         var kstblName = item.AssocItem;
                         var partSize = item.AssocValue as decimal?;
@@ -3490,9 +3507,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
-                    else if (item.Item == "JVMStabilityInspector.java")
+                    else if (item.Item == "JVMStabilityInspector.java"
+                                || (item.Item == "Message.java"
+                                        && item.Exception.Contains("java.lang.OutOfMemoryError")))
                     {
-						#region JVMStabilityInspector
+                        #region JVMStabilityInspector or java.lang.OutOfMemoryError
 
                         if (!string.IsNullOrEmpty(item.Exception))
                         {
