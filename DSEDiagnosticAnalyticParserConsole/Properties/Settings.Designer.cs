@@ -1113,5 +1113,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((global::System.Collections.Specialized.StringCollection)(this["AlwayIncludeDLLKeyspacess"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool DivideWorksheetIfExccedMaxRows {
+            get {
+                return ((bool)(this["DivideWorksheetIfExccedMaxRows"]));
+            }
+        }
     }
 }

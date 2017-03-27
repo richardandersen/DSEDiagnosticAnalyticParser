@@ -42,7 +42,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 												workSheet.View.FreezePanes(2, 1);
                                                 workSheet.Cells["A1:O1"].AutoFilter = true;
-                                                workSheet.Cells["A:O"].AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:O"]);                                                
                                             },
                                             ParserSettings.DDLKeyspaceWorksheetFilterSort);
 

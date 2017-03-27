@@ -41,7 +41,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["L:L"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["M:M"].Style.Numberformat.Format = "#,###,###,##0.00";
 
-                                                workSheet.Cells.AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet);                                                
                                             });
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetCFHistogram);

@@ -29,7 +29,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 //workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                                                 workSheet.View.FreezePanes(2, 1);
                                                 workSheet.Cells["A1:E1"].AutoFilter = true;
-                                                workSheet.Cells["A:D"].AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:D"]);                                                
                                             },
                                             ParserSettings.YamlSettingsInfoWorksheetFilterSort);
 

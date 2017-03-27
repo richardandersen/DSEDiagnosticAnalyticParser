@@ -37,7 +37,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                 WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);
 
-                                                workSheet.Cells.AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:K"]);                                               
                                             });
 
                 Program.ConsoleExcelNonLog.TaskEnd(excelWorkSheetCFStats);

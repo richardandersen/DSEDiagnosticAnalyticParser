@@ -325,6 +325,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             DateTimeRange ignoredTimeRange = new DateTimeRange();
             bool exceptionOccurred = false;
             bool assertError = false;
+            int consumeNextLine = 0;
+            string currentSolrSchemaName = null;
 
             //int tableItemValuePos = -1;
 
@@ -359,6 +361,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     Program.ConsoleLogCount.Increment();
+
+                    if(consumeNextLine > 0)
+                    {
+                        --consumeNextLine;
+                        if (lastRow != null)
+                        {
+                            lastRow["Description"] = ((string)lastRow["Description"]) + @"\" + line.TrimEnd();
+                        }
+                        continue;
+                    }
 
                     parsedValues = Common.StringFunctions.Split(line,
                                                                 ' ',
@@ -1405,6 +1417,40 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Exception"] = "Solr Performance Warning";
                                 dataRow["Associated Item"] = ksTableName;
                                 handled = true;
+                            }
+                            #endregion
+                        }
+                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexSchema.java")
+                        {
+                            #region IndexSchema.java
+                            //INFO  [http-10.203.40.61-8983-1] 2017-03-11 07:00:39,426  IndexSchema.java:470 - [null] Schema name=autoSolrSchema
+                            //WARN  [http-10.203.40.61-8983-1] 2017-03-11 07:00:39,432  IndexSchema.java:745 - Field q is not multivalued and destination for multiple copyFields (15)
+                            if (parsedValues[nCell] == "Schema" && parsedValues[nCell + 1].StartsWith("name"))
+                            {
+                                currentSolrSchemaName = parsedValues[nCell] + " " + parsedValues[nCell + 1] ;
+                            }
+                            else if(parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
+                            {
+                                dataRow["Exception"] = "Solr Warning";
+                                dataRow["Associated Item"] = currentSolrSchemaName;
+                                handled = true;
+                            }
+                            #endregion
+                        }
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CassandraIndexSchema.java")
+                        {
+                            #region CassandraIndexSchema.java
+                            //WARN[http - 10.203.40.61 - 8983 - 1] 2017 - 03 - 11 07:00:39,433  CassandraIndexSchema.java:534 - No Cassandra column found for field: transactions_contentRef
+                            //Unless it's a non stored copy field, Cassandra columns must have the same case or be quoted in order to be correctly mapped.
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" 
+                                    && parsedValues[nCell] == "No" 
+                                    && parsedValues.ElementAtOrDefault(nCell + 2) == "column"
+                                    && parsedValues.ElementAtOrDefault(nCell + 3) == "found")
+                            {
+                                dataRow["Exception"] = "Solr Warning: Cassandra Column Not Found";
+                                dataRow["Associated Item"] = currentSolrSchemaName;
+                                handled = true;
+                                consumeNextLine = 1;
                             }
                             #endregion
                         }
@@ -7287,12 +7333,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 							if (flushFlagThresholdInMS > 0
 									&& memTblFlush.Duration >= flushFlagThresholdInMS)
 							{
-                                memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
+                                lock (memTblFlush.LogDataRow.Table)
+                                {
+                                    memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
+                                }
 							}
 							if (flushFlagThresholdAsIORate > 0
 									&& memTblFlush.IORate < flushFlagThresholdAsIORate)
 							{
-                                memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
+                                lock (memTblFlush.LogDataRow.Table)
+                                {
+                                    memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
+                                }
 							}
 						}
 					}

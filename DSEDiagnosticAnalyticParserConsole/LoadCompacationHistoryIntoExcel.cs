@@ -34,7 +34,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                             workSheet.View.FreezePanes(2, 1);
                                             workSheet.Cells["A1:J1"].AutoFilter = true;
-                                            workSheet.Cells["A:J"].AutoFitColumns();
+                                            DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:J"]);                                            
                                         },
                                         false,
                                         -1,

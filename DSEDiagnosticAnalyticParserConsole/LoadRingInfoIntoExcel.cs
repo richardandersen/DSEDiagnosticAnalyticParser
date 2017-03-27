@@ -37,7 +37,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["I:I"].Style.Numberformat.Format = "0.00";
                                                 workSheet.Cells["J:J"].Style.Numberformat.Format = "d hh:mm";
 
-                                                workSheet.Cells.AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet);                                                
                                             },
                                             ParserSettings.RingInfoWorksheetFilterSort);
 

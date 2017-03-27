@@ -101,9 +101,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												//WorkSheetLoadColumnDefaults(workSheet, "F", ParserSettings.CFStatsAttribs);
 
 												workSheet.Cells["A2:AO2"].AutoFilter = true;
-												workSheet.Cells["A:A"].AutoFitColumns();
-												workSheet.Cells["C:M"].AutoFitColumns();
-												workSheet.Cells["O:AM"].AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:A"], workSheet.Cells["C:M"], workSheet.Cells["O:AM"]);                                               												
 												workSheet.Column(2).Width = 45; //b
 												workSheet.Column(14).Width = 15; //n
 											},

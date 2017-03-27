@@ -33,7 +33,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												WorkSheetLoadColumnDefaults(workSheet, "D", ParserSettings.NodeStatsAttribs);
 
                                                 workSheet.Cells["A1:Q1"].AutoFilter = true;
-                                                workSheet.Cells["A1:Q1"].AutoFitColumns();
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A1:Q1"]);                                                
                                                 workSheet.View.FreezePanes(2, 1);
                                             },
                                             ParserSettings.NodeStatsWorksheetFilterSort);

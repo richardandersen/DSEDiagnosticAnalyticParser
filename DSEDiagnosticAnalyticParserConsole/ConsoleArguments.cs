@@ -419,7 +419,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 			}
 		}
 
-		[Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
+        [Option("DivideWorksheetIfExceedMaxRows", HelpText = "1 (Enables)/0 (Disables) this behavior. If enabled and the internal data table's row count exceeds the EPP's maximum number of rows for a worksheet, the rows are divided into multiple worksheets. The default is  1 (\"Enable\")",
+                   Required = false)]
+        public int DivideWorksheetIfExceedMaxRows
+        {
+            get { return ParserSettings.DivideWorksheetIfExceedMaxRows ? 1 : 0; }
+            set { ParserSettings.DivideWorksheetIfExceedMaxRows = value == 0 ? false : true; }
+        }
+
+
+        [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
         {
@@ -434,7 +443,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             get;
             set;
         }
-
+       
         public bool CheckArguments()
         {
             bool bResult = true;
@@ -576,7 +585,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--GCTimeFrameDetection|-f {23} " +
                                     "--GCTimeFrameDetectionPercentage|-e {24} " +
 									"--ReadRepairThresholdInMS|-r {27} " +
-									"--CLogLineFormatPosition|-o {28}",
+									"--CLogLineFormatPosition|-o {28} " +
+                                    "--DivideWorksheetIfExceedMaxRows {29}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -605,7 +615,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.NbrGCInSeriesToConsiderContinuous,
                                     this.CompactionFlagThresholdAsIORate,
 									this.ReadRepairThresholdInMS, //27
-									this.CLogLineFormatPosition);
+									this.CLogLineFormatPosition,
+                                    this.DivideWorksheetIfExceedMaxRows);
         }
     }
 }

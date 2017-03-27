@@ -141,8 +141,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 													workSheet.Cells["AD2"].AddComment("Number of Partitions Merged to", "Rich Andersen");
 
 													workSheet.Cells["A2:AQ2"].AutoFilter = true;
-													workSheet.Cells["A:AC"].AutoFitColumns();
-													workSheet.Cells["AF:AP"].AutoFitColumns();
+                                                    DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:AC"], workSheet.Cells["AF:AP"]);                                                    
+													
 													workSheet.Column(30).Width = 38; //AD
 													workSheet.Column(31).Width = 38; //AE
 												},

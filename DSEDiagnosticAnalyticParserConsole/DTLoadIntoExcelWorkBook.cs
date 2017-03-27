@@ -11,12 +11,47 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
+        static public void AutoFitColumn(ExcelWorksheet workSheet, params ExcelRange[] autoFitRanges)
+        {
+            try
+            {
+                if (autoFitRanges == null || autoFitRanges.Length == 0)
+                {
+                    workSheet.Cells.AutoFitColumns();
+                }
+                else
+                {
+                    foreach (var range in autoFitRanges)
+                    {
+                        range.AutoFitColumns();
+                    }
+                }
+            }
+            catch(System.Exception ex)
+            {
+                Logger.Instance.Error(string.Format("Excel Cell Range AutoFitColumns Exception Occurred in Worksheet \"{0}\". Worksheet was loaded/updated but NOT auto-formatted...", workSheet.Name), ex);
+            }
+        }
+
+        static public void AutoFitColumn(ExcelWorksheet workSheet)
+        {
+            try
+            {
+                workSheet.Cells.AutoFitColumns();                
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Instance.Error(string.Format("Excel AutoFitColumns Exception Occurred in Worksheet \"{0}\". Worksheet was loaded/updated but NOT auto-formatted...", workSheet.Name), ex);
+            }
+        }
+
         static public ExcelRangeBase WorkSheet(ExcelPackage excelPkg,
                                                 string workSheetName,
                                                 System.Data.DataTable dtExcel,
                                                 Action<ExcelWorksheet> worksheetAction = null,
                                                 Tuple<string, string, DataViewRowState> viewFilterSortRowStateOpts = null,
-                                                string startingWSCell = "A1")
+                                                string startingWSCell = "A1",
+                                                bool divideWorksheetIfExceedMaxRows = true)
         {
             Program.ConsoleExcel.Increment(string.Format("{0} - {1}", workSheetName, dtExcel.TableName));
 
@@ -72,11 +107,37 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if(dtExcel.Rows.Count > ExcelPackage.MaxRows)
             {
-                throw new ArgumentOutOfRangeException("dtExcel.Rows.Count",
-                                                        string.Format("Table \"{0}\" with {1:###,###,##0} rows exceed maximum number of rows allowed by EPPlus (Max. Limit of {2:###,###,##0}). Maybe seperate the clusters into different datacenters.",
-                                                                        dtExcel.TableName,
-                                                                        dtExcel.Rows.Count,
-                                                                        ExcelPackage.MaxRows));
+                if (divideWorksheetIfExceedMaxRows && ParserSettings.DivideWorksheetIfExceedMaxRows)
+                {
+                    Logger.Instance.ErrorFormat("Table \"{0}\" with {1:###,###,##0} rows exceed maximum number of rows allowed by EPPlus (Max. Limit of {2:###,###,##0}) for worksheet \"{3}\" in workbook \"{4}\". The worksheet will be divided, creating multiple worksheets with a 1,000,000 rows each. This may cause some workbook features to not work correctly!",
+                                                dtExcel.TableName,
+                                                dtExcel.Rows.Count,
+                                                ExcelPackage.MaxRows,
+                                                workSheetName,
+                                                excelPkg?.File?.FullName);
+                    var tempStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
+                    tempStack.Push(dtExcel);
+
+                    return WorkSheet(excelPkg,
+                                        workSheetName,
+                                        tempStack,
+                                        worksheetAction,
+                                        true,
+                                        1000000,
+                                        viewFilterSortRowStateOpts,
+                                        startingWSCell,
+                                        false);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("dtExcel.Rows.Count",
+                                                            string.Format("Table \"{0}\" with {1:###,###,##0} rows exceed maximum number of rows allowed by EPPlus (Max. Limit of {2:###,###,##0}) for worksheet \"{3}\" in workbook \"{4}\". Maybe seperate the clusters into different datacenters, enable DivideWorksheetIfExceedMaxRows parameter, or divide worksheet creation into smaller chucks.",
+                                                                            dtExcel.TableName,
+                                                                            dtExcel.Rows.Count,
+                                                                            ExcelPackage.MaxRows,
+                                                                            workSheetName,
+                                                                            excelPkg?.File?.FullName));
+                }
             }
 
             var loadRange = workSheet.Cells[startingWSCell].LoadFromDataTable(dtExcel, true);
@@ -85,7 +146,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 try
                 {
-                    worksheetAction(workSheet);
+                    worksheetAction(workSheet);                    
                 }
                 catch(System.Exception ex)
                 {
@@ -105,7 +166,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 bool enableMaxRowLimitPerWorkSheet = true,
                                                 int maxRowInExcelWorkSheet = -1,
                                                 Tuple<string, string, DataViewRowState> viewFilterSortRowStateOpts = null,
-                                                string startingWSCell = "A1")
+                                                string startingWSCell = "A1",
+                                                bool renameFirstWorksheetIfDivided = true)
         {
             DataTable dtComplete = dtExcels.MergeIntoOneDataTable(viewFilterSortRowStateOpts);
 
@@ -117,16 +179,20 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var dtSplits = dtComplete.SplitTable(maxRowInExcelWorkSheet);                
                 ExcelRangeBase excelRange = null;
-                int splitCnt = 0;
+                int splitCnt = 1;
 
                 foreach (var dtSplit in dtSplits)
                 {
                     excelRange = WorkSheet(excelPkg,
-                                            string.Format("{0}-{1:000}", workSheetName, ++splitCnt),
+                                            renameFirstWorksheetIfDivided || splitCnt > 1
+                                                ? string.Format("{0}-{1:000}", workSheetName, splitCnt)
+                                                : workSheetName,
                                             dtSplit,
                                             worksheetAction,
                                             null,
-                                            startingWSCell);
+                                            startingWSCell,
+                                            false);
+                    ++splitCnt;
                 }
 
                 return excelRange;
@@ -137,7 +203,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dtComplete,
                             worksheetAction,
                             null,
-                            startingWSCell);
+                            startingWSCell,
+                            false);
         }
 
         static public void WorkSheetLoadColumnDefaults(ExcelWorksheet workSheet,

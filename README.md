@@ -177,10 +177,14 @@ Below settings are used for parsing of diagnostic fles and creation of the Excel
 ```
 Below settings are used for processing of Excel worksheets/workbooks:
 
-**MaxRowInExcelWorkSheet** -- The maximum number of Excel rows in an individual worksheet. If this limit is reached a new worksheet is created. Default 500,000
+**MaxRowInExcelWorkSheet** -- The maximum number of Excel rows in an Log or stats individual worksheet (not the main workbook). If this limit is reached a new worksheet is created. Default 500,000
 
-**MaxRowInExcelWorkBook** -- The maximum number of Excel rows in the whole workbook. If this limit is reached a new workbook is created. Default 1,000,000
+**MaxRowInExcelWorkBook** -- The maximum number of Excel rows in the whole log or stats workbook(s) (does not apply to the main workbook). If this limit is reached a new workbook is created. Default 1,000,000
 
+**DivideWorksheetIfExceedMaxRows** -- 1 (Enables)/0 (Disables) this behavior. If enabled and the internal data table's row count exceeds the EPP's maximum number of rows for a worksheet, the rows are divided into multiple worksheets. The default is  1 (Enable)
+	**Warning:** This can split the base worksheets in the main workbook that will result in the pivot tables containing incomplete information. 
+			If MS-Excel 64-bit is being used, the divided worksheets can be merged into one base worksheet and refresh all pivot tables should fit this issue.
+                   
 **LogExcelWorkbookFilter** -- This is a filter that is applied to only log entries when loading into Excel. The default is no value (null). See http://www.csharp-examples.net/dataview-rowfilter/ for more information. Below is an example of a filter:
     "[Timestamp] >= #2016-08-01 15:30:00#"
 ```    

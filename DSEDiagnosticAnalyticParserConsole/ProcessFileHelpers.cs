@@ -6,85 +6,96 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Globalization;
 using Common;
+using System.Text.RegularExpressions;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
     static partial class ProcessFileTasks
     {
+        readonly static Regex IPFileNameRegEx = new Regex(@"(\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         static public bool DetermineIPDCFromFileName(string pathItem, DataTable dtRingInfo, out string ipAddress, out string dcName)
         {
-            var possibleAddress = Common.StringFunctions.Split(pathItem,
-                                                                new char[] { ' ', '-', '_' },
-                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
-
+            var ipMatch = IPFileNameRegEx.Match(pathItem);
             ipAddress = null;
 
-            if (possibleAddress.Count() == 1)
+            if (ipMatch.Success)
             {
-                if (!IPAddressStr(possibleAddress[0], out ipAddress))
-                {
-                    dcName = null;
-                    return false;
-                }
+                ipAddress = Regex.Replace(ipMatch.Value, @"[\-_\ ]", @".") ?? ipMatch.Value;
             }
             else
             {
-                string fileNamePart;
-
-                for(int nIndex = 0; nIndex < possibleAddress.Count; ++nIndex)
+                var possibleAddress = Common.StringFunctions.Split(pathItem,
+                                                                new char[] { ' ', '-', '_' },
+                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
+                                                                Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                
+                if (possibleAddress.Count() == 1)
                 {
-                    fileNamePart = possibleAddress[nIndex];
-
-                    var parts = Common.StringFunctions.CountOccurrences(fileNamePart, '.');
-
-                    if (parts == 0)
+                    if (!IPAddressStr(possibleAddress[0], out ipAddress))
                     {
-                       if(fileNamePart.Length <= 3)
+                        dcName = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    string fileNamePart;
+
+                    for (int nIndex = 0; nIndex < possibleAddress.Count; ++nIndex)
+                    {
+                        fileNamePart = possibleAddress[nIndex];
+
+                        var parts = Common.StringFunctions.CountOccurrences(fileNamePart, '.');
+
+                        if (parts == 0)
                         {
-                            if (Common.StringFunctions.IsValidNumeric(fileNamePart, true))
+                            if (fileNamePart.Length <= 3)
                             {
-                                if(possibleAddress.Count > nIndex + 3
-                                        && possibleAddress.GetRange(nIndex, 4).TrueForAll(item => item.Length <= 3 && Common.StringFunctions.IsValidNumeric(item, true))
-                                        && IPAddressStr(fileNamePart + "." + possibleAddress[nIndex+1] + "." + possibleAddress[nIndex+2] + "." + possibleAddress[nIndex+3], out ipAddress))
+                                if (Common.StringFunctions.IsValidNumeric(fileNamePart, true))
                                 {
-                                    break;
-                                }
+                                    if (possibleAddress.Count > nIndex + 3
+                                            && possibleAddress.GetRange(nIndex, 4).TrueForAll(item => item.Length <= 3 && Common.StringFunctions.IsValidNumeric(item, true))
+                                            && IPAddressStr(fileNamePart + "." + possibleAddress[nIndex + 1] + "." + possibleAddress[nIndex + 2] + "." + possibleAddress[nIndex + 3], out ipAddress))
+                                    {
+                                        break;
+                                    }
 
-                                var ipView = new DataView(dtRingInfo,
-                                                            string.Format("[Node IPAddress] like '%.{0}'", fileNamePart),
-                                                            null,
-                                                            DataViewRowState.CurrentRows);
+                                    var ipView = new DataView(dtRingInfo,
+                                                                string.Format("[Node IPAddress] like '%.{0}'", fileNamePart),
+                                                                null,
+                                                                DataViewRowState.CurrentRows);
 
-                                if (ipView.Count == 1)
-                                {
-                                    ipAddress = (string)ipView[0]["Node IPAddress"];
-                                    dcName = ipView[0]["Data Center"] as string;
-                                    return true;
+                                    if (ipView.Count == 1)
+                                    {
+                                        ipAddress = (string)ipView[0]["Node IPAddress"];
+                                        dcName = ipView[0]["Data Center"] as string;
+                                        return true;
+                                    }
                                 }
                             }
+
+                            continue;
+                        }
+                        else if (parts > 3)
+                        {
+                            var extPos = fileNamePart.LastIndexOf('.');
+                            fileNamePart = fileNamePart.Substring(0, extPos);
                         }
 
-                        continue;
+                        if (IPAddressStr(fileNamePart, out ipAddress))
+                        {
+                            break;
+                        }
+
+                        ipAddress = null;
                     }
-                    else if (parts > 3)
+
+                    if (string.IsNullOrEmpty(ipAddress))
                     {
-                        var extPos = fileNamePart.LastIndexOf('.');
-                        fileNamePart = fileNamePart.Substring(0, extPos);
+                        dcName = null;
+                        return false;
                     }
-
-                    if (IPAddressStr(fileNamePart, out ipAddress))
-                    {
-                        break;
-                    }
-
-                    ipAddress = null;
-                }
-
-                if(string.IsNullOrEmpty(ipAddress))
-                {
-                    dcName = null;
-                    return false;
                 }
             }
 

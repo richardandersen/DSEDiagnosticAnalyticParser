@@ -76,8 +76,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     workSheet.Cells["D:D"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
 
                                                     workSheet.Cells["A2:K2"].AutoFilter = true;
-                                                    workSheet.Cells["A:G"].AutoFitColumns();
-                                                    workSheet.Cells["J:K"].AutoFitColumns();
+                                                    DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:G"], workSheet.Cells["J:K"]);                                                                                                      
                                                 },
                                                     -1,
                                                     -1,

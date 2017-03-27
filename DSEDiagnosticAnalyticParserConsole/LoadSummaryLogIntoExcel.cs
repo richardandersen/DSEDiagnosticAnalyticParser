@@ -60,8 +60,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.View.FreezePanes(3, 1);
                                             workSheet.Cells["A2:N2"].AutoFilter = true;
 
-                                            workSheet.Cells["A:E"].AutoFitColumns();
-                                            workSheet.Cells["J:K"].AutoFitColumns();
+                                            DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:E"], workSheet.Cells["J:K"]);
+                                            
                                             workSheet.Column(6).Width = 45; //F
                                             workSheet.Column(7).Width = 38; //G
                                             workSheet.Column(8).Width = 5; //H

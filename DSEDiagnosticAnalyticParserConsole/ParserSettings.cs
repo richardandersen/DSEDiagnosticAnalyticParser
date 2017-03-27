@@ -356,7 +356,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 		public static Tuple<string, string, System.Data.DataViewRowState> StatsWorkBookFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.StatsWorkBookFilterSort);
 		public static Tuple<string, string, System.Data.DataViewRowState> ReadRepairWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.ReadRepairWorksheetFilterSort);
 
-		public static Dictionary<string, string> CreateSnitchDictionary(string configString)
+        public static bool DivideWorksheetIfExceedMaxRows = Properties.Settings.Default.DivideWorksheetIfExccedMaxRows;
+
+        public static Dictionary<string, string> CreateSnitchDictionary(string configString)
         {
             var configObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string>[]>(configString);
             var dict = new Dictionary<string, string>();

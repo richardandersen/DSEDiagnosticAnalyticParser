@@ -32,7 +32,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 //workSheet.Cells["C:D"].Style.Numberformat.Format = "TEXT";
                                 //workSheet.Cells["E:E"].Style.Numberformat.Format = "TEXT";
                                 workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                workSheet.Cells.AutoFitColumns();
+                                DTLoadIntoExcel.AutoFitColumn(workSheet);                                
                             },
                             ParserSettings.TokenRangeWorksheetFilterSort);
 
