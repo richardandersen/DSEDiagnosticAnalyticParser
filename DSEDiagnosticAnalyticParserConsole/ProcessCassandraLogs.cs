@@ -5888,6 +5888,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							   let flagged = dr.Field<int?>("Flagged")
 							   let descr = dr.Field<string>("Description")?.Trim().ToLower()
 							   let exception = dr.Field<string>("Exception")
+                               let assocValue = dr.Field<object>("Associated Value")
 							   where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
 									   || (item == "RepairSession.java"
 											   && (descr.Contains("new session")
@@ -5906,8 +5907,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 								   Flagged = flagged,
 								   Exception = exception,
 								   Description = descr,
-								   AssocValue = dr.Field<string>("Associated Value")
-							   }
+								   AssocValue = assocValue is string ? (string) assocValue : assocValue?.ToString()
+                               }
 							   by new { dcName, ipAddress } into g
 							   select new
 							   {
@@ -6052,7 +6053,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 										if (logInfo != null)
 										{
-											logInfo.ReceivedNodes.Add(regExReceived[3]);
+                                            if (!logInfo.ReceivedNodes.Contains(regExReceived[3]))
+                                            {
+                                                logInfo.ReceivedNodes.Add(regExReceived[3]);
+                                            }
 										}
 									}
 									#endregion
@@ -6077,11 +6081,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 									if(!gcInfo.RepairNodes.Contains(regExNbrSession[3]))
 									{
-										string ipAddress;
-										if (IPAddressStr(regExNbrSession[3], out ipAddress))
-										{
-											gcInfo.RepairNodes.Add(ipAddress);
-										}
+										gcInfo.RepairNodes.Add(regExNbrSession[3]);										
 									}
 								}
 							}
@@ -6440,43 +6440,44 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Nbr of Repaired Ranges", typeof(int)).AllowDBNull = true; //m
 				dtReadRepair.Columns.Add("Updating Nodes", typeof(string)).AllowDBNull = true; //n 14
 				dtReadRepair.Columns.Add("Nbr Received Nodes", typeof(int)).AllowDBNull = true; //o
-				dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Received Nodes", typeof(string)).AllowDBNull = true; //p
+                dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //r
+				dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //s
 				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //u
-				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //v
-				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //w
+				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //v
+				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //w
+				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //x
 
 				//GC
-				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //x
+				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //y
 				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //aa
+				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;//aa
+				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //ab
 
 				//Compaction
-				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ab
-				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ac
-				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ad
-				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ae
-				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //af
+				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ac
+				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ad
+				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ae
+				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //af
+				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ag
 
 				//MemTable Flush
-				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ag
-				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//ah
-				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //ai
-				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //aj
-				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ak
+				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ah
+				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//ai
+				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //aj
+				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //ak
+				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //al
 
 				//Performance Warnings
-				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //al
-				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//am
+				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //am
+				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//an
 
 				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //an
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ao
 
-				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ao
+				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ap
 			}
 		#endregion
 
@@ -6533,7 +6534,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 					newDataRow["Nbr of Repaired Ranges"] = rrItem.NbrRepairs;
 					newDataRow["Updating Nodes"] = string.Join(", ", rrItem.RepairNodes);
 					newDataRow["Nbr Received Nodes"] = rrItem.ReceivedNodes.Count;
-					newDataRow["Nbr GC Events"] = rrItem.GCs;
+                    newDataRow["Received Nodes"] = string.Join(", ", rrItem.ReceivedNodes);
+                    newDataRow["Nbr GC Events"] = rrItem.GCs;
 					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
 					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
 					newDataRow["Nbr MemTable Flush Events"] = rrItem.MemTableFlushes;

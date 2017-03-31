@@ -13,6 +13,7 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         public static readonly DateTime RunDateTime = DateTime.Now;
         public static string CommandArgsString = null;
+        public static string CommandLineArgsString = null;
 
         static public ConsoleDisplay ConsoleNonLogReadFiles = null;
         static public ConsoleDisplay ConsoleLogReadFiles = null;
@@ -31,9 +32,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-			#region Command Line Argument and Settings
+            #region Command Line Argument and Settings
 
-			var argResult = CommandLine.Parser.Default.ParseArguments<ConsoleArguments>(args);
+            CommandLineArgsString = string.Join(" ", args);
+            var argResult = CommandLine.Parser.Default.ParseArguments<ConsoleArguments>(args);
 
             if(argResult.Value.Debug)
             {

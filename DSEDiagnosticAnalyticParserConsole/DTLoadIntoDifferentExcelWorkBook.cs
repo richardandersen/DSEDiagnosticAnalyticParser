@@ -192,19 +192,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             Common.Functions.Instance.ApplicationVersion,
                                                             Common.Functions.Instance.AssemblyDir);
             workSheet.Cells["A4"].Value = string.Format("Working Directory: {0}", System.Environment.CurrentDirectory);
-            workSheet.Cells["A5"].Value = Program.CommandArgsString.Replace("--", "\r\n\t--");
+            workSheet.Cells["A5"].Value = Program.CommandLineArgsString;
+            workSheet.Cells["A6"].Value = Program.CommandArgsString.Replace("--", "\r\n\t--");
 
-            workSheet.Cells["A6"].Value = string.Format("Warnings: {0} Errors: {1}",
+            workSheet.Cells["A7"].Value = string.Format("Warnings: {0} Errors: {1}",
                                                             Program.ConsoleWarnings.Counter > 0,
                                                             Program.ConsoleErrors.Counter > 0);
 
             if (ProcessFileTasks.LogCassandraMaxMinTimestamp.IsEmpty())
             {
-                workSheet.Cells["A7"].Value = "No Log Range";
+                workSheet.Cells["A8"].Value = "No Log Range";
             }
             else
             {
-                workSheet.Cells["A7"].Value = string.Format("Log From {0} ({0:ddd}) to {1} ({1:ddd}) duration {2:d\\ hh\\:mm} Number of Log items read/processed: {3:###,###,##0}",
+                workSheet.Cells["A8"].Value = string.Format("Log From {0} ({0:ddd}) to {1} ({1:ddd}) duration {2:d\\ hh\\:mm} Number of Log items read/processed: {3:###,###,##0}",
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Max,
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Max - ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
