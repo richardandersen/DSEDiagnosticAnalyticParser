@@ -181,7 +181,7 @@ Below settings are used for processing of Excel worksheets/workbooks:
 
 **MaxRowInExcelWorkBook** -- The maximum number of Excel rows in the whole log or stats workbook(s) (does not apply to the main workbook). If this limit is reached a new workbook is created. Default 1,000,000
 
-**DivideWorksheetIfExceedMaxRows** -- 1 (Enables)/0 (Disables) this behavior. If enabled and the internal data table's row count exceeds the EPP's maximum number of rows for a worksheet, the rows are divided into multiple worksheets. The default is  1 (Enable)
+**DivideWorksheetIfExceedMaxRows** -- 1 (Enables)/0 (Disables) this behavior. If enabled and the internal data table's row count exceeds the EPPlus's maximum number of rows for a worksheet, the rows are divided into multiple worksheets. The default is  1 (Enable)
 	**Warning:** This can split the base worksheets in the main workbook that will result in the pivot tables containing incomplete information. 
 			If MS-Excel 64-bit is being used, the divided worksheets can be merged into one base worksheet and refresh all pivot tables should fit this issue.
                    
