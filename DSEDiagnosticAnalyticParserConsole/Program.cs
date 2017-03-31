@@ -1366,14 +1366,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             parsedLogList.Count,
                                                                             string.Join(", ", parsedLogList.Sort<string>()));
                                             });
+                        runningLogTask.ContinueWith(action =>
+                                            {
+                                                Program.ConsoleParsingLog.Increment("Update Node Info");
+                                                ProcessFileTasks.UpdateRingInfo(dtRingInfo,
+                                                                                ProcessFileTasks.LogCassandraNodeMaxMinTimestamps);
+                                                Program.ConsoleParsingLog.TaskEnd("Update Node Info");
+                                            });
 
-						runLogMergedTask = runningLogTask.ContinueWith(action =>
+                        runLogMergedTask = runningLogTask.ContinueWith(action =>
                                             {
 												Program.ConsoleParsingLog.Increment("Log Merge");
 												var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,
                                                                                                                                                     "[Data Center], [Timestamp] DESC",
                                                                                                                                                     DataViewRowState.CurrentRows));
                                                 Program.ConsoleParsingLog.TaskEnd("Log Merge");
+
                                                 return dtlog;
                                             },
                                             TaskContinuationOptions.AttachedToParent

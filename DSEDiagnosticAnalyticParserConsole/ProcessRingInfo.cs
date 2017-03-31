@@ -26,7 +26,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Log Duration", typeof(TimeSpan)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
@@ -213,6 +216,44 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        static public void UpdateRingInfo(DataTable dtRingInfo,
+                                            Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>> logCassandraNodeMaxMinTimestamps)
+        {
+            if (logCassandraNodeMaxMinTimestamps.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var logNodeMaxMin in logCassandraNodeMaxMinTimestamps)
+            {
+                var minTimeFrame = logNodeMaxMin.Value.Min(c => c.Min);
+                var maxTimeFrame = logNodeMaxMin.Value.Max(c => c.Max);
+
+                if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
+                            && minTimeFrame != DateTime.MinValue
+                            && maxTimeFrame != DateTime.MaxValue)
+                {
+                    var nodeRow = dtRingInfo.Rows.Find(logNodeMaxMin.Key);
+
+                    if (nodeRow == null)
+                    {
+                        nodeRow = dtRingInfo.NewRow();
+                        nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
+                        nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
+                        nodeRow.SetField<TimeSpan>("Log Duration", maxTimeFrame - minTimeFrame);
+                        dtRingInfo.Rows.Add(nodeRow);
+                    }
+                    else
+                    {
+                        nodeRow.BeginEdit();
+                        nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
+                        nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
+                        nodeRow.SetField<TimeSpan>("Log Duration", maxTimeFrame - minTimeFrame);
+                        nodeRow.EndEdit();                    
+                    }
+                }
+            }
+        }
     }
 
 }

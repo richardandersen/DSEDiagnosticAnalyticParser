@@ -36,6 +36,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["M:M"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["I:I"].Style.Numberformat.Format = "0.00";
                                                 workSheet.Cells["J:J"].Style.Numberformat.Format = "d hh:mm";
+                                                workSheet.Cells["K:K"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
+                                                workSheet.Cells["L:L"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
+                                                workSheet.Cells["M:M"].Style.Numberformat.Format = "d hh:mm";
 
                                                 DTLoadIntoExcel.AutoFitColumn(workSheet);                                                
                                             },
