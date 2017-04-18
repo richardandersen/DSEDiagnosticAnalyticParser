@@ -609,6 +609,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 IFilePath filePath = null;
                 var preFilesProcessed = new bool[3];
+                bool callResult = true;
 
                 #region preparsing Files
 
@@ -624,10 +625,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             Program.ConsoleNonLogReadFiles.Increment(filePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                            ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
+                            callResult = ProcessFileTasks.ReadRingFileParseIntoDataTables(filePath, dtRingInfo, dtTokenRange);
                             //parsedRingList.TryAdd(filePath.PathResolved);
                             Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
-                            preFilesProcessed[0] = true;
+
+                            if (!callResult || dtRingInfo == null || dtRingInfo.Rows.Count == 0)
+                            {
+                                Logger.Instance.InfoFormat("NodeTool Ring file \"{0}\" did not contain or invalid information. Trying next node folder", filePath.PathResolved);
+                            }
+                            else
+                            {
+                                preFilesProcessed[0] = true;
+                            }
                         }
                         else
                         {
@@ -643,10 +652,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             Program.ConsoleNonLogReadFiles.Increment(filePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                            ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
+                            callResult = ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
                             //parsedRingList.TryAdd(filePath.PathResolved);
                             Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
-                            preFilesProcessed[1] = true;
+                            if (!callResult || dtRingInfo == null || dtRingInfo.Rows.Count == 0)
+                            {
+                                Logger.Instance.InfoFormat("DSETool Ring file \"{0}\" did not contain or invalid information. Trying next node folder", filePath.PathResolved);
+                            }
+                            else
+                            {
+                                preFilesProcessed[1] = true;
+                            }
                         }
                         else
                         {

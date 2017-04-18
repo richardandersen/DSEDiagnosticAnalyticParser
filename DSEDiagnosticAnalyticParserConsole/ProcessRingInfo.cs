@@ -15,25 +15,26 @@ namespace DSEDiagnosticAnalyticParserConsole
 			if (dtRingInfo.Columns.Count == 0)
 			{
 				dtRingInfo.Columns.Add("Node IPAddress", typeof(string));
-				dtRingInfo.Columns["Node IPAddress"].Unique = true;
+				dtRingInfo.Columns["Node IPAddress"].Unique = true; //A
 				dtRingInfo.PrimaryKey = new System.Data.DataColumn[] { dtRingInfo.Columns["Node IPAddress"] };
 				dtRingInfo.Columns.Add("Data Center", typeof(string));
 				dtRingInfo.Columns.Add("Rack", typeof(string));
 				dtRingInfo.Columns.Add("Status", typeof(string));
 				dtRingInfo.Columns.Add("Instance Type", typeof(string)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Cluster Name", typeof(string)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true; //G
 				dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true; //J
+                dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//K
                 dtRingInfo.Columns.Add("Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Log Duration", typeof(TimeSpan)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//N
                 dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;
+				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;//P
+				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;//Q
+				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;//R
+				dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;//S
 				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
@@ -43,7 +44,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			}
 		}
 
-        static public void ReadRingFileParseIntoDataTables(IFilePath ringFilePath,
+        static public bool ReadRingFileParseIntoDataTables(IFilePath ringFilePath,
                                                             DataTable dtRingInfo,
                                                             DataTable dtTokenRange)
         {
@@ -70,6 +71,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             List<string> parsedLine;
             bool newDC = true;
             bool rangeStart = false;
+            bool bResult = true;
 
             foreach (var element in fileLines)
             {
@@ -77,6 +79,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if (!string.IsNullOrEmpty(line))
                 {
+                    if(line == "stderr:")
+                    {
+                        Logger.Instance.ErrorFormat("Nodetool Ring File is not valid or failed to generate properly. File \"{0}\" will be ignored", ringFilePath.PathResolved);
+                        Program.ConsoleErrors.Increment("Nodetool Ring File Invalid");
+                        bResult = false;
+                        break;
+                    }
+
                     if (line.StartsWith("Datacenter:"))
                     {
                         newDC = true;
@@ -169,6 +179,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }                    
                 }
             }
+            return bResult;
         }
 
         static public void UpdateRingInfo(DataTable dtRingInfo,
@@ -228,7 +239,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var minTimeFrame = logNodeMaxMin.Value.Min(c => c.Min);
                 var maxTimeFrame = logNodeMaxMin.Value.Max(c => c.Max);
-
+                var timespan = TimeSpan.FromMilliseconds(logNodeMaxMin.Value.Sum(c => c.TimeSpan().TotalMilliseconds));
+                            
                 if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
                             && minTimeFrame != DateTime.MinValue
                             && maxTimeFrame != DateTime.MaxValue)
@@ -238,9 +250,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (nodeRow == null)
                     {
                         nodeRow = dtRingInfo.NewRow();
+                        nodeRow.SetField<string>("Node IPAddress", logNodeMaxMin.Key);
                         nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
                         nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
-                        nodeRow.SetField<TimeSpan>("Log Duration", maxTimeFrame - minTimeFrame);
+                        nodeRow.SetField<TimeSpan>("Log Duration", timespan);
+                        nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
                         dtRingInfo.Rows.Add(nodeRow);
                     }
                     else
@@ -248,7 +262,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         nodeRow.BeginEdit();
                         nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
                         nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
-                        nodeRow.SetField<TimeSpan>("Log Duration", maxTimeFrame - minTimeFrame);
+                        nodeRow.SetField<TimeSpan>("Log Duration", timespan);
+                        nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
                         nodeRow.EndEdit();                    
                     }
                 }

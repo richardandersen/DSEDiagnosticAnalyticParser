@@ -10,7 +10,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
-        static public void ReadDSEToolRingFileParseIntoDataTable(IFilePath dseRingFilePath,
+        static public bool ReadDSEToolRingFileParseIntoDataTable(IFilePath dseRingFilePath,
                                                                     DataTable dtRingInfo)
         {
 			InitializeRingDataTable(dtRingInfo);
@@ -21,6 +21,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             string ipAddress;
             DataRow dataRow;
             bool dse5Format = false;
+            bool bResult = true;
 
             //Note: Ownership information does not include topology, please specify a keyspace.
             //Address 			DC			Rack 	Workload	Status 	State	Load 		Owns	VNodes
@@ -37,6 +38,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             foreach (var element in fileLines)
             {
                 line = element.Trim();
+
+                if (line == "stderr:")
+                {
+                    Logger.Instance.ErrorFormat("DSETool Ring File is not valid or failed to generate properly. File \"{0}\" will be ignored", dseRingFilePath.PathResolved);
+                    Program.ConsoleErrors.Increment("DSETool Ring File Invalid");
+                    bResult = false;
+                    break;
+                }
 
                 if (string.IsNullOrEmpty(line)
                     || line.StartsWith("warning: ", StringComparison.OrdinalIgnoreCase)
@@ -151,6 +160,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
             }
+
+            return bResult;
         }
 
     }
