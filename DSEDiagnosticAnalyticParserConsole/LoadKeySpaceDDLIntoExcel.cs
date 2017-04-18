@@ -29,8 +29,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 												//workBook.Cells["1:1"].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 												workSheet.Cells["D:D"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["E:E"].Style.Numberformat.Format = "#,###";
-												workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###";
-												workSheet.Cells["G:G"].Style.Numberformat.Format = "#,###";
+                                                workSheet.Cells["F:F"].Style.Numberformat.Format = "#,###";
+                                                workSheet.Cells["G:G"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["H:H"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["I:I"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["J:J"].Style.Numberformat.Format = "#,###";
@@ -39,10 +39,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["M:M"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["N:N"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["O:O"].Style.Numberformat.Format = "#,###";
+												workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###";
 
 												workSheet.View.FreezePanes(2, 1);
-                                                workSheet.Cells["A1:O1"].AutoFilter = true;
-                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:O"]);                                                
+                                                workSheet.Cells["A1:P1"].AutoFilter = true;
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:P"]);                                                
                                             },
                                             ParserSettings.DDLKeyspaceWorksheetFilterSort);
 

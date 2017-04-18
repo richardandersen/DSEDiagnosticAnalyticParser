@@ -26,17 +26,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtKeySpace.Columns.Add("Data Center", typeof(string));
                 dtKeySpace.Columns.Add("Replication Factor", typeof(int));//d
 				dtKeySpace.Columns.Add("Tables", typeof(int)).AllowDBNull = true;//e
-				dtKeySpace.Columns.Add("Indexes", typeof(int)).AllowDBNull = true;//f
+                dtKeySpace.Columns.Add("Columns", typeof(int)).AllowDBNull = true;//f
+                dtKeySpace.Columns.Add("Indexes", typeof(int)).AllowDBNull = true;//g
 				dtKeySpace.Columns.Add("solr", typeof(int)).AllowDBNull = true;
-				dtKeySpace.Columns.Add("Total", typeof(int)).AllowDBNull = true;//h
-				dtKeySpace.Columns.Add("Active", typeof(int)).AllowDBNull = true;//i
-				dtKeySpace.Columns.Add("STCS", typeof(int)).AllowDBNull = true;//j
-				dtKeySpace.Columns.Add("LCS", typeof(int)).AllowDBNull = true;//k
-				dtKeySpace.Columns.Add("DTCS", typeof(int)).AllowDBNull = true;//l
-				dtKeySpace.Columns.Add("TCS", typeof(int)).AllowDBNull = true;//m
-				dtKeySpace.Columns.Add("TWCS", typeof(int)).AllowDBNull = true;//n
-				dtKeySpace.Columns.Add("Other Strategies", typeof(int)).AllowDBNull = true;//o
-				dtKeySpace.Columns.Add("DDL", typeof(string));//p
+				dtKeySpace.Columns.Add("Total", typeof(int)).AllowDBNull = true;//i
+				dtKeySpace.Columns.Add("Active", typeof(int)).AllowDBNull = true;//j
+				dtKeySpace.Columns.Add("STCS", typeof(int)).AllowDBNull = true;//k
+				dtKeySpace.Columns.Add("LCS", typeof(int)).AllowDBNull = true;//l
+				dtKeySpace.Columns.Add("DTCS", typeof(int)).AllowDBNull = true;//m
+				dtKeySpace.Columns.Add("TCS", typeof(int)).AllowDBNull = true;//n
+				dtKeySpace.Columns.Add("TWCS", typeof(int)).AllowDBNull = true;//o
+				dtKeySpace.Columns.Add("Other Strategies", typeof(int)).AllowDBNull = true;//p
+				dtKeySpace.Columns.Add("DDL", typeof(string));//q
 
                 dtKeySpace.PrimaryKey = new System.Data.DataColumn[] { dtKeySpace.Columns["Name"], dtKeySpace.Columns["Data Center"] };
             }
@@ -628,8 +629,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 												select new
 												{
 													Compaction = tblDr.Field<string>("Compaction Strategy"),
-													Index = index.HasValue ? index.Value : false
-												})
+													Index = index.HasValue ? index.Value : false,
+                                                    Columns = index.HasValue && index.Value ? 0 : tblDr.Field<int>("Total")
+                                                })
 								};
 
 				foreach (var tblItem in tableStats)
@@ -637,7 +639,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 					tblItem.KSDataRow.BeginEdit();
 
 					tblItem.KSDataRow["Tables"] = tblItem.TblItems.Count(i => !i.Index);
-					tblItem.KSDataRow["Indexes"] = tblItem.TblItems.Count(i => i.Index && (string.IsNullOrEmpty(i.Compaction) || !(i.Compaction == "Cql3SolrSecondaryIndex" || i.Compaction == "ThriftSolrSecondaryIndex")));
+                    tblItem.KSDataRow["Columns"] = tblItem.TblItems.Sum(i => i.Columns);
+                    tblItem.KSDataRow["Indexes"] = tblItem.TblItems.Count(i => i.Index && (string.IsNullOrEmpty(i.Compaction) || !(i.Compaction == "Cql3SolrSecondaryIndex" || i.Compaction == "ThriftSolrSecondaryIndex")));
 					tblItem.KSDataRow["Total"] = tblItem.TblItems.Count();
 					tblItem.KSDataRow["STCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "SizeTieredCompactionStrategy");
 					tblItem.KSDataRow["LCS"] = tblItem.TblItems.Count(i => !i.Index && i.Compaction == "LeveledCompactionStrategy");
