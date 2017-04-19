@@ -2429,7 +2429,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public DateTime StartTime { get; set; }
 			public DateTime LogTimestamp { get { return this.StartTime; } }
 			public DateTime CompletionTime { get; set; }
-			public decimal IORate {  get { return -1; } }
+			public decimal IORate {  get { return 0; } }
 			public int Duration
 			{
 				get
