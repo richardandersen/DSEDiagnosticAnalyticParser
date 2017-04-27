@@ -161,7 +161,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 
                             dataRow["Value"] = numericValue;
-                            dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? 0 : numericValue;
+
+                            unchecked
+                            {
+                                dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? (ulong) ((dynamic)numericValue) : numericValue;
+                            }
 
                             if (parsedValue.Count() > 1)
                             {
