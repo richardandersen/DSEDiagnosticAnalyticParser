@@ -207,6 +207,10 @@ Alternative Folder Locations. These are additional locations to find additional 
 **TableHistogramDirPath** -- Directory of files that contain the results of a nodetool TableHistogram. The file names must have the node's IP address in the beginning or end of the name. If this argument is not provide, the 'DiagnosticPath' is searched looking for files with the string "TableHistogram" embedded in the name.
 
 
+Other Commands:
+
+**CreateDirStructForNodes** -- This will create the OpsCenter directory structure using a list of IP4 node addresses separated by comma. If this is specified all other commands/arguments are ignored except for argument **DiagnosticPath** which is the location where the folders are created.
+
 **Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the enumeration with square brackets, e.g., [DeskTop]\Test.xlsx). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396 or https://ibboard.co.uk/Programming/mono-special-folders.html
 
 Also, all command arguments that take a path string (e.g., --ExcelFilePath) will merge the argument against the default value. For example, "[DeskTop]\Test.xlsx" is the default (defined in the application config file) and "myDSEReview" is the argument to --ExcelFilePath, the resulting path used by the application would be "[DeskTop]\myDSEReview.xlsx".
