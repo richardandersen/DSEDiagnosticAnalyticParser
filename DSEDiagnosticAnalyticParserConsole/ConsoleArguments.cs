@@ -427,6 +427,25 @@ namespace DSEDiagnosticAnalyticParserConsole
             set { ParserSettings.DivideWorksheetIfExceedMaxRows = value == 0 ? false : true; }
         }
 
+        [Option('x', "CreateDirStructForNodes", HelpText = "This will create the OpsCenter directory structure. A list of node IP4 addresses separated by comma.",
+                   Required = false)]
+        public string CreateDirStructForNodes
+        {
+            get { return ParserSettings.CreateDirStructForNodes == null
+                            ? null
+                            : string.Join(", ", ParserSettings.CreateDirStructForNodes); }
+            set
+            {
+                if(string.IsNullOrEmpty(value))
+                {
+                    ParserSettings.CreateDirStructForNodes = null;
+                }
+                else
+                {
+                    ParserSettings.CreateDirStructForNodes = value.Split(',').Select(n => n.Trim()).ToArray();
+                }
+            }
+        }
 
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
@@ -557,7 +576,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
         public override string ToString()
         {
-            return string.Format("Values: " +
+            return this.CreateDirStructForNodes == null || this.CreateDirStructForNodes.Length == 0
+                    ? string.Format("Values: " +
                                     "--MaxRowInExcelWork[S]heet {0} " +
                                     "--MaxRowInExcelWork[B]ook {1} " +
                                     "--[G]CFlagThresholdInMS {2} " +
@@ -616,7 +636,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.CompactionFlagThresholdAsIORate,
 									this.ReadRepairThresholdInMS, //27
 									this.CLogLineFormatPosition,
-                                    this.DivideWorksheetIfExceedMaxRows);
+                                    this.DivideWorksheetIfExceedMaxRows)
+                    : string.Format("--CreateDirStructForNodes|-x \"{0}\"", this.CreateDirStructForNodes);
         }
     }
 }

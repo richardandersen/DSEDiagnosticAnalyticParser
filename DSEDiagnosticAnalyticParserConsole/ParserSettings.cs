@@ -358,6 +358,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         public static bool DivideWorksheetIfExceedMaxRows = Properties.Settings.Default.DivideWorksheetIfExccedMaxRows;
 
+        public static string[] CreateDirStructForNodes = null;
+
         public static Dictionary<string, string> CreateSnitchDictionary(string configString)
         {
             var configObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string>[]>(configString);

@@ -198,6 +198,22 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             #region Parsing Files/Task Processing
 
+            var diagPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
+
+            if (ParserSettings.CreateDirStructForNodes != null)
+            {
+                CreateDiagFolders.CreateFolders(ParserSettings.CreateDirStructForNodes, diagPath);
+                ConsoleDisplay.End();
+                Logger.Instance.InfoFormat("Completed");
+                GCMonitor.GetInstance().StopGCMonitoring();
+
+                if (argResult.Value.Debug)
+                {
+                    Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Gray, ConsoleColor.DarkRed);
+                }
+                return;
+            }
+
             if (ParserSettings.LogStartDate != DateTime.MinValue)
             {
                 Logger.Instance.InfoFormat("Log Entries after \"{0}\" will only be parsed", ParserSettings.LogStartDate);
@@ -206,8 +222,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 Logger.Instance.Info("All Log Entries will be parsed!");
             }
-
-            var diagPath = Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.DiagnosticPath);
+            
             var logParsingTasks = new Common.Patterns.Collections.ThreadSafe.List<Task>();
             var kstblNames = new List<CKeySpaceTableNames>();
             var parsedLogList = new Common.Patterns.Collections.ThreadSafe.List<string>();
@@ -218,7 +233,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var parsedTPStatList = new Common.Patterns.Collections.ThreadSafe.List<string>();
             var parsedOSMachineList = new Common.Patterns.Collections.ThreadSafe.List<string>();
             var parsedYamlList = new Common.Patterns.Collections.ThreadSafe.List<string>();
-
+            
             if (ParserSettings.FileParsingOption == ParserSettings.FileParsingOptions.IndivFiles)
             {
                 #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
