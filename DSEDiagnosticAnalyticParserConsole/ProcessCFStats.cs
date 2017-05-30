@@ -217,6 +217,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             List<string> parsedLine;
             string currentKS = null;
             string currentTbl = null;
+            bool isIndex = false;
 
             foreach (var element in fileLines)
             {
@@ -240,6 +241,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             currentKS = parsedLine[1];
                         }
                         currentTbl = null;
+                        isIndex = false;
                     }
                     else if (currentKS == null)
                     {
@@ -248,16 +250,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (parsedLine[0] == "Table")
                     {
                         currentTbl = parsedLine[1];
+                        isIndex = false;
                     }
                     else if (parsedLine[0] == "Table (index)")
                     {
                         currentTbl = parsedLine[1];
+                        isIndex = true;
                     }
                     else
                     {
                         if (!string.IsNullOrEmpty(currentKS) && !string.IsNullOrEmpty(currentTbl))
                         {
-                            kstblNames.Add(new CKeySpaceTableNames(currentKS, currentTbl));
+                            kstblNames.Add(new CKeySpaceTableNames(currentKS, currentTbl, isIndex));
                         }
                     }
                 }
@@ -269,10 +273,13 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public void UpdateTableActiveStatus(System.Data.DataTable dtCFStats)
         {
             var activeTblView = from r in dtCFStats.AsEnumerable()
-                                where (r.Field<string>("Attribute") == "Local read count"
-                                            || r.Field<string>("Attribute") == "Local write count")
+                                let tableName = r.Field<string>("Table")
+                                where (tableName != null && tableName.EndsWith(" (index)")
+                                            ? r.Field<string>("Attribute") == "Local read count"
+                                            : r.Field<string>("Attribute") == "Local read count"
+                                                    || r.Field<string>("Attribute") == "Local write count")
                                         && r.Field<dynamic>("Value") > 0
-                                group r by new { ks = r.Field<string>("KeySpace"), tbl = r.Field<string>("Table") } into g
+                                group r by new { ks = r.Field<string>("KeySpace"), tbl = tableName } into g
                                 select g.Key.ks + '.' + g.Key.tbl;
 
             ActiveTables.AddRange(activeTblView);

@@ -105,7 +105,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												.OrderByDescending(e => e.LogName.Length).FirstOrDefault();
 
 							currentKeySpace = ksItem == null ? "?" : ksItem.KeySpaceName;
-							currentTable = ksItem == null ? parsedLine[1] : ksItem.TableName;
+							currentTable = ksItem == null ? parsedLine[1] : ksItem.Name;
 
 							if (ignoreKeySpaces.Contains(currentKeySpace))
 							{
@@ -142,10 +142,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 							{
 								var ksItem = kstblExists
 												.Where(e => e.KeySpaceName == currentKeySpace
-																&& parsedLine[2].StartsWith(e.TableName))
+																&& parsedLine[2].StartsWith(e.Name))
 												.OrderByDescending(e => e.LogName.Length).FirstOrDefault();
 
-								currentTable = ksItem == null ? "?" : ksItem.TableName;
+								currentTable = ksItem == null ? "?" : ksItem.Name;
 
 								if (ksItem != null && parsedLine[2].Length > currentTable.Length)
 								{

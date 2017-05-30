@@ -255,6 +255,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 		static Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        static Regex RegExSolrFlushIndexNames = new Regex("^Cql3SolrSecondaryIndex\\{columnDefs=\\[(?:\\s*ColumnDefinition\\{(?:\\s*(?:indexname\\=(?<indexname>[a-z0-9\\\\-_$%+!?<>^*&@]+)|[^,}]+)\\,?\\s*)+\\s*\\}\\,?)+",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public enum LogFlagStatus
         {
             None = 0,
@@ -262,7 +265,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             Stats = 2, //Stats and Summary
             ReadRepair = 3,
 			StatsOnly = 4, //Only Stats (no summary)
-			MemTblFlush = 5
+			MemTblFlush = 5,
+            Ignore = 999
         }
 
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
@@ -686,8 +690,40 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                     {
+                        if(parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[MemtablePostFlush")
+                                && (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ColumnFamilyStore.java"
+                                        || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexWriter.java"))
+                        {
+                            #region Solr Hard Commit
+                            if(parsedValues[nCell] == "SecondaryIndex"
+                                    && parsedValues.Last().StartsWith("Cql3SolrSecondaryIndex"))
+                            {
+                                var indexNameMatch = RegExSolrFlushIndexNames.Match(parsedValues.Last());
 
-                        if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionController.java"
+                                if (indexNameMatch.Success)
+                                {
+                                    var solrIndexes = new List<string>();
+
+                                    foreach(Capture indexNameGrpCapture in indexNameMatch.Groups["indexname"].Captures)
+                                    {
+                                        if (!solrIndexes.Exists(i => i == indexNameGrpCapture.Value))
+                                        {
+                                            solrIndexes.Add(indexNameGrpCapture.Value);
+                                        }
+                                    }
+                                    dataRow["Associated Item"] = string.Join(", ", solrIndexes);
+                                    dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+                                    handled = true;
+                                }
+                            }
+                            else if(parsedValues[nCell].StartsWith("commitInternal"))
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+                                handled = true;
+                            }
+                            #endregion
+                        }
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "CompactionController.java"
                                 || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "BigTableWriter.java")
                         {
                             #region CompactionController.java || BigTableWriter.java
@@ -1582,7 +1618,107 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 							#endregion
 						}
-						else if (dataRow["Associated Value"] == DBNull.Value
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Gossiper.java"
+                                    && parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
+                        {
+                            #region Gossiper
+                            //WARN  [GossipTasks:1] 2017-05-20 03:38:59,863  Gossiper.java:751 - Gossip stage has 1 pending tasks; skipping status check (no nodes will be marked down)
+
+                            if (parsedValues[nCell] == "Gossip"
+                                    && parsedValues[nCell + 1] == "stage"
+                                    && parsedValues[nCell + 6] == "skipping")
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.Ignore;
+                                break;
+                            }
+                            #endregion
+                        }
+                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "MigrationManager.java")
+                        {
+                            #region MigrationManager.java (change in keyspace)
+                            //INFO  [SharedPool-Worker-1] 2017-05-12 18:02:58,880  MigrationManager.java:279 - Update Keyspace 'OpsCenter' From KSMetaData{name=OpsCenter, strategyClass=NetworkTopologyStrategy, strategyOptions={us-east-dsestorage=1, us-west-2-dsestorage=1, us-west-2-2-dsestorage=1},
+                            //INFO  [SharedPool-Worker-1] 2017-05-16 16:04:53,678  MigrationManager.java:249 - Create new ColumnFamily: org.apache.cassandra.config.CFMetaData@6d3c6562[cfId=ed1b46c1-3a72-11e7-9ff5-a12e162c4992,ksName=loan_servicing,cfName=bh_skillset_look_up,cfType=Standard,comparator=org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type),comment=,readRepairChance=0.0,dcLocalReadRepairChance=0.1,gcGraceSeconds=172800,defaultValidator=org.apache.cassandra.db.marshal.BytesType,keyValidator=org.apache.cassandra.db.marshal.Int32Type,minCompactionThreshold=4,maxCompactionThreshold=32,columnMetadata=[ColumnDefinition{name=workgroup, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=2, indexName=null, indexType=null}, ColumnDefinition{name=substrm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=2, indexName=null, indexType=null}, ColumnDefinition{name=end_dt_txt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=2, indexName=null, indexType=null}, ColumnDefinition{name=skillset_name, type=org.apache.cassandra.db.marshal.UTF8Type, kind=CLUSTERING_COLUMN, componentIndex=0, indexName=null, indexType=null}, ColumnDefinition{name=id, type=org.apache.cassandra.db.marshal.Int32Type, kind=PARTITION_KEY, componentIndex=null, indexName=null, indexType=null}, ColumnDefinition{name=start_dt_txt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=CLUSTERING_COLUMN, componentIndex=1, indexName=null, indexType=null}],compactionStrategyClass=class org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy,compactionStrategyOptions={},compressionParameters={sstable_compression=org.apache.cassandra.io.compress.LZ4Compressor},bloomFilterFpChance=0.01,memtableFlushPeriod=0,caching={"keys":"ALL", "rows_per_partition":"NONE"},defaultTimeToLive=0,minIndexInterval=128,maxIndexInterval=2048,speculativeRetry=99.0PERCENTILE,droppedColumns={},triggers=[],isDense=false]
+                            //INFO  [SharedPool-Worker-2] 2017-05-12 15:59:26,902  MigrationManager.java:298 - Update ColumnFamily 'loan_servicing/ewfm' From org.apache.cassandra.config.CFMetaData@1988c474[cfId=017d9860-3f84-11e6-9023-2da642d6c5be,ksName=loan_servicing,cfName=ewfm,cfType=Standard,comparator=org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type),comment=,readRepairChance=0.0,dcLocalReadRepairChance=0.1,gcGraceSeconds=172800,defaultValidator=org.apache.cassandra.db.marshal.BytesType,keyValidator=org.apache.cassandra.db.marshal.TimestampType,minCompactionThreshold=4,maxCompactionThreshold=32,columnMetadata=[ColumnDefinition{name=coach_ind, type=org.apache.cassandra.db.marshal.BooleanType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=shaw_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=excl_ind, type=org.apache.cassandra.db.marshal.BooleanType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=strm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=data_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=PARTITION_KEY, componentIndex=null, indexName=null, indexType=null}, ColumnDefinition{name=site, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=shrt_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=etl_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=last_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=trmntn_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=CLUSTERING_COLUMN, componentIndex=0, indexName=null, indexType=null}, ColumnDefinition{name=um_euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=avaya_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=empsk, type=org.apache.cassandra.db.marshal.DecimalType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=titan_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dialr_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=remitco_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=sbstrm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=unit_mgr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=unit_mgr_pfr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dm_euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dept_mgr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=frst_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=lob, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=lob_index, indexType=COMPOSITES}],compactionStrategyClass=class org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy,compactionStrategyOptions={},compressionParameters={sstable_compression=org.apache.cassandra.io.compress.LZ4Compressor},bloomFilterFpChance=0.01,memtableFlushPeriod=0,caching={"keys":"ALL", "rows_per_partition":"NONE"},defaultTimeToLive=0,minIndexInterval=128,maxIndexInterval=2048,speculativeRetry=99.0PERCENTILE,droppedColumns={},triggers=[],isDense=false] To org.apache.cassandra.config.CFMetaData@8b3cee1[cfId=017d9860-3f84-11e6-9023-2da642d6c5be,ksName=loan_servicing,cfName=ewfm,cfType=Standard,comparator=org.apache.cassandra.db.marshal.CompositeType(org.apache.cassandra.db.marshal.UTF8Type,org.apache.cassandra.db.marshal.UTF8Type),comment=,readRepairChance=0.0,dcLocalReadRepairChance=0.1,gcGraceSeconds=172800,defaultValidator=org.apache.cassandra.db.marshal.BytesType,keyValidator=org.apache.cassandra.db.marshal.TimestampType,minCompactionThreshold=4,maxCompactionThreshold=32,columnMetadata=[ColumnDefinition{name=shaw_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=excl_ind, type=org.apache.cassandra.db.marshal.BooleanType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=shrt_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=etl_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=avaya_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=titan_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=sbstrm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=unit_mgr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dept_mgr_pfr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=lob, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=lob_index, indexType=COMPOSITES}, ColumnDefinition{name=coach_ind, type=org.apache.cassandra.db.marshal.BooleanType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=strm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=data_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=PARTITION_KEY, componentIndex=null, indexName=null, indexType=null}, ColumnDefinition{name=site, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=last_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=trmntn_dt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=CLUSTERING_COLUMN, componentIndex=0, indexName=null, indexType=null}, ColumnDefinition{name=um_euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=empsk, type=org.apache.cassandra.db.marshal.DecimalType, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dialr_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=remitco_id, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=unit_mgr_pfr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dm_euid, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=dept_mgr, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}, ColumnDefinition{name=frst_nm, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=1, indexName=null, indexType=null}],compactionStrategyClass=class org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy,compactionStrategyOptions={},compressionParameters={sstable_compression=org.apache.cassandra.io.compress.LZ4Compressor},bloomFilterFpChance=0.01,memtableFlushPeriod=0,caching={"keys":"ALL", "rows_per_partition":"NONE"},defaultTimeToLive=0,minIndexInterval=128,maxIndexInterval=2048,speculativeRetry=99.0PERCENTILE,droppedColumns={},triggers=[],isDense=false]
+                            //INFO  [SharedPool-Worker-4] 2017-05-17 11:32:54,155  MigrationManager.java:326 - Drop Keyspace 'validation'
+
+                            if (parsedValues[nCell] == "Update")
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Exception"] = "Update " + parsedValues[nCell + 1];
+                                handled = true;
+
+                                if (parsedValues[nCell + 1] == "Keyspace")
+                                {
+                                    dataRow["Associated Item"] = RemoveQuotes(parsedValues[nCell + 2]);
+                                }
+                                else
+                                {
+                                    var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell + 2]));
+                                    var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
+
+                                    dataRow["Associated Item"] = ksTableName;
+                                }
+                            }
+                            else if (parsedValues[nCell] == "Create")
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Exception"] = "Created " + parsedValues[nCell + 1] + ' ' + parsedValues[nCell + 2];
+                                handled = true;
+
+                            }
+                            else if (parsedValues[nCell] == "Drop")
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Exception"] = "Dropped " + parsedValues[nCell + 1];
+                                handled = true;
+
+                                if (parsedValues[nCell + 1] == "Keyspace")
+                                {
+                                    dataRow["Associated Item"] = RemoveQuotes(parsedValues[nCell + 2]);
+                                }
+                                else
+                                {
+                                    var splitItems = SplitTableName(RemoveQuotes(parsedValues[nCell + 2]));
+                                    var ksTableName = splitItems.Item1 + '.' + splitItems.Item2;
+
+                                    dataRow["Associated Item"] = ksTableName;
+                                }
+                            }
+
+                            #endregion
+                        }
+                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ShardRouter.java")
+                        {
+                            #region ShardRouter.java Updated
+                            //INFO  [GossipStage:1] 2017-05-12 18:03:01,432  ShardRouter.java:645 - Updating shards state due to endpoint /10.186.72.198 changing state SCHEMA=541fdec0-47c9-33fd-b79c-4a37acd21019
+                            //INFO  [GossipStage:1] 2017-05-12 18:03:01,432  ShardRouter.java:645 - Updating shards state due to endpoint /10.186.72.198 being dead
+                            if (parsedValues[nCell] == "Updating"
+                                    && parsedValues[nCell + 1] == "shards")
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+
+                                if (parsedValues.Last() == "dead")
+                                {
+                                    string endPoint;
+
+                                    dataRow["Exception"] = "Updating shard state due to dead node";
+
+                                    if (IPAddressStr(parsedValues[nCell + 6], out endPoint))
+                                    {
+                                        dataRow["Associated Item"] = endPoint;
+                                    }
+                                }
+                                else
+                                {
+                                    dataRow["Exception"] = "Updating shard state due to change";
+                                }
+                                handled = true;                                
+                                
+                                dataRow["Associated Value"] = parsedValues.Last();
+                            }
+                            #endregion
+                        }
+                        else if (dataRow["Associated Value"] == DBNull.Value
                                     && LookForIPAddress(parsedValues[nCell], ipAddress, out lineIPAddress))
                         {
                             dataRow["Associated Value"] = lineIPAddress;
@@ -1630,8 +1766,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #endregion
 
-                    dtCLog.Rows.Add(dataRow);
-                    ++nbrRows;
+                    if (dataRow["Flagged"] == DBNull.Value
+                            || dataRow.Field<int>("Flagged") != (int)LogFlagStatus.Ignore)                    
+                    {
+                        dtCLog.Rows.Add(dataRow);
+                        ++nbrRows;                        
+                    }
                     lastRow = dataRow;
                 }
             }
@@ -2307,6 +2447,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 		static Regex RegExSolrReIndex3 = new Regex(@".*Truncated commit log for core\s+(.+)\.(.+)\s*",
 												RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        static readonly Regex RegExSolrHardCommitInternalTime = new Regex(@"^commitInternal\w+\s+(?:duration\s*=\s*(\d+)\s*ms\s+)*startTime\s*=\s*(\d+)$",
+                                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
 		public interface ILogInfo
 		{
 			string DataCenter { get; }
@@ -2466,7 +2609,30 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public bool Aborted { get; set; }
 		}
 
-		public class SolrReIndexingLogInfo : ILogInfo
+        public class SolrHardCommitLogInfo : ILogInfo
+        {
+            #region ILogInfo Members
+
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get; set; }
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public object GroupIndicator { get; set; }
+            public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public string Type { get { return "SolrHardCommit"; } }
+
+            #endregion
+
+            public int TaskId;
+            public long InternalStartTime;
+
+            public IEnumerable<Tuple<string, string>> SolrIndexes = null;
+        }
+
+        public class SolrReIndexingLogInfo : ILogInfo
 		{
 			#region ILogInfo Members
 
@@ -2485,6 +2651,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 			public int NbrUpdates;
 		}
+
 
 		public class MemTableFlushOccurrenceLogInfo : LogSessionInfo, ILogRateInfo
 		{
@@ -2765,7 +2932,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public List<string> RepairNodes = new List<string>();
 			public List<string> ReceivedNodes = new List<string>();
 			public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
-			public IEnumerable<GCLogInfo> GCList = null;
+            public IEnumerable<SolrHardCommitLogInfo> SolrHardCommits = null;
+            public IEnumerable<GCLogInfo> GCList = null;
 			public IEnumerable<ICompactionLogInfo> CompactionList = null;
 			public IEnumerable<MemTableFlushLogInfo> MemTableFlushList = null;
 			public IEnumerable<PerformanceInfo> PerformanceWarningList = null;
@@ -2839,8 +3007,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>> PerformanceOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>> SolrHardCommits = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>>();
 
-		const decimal ReferenceIncrementValue = 0.000001m;
+        const decimal ReferenceIncrementValue = 0.000001m;
 
 		static void InitializeStatusDataTable(DataTable dtCStatusLog)
 		{
@@ -2969,12 +3138,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 									let timestamp = dr.Field<DateTime>("Timestamp")
 									let flagged = dr.Field<int?>("Flagged")
 									let descr = dr.Field<string>("Description")?.Trim()
-									where ((flagged.HasValue && (flagged.Value == 2 || flagged.Value == 4))
+									where ((flagged.HasValue && (flagged.Value == (int)LogFlagStatus.Stats || flagged.Value == (int) LogFlagStatus.StatsOnly))
 											|| item == "GCInspector.java"
 											|| item == "StatusLogger.java"
 											|| item == "CompactionTask.java")
 									orderby timestamp ascending, item ascending
 									select new { Task = dr.Field<string>("Task"),
+                                                    TaskId = dr.Field<int?>("TaskId"),
 													Item = item,
 													Timestamp = timestamp,
 													Flagged = flagged,
@@ -3002,19 +3172,22 @@ namespace DSEDiagnosticAnalyticParserConsole
 				var droppedMutations = new List<int>();
                 var maxMemoryAllocFailed = new List<int>();
 				var solrReindexing = new List<SolrReIndexingLogInfo>();
-				long grpInd = CLogSummaryInfo.IncrementGroupInicator();
+                var solrHardCommit = new List<SolrHardCommitLogInfo>();
+                var detectedSchemaChanges = new List<Tuple<char, string, string>>();
+                var shardStateChanges = new List<string>();
+                long grpInd = CLogSummaryInfo.IncrementGroupInicator();
 				var refCnt = (decimal)grpInd;
 
-				foreach (var item in statusLogItem)
+                foreach (var item in statusLogItem)
                 {
                     if (string.IsNullOrEmpty(item.Item))
                     {
                         continue;
                     }
 
-					refCnt += ReferenceIncrementValue;
+                    refCnt += ReferenceIncrementValue;
 
-					if (item.Item == "GCInspector.java")
+                    if (item.Item == "GCInspector.java")
                     {
                         #region GCInspector.java
 
@@ -3024,9 +3197,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
 
                         object time = null;
-						var dataRow = dtCStatusLog.NewRow();
+                        var dataRow = dtCStatusLog.NewRow();
 
-						if (item.Description.TrimStart().StartsWith("GC for ParNew"))
+                        if (item.Description.TrimStart().StartsWith("GC for ParNew"))
                         {
                             var splits = RegExGCLine.Split(item.Description);
                             time = DetermineTime(splits[1]);
@@ -3038,7 +3211,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["GC Time (ms)"] = (long)((dynamic)time);
                             dataRow["Reconciliation Reference"] = refCnt;
 
-							dtCStatusLog.Rows.Add(dataRow);
+                            dtCStatusLog.Rows.Add(dataRow);
                             gcLatencies.Add((int)((dynamic)time));
 
                             dictGCIno.TryAdd((dcName == null ? string.Empty : dcName) + "|" + ipAddress, "GC-ParNew");
@@ -3052,10 +3225,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-CMS";
-                            dataRow["GC Time (ms)"] = (long) ((dynamic) time);
+                            dataRow["GC Time (ms)"] = (long)((dynamic)time);
                             dataRow["Reconciliation Reference"] = refCnt;
 
-							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
+                            if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
                                 dataRow["Old-From (mb)"] = ConvertInToMB(splits[2], "bytes");
                                 dataRow["Old-To (mb)"] = ConvertInToMB(splits[3], "bytes");
@@ -3080,10 +3253,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Data Center"] = dcName;
                             dataRow["Node IPAddress"] = ipAddress;
                             dataRow["Pool/Cache Type"] = "GC-G1";
-                            dataRow["GC Time (ms)"] = (long) ((dynamic) time);
+                            dataRow["GC Time (ms)"] = (long)((dynamic)time);
                             dataRow["Reconciliation Reference"] = refCnt;
 
-							if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
+                            if (splits.Length >= 4 && !string.IsNullOrEmpty(splits[2]))
                             {
                                 dataRow["Eden-From (mb)"] = ConvertInToMB(splits[2], "bytes");
                                 dataRow["Eden-To (mb)"] = ConvertInToMB(splits[3], "bytes");
@@ -3107,27 +3280,28 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (time != null)
                         {
-							var gcLogInfo = new GCLogInfo()
-							{
-								LogTimestamp = item.Timestamp,
-								DataCenter = dcName,
-								IPAddress = ipAddress,
-								Duration = (int)((dynamic)time),
-								GroupIndicator = refCnt,
-								GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
-								GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
-								GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
-								GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
-								GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
-								GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
-							};
+                            var gcLogInfo = new GCLogInfo()
+                            {
+                                LogTimestamp = item.Timestamp,
+                                DataCenter = dcName,
+                                IPAddress = ipAddress,
+                                Duration = (int)((dynamic)time),
+                                GroupIndicator = refCnt,
+                                GCEdenFrom = dataRow.IsNull("Eden-From (mb)") ? 0 : dataRow.Field<decimal>("Eden-From (mb)"),
+                                GCEdenTo = dataRow.IsNull("Eden-To (mb)") ? 0 : dataRow.Field<decimal>("Eden-To (mb)"),
+                                GCSurvivorFrom = dataRow.IsNull("Survivor-From (mb)") ? 0 : dataRow.Field<decimal>("Survivor-From (mb)"),
+                                GCSurvivorTo = dataRow.IsNull("Survivor-To (mb)") ? 0 : dataRow.Field<decimal>("Survivor-To (mb)"),
+                                GCOldFrom = dataRow.IsNull("Old-From (mb)") ? 0 : dataRow.Field<decimal>("Old-From (mb)"),
+                                GCOldTo = dataRow.IsNull("Old-To (mb)") ? 0 : dataRow.Field<decimal>("Old-To (mb)"),
+                            };
 
-							GCOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                            GCOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
                                                         ignore => { return new Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>() { gcLogInfo }; },
-                                                        (ignore, gcList) => {
-																				gcList.Add(gcLogInfo);
-                                                                                return gcList;
-                                                                            });
+                                                        (ignore, gcList) =>
+                                                        {
+                                                            gcList.Add(gcLogInfo);
+                                                            return gcList;
+                                                        });
                         }
 
                         #endregion
@@ -3175,8 +3349,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (descr.StartsWith("Pool Name")
                              || descr.StartsWith("ColumnFamily ")
-							 || descr.StartsWith("Table ")
-							 || descr.StartsWith("Cache Type"))
+                             || descr.StartsWith("Table ")
+                             || descr.StartsWith("Cache Type"))
                         {
                             continue;
                         }
@@ -3219,8 +3393,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Pool/Cache Type"] = "ColumnFamily";
                                     dataRow["KeySpace"] = ksTable.Item1;
                                     dataRow["Table"] = ksTable.Item2;
-									dataRow["Reconciliation Reference"] = refCnt;
-									dataRow["MemTable OPS"] = long.Parse(splits[2]);
+                                    dataRow["Reconciliation Reference"] = refCnt;
+                                    dataRow["MemTable OPS"] = long.Parse(splits[2]);
                                     dataRow["Data (mb)"] = ConvertInToMB(splits[3], "bytes");
 
                                     dtCStatusLog.Rows.Add(dataRow);
@@ -3246,9 +3420,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Data Center"] = dcName;
                                     dataRow["Node IPAddress"] = ipAddress;
                                     dataRow["Pool/Cache Type"] = splits[1];
-									dataRow["Reconciliation Reference"] = refCnt;
+                                    dataRow["Reconciliation Reference"] = refCnt;
 
-									if (splits.Length == 8)
+                                    if (splits.Length == 8)
                                     {
                                         dataRow["Active"] = long.Parse(splits[2]);
                                         dataRow["Pending"] = long.Parse(splits[3]);
@@ -3335,7 +3509,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Reconciliation Reference"] = refCnt;
 
                                 dataRow["KeySpace"] = ksItem.KeySpaceName;
-                                dataRow["Table"] = ksItem.TableName;
+                                dataRow["Table"] = ksItem.DisplayName;
                                 dataRow["SSTables"] = int.Parse(splits[1].Replace(",", string.Empty));
                                 dataRow["From (mb)"] = ConvertInToMB(splits[3], "bytes");
                                 dataRow["To (mb)"] = ConvertInToMB(splits[4], "bytes");
@@ -3345,41 +3519,41 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Merge Counts"] = splits[10];
 
                                 dtCStatusLog.Rows.Add(dataRow);
-                                compactionLatencies.Add(new Tuple<string, string, int>(ksItem.KeySpaceName, ksItem.TableName, (int)time));
-                                compactionRates.Add(new Tuple<string, string, decimal>(ksItem.KeySpaceName, ksItem.TableName, rate));
+                                compactionLatencies.Add(new Tuple<string, string, int>(ksItem.KeySpaceName, ksItem.Name, (int)time));
+                                compactionRates.Add(new Tuple<string, string, decimal>(ksItem.KeySpaceName, ksItem.Name, rate));
 
-								var compactionLogInfo = new CompactionLogInfo()
-								{
-									LogTimestamp = item.Timestamp,
-									DataCenter = dcName,
-									IPAddress = ipAddress,
-									GroupIndicator = refCnt,
-									Keyspace = ksItem.KeySpaceName,
-									Table = ksItem.TableName,
-									SSTables = dataRow.Field<int>("SSTables"),
-									OldSize = dataRow.Field<decimal>("From (mb)"),
-									NewSize = dataRow.Field<decimal>("To (mb)"),
-									Duration = (int)time,
-									IORate = rate,
-									PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
-									MergeCounts = dataRow.Field<string>("Merge Counts")
-								};
+                                var compactionLogInfo = new CompactionLogInfo()
+                                {
+                                    LogTimestamp = item.Timestamp,
+                                    DataCenter = dcName,
+                                    IPAddress = ipAddress,
+                                    GroupIndicator = refCnt,
+                                    Keyspace = ksItem.KeySpaceName,
+                                    Table = ksItem.Name,
+                                    SSTables = dataRow.Field<int>("SSTables"),
+                                    OldSize = dataRow.Field<decimal>("From (mb)"),
+                                    NewSize = dataRow.Field<decimal>("To (mb)"),
+                                    Duration = (int)time,
+                                    IORate = rate,
+                                    PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
+                                    MergeCounts = dataRow.Field<string>("Merge Counts")
+                                };
 
-								CompactionOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-									ignore =>
-									{
-										return new Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>() { compactionLogInfo };
-									},
-									(ignore, gcList) =>
-									{
-										gcList.Add(compactionLogInfo);
-										return gcList;
-									});
-							}
-						}
+                                CompactionOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                    ignore =>
+                                    {
+                                        return new Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>() { compactionLogInfo };
+                                    },
+                                    (ignore, gcList) =>
+                                    {
+                                        gcList.Add(compactionLogInfo);
+                                        return gcList;
+                                    });
+                            }
+                        }
                         #endregion
                     }
-                    else if (item.Item == "CompactionController.java" 
+                    else if (item.Item == "CompactionController.java"
                                 || item.Item == "SSTableWriter.java"
                                 || item.Item == "BigTableWriter.java")
                     {
@@ -3457,7 +3631,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         dataRow["KeySpace"] = kstblSplit.Item1;
                         dataRow["Table"] = kstblSplit.Item2;
-                        dataRow["Completed"] = (long) partSize.Value;
+                        dataRow["Completed"] = (long)partSize.Value;
 
                         dtCStatusLog.Rows.Add(dataRow);
 
@@ -3486,33 +3660,33 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtCStatusLog.Rows.Add(dataRow);
 
-							tpSlowQueries.Add(time.Value);
+                            tpSlowQueries.Add(time.Value);
 
-							var performanceInfo = new PerformanceInfo()
-							{
-								Type = "Slow Query",
-								DataCenter = dcName,
-								IPAddress = ipAddress,
-								GroupIndicator = refCnt,
-								LogTimestamp = item.Timestamp,
-								Latency = time.Value
-							};
+                            var performanceInfo = new PerformanceInfo()
+                            {
+                                Type = "Slow Query",
+                                DataCenter = dcName,
+                                IPAddress = ipAddress,
+                                GroupIndicator = refCnt,
+                                LogTimestamp = item.Timestamp,
+                                Latency = time.Value
+                            };
 
-							PerformanceOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-									ignore =>
-									{
-										return new Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>() { performanceInfo };
-									},
-									(ignore, performanceList) =>
-									{
-										performanceList.Add(performanceInfo);
-										return performanceList;
-									});
-						}
+                            PerformanceOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                    ignore =>
+                                    {
+                                        return new Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>() { performanceInfo };
+                                    },
+                                    (ignore, performanceList) =>
+                                    {
+                                        performanceList.Add(performanceInfo);
+                                        return performanceList;
+                                    });
+                        }
 
                         #endregion
                     }
-                    else if(item.Item == "BatchStatement.java")
+                    else if (item.Item == "BatchStatement.java")
                     {
                         #region BatchSize
 
@@ -3583,7 +3757,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (item.Item == "WorkPool.java")
                     {
-						#region WorkPool
+                        #region WorkPool
 
                         if (!string.IsNullOrEmpty(item.Exception))
                         {
@@ -3609,9 +3783,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (item.Item == "StorageService.java")
                     {
-						#region StorageService
+                        #region StorageService
 
-						if (!string.IsNullOrEmpty(item.Exception))
+                        if (!string.IsNullOrEmpty(item.Exception))
                         {
                             var kstblName = item.AssocItem;
                             string ksName = null;
@@ -3642,16 +3816,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtCStatusLog.Rows.Add(dataRow);
 
-                            nodeStatus.Add(new Tuple<string,string,string>(item.Exception, ksName, tblName));
+                            nodeStatus.Add(new Tuple<string, string, string>(item.Exception, ksName, tblName));
                         }
 
                         #endregion
                     }
                     else if (item.Item == "HintedHandoffMetrics.java")
                     {
-						#region HintedHandoffMetrics.java
-						//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
-						if (item.Exception.StartsWith("Dropped Hints"))
+                        #region HintedHandoffMetrics.java
+                        //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
+                        if (item.Exception.StartsWith("Dropped Hints"))
                         {
                             var nbrDropped = item.AssocValue as int?;
 
@@ -3674,44 +3848,44 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 Program.ConsoleWarnings.Increment("Invalid Dropped Hints Value...");
                                 Logger.Dump(string.Format("Invalid Dropped Hints Value of \"{0}\" for {1} => {2}", item.AssocValue, ipAddress, item.AssocItem),
-															Logger.DumpType.Warning);
+                                                            Logger.DumpType.Warning);
                             }
                         }
                         #endregion
                     }
-					else if (item.Item == "HintedHandOffManager.java")
-					{
-						#region HintedHandOffManager.java
-						//INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
-						if (item.Exception.StartsWith("Hints"))
-						{
-							var nbrCompleted = item.AssocValue as int?;
+                    else if (item.Item == "HintedHandOffManager.java")
+                    {
+                        #region HintedHandOffManager.java
+                        //INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
+                        if (item.Exception.StartsWith("Hints"))
+                        {
+                            var nbrCompleted = item.AssocValue as int?;
 
-							if (nbrCompleted.HasValue)
-							{
-								var dataRow = dtCStatusLog.NewRow();
+                            if (nbrCompleted.HasValue)
+                            {
+                                var dataRow = dtCStatusLog.NewRow();
 
-								dataRow["Timestamp"] = item.Timestamp;
-								dataRow["Data Center"] = dcName;
-								dataRow["Node IPAddress"] = ipAddress;
-								dataRow["Pool/Cache Type"] = item.Exception;
-								dataRow["Reconciliation Reference"] = refCnt;
-								dataRow["Completed"] = (long)nbrCompleted.Value;
+                                dataRow["Timestamp"] = item.Timestamp;
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["Pool/Cache Type"] = item.Exception;
+                                dataRow["Reconciliation Reference"] = refCnt;
+                                dataRow["Completed"] = (long)nbrCompleted.Value;
 
-								dtCStatusLog.Rows.Add(dataRow);
+                                dtCStatusLog.Rows.Add(dataRow);
 
-								timedoutHints.Add(nbrCompleted.Value);
-							}
-							else
-							{
-								Program.ConsoleWarnings.Increment("Invalid Hints Value...");
-								Logger.Dump(string.Format("Invalid Hints Value of \"{0}\" for {1} => {2}", item.AssocValue, ipAddress, item.AssocItem),
-															Logger.DumpType.Warning);
-							}
-						}
-						#endregion
-					}
-					else if (item.Item == "NoSpamLogger.java")
+                                timedoutHints.Add(nbrCompleted.Value);
+                            }
+                            else
+                            {
+                                Program.ConsoleWarnings.Increment("Invalid Hints Value...");
+                                Logger.Dump(string.Format("Invalid Hints Value of \"{0}\" for {1} => {2}", item.AssocValue, ipAddress, item.AssocItem),
+                                                            Logger.DumpType.Warning);
+                            }
+                        }
+                        #endregion
+                    }
+                    else if (item.Item == "NoSpamLogger.java")
                     {
                         #region NoSpamLogger.java
                         //NoSpamLogger.java:94 - Unlogged batch covering 80 partitions detected against table[hlservicing.lvl1_bkfs_invoicechronology]. You should use a logged batch for atomicity, or asynchronous writes for performance.
@@ -3725,7 +3899,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //"Associated Value" -- nbr partitions
                             var strTables = item.AssocItem;
 
-                            if(string.IsNullOrEmpty(strTables) || !assocValue.HasValue)
+                            if (string.IsNullOrEmpty(strTables) || !assocValue.HasValue)
                             {
                                 Program.ConsoleWarnings.Increment("Missing Table(s) or invalid partition value...");
                                 Logger.Dump(string.Format("Missing Table(s) \"{0}\" or invalid partition value of \"{1}\" for IP {1}",
@@ -3744,7 +3918,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     });
                                 foreach (var keyTbl in keyTbls)
                                 {
-                                    if(ignoreKeySpaces.Contains(keyTbl.Keyspace))
+                                    if (ignoreKeySpaces.Contains(keyTbl.Keyspace))
                                     {
                                         continue;
                                     }
@@ -3764,11 +3938,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     batchSizes.Add(new Tuple<string, string, string, int>(item.Exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
 
-									refCnt += ReferenceIncrementValue;
+                                    refCnt += ReferenceIncrementValue;
                                 }
                             }
                         }
-                        else if(item.Exception == "Maximum Memory Reached cannot Allocate")
+                        else if (item.Exception == "Maximum Memory Reached cannot Allocate")
                         {
                             //"Associated Value" -- bytes
                             var dataRow = dtCStatusLog.NewRow();
@@ -3781,7 +3955,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             if (assocValue.HasValue)
                             {
-                                dataRow["Capacity (mb)"] = ((decimal) assocValue.Value) / BytesToMB;
+                                dataRow["Capacity (mb)"] = ((decimal)assocValue.Value) / BytesToMB;
                                 maxMemoryAllocFailed.Add(assocValue.Value);
                             }
                             else
@@ -3800,7 +3974,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #region MessagingService.java
                         //MessagingService.java --  MUTATION messages were dropped in last 5000 ms: 43 for internal timeout and 0 for cross node timeout
 
-                        if(item.Exception == "Dropped Mutations")
+                        if (item.Exception == "Dropped Mutations")
                         {
                             var assocValue = item.AssocValue as int?;
                             var dataRow = dtCStatusLog.NewRow();
@@ -3811,7 +3985,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Pool/Cache Type"] = "Dropped Mutation";
                             dataRow["Reconciliation Reference"] = refCnt;
 
-                            dataRow["Completed"] = (long) assocValue.Value;
+                            dataRow["Completed"] = (long)assocValue.Value;
                             droppedMutations.Add(assocValue.Value);
 
                             dtCStatusLog.Rows.Add(dataRow);
@@ -3819,183 +3993,306 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
-					else if (item.Item == "AbstractSolrSecondaryIndex.java")
-					{
-						#region AbstractSolrSecondaryIndex
-						//Finished reindexing on keyspace prod_fcra and column family rtics_contribution
-						//Reindexing on keyspace prod_fcra and column family rtics_contribution
-						#region ReIndex/Finish
-						var regExSolrReIndex = RegExSolrReIndex.Split(item.Description);
+                    else if (item.Item == "AbstractSolrSecondaryIndex.java")
+                    {
+                        #region AbstractSolrSecondaryIndex
+                        //Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+                        //Reindexing on keyspace prod_fcra and column family rtics_contribution
+                        #region ReIndex/Finish
+                        var regExSolrReIndex = RegExSolrReIndex.Split(item.Description);
 
-						if (regExSolrReIndex.Length > 2)
-						{
-							if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
-							{
-								continue;
-							}
+                        if (regExSolrReIndex.Length > 2)
+                        {
+                            if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
+                            {
+                                continue;
+                            }
 
-							if (item.Description.TrimStart().StartsWith("Finish"))
-							{
-								var solrReIndx = solrReindexing.LastOrDefault();
+                            if (item.Description.TrimStart().StartsWith("Finish"))
+                            {
+                                var solrReIndx = solrReindexing.LastOrDefault();
 
-								if (solrReIndx != null)
-								{
-									regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
-									regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
+                                if (solrReIndx != null)
+                                {
+                                    regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
+                                    regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
 
-									if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
-											&& solrReIndx.Table == regExSolrReIndex[2]
-											&& solrReIndx.CompletionTime == DateTime.MinValue))
-									{
-										solrReIndx = solrReindexing
-														.Find(s => s.Keyspace == regExSolrReIndex[1]
-																		&& s.Table == regExSolrReIndex[2]
-																		&& s.CompletionTime == DateTime.MinValue);
-									}
+                                    if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
+                                            && solrReIndx.Table == regExSolrReIndex[2]
+                                            && solrReIndx.CompletionTime == DateTime.MinValue))
+                                    {
+                                        solrReIndx = solrReindexing
+                                                        .Find(s => s.Keyspace == regExSolrReIndex[1]
+                                                                        && s.Table == regExSolrReIndex[2]
+                                                                        && s.CompletionTime == DateTime.MinValue);
+                                    }
 
-									if(solrReIndx != null)
-									{
-										solrReIndx.CompletionTime = item.Timestamp;
-										solrReIndx.GroupIndicator = refCnt;
+                                    if (solrReIndx != null)
+                                    {
+                                        solrReIndx.CompletionTime = item.Timestamp;
+                                        solrReIndx.GroupIndicator = refCnt;
 
-										var dataRow = dtCStatusLog.NewRow();
+                                        var dataRow = dtCStatusLog.NewRow();
 
-										dataRow["Timestamp"] = item.Timestamp;
-										dataRow["Data Center"] = dcName;
-										dataRow["Node IPAddress"] = ipAddress;
-										dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
-										dataRow["KeySpace"] = solrReIndx.Keyspace;
-										dataRow["Table"] = solrReIndx.Table;
-										dataRow["Reconciliation Reference"] = refCnt;
-										dataRow["Latency (ms)"] = solrReIndx.Duration;
+                                        dataRow["Timestamp"] = item.Timestamp;
+                                        dataRow["Data Center"] = dcName;
+                                        dataRow["Node IPAddress"] = ipAddress;
+                                        dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
+                                        dataRow["KeySpace"] = solrReIndx.Keyspace;
+                                        dataRow["Table"] = solrReIndx.Table;
+                                        dataRow["Reconciliation Reference"] = refCnt;
+                                        dataRow["Latency (ms)"] = solrReIndx.Duration;
 
-										dtCStatusLog.Rows.Add(dataRow);
-									}
-								}
-							}
-							else
-							{
-								var solrReIndx = new SolrReIndexingLogInfo()
-								{
-									StartTime = item.Timestamp,
-									DataCenter = dcName,
-									IPAddress = ipAddress,
-									Keyspace = regExSolrReIndex[1].Trim(),
-									Table = regExSolrReIndex[2].Trim(),
-									GroupIndicator = refCnt
-								};
+                                        dtCStatusLog.Rows.Add(dataRow);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var solrReIndx = new SolrReIndexingLogInfo()
+                                {
+                                    StartTime = item.Timestamp,
+                                    DataCenter = dcName,
+                                    IPAddress = ipAddress,
+                                    Keyspace = regExSolrReIndex[1].Trim(),
+                                    Table = regExSolrReIndex[2].Trim(),
+                                    GroupIndicator = refCnt
+                                };
 
-								solrReindexing.Add(solrReIndx);
-								SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-									ignore =>
-									{
-										return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
-									},
-									(ignore, gcList) =>
-									{
-										gcList.Add(solrReIndx);
-										return gcList;
-									});
-							}
-						}
-						#endregion
+                                solrReindexing.Add(solrReIndx);
+                                SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                    ignore =>
+                                    {
+                                        return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
+                                    },
+                                    (ignore, gcList) =>
+                                    {
+                                        gcList.Add(solrReIndx);
+                                        return gcList;
+                                    });
+                            }
+                        }
+                        #endregion
 
-						//Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
-						#region ReIndex Core
-						regExSolrReIndex = RegExSolrReIndex1.Split(item.Description);
+                        //Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+                        #region ReIndex Core
+                        regExSolrReIndex = RegExSolrReIndex1.Split(item.Description);
 
-						if(regExSolrReIndex.Length > 2)
-						{
-							if (ignoreKeySpaces.Contains(regExSolrReIndex[2].Trim()))
-							{
-								continue;
-							}
+                        if (regExSolrReIndex.Length > 2)
+                        {
+                            if (ignoreKeySpaces.Contains(regExSolrReIndex[2].Trim()))
+                            {
+                                continue;
+                            }
 
-							var solrReIndx = new SolrReIndexingLogInfo()
-							{
-								StartTime = item.Timestamp,
-								DataCenter = dcName,
-								IPAddress = ipAddress,
-								Keyspace = regExSolrReIndex[2].Trim(),
-								Table = regExSolrReIndex[3].Trim(),
-								NbrUpdates = int.Parse(regExSolrReIndex[1]),
-								GroupIndicator = refCnt
-							};
+                            var solrReIndx = new SolrReIndexingLogInfo()
+                            {
+                                StartTime = item.Timestamp,
+                                DataCenter = dcName,
+                                IPAddress = ipAddress,
+                                Keyspace = regExSolrReIndex[2].Trim(),
+                                Table = regExSolrReIndex[3].Trim(),
+                                NbrUpdates = int.Parse(regExSolrReIndex[1]),
+                                GroupIndicator = refCnt
+                            };
 
-							solrReindexing.Add(solrReIndx);
-							SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
-								ignore =>
-								{
-									return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
-								},
-								(ignore, gcList) =>
-								{
-									gcList.Add(solrReIndx);
-									return gcList;
-								});
-						}
+                            solrReindexing.Add(solrReIndx);
+                            SolrReindexingOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                ignore =>
+                                {
+                                    return new Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>() { solrReIndx };
+                                },
+                                (ignore, gcList) =>
+                                {
+                                    gcList.Add(solrReIndx);
+                                    return gcList;
+                                });
+                        }
 
-						#endregion
+                        #endregion
 
-						//Executing hard commit on index prod_fcra.bics_contribution
-						//Truncated commit log for core prod_fcra.bics_contribution
-						#region Hard Commit
-						regExSolrReIndex = RegExSolrReIndex2.Split(item.Description);
+                        //Executing hard commit on index prod_fcra.bics_contribution
+                        //Truncated commit log for core prod_fcra.bics_contribution
+                        #region Hard Commit
+                        regExSolrReIndex = RegExSolrReIndex2.Split(item.Description);
 
-						if (regExSolrReIndex.Length == 0)
-						{
-							regExSolrReIndex = RegExSolrReIndex3.Split(item.Description);
-						}
+                        if (regExSolrReIndex.Length == 0)
+                        {
+                            regExSolrReIndex = RegExSolrReIndex3.Split(item.Description);
+                        }
 
-						if (regExSolrReIndex.Length > 1)
-						{
-							if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
-							{
-								continue;
-							}
+                        if (regExSolrReIndex.Length > 1)
+                        {
+                            if (ignoreKeySpaces.Contains(regExSolrReIndex[1].Trim()))
+                            {
+                                continue;
+                            }
 
-							var solrReIndx = solrReindexing.LastOrDefault();
+                            var solrReIndx = solrReindexing.LastOrDefault();
 
-							if (solrReIndx != null)
-							{
-								regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
-								regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
+                            if (solrReIndx != null)
+                            {
+                                regExSolrReIndex[1] = regExSolrReIndex[1].Trim();
+                                regExSolrReIndex[2] = regExSolrReIndex[2].Trim();
 
-								if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
-										&& solrReIndx.Table == regExSolrReIndex[2]
-										&& solrReIndx.CompletionTime == DateTime.MinValue))
-								{
-									solrReIndx = solrReindexing
-													.Find(s => s.Keyspace == regExSolrReIndex[1]
-																	&& s.Table == regExSolrReIndex[2]
-																	&& s.CompletionTime == DateTime.MinValue);
-								}
+                                if (!(solrReIndx.Keyspace == regExSolrReIndex[1]
+                                        && solrReIndx.Table == regExSolrReIndex[2]
+                                        && solrReIndx.CompletionTime == DateTime.MinValue))
+                                {
+                                    solrReIndx = solrReindexing
+                                                    .Find(s => s.Keyspace == regExSolrReIndex[1]
+                                                                    && s.Table == regExSolrReIndex[2]
+                                                                    && s.CompletionTime == DateTime.MinValue);
+                                }
 
-								if (solrReIndx != null)
-								{
-									solrReIndx.CompletionTime = item.Timestamp;
-									solrReIndx.GroupIndicator = refCnt;
+                                if (solrReIndx != null)
+                                {
+                                    solrReIndx.CompletionTime = item.Timestamp;
+                                    solrReIndx.GroupIndicator = refCnt;
 
-									var dataRow = dtCStatusLog.NewRow();
+                                    var dataRow = dtCStatusLog.NewRow();
 
-									dataRow["Timestamp"] = item.Timestamp;
-									dataRow["Data Center"] = dcName;
-									dataRow["Node IPAddress"] = ipAddress;
-									dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
-									dataRow["KeySpace"] = solrReIndx.Keyspace;
-									dataRow["Table"] = solrReIndx.Table;
-									dataRow["Reconciliation Reference"] = refCnt;
-									dataRow["Latency (ms)"] = solrReIndx.Duration;
-									dtCStatusLog.Rows.Add(dataRow);
-								}
-							}
-						}
+                                    dataRow["Timestamp"] = item.Timestamp;
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = "Solr ReIndex Finish";
+                                    dataRow["KeySpace"] = solrReIndx.Keyspace;
+                                    dataRow["Table"] = solrReIndx.Table;
+                                    dataRow["Reconciliation Reference"] = refCnt;
+                                    dataRow["Latency (ms)"] = solrReIndx.Duration;
+                                    dtCStatusLog.Rows.Add(dataRow);
+                                }
+                            }
+                        }
 
-						#endregion
+                        #endregion
 
-						#endregion
-					}
-				}
+                        #endregion
+                    }
+                    else if (item.Task == "MemtablePostFlush")
+                    {
+                        #region MemtablePostFlush
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM},                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  IndexWriter.java:3429 - commitInternalStart startTime = 1495198301573
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,770  IndexWriter.java:3454 - commitInternalComplete duration = 197 ms startTime = 1495198301573
+
+                        if (item.Item == "ColumnFamilyStore.java"
+                                && item.Description.StartsWith("Flushing SecondaryIndex Cql3SolrSecondaryIndex"))
+                        {
+                            #region Flush Solr Index
+                            var ksTbls = item.AssocItem.Split(',')
+                                            .Select(n => kstblExists.FirstOrDefault(i => i.SolrIndexName == n.Trim()))
+                                            .Where(i => i != null && !ignoreKeySpaces.Any(k => k == i.KeySpaceName))
+                                            .Select(i => new Tuple<string, string>(i.KeySpaceName, i.Name));
+                            var keySpaces = ksTbls.Select(i => i.Item1).DuplicatesRemoved(i => i);
+
+                            if (ksTbls.IsEmpty())
+                            {
+                                continue;
+                            }
+
+                            var newSolrCommit = new SolrHardCommitLogInfo()
+                            {
+                                DataCenter = dcName,
+                                IPAddress = ipAddress,
+                                StartTime = item.Timestamp,
+                                TaskId = item.TaskId.Value,
+                                SolrIndexes = ksTbls,
+                                Keyspace = keySpaces.IsMultiple() ? null : keySpaces.First()
+                            };
+
+                            solrHardCommit.Add(newSolrCommit);
+                            SolrHardCommits.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                ignore =>
+                                {
+                                    return new Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>() { newSolrCommit };
+                                },
+                                (ignore, gcList) =>
+                                {
+                                    gcList.Add(newSolrCommit);
+                                    return gcList;
+                                });
+                            #endregion
+                        }
+                        else if (item.Item == "IndexWriter.java")
+                        {
+                            var regExTime = RegExSolrHardCommitInternalTime.Match(item.Description);
+
+                            if (regExTime.Success)
+                            {
+                                if (item.Description.StartsWith("commitInternalStart "))
+                                {
+                                    #region commitInternalStart
+                                    var startEvent = solrHardCommit.LastOrDefault(e => e.TaskId == item.TaskId);
+
+                                    if (startEvent != null)
+                                    {
+                                        startEvent.InternalStartTime = long.Parse(regExTime.Groups[2].Value);
+                                    }
+                                    #endregion
+                                }
+                                else
+                                {
+                                    #region commitInternalEnd
+                                    var startTime = long.Parse(regExTime.Groups[2].Value);
+                                    var endEvent = solrHardCommit.LastOrDefault(e => e.TaskId == item.TaskId
+                                                                                        && e.InternalStartTime == startTime);
+
+                                    if (endEvent != null)
+                                    {
+                                        endEvent.CompletionTime = item.Timestamp;
+                                        endEvent.GroupIndicator = refCnt;
+
+                                        foreach (var indexName in endEvent.SolrIndexes)
+                                        {
+                                            var dataRow = dtCStatusLog.NewRow();
+
+                                            dataRow["Timestamp"] = item.Timestamp;
+                                            dataRow["Data Center"] = dcName;
+                                            dataRow["Node IPAddress"] = ipAddress;
+                                            dataRow["Pool/Cache Type"] = "Solr Hard Commit Finish";
+                                            dataRow["KeySpace"] = indexName.Item1;
+                                            dataRow["Table"] = indexName.Item2;
+                                            dataRow["Reconciliation Reference"] = refCnt;
+                                            dataRow["Latency (ms)"] = endEvent.Duration;
+
+                                            dtCStatusLog.Rows.Add(dataRow);
+                                        }
+                                    }
+                                    #endregion
+                                }
+                            }
+                        }
+
+                        #endregion
+                    }
+                    else if (item.Item == "MigrationManager.java")
+                    {
+                        #region schema changes
+                        var changeMode = item.Exception[0];
+                        var ksItem = item.AssocItem == null ? true : !item.AssocItem.Contains('.');
+                        string keySpace = ksItem ? item.AssocItem : null;
+                        string table = null;
+
+                        if (!ksItem)
+                        {
+                            var kstblItem = SplitTableName(item.AssocItem);
+
+                            keySpace = kstblItem.Item1;
+                            table = kstblItem.Item2;
+                        }
+
+                        detectedSchemaChanges.Add(new Tuple<char, string, string>(changeMode, keySpace, table));
+                        #endregion
+                    }
+                    else if (item.Item == "ShardRouter.java")
+                    {
+                        #region ShardRouter.java (shard change)                        
+                        shardStateChanges.Add((string) item.AssocValue);
+                        #endregion
+                    }
+                }
 
                 #region Add TP/CF Stats Info
 
@@ -4697,6 +4994,41 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dtTPStats.Rows.Add(dataRow);
                     }
 
+                    #endregion
+
+                    #region Shard Changes
+                    {
+                        var shardStats = from shardItem in shardStateChanges
+                                        group shardItem by shardItem
+                                              into g
+                                        select new
+                                        {
+                                            ShardType = g.Key,                     
+                                            Count = g.Count()
+                                        };
+
+                        foreach (var statItem in shardStats)
+                        {
+                            var dataRow = dtTPStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            if (statItem.ShardType == "dead")
+                            {
+                                dataRow["Attribute"] = "Shard State Change Dead Node";
+                            }
+                            else
+                            {
+                                dataRow["Attribute"] = "Shard State Change Schema";
+                            }
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            //dataRow["Completed"] = shardStateChanges;
+                            dataRow["Occurrences"] = statItem.Count;
+
+                            dtTPStats.Rows.Add(dataRow);
+                        }                           
+                    }
                     #endregion
                 }
 
@@ -5451,7 +5783,154 @@ namespace DSEDiagnosticAnalyticParserConsole
 						#endregion
 					}
 
-				}
+                    if (solrHardCommit.Count > 0)
+                    {
+                        #region Solr Hard Commit
+                        initializeCFStatsDataTable(dtCFStats);
+
+                        var solrHrdCmttems = from solrItem in solrHardCommit
+                                                                .SelectMany(s => s.SolrIndexes
+                                                                                    .Select(i => new {  Keyspace = i.Item1,
+                                                                                                        Index =i.Item2,
+                                                                                                        Duration = s.Duration}))
+                                             group solrItem by new { solrItem.Keyspace, solrItem.Index } into g
+                                             select new
+                                             {
+                                                 KeySpace = g.Key.Keyspace,
+                                                 Table = g.Key.Index,
+                                                 Count = g.Count(),
+                                                 Max = g.Max(i => i.Duration),
+                                                 Min = g.Min(i => i.Duration),
+                                                 Avg = g.Average(i => i.Duration),
+                                                 Std = g.Select(i => i.Duration).StandardDeviationP()
+                                             };
+
+                        foreach (var statusGrp in solrHrdCmttems)
+                        {
+                            var dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr Hard Commit duration maximum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Max;
+                            dataRow["(value)"] = statusGrp.Max;
+                            dataRow["Unit of Measure"] = "ms";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr Hard Commit duration minimum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Min;
+                            dataRow["(value)"] = statusGrp.Min;
+                            dataRow["Unit of Measure"] = "ms";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr Hard Commit duration mean";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Avg;
+                            dataRow["(value)"] = statusGrp.Avg;
+                            dataRow["Unit of Measure"] = "ms";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr Hard Commit duration stdev";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Std;
+                            dataRow["(value)"] = statusGrp.Std;
+                            dataRow["Unit of Measure"] = "ms";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr Hard Commit occurrences";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Count;
+                            dataRow["(value)"] = statusGrp.Count;
+
+                            dtCFStats.Rows.Add(dataRow);
+                        }
+
+                        #endregion
+                    }
+
+                    if (detectedSchemaChanges.Count > 0)
+                    {
+                        #region schema changes
+                        initializeCFStatsDataTable(dtCFStats);
+
+                        var nodeSchemaChangeItem = from schemaItem in detectedSchemaChanges
+                                                      group schemaItem by new { schemaItem.Item1, schemaItem.Item2, schemaItem.Item3 } into g
+                                                      select new
+                                                      {
+                                                          chgType = g.Key.Item1,
+                                                          KeySpace = g.Key.Item2,
+                                                          Table = g.Key.Item3,
+                                                          Count = g.Count()
+                                                      };
+
+                        foreach (var statusGrp in nodeSchemaChangeItem)
+                        {
+                            var dataRow = dtCFStats.NewRow();
+                            string changeType = string.Empty;
+
+                            switch(statusGrp.chgType)
+                            {
+                                case 'C': changeType = "Created";
+                                    break;
+                                case 'D': changeType = "Dropped";
+                                    break;
+                                case 'U': changeType = "Updated";
+                                    break;                                    
+                            }
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Schema " + changeType + " occurrences";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Count;
+                            dataRow["(value)"] = statusGrp.Count;
+
+                            dtCFStats.Rows.Add(dataRow);
+                        }
+
+                        #endregion
+                    }
+                }
 
                 #endregion
             }
@@ -6252,13 +6731,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 							Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo> nodeMemTblFlushCollection = null;
 							Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
-							var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
+                            Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo> nodeSolrHrdCmtCollection = null;
+
+                            var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
 
 							CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
 							GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
 							SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
 							MemTableFlushOccurrences.TryGetValue(dcIpAddress, out nodeMemTblFlushCollection);
 							PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
+                            SolrHardCommits.TryGetValue(dcIpAddress, out nodeSolrHrdCmtCollection);
 
 							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
 							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
@@ -6280,7 +6762,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 									rrInfo.PerformanceWarningList = nodePerfCollection?.UnSafe.Where(c => (c.Keyspace == null || rrInfo.Keyspace == c.Keyspace)
 																											&& rrInfo.StartTime <= c.StartTime
 																											&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
-								});
+                                    rrInfo.SolrHardCommits = nodeSolrHrdCmtCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+                                                                                                            && rrInfo.StartTime <= c.StartTime
+                                                                                                            && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
+                                });
 
 							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\RR-{0}.txt", dcIpAddress.Replace('|', '-'))))
 							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(readRepairs, Newtonsoft.Json.Formatting.Indented));
@@ -6429,7 +6914,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Node IPAddress", typeof(string));
 				dtReadRepair.Columns.Add("Type", typeof(string)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Table", typeof(string)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Table", typeof(string)).AllowDBNull = true; //g
 				dtReadRepair.Columns.Add("Log/Completion Timestamp", typeof(DateTime)).AllowDBNull = true; //h
 
 				//Read Repair
@@ -6445,39 +6930,43 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
 				dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //s
 				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //v
-				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //w
-				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //x
+                dtReadRepair.Columns.Add("Nbr Solr Hard Commit Events", typeof(int)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
+				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //w
+				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //x
+				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //y
 
 				//GC
-				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //y
-				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;//aa
-				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //ab
+				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //z
+				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true; //aa
+				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;//ab
+				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //ac
 
 				//Compaction
-				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ac
-				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ad
-				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //ae
-				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //af
-				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ag
+				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ad
+				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ae
+				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //af
+				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ag
+				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ah
 
 				//MemTable Flush
-				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ah
-				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//ai
-				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //aj
-				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //ak
-				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //al
+				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ai
+				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//aj
+				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //ak
+				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //al
+				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //am
 
 				//Performance Warnings
-				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //am
-				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//an
+				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //an
+				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//ao
 
 				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ao
+				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ap
+                dtReadRepair.Columns["Solr ReIdx Duration"].Caption = "ReIdx"; //aq
+                dtReadRepair.Columns.Add("Solr Hard Commit Duration", typeof(int)).AllowDBNull = true; //ar
+                dtReadRepair.Columns["Solr Hard Commit Duration"].Caption = "Hard Commit"; //as
 
-				dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //ap
+                dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //at
 			}
 		#endregion
 
@@ -6538,7 +7027,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     newDataRow["Nbr GC Events"] = rrItem.GCs;
 					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
 					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
-					newDataRow["Nbr MemTable Flush Events"] = rrItem.MemTableFlushes;
+                    newDataRow["Nbr Solr Hard Commit Events"] = rrItem.SolrHardCommits == null ? 0 : rrItem.SolrHardCommits.Count();
+                    newDataRow["Nbr MemTable Flush Events"] = rrItem.MemTableFlushes;
 					newDataRow["Nbr Exceptions"] = rrItem.Exceptions;
 					newDataRow["Aborted Read Repair"] = rrItem.Aborted ? 1 : 0;
 					newDataRow["Options"] = rrItem.Options;
@@ -6683,7 +7173,31 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dtReadRepair.Rows.Add(newDataRow);
 						}
 					}
-				}
+
+                    if (rrItem.SolrHardCommits != null)
+                    {
+                        foreach (var item in (from solrHdrCmt in rrItem.SolrHardCommits
+                                              orderby solrHdrCmt.StartTime ascending
+                                              select solrHdrCmt))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
+
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.DataCenter;
+                            newDataRow["Node IPAddress"] = item.IPAddress;
+                            newDataRow["Type"] = "Solr Hard Commit";
+                            newDataRow["Log/Completion Timestamp"] = item.CompletionTime;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["KeySpace"] = item.Keyspace;
+                            newDataRow["Table"] = string.Join(", ", item.SolrIndexes.Select(i => i.Item1 + '.' + i.Item2));
+                            newDataRow["Solr Hard Commit Duration"] = item.Duration;
+                            newDataRow["Reconciliation Reference"] = item.GroupIndicator;
+
+                            dtReadRepair.Rows.Add(newDataRow);
+                        }
+                    }
+                }
 			}
 		}
 
@@ -6695,6 +7209,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			SolrReindexingOccurrences.Clear();
 			MemTableFlushOccurrences.Clear();
 			PerformanceOccurrences.Clear();
+            SolrHardCommits.Clear();
 		}
 
 		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
@@ -7064,6 +7579,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO[FlushWriter:263] 2017-03-06 17:40:28,151 Memtable.java (line 362) Writing Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
         //INFO[FlushWriter:263] 2017-03-06 17:40:28,178 Memtable.java (line 402) Completed flushing /var/lib/cassandra/data/user_id_data/user_ids/user_id_data-user_ids.user_ids_gid-jb-3492-Data.db (501 bytes) for commitlog position ReplayPosition(segmentId= 1488732865093, position= 31029258)
 
+        //INFO[MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM}, ColumnDefinition{name=cntrtrecvddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_cntrtrecvddt_index, indexType=CUSTOM}, ColumnDefinition{name=appstatlkupid, type=org.apache.cassandra.db.marshal.Int32Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appstatlkupid_index, indexType=CUSTOM}, ColumnDefinition{name=fundddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_fundddt_index, indexType=CUSTOM}, ColumnDefinition{name=appstatdt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appstatdt_index, indexType=CUSTOM}, ColumnDefinition{name=dcsnstatlkupid, type=org.apache.cassandra.db.marshal.Int32Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_dcsnstatlkupid_index, indexType=CUSTOM}, ColumnDefinition{name=chnlid, type=org.apache.cassandra.db.marshal.Int32Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_chnlid_index, indexType=CUSTOM}, ColumnDefinition{name=dcsndt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_dcsndt_index, indexType=CUSTOM}, ColumnDefinition{name=notecretddtfltr, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_notecretddtfltr_index, indexType=CUSTOM}, ColumnDefinition{name=cmtmentcd, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_cmtmentcd_index, indexType=CUSTOM}, ColumnDefinition{name=maxapptaskaudtcretddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_maxapptaskaudtcretddt_index, indexType=CUSTOM}, ColumnDefinition{name=maxaudtcretddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_maxaudtcretddt_index, indexType=CUSTOM}, ColumnDefinition{name=cntrtcretddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_cntrtcretddt_index, indexType=CUSTOM}, ColumnDefinition{name=dlrshporgid, type=org.apache.cassandra.db.marshal.LongType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_dlrshporgid_index, indexType=CUSTOM}, ColumnDefinition{name=hrflag, type=org.apache.cassandra.db.marshal.BooleanType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_hrflag_index, indexType=CUSTOM}, ColumnDefinition{name=appcretddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appcretddt_index, indexType=CUSTOM}, ColumnDefinition{name=maxappasgnmtaudtdt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_maxappasgnmtaudtdt_index, indexType=CUSTOM}, ColumnDefinition{name=lobid, type=org.apache.cassandra.db.marshal.Int32Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_lobid_index, indexType=CUSTOM}, ColumnDefinition{name=apptaskaudtdtfltr, type=org.apache.cassandra.db.marshal.SetType(org.apache.cassandra.db.marshal.TimestampType), kind=REGULAR, componentIndex=0, indexName=coafstatim_application_apptaskaudtdtfltr_index, indexType=CUSTOM}, ColumnDefinition{name=apprecvddt, type=org.apache.cassandra.db.marshal.TimestampType, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_apprecvddt_index, indexType=CUSTOM}, ColumnDefinition{name=solr_query, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_solr_query_index, indexType=CUSTOM}]}
+        //INFO[MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
+        //INFO[MemtablePostFlush:22429] 2017-05-19 08:51:41,573  IndexWriter.java:3429 - commitInternalStart startTime = 1495198301573
+        //INFO[MemtablePostFlush:22429] 2017-05-19 08:51:41,770  IndexWriter.java:3454 - commitInternalComplete duration = 197 ms startTime = 1495198301573
 
         //Group1					Group2
         //"'homeKS'"	"'homebase_tasktracking_ops_l3'"
@@ -7239,7 +7758,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						else
 						{
 							var flushInfo = currentFlushes.Find(i => !i.Completed
-																		&& (ksItem.TableName == i.Table || ksItem.TableName.StartsWith(i.Table + "."))
+																		&& (ksItem.Name == i.Table || ksItem.Name.StartsWith(i.Table + "."))
 																		&& i.TaskId == item.TaskId.Value
 																		&& item.Timestamp >= i.StartTime);
 
@@ -7252,7 +7771,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								}
 
 								flushInfo.AddUpdateOccurrence(ksItem.KeySpaceName,
-																ksItem.TableName,
+																ksItem.Name,
 																splitInfo[1],
 																item.Timestamp,
 																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,

@@ -302,6 +302,14 @@
   &lt;string&gt;Memtable Flush mean Storage&lt;/string&gt;
   &lt;string&gt;Memtable Flush minimum Storage&lt;/string&gt;
   &lt;string&gt;Memtable Flush total Storage&lt;/string&gt;
+  &lt;string&gt;Solr Hard Commit duration maximum&lt;/string&gt;
+  &lt;string&gt;Solr Hard Commit duration minimum&lt;/string&gt;
+  &lt;string&gt;Solr Hard Commit duration mean&lt;/string&gt;
+  &lt;string&gt;Solr Hard Commit duration stdev&lt;/string&gt;
+  &lt;string&gt;Solr Hard Commit occurrences&lt;/string&gt;
+  &lt;string&gt;Schema Created occurrences&lt;/string&gt;
+  &lt;string&gt;Schema Dropped occurrences&lt;/string&gt;
+  &lt;string&gt;Schema Updated occurrences&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="NodeAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
@@ -479,6 +487,8 @@
   &lt;string&gt;Concurrent Compaction/Flush GC minimum&lt;/string&gt;
   &lt;string&gt;Concurrent Compaction/Flush GC mean&lt;/string&gt;
   &lt;string&gt;Concurrent Compaction/Flush GC standard deviation&lt;/string&gt;
+  &lt;string&gt;Shard State Change Schema&lt;/string&gt;
+  &lt;string&gt;Shard State Change Dead Node&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="TableHistogramAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">

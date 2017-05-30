@@ -300,7 +300,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
+                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
                             {
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }
@@ -358,7 +358,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
+                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
                             {
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }
@@ -703,7 +703,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             foreach (DataRow dataRow in dtDDLTable.Rows)
                             {
-                                if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
+                                if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
                                 {
                                     kstblNames.Add(new CKeySpaceTableNames(dataRow));
                                 }
@@ -765,7 +765,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         foreach (DataRow dataRow in dtDDLTable.Rows)
                         {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.TableName == (dataRow["Name"] as string)))
+                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
                             {
                                 kstblNames.Add(new CKeySpaceTableNames(dataRow));
                             }

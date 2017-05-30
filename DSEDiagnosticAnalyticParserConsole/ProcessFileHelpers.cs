@@ -320,7 +320,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				cqlTableName = cqlTableName.Substring(1, cqlTableName.Length - 2);
 			}
 
-			return SplitTableName(cqlTableName.Replace('/', '.'), null);
+			return SplitTableName(cqlTableName, null);
 		}
 
 		static Tuple<string, string> ParseKeyValuePair(string pairKeyValue)

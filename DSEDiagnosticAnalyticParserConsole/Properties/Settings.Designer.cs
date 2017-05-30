@@ -604,7 +604,12 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "ring>Memtable Flush mean IORate</string>\r\n  <string>Memtable Flush minimum IORat" +
             "e</string>\r\n  <string>Memtable Flush maximum Storage</string>\r\n  <string>Memtabl" +
             "e Flush mean Storage</string>\r\n  <string>Memtable Flush minimum Storage</string>" +
-            "\r\n  <string>Memtable Flush total Storage</string>\r\n</ArrayOfString>")]
+            "\r\n  <string>Memtable Flush total Storage</string>\r\n  <string>Solr Hard Commit du" +
+            "ration maximum</string>\r\n  <string>Solr Hard Commit duration minimum</string>\r\n " +
+            " <string>Solr Hard Commit duration mean</string>\r\n  <string>Solr Hard Commit dur" +
+            "ation stdev</string>\r\n  <string>Solr Hard Commit occurrences</string>\r\n  <string" +
+            ">Schema Created occurrences</string>\r\n  <string>Schema Dropped occurrences</stri" +
+            "ng>\r\n  <string>Schema Updated occurrences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -713,7 +718,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "dard deviation</string>\r\n  <string>Concurrent Compaction/Flush GC maximum</strin" +
             "g>\r\n  <string>Concurrent Compaction/Flush GC minimum</string>\r\n  <string>Concurr" +
             "ent Compaction/Flush GC mean</string>\r\n  <string>Concurrent Compaction/Flush GC " +
-            "standard deviation</string>\r\n</ArrayOfString>")]
+            "standard deviation</string>\r\n  <string>Shard State Change Schema</string>\r\n  <st" +
+            "ring>Shard State Change Dead Node</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));

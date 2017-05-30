@@ -9,35 +9,114 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     public class CKeySpaceTableNames
     {
-        public CKeySpaceTableNames(string ksName, string tblName)
+        public CKeySpaceTableNames(string ksName, string name, bool isIndex = false)
         {
-            if (tblName != null && tblName.EndsWith("(index)"))
+            if (name != null && name.EndsWith("(index)"))
             {
-                tblName = tblName.Substring(0, tblName.Length - 7).TrimEnd();
+                name = name.Substring(0, name.Length - 7).TrimEnd();
+                isIndex = true;
+            }
+
+            if(isIndex)
+            {
+                var splitName = name.Split('.');
+
+                if (splitName.Length == 2)
+                {
+                    this.TableName = splitName[0];
+                    this.IndexName = splitName[1];
+                }
+                else
+                {
+                    this.IndexName = name;
+                }
+            }
+            else
+            {
+                this.TableName = name;
             }
 
             this.KeySpaceName = ksName;
-            this.TableName = tblName;
+            this.Name = name;
+
+            this.SetNames();
         }
 
         public CKeySpaceTableNames(DataRow dataRow)
         {
-            this.KeySpaceName = dataRow["Keyspace Name"] as string;
-            this.TableName = dataRow["Name"] as string;
+            var index = dataRow.Field<bool?>("Index");
 
-            if (this.TableName != null && this.TableName.EndsWith("(index)"))
+            this.KeySpaceName = dataRow["Keyspace Name"] as string;
+            this.Name = dataRow["Name"] as string;
+
+            if (this.Name != null && this.Name.EndsWith("(index)"))
             {
-                this.TableName = this.TableName.Substring(0, this.TableName.Length - 7).TrimEnd();
+                this.Name = this.Name.Substring(0, this.Name.Length - 7).TrimEnd();
+                index = true;
             }
+
+            if (index.HasValue && index.Value)
+            {
+                var splitName = this.Name.Split('.');
+
+                if (splitName.Length == 2)
+                {
+                    this.TableName = splitName[0];
+                    this.IndexName = splitName[1];
+                }
+                else
+                {
+                    this.IndexName = this.Name;
+                }
+            }
+            else
+            {
+                this.TableName = this.Name;
+            }
+
+            this.SetNames();
         }
 
-        public string KeySpaceName;
-        public string TableName;
+        public readonly string KeySpaceName;
+        public readonly string Name;
+        public readonly string TableName;
+        public readonly string IndexName;
 
-        public string NormalizedName { get { return this.KeySpaceName + "." + this.TableName; } }
-        public string LogName { get { return this.KeySpaceName + "-" + this.TableName + "-"; } }
-        public string ConcatName { get { return this.KeySpaceName + this.TableName; } }
+        public string NormalizedName { get; private set; }
+        public string LogName { get; private set; }
+        public string ConcatName { get; private set; }
 
+        public string SolrIndexName { get; private set; }
+
+        public string DisplayName { get; private set; }
+
+        private void SetNames()
+        {
+            this.NormalizedName = this.KeySpaceName + '.' + this.Name;
+            this.LogName = this.KeySpaceName + '-' + this.Name + '-';
+            this.ConcatName = this.KeySpaceName + this.Name;
+
+            if (string.IsNullOrEmpty(this.IndexName))
+            {
+                this.SolrIndexName = this.NormalizedName;
+            }
+            else if (this.IndexName.StartsWith(this.KeySpaceName + '_')
+                        && this.IndexName.Contains('_' + this.TableName + '_'))
+            {
+                this.SolrIndexName = this.IndexName;
+            }
+            else
+            {
+                this.SolrIndexName = this.KeySpaceName + '_' + this.TableName + '_' + this.IndexName;
+            }
+
+            this.DisplayName = this.IndexName == null ? this.NormalizedName : this.NormalizedName + " (index)";
+        }
+
+        public override string ToString()
+        {
+            return this.DisplayName;
+        }
     }
 
 }
