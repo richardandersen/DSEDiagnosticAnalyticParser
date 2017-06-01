@@ -481,7 +481,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 											{
 												var numValue = optKeyword.Substring(assignmentSignPos + 1);
 
-												dataRow["GC Grace Period"] = new TimeSpan(0, 0, 0, int.Parse(numValue));
+												dataRow["GC Grace Period"] = TimeSpan.FromSeconds(double.Parse(numValue));
 											}
 										}
 										else if (optKeyword.StartsWith("read_repair_chance", StringComparison.OrdinalIgnoreCase))

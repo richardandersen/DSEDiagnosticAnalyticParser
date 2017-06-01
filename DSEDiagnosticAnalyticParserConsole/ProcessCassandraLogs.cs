@@ -2513,7 +2513,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public string Table { get { return null; } }
 			public DateTime StartTime
 			{
-				get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Duration)); }
+				get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); }
 			}
 			public DateTime CompletionTime { get { return this.LogTimestamp; } }
 			public DateTime LogTimestamp { get; set; }
@@ -2546,7 +2546,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public int SSTables { get; set; }
 			public object GroupIndicator { get; set; }
 			public DateTime LogTimestamp { get; set; }
-			public DateTime StartTime { get { return this.LogTimestamp.Subtract(new TimeSpan(0, 0, 0, 0, this.Duration)); } }
+			public DateTime StartTime { get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); } }
 			public DateTime CompletionTime { get { return this.LogTimestamp; } }
 			public int Duration { get; set; }
 			public decimal IORate { get; set; }
@@ -3163,7 +3163,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var tpStatusCounts = new List<Tuple<string, long, long, long, long, long>>();
                 var statusMemTables = new List<Tuple<string, string, long, decimal>>();
                 var tpSlowQueries = new List<int>();
-                var batchSizes = new List<Tuple<string, string, string, int>>();
+                var batchSizes = new List<Tuple<string, string, string, long>>();
                 var jvmFatalErrors = new List<string>();
                 var workPoolErrors = new List<string>();
                 var nodeStatus = new List<Tuple<string,string,string>>();
@@ -3722,7 +3722,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtCStatusLog.Rows.Add(dataRow);
 
-                            batchSizes.Add(new Tuple<string, string, string, int>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
+                            batchSizes.Add(new Tuple<string, string, string, long>("Batch size", kstblSplit.Item1, kstblSplit.Item2, batchSize.Value));
                         }
 
                         #endregion
@@ -3936,7 +3936,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     dtCStatusLog.Rows.Add(dataRow);
 
-                                    batchSizes.Add(new Tuple<string, string, string, int>(item.Exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
+                                    batchSizes.Add(new Tuple<string, string, string, long>(item.Exception + " Count", keyTbl.Keyspace, keyTbl.Table, assocValue.Value));
 
                                     refCnt += ReferenceIncrementValue;
                                 }
@@ -7015,7 +7015,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						newDataRow["Log/Completion Timestamp"] = rrItem.CompletionTime;
                         if (rrItem.Duration >= 0)
                         {
-                            newDataRow["Session Duration"] = new TimeSpan(0, 0, 0, 0, rrItem.Duration);
+                            newDataRow["Session Duration"] = TimeSpan.FromMilliseconds(rrItem.Duration);
                         }
 					}
 					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
