@@ -3161,7 +3161,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
                 var tombstoneCounts = new List<Tuple<string, string, string, int>>();
                 var tpStatusCounts = new List<Tuple<string, long, long, long, long, long>>();
-                var statusMemTables = new List<Tuple<string, string, long, decimal>>();
+                var statusMemTables = new List<Tuple<string, string, long, decimal, decimal>>();
                 var tpSlowQueries = new List<int>();
                 var batchSizes = new List<Tuple<string, string, string, long>>();
                 var jvmFatalErrors = new List<string>();
@@ -3386,6 +3386,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
 
                                     var dataRow = dtCStatusLog.NewRow();
+                                    var dataSize = long.Parse(splits[3]);
 
                                     dataRow["Timestamp"] = item.Timestamp;
                                     dataRow["Data Center"] = dcName;
@@ -3399,10 +3400,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     dtCStatusLog.Rows.Add(dataRow);
 
-                                    statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
-                                                                                                    ksTable.Item2,
-                                                                                                    (long)dataRow["MemTable OPS"],
-                                                                                                    (decimal)dataRow["Data (mb)"]));
+                                    statusMemTables.Add(new Tuple<string, string, long, decimal, decimal>(ksTable.Item1,
+                                                                                                            ksTable.Item2,
+                                                                                                            (long)dataRow["MemTable OPS"],
+                                                                                                            (decimal)dataRow["Data (mb)"],
+                                                                                                            decimal.Parse(splits[3])/(long)dataRow["MemTable OPS"]));
                                     continue;
                                 }
                                 else if (RegExPoolLine.IsMatch(descr)
@@ -5426,6 +5428,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                   maxItem4 = g.Max(s => s.Item4),
                                                   minItem4 = g.Min(s => s.Item4),
                                                   avgItem4 = g.Average(s => s.Item4),
+                                                  totalItem4 = g.Sum(s => s.Item4),
+                                                  maxItem5 = g.Max(s => s.Item5),
+                                                  minItem5 = g.Min(s => s.Item5),
+                                                  avgItem5 = g.Average(s => s.Item5),
                                                   Count = g.Count()
                                               };
 
@@ -5533,6 +5539,68 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Value"] = (long)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "MemTable Size Total";
+                                dataRow["Reconciliation Reference"] = grpInd;
+                                dataRow["Value"] = (long)(statItem.totalItem4 * BytesToMB);
+                                dataRow["Size in MB"] = statItem.totalItem4;
+                                dataRow["Unit of Measure"] = "bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                //OPS per Data Size
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "MemTable OPS/Size maximum";
+                                dataRow["Reconciliation Reference"] = grpInd;
+                                dataRow["Value"] = statItem.maxItem5;
+                                dataRow["Size in MB"] = statItem.maxItem5/BytesToMB;
+                                dataRow["Unit of Measure"] = "OPS/bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "MemTable OPS/Size minimum";
+                                dataRow["Reconciliation Reference"] = grpInd;
+                                dataRow["Value"] = statItem.minItem5;
+                                dataRow["Size in MB"] = statItem.minItem5 / BytesToMB;
+                                dataRow["Unit of Measure"] = "OPS/bytes";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = dcName;
+                                dataRow["Node IPAddress"] = ipAddress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Table"] = statItem.Table;
+                                dataRow["Attribute"] = "MemTable OPS/Size mean";
+                                dataRow["Reconciliation Reference"] = grpInd;
+                                dataRow["Value"] = statItem.avgItem5;
+                                dataRow["Size in MB"] = statItem.avgItem5 / BytesToMB;
+                                dataRow["Unit of Measure"] = "OPS/bytes";
+
                                 dtCFStats.Rows.Add(dataRow);
                             }
                         }
