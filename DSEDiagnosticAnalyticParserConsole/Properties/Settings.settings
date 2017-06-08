@@ -231,13 +231,13 @@
   &lt;string&gt;Local write latency&lt;/string&gt;
   &lt;string&gt;Maximum live cells per slice (last five minutes)&lt;/string&gt;
   &lt;string&gt;Maximum tombstones per slice (last five minutes)&lt;/string&gt;
-  &lt;string&gt;MemTable OPS maximum&lt;/string&gt;
-  &lt;string&gt;MemTable OPS mean&lt;/string&gt;
-  &lt;string&gt;MemTable OPS minimum&lt;/string&gt;
-  &lt;string&gt;MemTable Size maximum&lt;/string&gt;
-  &lt;string&gt;MemTable Size mean&lt;/string&gt;
-  &lt;string&gt;MemTable Size minimum&lt;/string&gt;
-  &lt;string&gt;MemTable occurrences&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS maximum&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS mean&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS minimum&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size maximum&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size mean&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size minimum&lt;/string&gt;
+  &lt;string&gt;MemTable Write occurrences&lt;/string&gt;
   &lt;string&gt;Memtable cell count&lt;/string&gt;
   &lt;string&gt;Memtable data size&lt;/string&gt;
   &lt;string&gt;Memtable off heap memory used&lt;/string&gt;
@@ -310,6 +310,14 @@
   &lt;string&gt;Schema Created occurrences&lt;/string&gt;
   &lt;string&gt;Schema Dropped occurrences&lt;/string&gt;
   &lt;string&gt;Schema Updated occurrences&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS Delta maximum&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS Delta minimum&lt;/string&gt;
+  &lt;string&gt;MemTable Write OPS Delta mean&lt;/string&gt;
+  &lt;string&gt;MemTable Write Delta occurrences&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size Delta maximum&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size Delta minimum&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size Delta mean&lt;/string&gt;
+  &lt;string&gt;MemTable Write Size Delta Total&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="NodeAttribs" Type="System.Collections.Specialized.StringCollection" Scope="Application">

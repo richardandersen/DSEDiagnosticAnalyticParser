@@ -3002,12 +3002,36 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public int Latency { get; set; }
 		}
 
+        public class MemTableStatInfo : ILogInfo
+        {
+            #region ILogInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get { return this.LogTimestamp; } }
+            public DateTime LogTimestamp { get; set; }
+            public int Duration { get { return (int) (this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+            public object GroupIndicator { get; set; }
+            public string Type { get { return "MemTable Stats"; } }
+
+            #endregion
+
+            public long InitialOPS { get; set; }
+            public long InitialSize { get; set; }
+
+            public long EndingOPS { get; set; }
+            public long EndingSize { get; set; }            
+        }
+
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
 		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>> PerformanceOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>>();
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>> SolrHardCommits = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableStatInfo>> MemTableStats = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableStatInfo>>();
 
         const decimal ReferenceIncrementValue = 0.000001m;
 
@@ -3161,7 +3185,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var partitionLargeSizes = new List<Tuple<string, string, decimal>>();
                 var tombstoneCounts = new List<Tuple<string, string, string, int>>();
                 var tpStatusCounts = new List<Tuple<string, long, long, long, long, long>>();
-                var statusMemTables = new List<Tuple<string, string, long, decimal, decimal>>();
+                var statusMemTables = new List<Tuple<string, string, long, decimal>>();
                 var tpSlowQueries = new List<int>();
                 var batchSizes = new List<Tuple<string, string, string, long>>();
                 var jvmFatalErrors = new List<string>();
@@ -3175,6 +3199,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var solrHardCommit = new List<SolrHardCommitLogInfo>();
                 var detectedSchemaChanges = new List<Tuple<char, string, string>>();
                 var shardStateChanges = new List<string>();
+                var memTblStats = new List<MemTableStatInfo>();
                 long grpInd = CLogSummaryInfo.IncrementGroupInicator();
 				var refCnt = (decimal)grpInd;
 
@@ -3400,11 +3425,42 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     dtCStatusLog.Rows.Add(dataRow);
 
-                                    statusMemTables.Add(new Tuple<string, string, long, decimal, decimal>(ksTable.Item1,
+                                    var mOPS = (long)dataRow["MemTable OPS"];
+                                    var mSize = (decimal)dataRow["Data (mb)"];
+
+                                    statusMemTables.Add(new Tuple<string, string, long, decimal>(ksTable.Item1,
                                                                                                             ksTable.Item2,
-                                                                                                            (long)dataRow["MemTable OPS"],
-                                                                                                            (decimal)dataRow["Data (mb)"],
-                                                                                                            decimal.Parse(splits[3])/(long)dataRow["MemTable OPS"]));
+                                                                                                            mOPS,
+                                                                                                            mSize));
+
+                                    var memTblStat = memTblStats.FirstOrDefault(m => m.Keyspace == ksTable.Item1 && m.Table == ksTable.Item2);
+
+                                    if(memTblStat == null
+                                            || memTblStat.EndingOPS > mOPS)
+                                    {
+                                        memTblStat = new MemTableStatInfo()
+                                                        {
+                                                            DataCenter = dcName,
+                                                            IPAddress = ipAddress,
+                                                            Keyspace = ksTable.Item1,
+                                                            Table = ksTable.Item2,
+                                                            StartTime = item.Timestamp,
+                                                            LogTimestamp = item.Timestamp,                                            
+                                                            GroupIndicator = grpInd,
+                                                            InitialOPS = memTblStat == null ? mOPS : 0,
+                                                            InitialSize = memTblStat == null ? (long) (mSize * BytesToMB) : 0,
+                                                            EndingOPS = mOPS,
+                                                            EndingSize = (long)(mSize * BytesToMB)
+                                                        };
+                                        memTblStats.Add(memTblStat);
+                                    }
+                                    else
+                                    {
+                                        memTblStat.EndingOPS = mOPS;
+                                        memTblStat.EndingSize = (long)(mSize * BytesToMB);
+                                        memTblStat.LogTimestamp = item.Timestamp;
+                                    }
+
                                     continue;
                                 }
                                 else if (RegExPoolLine.IsMatch(descr)
@@ -3473,7 +3529,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             catch (Exception e)
                             {
-                                var msg = string.Format("StatusLogger Invalid Line \"{0}\" for {1}", descr, ipAddress);
+                                var msg = string.Format("StatusLogger Invalid Line\\Exception \"{0}\" for {1}", descr, ipAddress);
                                 Logger.Instance.Error(msg, e);
                                 Program.ConsoleErrors.Increment(string.Empty, msg, 45);
                             }
@@ -5415,7 +5471,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             Logger.Instance.InfoFormat("Adding MemTables Stats ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, statusMemTables.Count);
 
-                            var memtblStats = from cmpItem in statusMemTables
+                            var memtblStats = from cmpItem in statusMemTables                                              
                                               group cmpItem by new { cmpItem.Item1, cmpItem.Item2 }
                                                   into g
                                               select new
@@ -5427,11 +5483,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                   avgItem3 = (long)g.Average(s => s.Item3),
                                                   maxItem4 = g.Max(s => s.Item4),
                                                   minItem4 = g.Min(s => s.Item4),
-                                                  avgItem4 = g.Average(s => s.Item4),
-                                                  totalItem4 = g.Sum(s => s.Item4),
-                                                  maxItem5 = g.Max(s => s.Item5),
-                                                  minItem5 = g.Min(s => s.Item5),
-                                                  avgItem5 = g.Average(s => s.Item5),
+                                                  avgItem4 = g.Average(s => s.Item4),                                                                                                  
                                                   Count = g.Count()
                                               };
 
@@ -5444,7 +5496,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS maximum";
+                                dataRow["Attribute"] = "MemTable Write OPS maximum";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.maxItem3;
                                 dataRow["(value)"] = statItem.maxItem3;
@@ -5459,7 +5511,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS minimum";
+                                dataRow["Attribute"] = "MemTable Write OPS minimum";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.minItem3;
                                 dataRow["(value)"] = statItem.minItem3;
@@ -5474,7 +5526,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS mean";
+                                dataRow["Attribute"] = "MemTable Write OPS mean";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.avgItem3;
                                 dataRow["(value)"] = statItem.avgItem3;
@@ -5489,7 +5541,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable occurrences";
+                                dataRow["Attribute"] = "MemTable Write occurrences";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = statItem.Count;
                                 dataRow["(Value)"] = statItem.Count;
@@ -5504,7 +5556,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable Size maximum";
+                                dataRow["Attribute"] = "MemTable Write Size maximum";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.maxItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.maxItem4;
@@ -5519,7 +5571,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable Size minimum";
+                                dataRow["Attribute"] = "MemTable Write Size minimum";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.minItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.minItem4;
@@ -5534,74 +5586,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Node IPAddress"] = ipAddress;
                                 dataRow["KeySpace"] = statItem.KeySpace;
                                 dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable Size mean";
+                                dataRow["Attribute"] = "MemTable Write Size mean";
                                 dataRow["Reconciliation Reference"] = grpInd;
                                 dataRow["Value"] = (long)(statItem.avgItem4 * BytesToMB);
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
 
-                                dtCFStats.Rows.Add(dataRow);
-
-                                dataRow = dtCFStats.NewRow();
-
-                                dataRow["Source"] = "Cassandra Log";
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["KeySpace"] = statItem.KeySpace;
-                                dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable Size Total";
-                                dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = (long)(statItem.totalItem4 * BytesToMB);
-                                dataRow["Size in MB"] = statItem.totalItem4;
-                                dataRow["Unit of Measure"] = "bytes";
-
-                                dtCFStats.Rows.Add(dataRow);
-
-                                //OPS per Data Size
-                                dataRow = dtCFStats.NewRow();
-
-                                dataRow["Source"] = "Cassandra Log";
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["KeySpace"] = statItem.KeySpace;
-                                dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS/Size maximum";
-                                dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = statItem.maxItem5;
-                                dataRow["Size in MB"] = statItem.maxItem5/BytesToMB;
-                                dataRow["Unit of Measure"] = "OPS/bytes";
-
-                                dtCFStats.Rows.Add(dataRow);
-
-                                dataRow = dtCFStats.NewRow();
-
-                                dataRow["Source"] = "Cassandra Log";
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["KeySpace"] = statItem.KeySpace;
-                                dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS/Size minimum";
-                                dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = statItem.minItem5;
-                                dataRow["Size in MB"] = statItem.minItem5 / BytesToMB;
-                                dataRow["Unit of Measure"] = "OPS/bytes";
-
-                                dtCFStats.Rows.Add(dataRow);
-
-                                dataRow = dtCFStats.NewRow();
-
-                                dataRow["Source"] = "Cassandra Log";
-                                dataRow["Data Center"] = dcName;
-                                dataRow["Node IPAddress"] = ipAddress;
-                                dataRow["KeySpace"] = statItem.KeySpace;
-                                dataRow["Table"] = statItem.Table;
-                                dataRow["Attribute"] = "MemTable OPS/Size mean";
-                                dataRow["Reconciliation Reference"] = grpInd;
-                                dataRow["Value"] = statItem.avgItem5;
-                                dataRow["Size in MB"] = statItem.avgItem5 / BytesToMB;
-                                dataRow["Unit of Measure"] = "OPS/bytes";
-
-                                dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);                                                                
                             }
                         }
 
@@ -5998,9 +5989,165 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
+
+                    if (memTblStats.Count > 0)
+                    {
+                        #region MemTableStats Delta
+
+                        initializeCFStatsDataTable(dtCFStats);
+
+                        Logger.Instance.InfoFormat("Adding MemTable Write Stats ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, memTblStats.Count);
+
+                        var memtblStats = from cmpItem in memTblStats
+                                          group cmpItem by new { cmpItem.Keyspace, cmpItem.Table }
+                                                into g
+                                          let difs = (g.First().InitialOPS == 0 ? g : g.Skip(1))
+                                                      .Select(s => new { opsDif = s.EndingOPS - s.InitialOPS, sizeDif = s.EndingSize - s.InitialSize })
+                                                      .Where(s => s.opsDif > 0)
+                                          where difs.HasAtLeastOneElement()
+                                          select new
+                                          {
+                                              KeySpace = g.Key.Keyspace,
+                                              Table = g.Key.Table,
+                                              maxOPS = difs.Max(s => s.opsDif),
+                                              minOPS = difs.Min(s => s.opsDif),
+                                              avgOPS = (long)difs.Average(s => s.opsDif),
+                                              maxSize = difs.Max(s => s.sizeDif),
+                                              minSize = difs.Min(s => s.sizeDif),
+                                              avgSize = difs.Average(s => s.sizeDif),
+                                              sumSize = difs.Sum(s => s.sizeDif),
+                                              Count = g.Count()
+                                          };
+
+                        foreach (var statItem in memtblStats)
+                        {
+                            var dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write OPS Delta maximum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.maxOPS;
+                            dataRow["(value)"] = statItem.maxOPS;
+                            dataRow["Unit of Measure"] = "Operations per Second";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write OPS Delta minimum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.minOPS;
+                            dataRow["(value)"] = statItem.minOPS;
+                            dataRow["Unit of Measure"] = "Operations per Second";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write OPS Delta mean";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.avgOPS;
+                            dataRow["(value)"] = statItem.avgOPS;
+                            dataRow["Unit of Measure"] = "Operations per Second";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write Delta occurrences";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.Count;
+                            dataRow["(Value)"] = statItem.Count;
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            //Size
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write Size Delta maximum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.maxSize;
+                            dataRow["Size in MB"] = (decimal)statItem.avgSize / BytesToMB;
+                            dataRow["Unit of Measure"] = "bytes";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write Size Delta minimum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.minSize;
+                            dataRow["Size in MB"] = (decimal)statItem.minSize / BytesToMB;
+                            dataRow["Unit of Measure"] = "bytes";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write Size Delta mean";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.avgSize;
+                            dataRow["Size in MB"] = (decimal)statItem.avgSize / BytesToMB;
+                            dataRow["Unit of Measure"] = "bytes";
+
+                            dtCFStats.Rows.Add(dataRow);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statItem.KeySpace;
+                            dataRow["Table"] = statItem.Table;
+                            dataRow["Attribute"] = "MemTable Write Size Delta Total";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statItem.sumSize;
+                            dataRow["Size in MB"] = (decimal)statItem.sumSize / BytesToMB;
+                            dataRow["Unit of Measure"] = "bytes";
+
+                            dtCFStats.Rows.Add(dataRow);
+                        }
+                        #endregion
+                    }
                 }
 
                 #endregion
+
+                
             }
         }
 
