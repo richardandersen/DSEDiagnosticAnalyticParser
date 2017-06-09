@@ -357,9 +357,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-					if (line.Substring(0, 4).ToLower() == "... "
-							|| (line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[
-							|| (!assertError && line.Substring(0, 3).ToLower() == "at "))
+					if ((line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[                            
+							|| (!assertError && line.Length >= 3 && line.Substring(0, 3).ToLower() == "at ")
+                            || (line.Length >= 4 && line.Substring(0, 4) == "... "))
                     {
                         continue;
                     }
@@ -1532,6 +1532,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             #region QueryProcessor.java
                             ////QueryProcessor.java:139 - 21 prepared statements discarded in the last minute because cache limit reached (66270208 bytes)
+                            //ERROR [SharedPool-Worker-1] 2017-05-31 23:59:50,096  QueryProcessor.java:545 - The statement: [SELECT bre_grid_txt FROM rapid_direct.dirct_app WHERE app_id = 129712281
+
                             if (parsedValues[nCell] == "prepared" && parsedValues.ElementAtOrDefault(nCell + 1) == "statements" && parsedValues.ElementAtOrDefault(nCell + 2) == "discarded")
                             {
                                 int preparedSize;
@@ -1542,7 +1544,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Associated Value"] = preparedSize;
                                     handled = true;
                                 }
-                            }
+                            }                            
                             #endregion
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ThriftServer.java")

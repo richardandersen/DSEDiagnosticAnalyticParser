@@ -112,8 +112,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else if (fileName.Contains("os-info"))
                             {
                                 var infoObject = ParseJson(filePath.ReadAllText());
-
-                                dataRow["OS"] = infoObject["sub_os"];
+                                
+                                dataRow["OS"] = infoObject.TryGetValue("sub_os");
                                 dataRow["OS Version"] = infoObject["os_version"];
                             }
                             else if (fileName.Contains("cpu"))

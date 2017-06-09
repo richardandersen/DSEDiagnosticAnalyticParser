@@ -41,7 +41,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 												workSheet.Cells["O:O"].Style.Numberformat.Format = "#,###";
 												workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###";
 
-												workSheet.View.FreezePanes(2, 1);
+                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 5].FormulaR1C1 = string.Format("sum(E2:E{0})", dtKeySpace.Rows.Count);
+                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 6].FormulaR1C1 = string.Format("sum(F2:F{0})", dtKeySpace.Rows.Count);
+                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 5].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 6].Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+                                               
+                                                workSheet.View.FreezePanes(2, 1);
                                                 workSheet.Cells["A1:P1"].AutoFilter = true;
                                                 DTLoadIntoExcel.AutoFitColumn(workSheet, workSheet.Cells["A:P"]);                                                
                                             },

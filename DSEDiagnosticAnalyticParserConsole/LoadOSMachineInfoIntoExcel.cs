@@ -102,7 +102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["AT:AT"].Style.Numberformat.Format = "#,###,###,##0.00";
 
                                                 workSheet.Cells["A2:AT2"].AutoFilter = true;
-                                                DTLoadIntoExcel.AutoFitColumn(workSheet);                                                
+                                                DTLoadIntoExcel.AutoFitColumn(workSheet);
                                             },
                                             ParserSettings.OSMachineInfoWorksheetFilterSort,
                                             "A2");
