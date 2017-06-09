@@ -881,8 +881,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Logger.Instance.Warn("Node/DSE tool Ring File is either missing or this option disabled. Data center information will be missing from the worksheets!");
                 }
 
-                Parallel.ForEach(nodeDirs, (element) =>
-                //foreach (var element in nodeDirs)
+                //Parallel.ForEach(nodeDirs, (element) =>
+                foreach (var element in nodeDirs)
                 {
                     string ipAddress = null;
                     string dcName = null;
@@ -1166,7 +1166,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
 
-                });
+                }//);
 
                 #endregion
             }

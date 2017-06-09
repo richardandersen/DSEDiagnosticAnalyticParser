@@ -338,7 +338,59 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 readNextLine = readStream.ReadLine();
 
-                while(readNextLine != null)
+                #region Check to see if log file is within time frame
+                if(onlyEntriesAfterThisTimeFrame != DateTime.MinValue
+                        && readNextLine != null)
+                {
+                    var testLine = Common.StringFunctions.Split(readNextLine,
+                                                                ' ',
+                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
+                                                                Common.StringFunctions.SplitBehaviorOptions.Default
+                                                                    | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries
+                                                                    | StringFunctions.SplitBehaviorOptions.IgnoreMismatchedWithinDelimiters);
+                    if (testLine.Count >= 6)
+                    {
+                        if (DateTime.TryParse(testLine[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + testLine[ParserSettings.CLogLineFormats.TimeStampPos + 1].Replace(',', '.'), out lineDateTime))
+                        {
+                            if (lineDateTime < onlyEntriesAfterThisTimeFrame)
+                            {                                                              
+                                DateTime lastDateTime = DateTime.MaxValue;
+
+                                if (readStream.BaseStream.Length > 1024)
+                                {
+                                    readStream.BaseStream.Seek(-1024, System.IO.SeekOrigin.End);
+                                }
+                                
+                                while ((readLine = readStream.ReadLine()) != null)
+                                {
+                                    testLine = Common.StringFunctions.Split(readLine,
+                                                            ' ',
+                                                            Common.StringFunctions.IgnoreWithinDelimiterFlag.All,
+                                                            Common.StringFunctions.SplitBehaviorOptions.Default
+                                                                | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries
+                                                                | StringFunctions.SplitBehaviorOptions.IgnoreMismatchedWithinDelimiters);
+                                    if (testLine.Count >= 6)
+                                    {
+                                        if (DateTime.TryParse(testLine[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + testLine[ParserSettings.CLogLineFormats.TimeStampPos + 1].Replace(',', '.'), out lineDateTime))
+                                        {
+                                            lastDateTime = lineDateTime;
+                                        }
+                                    }
+                                }
+
+                                if (lastDateTime < onlyEntriesAfterThisTimeFrame)
+                                {
+                                    return 0;
+                                }
+
+                                readStream.BaseStream.Seek(readNextLine.Length + 1, System.IO.SeekOrigin.Begin);
+                            }
+                        }
+                    }
+                }
+                #endregion
+
+                while (readNextLine != null)
                 {
                     readLine = readNextLine;
                     readNextLine = readStream.ReadLine();
