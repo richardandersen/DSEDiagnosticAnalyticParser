@@ -380,6 +380,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (lastDateTime < onlyEntriesAfterThisTimeFrame)
                                 {
+                                    Logger.Instance.InfoFormat("Log \"{0}\" was Skipped because it was did not meet Log time range ({1}). Ending Log timestamp is {2}.",
+                                                                    clogFilePath.PathResolved,
+                                                                    onlyEntriesAfterThisTimeFrame,
+                                                                    lastDateTime);
                                     return 0;
                                 }
 
