@@ -11,15 +11,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class DTLoadIntoExcel
     {
-        public static void LoadYamlRingOSInfo(Task<Tuple<DataTable, DataTable, DataTable, Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>>> updateRingWYamlInfoTask,
+        public static void LoadYamlRingOSInfo(Task logTask,
+                                                Task<Tuple<DataTable, DataTable, DataTable, Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>>> updateRingWYamlInfoTask,
                                                 ExcelPackage excelPkg,
                                                 string excelWorkSheetYaml,
                                                 string excelWorkSheetRingInfo,
                                                 string excelWorkSheetOSMachineInfo)
         {
             updateRingWYamlInfoTask.Wait();
-
             LoadYamlSettings(excelPkg, updateRingWYamlInfoTask.Result.Item3, excelWorkSheetYaml);
+
+            logTask?.Wait();
+
             LoadRingInfo(excelPkg, updateRingWYamlInfoTask.Result.Item2, excelWorkSheetRingInfo);
             LoadOSMachineInfo(excelPkg, updateRingWYamlInfoTask.Result.Item1, excelWorkSheetOSMachineInfo);
         }

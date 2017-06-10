@@ -152,15 +152,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 						{
 							DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
 							DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
-
-							DTLoadIntoExcel.LoadYamlRingOSInfo(updateRingWYamlInfoTask,
+                            
+                            DTLoadIntoExcel.LoadYamlRingOSInfo(runLogMergedTask,
+                                                                updateRingWYamlInfoTask,
 																excelPkg,
 																ParserSettings.ExcelWorkSheetYaml,
 																ParserSettings.ExcelWorkSheetRingInfo,
 																ParserSettings.ExcelWorkSheetOSMachineInfo);
-
-							runLogMergedTask?.Wait();
-							runCFStatsMergedDDLUpdated?.Wait();
+                            runLogMergedTask?.Wait();
+                            runCFStatsMergedDDLUpdated?.Wait();
 							runNodeStatsMergedTask?.Wait();
 
 							DTLoadIntoExcel.LoadCFStats(excelPkg, runCFStatsMergedDDLUpdated?.Result, ParserSettings.ExcelWorkSheetCFStats);

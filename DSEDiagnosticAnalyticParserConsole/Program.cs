@@ -1389,23 +1389,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
                     {
-                        runningLogTask.ContinueWith(action =>
+                        runLogMergedTask = runningLogTask.ContinueWith(action =>
                                             {
                                                 Program.ConsoleLogReadFiles.Terminate();
                                                 Logger.Instance.InfoFormat("Log {0}", ProcessFileTasks.LogCassandraMaxMinTimestamp);
                                                 Logger.Instance.InfoFormat("Parsed Log Data for {0} Nodes: {1}",
                                                                             parsedLogList.Count,
                                                                             string.Join(", ", parsedLogList.Sort<string>()));
-                                            });
-                        runningLogTask.ContinueWith(action =>
+                                            })
+                                        .ContinueWith(action =>
                                             {
                                                 Program.ConsoleParsingLog.Increment("Update Node Info");
                                                 ProcessFileTasks.UpdateRingInfo(dtRingInfo,
                                                                                 ProcessFileTasks.LogCassandraNodeMaxMinTimestamps);
                                                 Program.ConsoleParsingLog.TaskEnd("Update Node Info");
-                                            });
-
-                        runLogMergedTask = runningLogTask.ContinueWith(action =>
+                                            },
+                                            TaskContinuationOptions.AttachedToParent                                               
+                                                | TaskContinuationOptions.OnlyOnRanToCompletion)
+                                        .ContinueWith(action =>
                                             {
 												Program.ConsoleParsingLog.Increment("Log Merge");
 												var dtlog = dtLogsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter,

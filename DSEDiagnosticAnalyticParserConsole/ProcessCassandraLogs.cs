@@ -329,6 +329,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             DateTimeRange ignoredTimeRange = new DateTimeRange();
             bool exceptionOccurred = false;
             bool assertError = false;
+            bool skippingLineEarlyDateRange = false;
             int consumeNextLine = 0;
             string currentSolrSchemaName = null;
 
@@ -380,7 +381,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (lastDateTime < onlyEntriesAfterThisTimeFrame)
                                 {
-                                    Logger.Instance.InfoFormat("Log \"{0}\" was Skipped because it was did not meet Log time range ({1}). Ending Log timestamp is {2}.",
+                                    Logger.Instance.InfoFormat("Log File skipped because it was did not meet Log time range ({1}). Ending timestamp is {2} for Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
                                                                     onlyEntriesAfterThisTimeFrame,
                                                                     lastDateTime);
@@ -491,108 +492,111 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     #region Exception Log Info Parsing
 
-                    if (assertError && line.Substring(0, 3).ToLower() == "at ")
+                    if (nbrRows > 0 || assertError)
                     {
-                        #region assert Error at
-                        //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
-                        //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
-                        //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
-
-                        assertError = false;
-
-                        if (lastRow != null)
+                        if (assertError && line.Substring(0, 3).ToLower() == "at ")
                         {
-                            var endFuncPos = parsedValues[1].IndexOf('(');
+                            #region assert Error at
+                            //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
+                            //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
+                            //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
 
-                            if (lastRow["Exception"] == DBNull.Value)
+                            assertError = false;
+
+                            if (lastRow != null)
                             {
-                                lastRow["Exception"] = "java.lang.AssertionError(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                                var endFuncPos = parsedValues[1].IndexOf('(');
+
+                                if (lastRow["Exception"] == DBNull.Value)
+                                {
+                                    lastRow["Exception"] = "java.lang.AssertionError(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                                }
+                                else
+                                {
+                                    lastRow["Exception"] = ((string)lastRow["Exception"]) + "(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                                }
+
+                                if (lastRow["Flagged"] == DBNull.Value || (int)lastRow["Flagged"] == 0)
+                                {
+                                    lastRow["Flagged"] = (int)LogFlagStatus.Exception;
+                                }
+                            }
+
+                            continue;
+                            #endregion
+                        }
+                        else if (parsedValues[0].ToLower().Contains("assertionerror"))
+                        {
+                            #region assertion error
+                            //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
+                            //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
+                            //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
+                            if (lastRow == null)
+                            {
+                                line.Dump(Logger.DumpType.Warning, "assertionerror found but no associated previous log line at in log file \"{0}\"", clogFilePath.PathResolved);
                             }
                             else
                             {
-                                lastRow["Exception"] = ((string)lastRow["Exception"]) + "(" + (endFuncPos >= 0 ? parsedValues[1].Substring(0, endFuncPos) : parsedValues[0]).Trim() + ")";
+                                var exception = parsedValues[0][parsedValues[0].Length - 1] == ':'
+                                                        ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
+                                                        : parsedValues[0];
+
+                                lastRow["Exception Description"] = line;
+                                lastRow["Flagged"] = (int)LogFlagStatus.Exception;
+                                lastRow["Exception"] = exception;
+
+                                assertError = true;
+                                exceptionOccurred = true;
+                            }
+                            continue;
+                            #endregion
+                        }
+                        else if (parsedValues[0].ToLower().Contains("exception")
+                                    || parsedValues[0].ToLower().EndsWith("error:"))
+                        {
+                            #region Exception
+
+                            if (lastRow == null)
+                            {
+                                line.Dump(Logger.DumpType.Warning, "exception found but no associated previous log line for log file \"{0}\"", clogFilePath.PathResolved);
+                            }
+                            else
+                            {
+                                ParseExceptions(ipAddress, parsedValues[0], lastRow, string.Join(" ", parsedValues.Skip(1)), null);
+                                lastRow.AcceptChanges();
                             }
 
-							if(lastRow["Flagged"] == DBNull.Value || (int) lastRow["Flagged"] == 0)
-							{
-								lastRow["Flagged"] = (int)LogFlagStatus.Exception;
-							}
-                        }
-
-                        continue;
-                        #endregion
-                    }
-                    else if (parsedValues[0].ToLower().Contains("assertionerror"))
-                    {
-                        #region assertion error
-                        //ERROR [LocalShardServer query worker - 3] 2016-09-26 15:33:30,690  ShardServer.java:156 - id=3080 length=2855 docID=2056 maxDoc=2855
-                        //java.lang.AssertionError: id = 3080 length = 2855 docID = 2056 maxDoc = 2855
-                        //at org.apache.lucene.index.RTSortedDocValues.getOrd(RTSortedDocValues.java:162) ~[solr - uber - with - auth_2.0 - 4.10.3.0.101.jar:na]
-                        if (lastRow == null)
-                        {
-                            line.Dump(Logger.DumpType.Warning, "assertionerror found but no associated previous line");
-                        }
-                        else
-                        {
-                            var exception = parsedValues[0][parsedValues[0].Length - 1] == ':'
-                                                    ? parsedValues[0].Substring(0, parsedValues[0].Length - 1)
-                                                    : parsedValues[0];
-
-                            lastRow["Exception Description"] = line;
-                            lastRow["Flagged"] = (int) LogFlagStatus.Exception;
-                            lastRow["Exception"] = exception;
-
-                            assertError = true;
                             exceptionOccurred = true;
+                            continue;
+                            #endregion
                         }
-                        continue;
-                        #endregion
+                        else if (parsedValues[0].ToLower() == "caused")
+                        {
+                            #region caused
+
+                            if (lastRow == null)
+                            {
+                                line.Dump(Logger.DumpType.Warning, "caused line found but no associated previous line");
+                            }
+                            else
+                            {
+                                ParseExceptions(ipAddress, parsedValues[2], lastRow, string.Join(" ", parsedValues.Skip(2)), null);
+                                lastRow.AcceptChanges();
+                            }
+                            exceptionOccurred = true;
+                            continue;
+
+                            #endregion
+                        }
+
+                        assertError = false;
                     }
-                    else if (parsedValues[0].ToLower().Contains("exception")
-                                || parsedValues[0].ToLower().EndsWith("error:"))
-                    {
-                        #region Exception
-
-                        if (lastRow == null)
-                        {
-                            line.Dump(Logger.DumpType.Warning, "exception found but no associated previous line");
-                        }
-                        else
-                        {
-                            ParseExceptions(ipAddress, parsedValues[0], lastRow, string.Join(" ", parsedValues.Skip(1)), null);
-                            lastRow.AcceptChanges();
-                        }
-
-                        exceptionOccurred = true;
-                        continue;
-                        #endregion
-                    }
-                    else if (parsedValues[0].ToLower() == "caused")
-                    {
-                        #region caused
-
-                        if (lastRow == null)
-                        {
-                            line.Dump(Logger.DumpType.Warning, "caused line found but no associated previous line");
-                        }
-                        else
-                        {
-                            ParseExceptions(ipAddress, parsedValues[2], lastRow, string.Join(" ", parsedValues.Skip(2)), null);
-                            lastRow.AcceptChanges();
-                        }
-                        exceptionOccurred = true;
-                        continue;
-
-                        #endregion
-                    }
-
-                    assertError = false;
 
                     #endregion
 
                     if (parsedValues.Count < 6)
                     {
-                        if (lastRow != null && !exceptionOccurred)
+                        if (lastRow != null && !exceptionOccurred && nbrRows > 0)
                         {
                             line.Dump(Logger.DumpType.Warning, "Invalid Log Line File: {0}", clogFilePath.PathResolved);
                             Program.ConsoleWarnings.Increment("Invalid Log Line:", line);
@@ -606,12 +610,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (lineDateTime < onlyEntriesAfterThisTimeFrame)
                         {
                             Program.ConsoleLogCount.Decrement();
+
+                            if(!skippingLineEarlyDateRange)
+                            {
+                                skippingLineEarlyDateRange = true;
+                                Logger.Instance.InfoFormat("Log Lines skipped because it was did not meet Log time range ({1}) at timestamp {2} in Log \"{0}\"",
+                                                                    clogFilePath.PathResolved,
+                                                                    onlyEntriesAfterThisTimeFrame,
+                                                                    lineDateTime);
+                            }
                             continue;
+                        }
+                        else if (skippingLineEarlyDateRange)
+                        {
+                            skippingLineEarlyDateRange = false;
+                            Logger.Instance.InfoFormat("Log Line begin processing since it meets Log time range ({1}) at timestamp {2} in Log \"{0}\"",
+                                                                clogFilePath.PathResolved,
+                                                                onlyEntriesAfterThisTimeFrame,
+                                                                lineDateTime);
                         }
                     }
                     else
                     {
-                        if (!exceptionOccurred)
+                        if (!exceptionOccurred && nbrRows > 0)
                         {
                             line.Dump(Logger.DumpType.Warning, "Invalid Log Date/Time File: {0}", clogFilePath.PathResolved);
                             Program.ConsoleWarnings.Increment("Invalid Log Date/Time:", line);
