@@ -41,7 +41,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["Q:Q"].Style.Numberformat.Format = "#,###,###,##0";
                                                 workSheet.Cells["R:R"].Style.Numberformat.Format = "#,###,###,##0";
-                                                
+                                                workSheet.Cells["S:S"].Style.Numberformat.Format = "#,###,###,##0.00";
+
                                                 workSheet.InsertColumn(11, 1);
                                                 //workSheet.Column(10).Hidden = true;
                                                 workSheet.Cells["J1"].Value = "Uptime (Days)";

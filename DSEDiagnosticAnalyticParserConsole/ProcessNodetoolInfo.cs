@@ -81,6 +81,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         break;
                     case "off heap memory (mb)":
                         dataRow["Off Heap Memory (MB)"] = decimal.Parse(lineValue);
+                        break;                    
+                    case "percent repaired":
+                        var decValue = lineValue.Last() == '%'
+                                        ? lineValue.Substring(0,lineValue.Length - 1).Trim()
+                                        : lineValue;
+                        decimal dec;
+
+                        if(decimal.TryParse(decValue,out dec))
+                        {
+                            dataRow["Percent Repaired"] = dec / 100m;
+                        }
                         break;
                     case "id":
                     case "token":
