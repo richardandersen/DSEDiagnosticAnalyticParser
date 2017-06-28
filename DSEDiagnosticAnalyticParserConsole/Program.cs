@@ -51,6 +51,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (!argResult.Errors.IsEmpty())
             {
+                Common.ConsoleHelper.Prompt("Press Return to Continue", ConsoleColor.Gray, ConsoleColor.DarkRed);
+                ConsoleDisplay.DisableAllConsoleWriter();
                 return;
             }
 
@@ -125,6 +127,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if(!argResult.Value.CheckArguments())
             {
+                Common.ConsoleHelper.Prompt("Press Return to Continue", ConsoleColor.Gray, ConsoleColor.DarkRed);
+                ConsoleDisplay.DisableAllConsoleWriter();
                 return;
             }
 
