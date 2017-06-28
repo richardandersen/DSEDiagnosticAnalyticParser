@@ -12,6 +12,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
     static public partial class ProcessFileTasks
     {
+        //10.23.8.21	hpnplgmddb01
         //keyspace/table histograms
         //Percentile SSTables     Write Latency      Read Latency    Partition Size        Cell Count
         //                             (micros)          (micros)           (bytes)                  
@@ -33,6 +34,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         //Min             0.00             73.00            104.00              3974                51
         //Max            42.00        7007506.00         654949.00          52066354            545791
 
+        static Regex RegExCFHistAddr = new Regex(@"\s*(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+([^ ]+)?",
+                                               RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExCFHistKSTbl = new Regex(@"\s*(\w+)(?:/|\.)(\w+)\s+histograms\s*",
                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExCFHistHdr = new Regex(@"\s*Percentile\s+SSTables\s+Write\s+Latency\s+Read\s+Latency\s+Partition\s+Size\s+Cell\s+Count\s*",
@@ -72,6 +75,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public void ReadCFHistogramFileParseIntoDataTable(IFilePath cfhistogramFilePath,
                                                                     string ipAddress,
                                                                     string dcName,
+                                                                    DataTable dtRingInfo,
                                                                     DataTable dtCFHistogram)
         {
 
@@ -79,12 +83,55 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var fileLines = cfhistogramFilePath.ReadAllLines();
             var attributes = new string[] { "SSTables", "Write Latency", "Read Latency", "Partition Size", "Cell Count" };
+            var checkIPAddress = string.IsNullOrEmpty(ipAddress);
 
             for (int nIndex = 0; nIndex < fileLines.Length; ++nIndex)
             {
                 if(string.IsNullOrEmpty(fileLines[nIndex].Trim()))
                 {
                     continue;
+                }
+
+                if(checkIPAddress)
+                {
+                    var ipAddrSplit = RegExCFHistAddr.Split(fileLines[nIndex]);
+
+                    if(ipAddrSplit.Length >= 3)
+                    {
+                        if (IPAddressStr(ipAddrSplit[1], out ipAddress))
+                        {
+                            var dcRow = dtRingInfo == null || dtRingInfo.Rows.Count == 0
+                                            ? null
+                                            : dtRingInfo.Rows.Find(ipAddress);
+
+                            if (dcRow == null)
+                            {
+                                dcName = null;
+
+                                cfhistogramFilePath.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the CFHistogram file.");
+                                Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
+                            }
+                            else
+                            {
+                                dcName = dcRow["Data Center"] as string;
+                            }
+                            continue;
+                        }
+                        else
+                        {
+                            ipAddress = null;
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(ipAddress))
+                    {
+                        if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled())
+                        {
+                            cfhistogramFilePath.Path.Dump(Logger.DumpType.Warning, "IPAdress was not found in the CFHistogram file. File Ignored.");
+                            Program.ConsoleWarnings.Increment("IPAdress Not Found");
+                        }
+                        break;
+                    }
                 }
 
                 var kstblSplit = RegExCFHistKSTbl.Split(fileLines[nIndex]);
@@ -134,7 +181,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-                    if (RegExCFHistKSTbl.Match(fileLines[nIndex]).Success)
+                    if (checkIPAddress && RegExCFHistAddr.Match(fileLines[nIndex]).Success)
+                    {
+                        --nIndex;
+                        break;
+                    }
+                    else if (RegExCFHistKSTbl.Match(fileLines[nIndex]).Success)
                     {
                         --nIndex;
                         break;

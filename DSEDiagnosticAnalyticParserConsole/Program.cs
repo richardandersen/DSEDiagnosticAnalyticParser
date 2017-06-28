@@ -1263,28 +1263,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                 ProcessFileTasks.DetermineIPDCFromFileName(chFile.Name, dtRingInfo, out ipAddress, out dcName);
 
-                                                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(ipAddress))
-                                                {
-                                                    chFile.Path.Dump(Logger.DumpType.Warning, "IPAdress was not found in the CFHistogram file. File Ignored.");
-                                                    Program.ConsoleWarnings.Increment("IPAdress Not Found");
-                                                }
-                                                else
-                                                {
-                                                    if (string.IsNullOrEmpty(dcName))
-                                                    {
-                                                        chFile.Path.Dump(Logger.DumpType.Warning, "DataCenter Name was not found in the CFHistogram file.");
-                                                        Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
-                                                    }
+                                                var dataTable = new DataTable(ParserSettings.ExcelCFHistogramWorkSheet + "-" + ipAddress);
+                                                dtCFHistogramsStack.Push(dataTable);
 
-                                                    var dataTable = new DataTable(ParserSettings.ExcelCFHistogramWorkSheet + "-" + ipAddress);
-                                                    dtCFHistogramsStack.Push(dataTable);
+                                                Program.ConsoleNonLogReadFiles.Increment(chFile);
 
-                                                    Program.ConsoleNonLogReadFiles.Increment(chFile);
-
-                                                    ProcessFileTasks.ReadCFHistogramFileParseIntoDataTable(chFile, ipAddress, dcName, dataTable);
-                                                    parsedCFHistList.TryAdd(ipAddress);
-                                                    Program.ConsoleNonLogReadFiles.TaskEnd(chFile);
-                                                }
+                                                ProcessFileTasks.ReadCFHistogramFileParseIntoDataTable(chFile, ipAddress, dcName, dtRingInfo, dataTable);
+                                                parsedCFHistList.TryAdd(ipAddress);
+                                                Program.ConsoleNonLogReadFiles.TaskEnd(chFile);
                                             });
                                         }
 

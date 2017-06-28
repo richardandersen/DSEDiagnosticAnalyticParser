@@ -43,7 +43,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
         public int GCFlagThresholdInMS {
             get {
                 return ((int)(this["GCFlagThresholdInMS"]));
@@ -52,7 +52,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("10000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("-1")]
         public int CompactionFlagThresholdInMS {
             get {
                 return ((int)(this["CompactionFlagThresholdInMS"]));
@@ -961,7 +961,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
         public decimal CompactionFlagThresholdAsIORate {
             get {
                 return ((decimal)(this["CompactionFlagThresholdAsIORate"]));
