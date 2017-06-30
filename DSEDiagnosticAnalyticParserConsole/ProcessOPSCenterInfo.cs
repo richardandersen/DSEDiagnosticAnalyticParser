@@ -85,7 +85,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         else if (fileName.Contains("repair_service"))
                         {
                             var infoText = filePath.ReadAllText();
-                            var definition = new { time_to_completion = 0L, status = string.Empty, parallel_tasks = 0, all_tasks = new object[1][] };
+                            var definition = new { time_to_completion = 0L, status = string.Empty, parallel_tasks = 0m, all_tasks = new object[1][] };
                             var infoObject = Newtonsoft.Json.JsonConvert.DeserializeAnonymousType(infoText, definition);
 
                             foreach (DataRow dataRow in dtRingInfo.Rows)

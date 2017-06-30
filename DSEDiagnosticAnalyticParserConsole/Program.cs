@@ -144,9 +144,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.Console.WriteLine("Parse Options: {{{0}}}, Log Options: {{{1}}}{2}",
                                                 ParserSettings.ParsingExcelOption,
                                                 ParserSettings.LogParsingExcelOption,
-                                                ParserSettings.LogStartDate == DateTime.MinValue
+                                                ParserSettings.LogStartDate.IsEmpty()
                                                     ? string.Empty
-                                                    : string.Format(" From: {0} ({0:ddd})", ParserSettings.LogStartDate));
+                                                    : string.Format(" From: {0} ({0:ddd}) To: {1} ({1:ddd})",
+                                                                        ParserSettings.LogStartDate.Min,
+                                                                        ParserSettings.LogStartDate.Max));
 
             ConsoleDisplay.Console.WriteLine(" ");
 
@@ -218,13 +220,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
-            if (ParserSettings.LogStartDate != DateTime.MinValue)
+            if (ParserSettings.LogStartDate.IsEmpty())
             {
-                Logger.Instance.InfoFormat("Log Entries after \"{0}\" will only be parsed", ParserSettings.LogStartDate);
+                Logger.Instance.Info("All Log Entries will be parsed!");
             }
             else
             {
-                Logger.Instance.Info("All Log Entries will be parsed!");
+                Logger.Instance.InfoFormat("Log Entries between \"{0}\" and \"{1}\" will only be parsed",
+                                            ParserSettings.LogStartDate.Min,
+                                            ParserSettings.LogStartDate.Max);
             }
             
             var logParsingTasks = new Common.Patterns.Collections.ThreadSafe.List<Task>();

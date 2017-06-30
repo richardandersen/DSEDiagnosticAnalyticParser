@@ -81,12 +81,39 @@ namespace DSEDiagnosticAnalyticParserConsole
         /// <summary>
         /// Import Log entries from this date. MinDate will parse all log entries.
         /// </summary>
-        [Option('Z', "LogStartDate", HelpText = "Only import log entries from this date/time. MinDate will parse all entries.",
+        [Option('Z', "LogStartDate", HelpText = "Only import log entries from/to this date/time range. Empty string will parse all entries. Syntax: \"FromDateTime\", \",ToDateDate\", or \"FromDateTime,ToDateTime\"",
                     Required = false)]
-        public DateTime LogStartDate
+        public string LogStartDate
         {
-            get { return ParserSettings.LogStartDate; }
-            set { ParserSettings.LogStartDate = value; }
+            get { return ParserSettings.LogStartDate.ToString(); }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    ParserSettings.LogStartDate = DateTimeRange.EmptyMaxMin;
+                }
+                else
+                {
+                    var splitDT = value.Split(',');
+
+                    if (splitDT.Length == 0)
+                    {
+                        ParserSettings.LogStartDate = DateTimeRange.EmptyMaxMin;
+                    }
+                    else if (splitDT.Length == 1)
+                    {
+                        ParserSettings.LogStartDate = new DateTimeRange(DateTime.Parse(splitDT[0]), DateTime.MaxValue);
+                    }
+                    else if (splitDT[0] == null)
+                    {
+                        ParserSettings.LogStartDate = new DateTimeRange(DateTime.MinValue, DateTime.Parse(splitDT[1]));
+                    }
+                    else
+                    {
+                        ParserSettings.LogStartDate = new DateTimeRange(DateTime.Parse(splitDT[0]), DateTime.Parse(splitDT[1]));
+                    }
+                }
+            }
         }
 
         /// <summary>

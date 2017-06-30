@@ -15,7 +15,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         string excelWorkSheetLogCassandra,
                                                         string dcName,
                                                         string ipAddress,
-                                                        DateTime includeLogEntriesAfterThisTimeFrame,
+                                                        DateTimeRange includeLogEntriesRange,
                                                         DateTimeRange maxminMaxLogDate,
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
                                                         IFilePath[] archiveFilePaths, //null disables archive parsing
@@ -47,7 +47,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     var linesRead = ReadCassandraLogParseIntoDataTable(logFilePath,
                                                                                         ipAddress,
                                                                                         dcName,
-                                                                                        includeLogEntriesAfterThisTimeFrame,
+                                                                                        includeLogEntriesRange,
                                                                                         dtLog,
                                                                                         out maxLogTimestamp,
                                                                                         gcPausedFlagThresholdInMS,
@@ -115,7 +115,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             excelWorkSheetLogCassandra,
                                                             dcName,
                                                             ipAddress,
-                                                            includeLogEntriesAfterThisTimeFrame,
+                                                            includeLogEntriesRange,
                                                             maxminMaxLogDate,
                                                             dtLogsStack,
                                                             null,
@@ -296,7 +296,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         static int ReadCassandraLogParseIntoDataTable(IFilePath clogFilePath,
                                                         string ipAddress,
                                                         string dcName,
-                                                        DateTime onlyEntriesAfterThisTimeFrame,
+                                                        DateTimeRange onlyEntriesAllowedRange,
                                                         System.Data.DataTable dtCLog,
                                                         out DateTime maxTimestamp,
                                                         int gcPausedFlagThresholdInMS,
@@ -340,7 +340,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 readNextLine = readStream.ReadLine();
 
                 #region Check to see if log file is within time frame
-                if(onlyEntriesAfterThisTimeFrame != DateTime.MinValue
+                if(!onlyEntriesAllowedRange.IsEmpty()
                         && readNextLine != null)
                 {
                     var testLine = Common.StringFunctions.Split(readNextLine,
@@ -353,15 +353,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (DateTime.TryParse(testLine[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + testLine[ParserSettings.CLogLineFormats.TimeStampPos + 1].Replace(',', '.'), out lineDateTime))
                         {
-                            if (lineDateTime < onlyEntriesAfterThisTimeFrame)
-                            {                                                              
+                            if (lineDateTime < onlyEntriesAllowedRange)
+                            {
                                 DateTime lastDateTime = DateTime.MaxValue;
 
                                 if (readStream.BaseStream.Length > 1024)
                                 {
                                     readStream.BaseStream.Seek(-1024, System.IO.SeekOrigin.End);
                                 }
-                                
+
                                 while ((readLine = readStream.ReadLine()) != null)
                                 {
                                     testLine = Common.StringFunctions.Split(readLine,
@@ -379,16 +379,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
                                 }
 
-                                if (lastDateTime < onlyEntriesAfterThisTimeFrame)
+                                if (lastDateTime < onlyEntriesAllowedRange)
                                 {
                                     Logger.Instance.InfoFormat("Log File skipped because it was did not meet Log time range ({1}). Ending timestamp is {2} for Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
-                                                                    onlyEntriesAfterThisTimeFrame,
+                                                                    onlyEntriesAllowedRange,
                                                                     lastDateTime);
                                     return 0;
                                 }
 
                                 readStream.BaseStream.Seek(readNextLine.Length + 1, System.IO.SeekOrigin.Begin);
+                            }
+                            else if (lineDateTime > onlyEntriesAllowedRange)
+                            {
+                                Logger.Instance.InfoFormat("Log File skipped because it was did not meet Log time range ({1}). Starting timestamp is {2} for Log \"{0}\"",
+                                                                    clogFilePath.PathResolved,
+                                                                    onlyEntriesAllowedRange,
+                                                                    lineDateTime);
+                                return 0;
                             }
                         }
                     }
@@ -607,7 +615,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     #region Timestamp/Number of lines Parsing
                     if (DateTime.TryParse(parsedValues[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + parsedValues[ParserSettings.CLogLineFormats.TimeStampPos+1].Replace(',', '.'), out lineDateTime))
                     {
-                        if (lineDateTime < onlyEntriesAfterThisTimeFrame)
+                        if (lineDateTime < onlyEntriesAllowedRange)
                         {
                             Program.ConsoleLogCount.Decrement();
 
@@ -616,7 +624,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 skippingLineEarlyDateRange = true;
                                 Logger.Instance.InfoFormat("Log Lines skipped because it was did not meet Log time range ({1}) at timestamp {2} in Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
-                                                                    onlyEntriesAfterThisTimeFrame,
+                                                                    onlyEntriesAllowedRange,
                                                                     lineDateTime);
                             }
                             continue;
@@ -626,7 +634,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             skippingLineEarlyDateRange = false;
                             Logger.Instance.InfoFormat("Log Line begin processing since it meets Log time range ({1}) at timestamp {2} in Log \"{0}\"",
                                                                 clogFilePath.PathResolved,
-                                                                onlyEntriesAfterThisTimeFrame,
+                                                                onlyEntriesAllowedRange,
                                                                 lineDateTime);
                         }
                     }
@@ -3622,17 +3630,24 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (splits.Length == 12)
                         {
-                            var fileNamePos = ((string)splits[2]).LastIndexOf('/');
-                            var ssTableFileName = ((string)splits[2]).Substring(fileNamePos + 1);
-                            var ksItem = kstblExists
-                                            .Where(e => ssTableFileName.StartsWith(e.LogName))
-                                            .OrderByDescending(e => e.LogName.Length).FirstOrDefault();
+                            var ksItems = ProcessFileTasks.ParseSSTableFileIntoKSTableNames(splits[2]);
 
-                            if (ksItem != null)
+                            if (ksItems != null)
                             {
-                                if (ignoreKeySpaces.Contains(ksItem.KeySpaceName))
+                                if (ignoreKeySpaces.Contains(ksItems.Item1))
                                 {
                                     continue;
+                                }
+
+                                var ksItem = kstblExists.FirstOrDefault(k => k.KeySpaceName == ksItems.Item1 && k.Name == ksItems.Item2);
+
+                                if(ksItem == null)
+                                {
+                                    ksItem = new CKeySpaceTableNames(ksItems.Item1,
+                                                                        ksItems.Item4 == null
+                                                                            ? ksItems.Item2
+                                                                            : ksItems.Item4 + '.' + ksItems.Item2,
+                                                                        ksItems.Item4 != null);
                                 }
 
                                 var dataRow = dtCStatusLog.NewRow();
@@ -7858,6 +7873,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
         //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
         //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
+        
+        //DEBUG [ValidationExecutor:33] 2017-06-29 05:14:36,413  ColumnFamilyStore.java:850 - Enqueuing flush of pymt_soc_by_setlid: 102357 (0%) on-heap, 0 (0%) off-heap
+        //DEBUG[MemtableFlushWriter:167] 2017-06-29 05:14:36,413  Memtable.java:368 - Writing Memtable-pymt_soc_by_setlid@1578363409(16.938KiB serialized bytes, 79 ops, 0%/0% of on/off-heap limit)
+        //DEBUG[MemtableFlushWriter:167] 2017-06-29 05:14:36,415  Memtable.java:401 - Completed flushing /apps/cassandra/data/data1/cksprocp1/pymt_soc_by_setlid-dc3a4960f00c11e6b7494d6a36aa5e20/mc-12525-big-Data.db (8.132KiB) for commitlog position ReplayPosition(segmentId= 1498723221746, position= 14670565)
 
         //INFO  [BatchlogTasks:1] 2017-01-18 08:41:09,879  ColumnFamilyStore.java:905 - Enqueuing flush of batchlog: 116840 (0%) on-heap, 0 (0%) off-heap
         //INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,879  Memtable.java:347 - Writing Memtable-batchlog@1865343912(61.708KiB serialized bytes, 425 ops, 0%/0% of on/off-heap limit)
@@ -7938,8 +7957,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 										LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
 									};
 
-			Parallel.ForEach(flushLogItems, logGroupItem =>
-			//foreach (var logGroupItem in flushLogItems)
+			//Parallel.ForEach(flushLogItems, logGroupItem =>
+			foreach (var logGroupItem in flushLogItems)
 			{
 				var currentFlushes = new List<MemTableFlushLogInfo>();
 				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
@@ -8011,61 +8030,29 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					if (splitInfo.Length > 1)
 					{
-						var fileNamePos = splitInfo[1].LastIndexOf('/');
-						var ssTableFileName = splitInfo[1].Substring(fileNamePos + 1);
-						var ksItem = kstblExists
-										.Where(e => ssTableFileName.StartsWith(e.LogName))
-										.OrderByDescending(e => e.LogName.Length).FirstOrDefault();
+                        var ksItems = ProcessFileTasks.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
 
-						if (ksItem == null)
+						if (ksItems == null)
+                        {
+                            Logger.Instance.WarnFormat("Invalid SSTable Path of \"{0}\" detected. Ignoring SSTable for MemTable Flush", splitInfo[1]);
+                        }
+                        else
 						{
 							var flushInfo = currentFlushes.Find(i => !i.Completed
-																		&& i.TaskId == item.TaskId.Value
-																		&& ssTableFileName.Contains("-" + i.Table)
-																		&& item.Timestamp >= i.StartTime);
-
-							if (flushInfo != null)
-							{
-								var ksPos = ssTableFileName.IndexOf("-" + flushInfo.Table);
-								var ksName = ssTableFileName.Substring(0, ksPos);
-								string tblName = null;
-
-								if (ignoreKeySpaces.Contains(ksName))
-								{
-									currentFlushes.Remove(flushInfo);
-									continue;
-								}
-
-								tblName = flushInfo.Occurrences.Where(i => ssTableFileName.Contains(i.Table))
-																		.OrderByDescending(e => e.Table.Length).FirstOrDefault()?.Table;
-
-								flushInfo.AddUpdateOccurrence(ksName,
-																tblName == null ? flushInfo.Table : tblName,
-																splitInfo[1],
-																item.Timestamp,
-																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
-																item.TaskId.Value,
-																groupIndicator);
-								continue;
-							}
-						}
-						else
-						{
-							var flushInfo = currentFlushes.Find(i => !i.Completed
-																		&& (ksItem.Name == i.Table || ksItem.Name.StartsWith(i.Table + "."))
+																		&& (ksItems.Item2 == i.Table)
 																		&& i.TaskId == item.TaskId.Value
 																		&& item.Timestamp >= i.StartTime);
 
 							if (flushInfo != null)
 							{
-								if (ignoreKeySpaces.Contains(ksItem.KeySpaceName))
+								if (ignoreKeySpaces.Contains(ksItems.Item1))
 								{
 									currentFlushes.Remove(flushInfo);
 									continue;
 								}
 
-								flushInfo.AddUpdateOccurrence(ksItem.KeySpaceName,
-																ksItem.Name,
+								flushInfo.AddUpdateOccurrence(ksItems.Item1,
+																ksItems.Item2,
 																splitInfo[1],
 																item.Timestamp,
 																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
@@ -8415,7 +8402,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				#endregion
 
 				currentFlushes.Clear();
-			});
+			}//);
 		}
 
 		private class ConcurrentInfo
