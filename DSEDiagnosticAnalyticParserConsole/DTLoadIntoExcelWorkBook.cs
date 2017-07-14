@@ -80,7 +80,23 @@ namespace DSEDiagnosticAnalyticParserConsole
             var workSheet = excelPkg.Workbook.Worksheets[workSheetName];
             if (workSheet == null)
             {
-                workSheet = excelPkg.Workbook.Worksheets.Add(workSheetName);
+                try
+                {
+                    workSheet = excelPkg.Workbook.Worksheets.Add(workSheetName);
+                }
+                catch(InvalidOperationException)
+                {
+                    workSheet = excelPkg.Workbook.Worksheets[workSheetName];
+
+                    if(workSheet == null)
+                    {
+                        throw;
+                    }
+                }
+                catch
+                {
+                    throw;
+                }                
             }
             else
             {

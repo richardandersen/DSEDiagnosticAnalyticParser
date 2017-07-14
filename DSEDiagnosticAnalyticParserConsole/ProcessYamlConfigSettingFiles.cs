@@ -322,6 +322,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
+                    if(nIndex + 1 >= separateParams.Count)
+                    {
+                        return new Tuple<string, IEnumerable<Tuple<string, string>>>(DetermineProperFormat(cmdParams, false, !noNamespace), null);
+                    }
+
                     keyValues.Add(new Tuple<string, string>(DetermineProperFormat(subCmd + separateParams[nIndex], true, false),
                                                                 DetermineProperFormat(separateParams[++nIndex], false, !noNamespace)));
                 }
