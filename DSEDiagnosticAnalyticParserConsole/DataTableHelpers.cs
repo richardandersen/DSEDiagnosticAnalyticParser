@@ -14,7 +14,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         Tuple<string, string, DataViewRowState> viewFilterSortRowStateOpts = null)
         {
             DataTable dtComplete = new DataTable();
-            DataTable dtItem;
+            DataTable dtItem = null;
             DataRow[] dtErrors;
             bool firstDT = true;
             string firstTableName = string.Empty;
@@ -62,8 +62,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             dtComplete.EndLoadData();
             dtComplete.AcceptChanges();
 
-            dtComplete.TableName = new string(firstTableName.ToCharArray()
-                                                .Intersect(lastTableName.ToCharArray()).ToArray()) + "-AllRows";
+            dtComplete.TableName = CommonChars(firstTableName, lastTableName) + "-AllRows";
 
             if(dtComplete.Rows.Count != rowCount)
             {
@@ -77,21 +76,114 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if(dtComplete.Rows.Count == 0)
             {
+                if (viewFilterSortRowStateOpts != null)
+                {
+                    if (dtComplete.Columns.Count == 0 && firstDT && dtItem != null)
+                    {
+                        dtItem
+                            .Columns
+                            .Cast<DataColumn>()
+                            .ForEach(dc => dtComplete.Columns.Add(dc.ColumnName, dc.DataType).AllowDBNull = dc.AllowDBNull);                        
+                    }
+
+                    if (dtComplete.Columns.Count > 0)
+                    {
+                        dtComplete.DefaultView.RowFilter = viewFilterSortRowStateOpts.Item1;
+                        dtComplete.DefaultView.Sort = viewFilterSortRowStateOpts.Item2;
+                        dtComplete.DefaultView.RowStateFilter = viewFilterSortRowStateOpts.Item3;
+
+                        dtComplete.TableName = dtComplete.TableName
+                                            + (string.IsNullOrEmpty(viewFilterSortRowStateOpts.Item1) ? string.Empty : "-Filtered")
+                                            + (string.IsNullOrEmpty(viewFilterSortRowStateOpts.Item2) ? string.Empty : "-Sorted")
+                                            + (viewFilterSortRowStateOpts.Item3 == DataViewRowState.None ? string.Empty : "-RowState{" + viewFilterSortRowStateOpts.Item3.ToString() + "}");
+                    }
+                }
+
                 return dtComplete;
             }
 
             if (viewFilterSortRowStateOpts != null)
             {
                 var tableName = dtComplete.TableName;
-                dtComplete = (new DataView(dtComplete,
-                                            viewFilterSortRowStateOpts.Item1,
-                                            viewFilterSortRowStateOpts.Item2,
-                                            viewFilterSortRowStateOpts.Item3))
-                            .ToTable();
-                dtComplete.TableName = tableName + "-Filtered";
+                var defaultView = new DataView(dtComplete,
+                                                viewFilterSortRowStateOpts.Item1,
+                                                viewFilterSortRowStateOpts.Item2,
+                                                viewFilterSortRowStateOpts.Item3);
+                dtComplete = defaultView.ToTable();
+                dtComplete.TableName = tableName
+                                            + (string.IsNullOrEmpty(viewFilterSortRowStateOpts.Item1) ? string.Empty : "-Filtered")
+                                            + (string.IsNullOrEmpty(viewFilterSortRowStateOpts.Item2) ? string.Empty : "-Sorted")
+                                            + (viewFilterSortRowStateOpts.Item3 == DataViewRowState.None ? string.Empty : "-RowState{" + viewFilterSortRowStateOpts.Item3.ToString() + "}");
+
+                dtComplete.DefaultView.RowFilter = viewFilterSortRowStateOpts.Item1;
+                dtComplete.DefaultView.Sort = viewFilterSortRowStateOpts.Item2;
+                dtComplete.DefaultView.RowStateFilter = viewFilterSortRowStateOpts.Item3;
             }
 
             return dtComplete;
+        }
+
+        static string CommonChars(string a, string b)
+        {
+            if (a == b)
+            {
+                return a;
+            }
+            if (string.IsNullOrEmpty(a))
+            {
+                return b;
+            }
+            if (string.IsNullOrEmpty(b))
+            {
+                return a;
+            }
+
+            var newStr = new StringBuilder();
+            var aArray = a.ToCharArray();
+            var bArray = b.ToCharArray();
+            int aPosSave = 0;
+            int bPosSave = 0;
+            bool stop = false;
+            int trying = 0;
+
+            for (int naPos = 0, nbPos = 0; !stop && naPos < a.Length && nbPos < b.Length;)
+            {
+                if (aArray[naPos] == bArray[nbPos])
+                {
+                    newStr.Append(aArray[naPos]);
+                    aPosSave = ++naPos;
+                    bPosSave = ++nbPos;
+                    trying = 0;
+                }
+                else if (trying == 0 || trying == 2)
+                {
+                    ++naPos;
+                    if (naPos >= a.Length)
+                    {
+                        if (trying == 0)
+                        {
+                            trying = 1;
+                            naPos = aPosSave;
+                        }
+                        else
+                        {
+                            stop = true;
+                        }
+                    }
+
+                }
+                else if (trying == 1)
+                {
+                    ++nbPos;
+                    if (nbPos >= b.Length)
+                    {
+                        trying = 2;
+                        nbPos = bPosSave;
+                    }
+                }
+            }
+
+            return newStr.ToString();
         }
 
         public static IEnumerable<DataTable> SplitTable(this DataTable dtComplete, int nbrRowsInSubTables)

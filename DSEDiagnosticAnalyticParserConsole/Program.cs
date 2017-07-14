@@ -1334,9 +1334,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 			Task<DataTable> runStatsLogMerged = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 			Task runReleaseDependentLogTask;
 			Task runConcurrentCompactionFlushTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+            Task<DataTable> runLogAdditionalInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 
-			{
-				var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
+            {
+                var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
                                                 ? Task.Factory.StartNew(() =>
                                                     {
                                                         Program.ConsoleParsingNonLog.Increment("Yaml");
@@ -1542,28 +1543,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																| TaskContinuationOptions.LongRunning
 																| TaskContinuationOptions.OnlyOnRanToCompletion);
                     }
-
-                    if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
-                    {
-						Program.ConsoleParsingLog.Increment("Processing Log Summary");
-						runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(Task.Factory
-																										.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask },
-																															tasks => ((Task<DataTable>)tasks[0]).Result),
-                                                                                                    ParserSettings.ExcelWorkSheetLogCassandra,
-                                                                                                    ParserSettings.LogSummaryPeriods,
-                                                                                                    ParserSettings.LogSummaryPeriodRanges,
-                                                                                                    ParserSettings.ParsingExcelOptions.OnlyOverlappingDateRanges.IsEnabled(),
-                                                                                                    ProcessFileTasks.LogCassandraNodeMaxMinTimestamps,
-                                                                                                    ParserSettings.LogSummaryTaskItems,
-                                                                                                    ParserSettings.LogSummaryIgnoreTaskExceptions);
-
-                        runSummaryLogTask.ContinueWith(action =>
-                                                {
-													Program.ConsoleParsingLog.TaskEnd("Processing Log Summary");
-													Program.ConsoleParsingLog.Terminate();
-                                                });
-                    }
-
+                    
                     ProcessFileTasks.LogCassandraNodeMaxMinTimestamps.ForEach(nodeLogRanges
                         => Logger.Instance.InfoFormat("Log IP: {0} Range(s): {1}",
                                                         nodeLogRanges.Key,
@@ -1622,20 +1602,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 Task.Factory
-                       .ContinueWhenAll(new Task[] { tskdtCFHistogram, runSummaryLogTask, updateRingWYamlInfoTask, runCFStatsMergedDDLUpdated, runNodeStatsMergedTask },
+                       .ContinueWhenAll(new Task[] { tskdtCFHistogram, updateRingWYamlInfoTask, runCFStatsMergedDDLUpdated, runNodeStatsMergedTask },
                                            tasks => Program.ConsoleParsingNonLog.Terminate());
-
-				runReleaseDependentLogTask = Task.Factory
-											  .ContinueWhenAll(new Task[] { runLogMergedTask,
-																			runSummaryLogTask,
-																			runMemTableFlushTask,
-																			runReadRepairProcess,
-																			runReadRepairTbl,
-																			runNodeStatsMergedTask,
-																			runCFStatsMergedDDLUpdated },
-																  tasks => ProcessFileTasks.ReleaseGlobalLogCollections());
-
-				Program.ConsoleParsingLog.Increment("Log Stats Merge");
+				
 				runStatsLogMerged = Task.Factory
 											  .ContinueWhenAll<DataTable>(new Task[] { runLogMergedTask,
 																						runReadRepairProcess,
@@ -1644,7 +1613,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 																						runConcurrentCompactionFlushTask},
 																  tasks =>
 																  {
-																	  var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null
+                                                                      Program.ConsoleParsingLog.Increment("Log Stats Merge");
+                                                                      var dtLogStats = dtLogStatusStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(ParserSettings.LogExcelWorkbookFilter == null
 																																												? ParserSettings.StatsWorkBookFilterSort.Item1
 																																												: ParserSettings.LogExcelWorkbookFilter,
 																																											ParserSettings.StatsWorkBookFilterSort.Item2,
@@ -1653,14 +1623,75 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 																	  return dtLogStats;
 																  });
-			}
-			#endregion
-			#endregion
 
-			//Care should be taken below since DataTables are released after they are loaded into Excel...
-			DTLoadIntoExcel.LoadIntoExcel(runStatsLogMerged,
+                runLogAdditionalInfoTask = runLogMergedTask;
+                
+                if (ParserSettings.LogParsingExcelOptions.Parse.IsEnabled()
+                        || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
+                {
+                    if (ParserSettings.QueueDroppedBlockedWarningThreshold > 0
+                            && ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
+                    {
+                        //Below Tasks will update Log DataTable
+                        runLogAdditionalInfoTask = ProcessFileTasks.ReviewDropsBlocks(runLogMergedTask,
+                                                                                        runStatsLogMerged,
+                                                                                        new Task[] { runMemTableFlushTask,
+                                                                                                        runAntiCompactionTask,
+                                                                                                        runReadRepairProcess },
+                                                                                        ParserSettings.QueueDroppedBlockedWarningThreshold,
+                                                                                        ParserSettings.QueueDroppedBlockedWarningPeriodInMins);                        
+                    }                    
+                }
+                
+                if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
+                {
+                    runSummaryLogTask = ProcessFileTasks.ParseCassandraLogIntoSummaryDataTable(Task.Factory
+                                                                                                    .ContinueWhenAll(new Task[] { runLogAdditionalInfoTask,
+                                                                                                                                    runMemTableFlushTask,
+                                                                                                                                    runAntiCompactionTask,
+                                                                                                                                    runReadRepairProcess},
+                                                                                                                        tasks =>
+                                                                                                                        {
+                                                                                                                            Program.ConsoleParsingLog.Increment("Processing Log Summary");
+                                                                                                                            return ((Task<DataTable>)tasks[0]).Result;
+                                                                                                                          }),
+                                                                                                ParserSettings.ExcelWorkSheetLogCassandra,
+                                                                                                ParserSettings.LogSummaryPeriods,
+                                                                                                ParserSettings.LogSummaryPeriodRanges,
+                                                                                                ParserSettings.ParsingExcelOptions.OnlyOverlappingDateRanges.IsEnabled(),
+                                                                                                ProcessFileTasks.LogCassandraNodeMaxMinTimestamps,
+                                                                                                ParserSettings.LogSummaryTaskItems,
+                                                                                                ParserSettings.LogSummaryIgnoreTaskExceptions);
+
+                    runSummaryLogTask.ContinueWith(action =>
+                    {
+                        Program.ConsoleParsingLog.TaskEnd("Processing Log Summary");                        
+                    });
+                }
+
+                runReleaseDependentLogTask = Task.Factory
+                                              .ContinueWhenAll(new Task[] { runLogAdditionalInfoTask,
+                                                                            runSummaryLogTask,
+                                                                            runMemTableFlushTask,
+                                                                            runReadRepairProcess,
+                                                                            runReadRepairTbl,
+                                                                            runNodeStatsMergedTask,
+                                                                            runCFStatsMergedDDLUpdated },
+                                                                  tasks =>
+                                                                  {
+                                                                      ProcessFileTasks.ReleaseGlobalLogCollections();
+                                                                      Program.ConsoleParsingLog.Terminate();
+                                                                  });
+
+            }
+
+            #endregion
+            #endregion
+
+            //Care should be taken below since DataTables are released after they are loaded into Excel...
+            DTLoadIntoExcel.LoadIntoExcel(runStatsLogMerged,
 											runSummaryLogTask,
-											runLogMergedTask,
+                                            runLogAdditionalInfoTask,
 											runCFStatsMergedDDLUpdated,
 											runNodeStatsMergedTask,
 											tskdtCFHistogram,

@@ -279,7 +279,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Node IPAddress", typeof(string));
-                dtCLog.Columns.Add("Timestamp", typeof(DateTime));
+                dtCLog.Columns.Add("Timestamp", typeof(DateTime)).AllowDBNull = false;
                 dtCLog.Columns.Add("Indicator", typeof(string));
                 dtCLog.Columns.Add("Task", typeof(string));
 				dtCLog.Columns.Add("TaskId", typeof(int)).AllowDBNull = true;
@@ -332,6 +332,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             bool skippingLineEarlyDateRange = false;
             int consumeNextLine = 0;
             string currentSolrSchemaName = null;
+            bool allowRange = !onlyEntriesAllowedRange.IsEmpty();
 
             //int tableItemValuePos = -1;
 
@@ -340,8 +341,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 readNextLine = readStream.ReadLine();
 
                 #region Check to see if log file is within time frame
-                if(!onlyEntriesAllowedRange.IsEmpty()
-                        && readNextLine != null)
+                if(allowRange && readNextLine != null)
                 {
                     var testLine = Common.StringFunctions.Split(readNextLine,
                                                                 ' ',
@@ -353,7 +353,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (DateTime.TryParse(testLine[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + testLine[ParserSettings.CLogLineFormats.TimeStampPos + 1].Replace(',', '.'), out lineDateTime))
                         {
-                            if (lineDateTime < onlyEntriesAllowedRange)
+                            if (lineDateTime < onlyEntriesAllowedRange.Min)
                             {
                                 DateTime lastDateTime = DateTime.MaxValue;
 
@@ -379,7 +379,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
                                 }
 
-                                if (lastDateTime < onlyEntriesAllowedRange)
+                                if (lastDateTime < onlyEntriesAllowedRange.Min)
                                 {
                                     Logger.Instance.InfoFormat("Log File skipped because it was did not meet Log time range ({1}). Ending timestamp is {2} for Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
@@ -390,7 +390,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 readStream.BaseStream.Seek(readNextLine.Length + 1, System.IO.SeekOrigin.Begin);
                             }
-                            else if (lineDateTime > onlyEntriesAllowedRange)
+                            else if (lineDateTime > onlyEntriesAllowedRange.Max)
                             {
                                 Logger.Instance.InfoFormat("Log File skipped because it was did not meet Log time range ({1}). Starting timestamp is {2} for Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
@@ -615,27 +615,30 @@ namespace DSEDiagnosticAnalyticParserConsole
                     #region Timestamp/Number of lines Parsing
                     if (DateTime.TryParse(parsedValues[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + parsedValues[ParserSettings.CLogLineFormats.TimeStampPos+1].Replace(',', '.'), out lineDateTime))
                     {
-                        if (lineDateTime < onlyEntriesAllowedRange)
+                        if (allowRange)
                         {
-                            Program.ConsoleLogCount.Decrement();
-
-                            if(!skippingLineEarlyDateRange)
+                            if (!onlyEntriesAllowedRange.IsBetween(lineDateTime))
                             {
-                                skippingLineEarlyDateRange = true;
-                                Logger.Instance.InfoFormat("Log Lines skipped because it was did not meet Log time range ({1}) at timestamp {2} in Log \"{0}\"",
+                                Program.ConsoleLogCount.Decrement();
+
+                                if (!skippingLineEarlyDateRange)
+                                {
+                                    skippingLineEarlyDateRange = true;
+                                    Logger.Instance.InfoFormat("Log Lines skipped because it was did not meet Log time range ({1}) at timestamp {2} in Log \"{0}\"",
+                                                                        clogFilePath.PathResolved,
+                                                                        onlyEntriesAllowedRange,
+                                                                        lineDateTime);
+                                }
+                                continue;
+                            }
+                            else if (skippingLineEarlyDateRange)
+                            {
+                                skippingLineEarlyDateRange = false;
+                                Logger.Instance.InfoFormat("Log Line begin processing since it meets Log time range ({1}) at timestamp {2} in Log \"{0}\"",
                                                                     clogFilePath.PathResolved,
                                                                     onlyEntriesAllowedRange,
                                                                     lineDateTime);
                             }
-                            continue;
-                        }
-                        else if (skippingLineEarlyDateRange)
-                        {
-                            skippingLineEarlyDateRange = false;
-                            Logger.Instance.InfoFormat("Log Line begin processing since it meets Log time range ({1}) at timestamp {2} in Log \"{0}\"",
-                                                                clogFilePath.PathResolved,
-                                                                onlyEntriesAllowedRange,
-                                                                lineDateTime);
                         }
                     }
                     else
@@ -684,8 +687,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     dataRow = dtCLog.NewRow();
 
-                    dataRow[0] = dcName;
-                    dataRow[1] = ipAddress;
+                    dataRow["Data Center"] = dcName;
+                    dataRow["Node IPAddress"] = ipAddress;
                     dataRow["Timestamp"] = lineDateTime;
 
                     minmaxDate.SetMinMax(lineDateTime);
@@ -802,6 +805,27 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                             }
                             else if(parsedValues[nCell].StartsWith("commitInternal"))
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+                                handled = true;
+                            }
+                            #endregion
+                        }
+                        else if(parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[StreamReceiveTask")
+                                    && (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SecondaryIndexManager.java"
+                                            || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexWriter.java"))
+                        {
+                            #region Solr Hard Commit DSE 5.x
+                            //INFO  [StreamReceiveTask:832] 2017-06-29 10:18:31,883  SecondaryIndexManager.java:359 - Submitting index build of ckspsocp1_pymtsocp_solr_query_index 
+
+                            if (parsedValues[nCell] == "Submitting"
+                                    && parsedValues[nCell + 1] == "index")
+                            {
+                                dataRow["Associated Item"] = parsedValues[nCell + 4];
+                                dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+                                handled = true;
+                            }
+                            else if (parsedValues[nCell].StartsWith("commitInternal"))
                             {
                                 dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
                                 handled = true;
@@ -1692,9 +1716,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:52:23,011  AbstractSolrSecondaryIndex.java:1566 - Finished reindexing on keyspace prod_fcra and column family rtics_contribution
 							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:12:02,937  AbstractSolrSecondaryIndex.java:1539 - Reindexing on keyspace prod_fcra and column family rtics_contribution
 							//INFO  [SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:09,999  AbstractSolrSecondaryIndex.java:546 - Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016 - 10 - 18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
+							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
 
 							if (parsedValues[nCell] == "Reindexing"
 								|| (parsedValues[nCell] == "Finished" && parsedValues[nCell + 1] == "reindexing")
@@ -2150,34 +2174,38 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 				Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
 
+                var dtroCLogRows = (from dr in dtroCLog.AsEnumerable()
+                                    let timeStamp = dr.Field<DateTime>("Timestamp")
+                                    let flagged = dr.Field<int?>("Flagged")
+                                    let indicator = dr.Field<string>("Indicator")
+                                    where (flagged.HasValue && (flagged.Value == (int)LogFlagStatus.Exception || flagged.Value == (int)LogFlagStatus.Stats))
+                                                     || !dr.IsNull("Exception")
+                                                     || indicator == "ERROR"
+                                                     || indicator == "WARN"
+                                    orderby timeStamp descending
+                                    select new
+                                    {
+                                        Timestamp = timeStamp,
+                                        Indicator = indicator,
+                                        TaskItem = dr.Field<string>("Task"),
+                                        Item = dr.Field<string>("Item"),
+                                        Exception = dr.Field<string>("Exception"),
+                                        Flagged = flagged.HasValue ? flagged.Value != 0 : false,
+                                        DataCenter = dr.Field<string>("Data Center"),
+                                        IpAdress = dr.Field<string>("Node IPAddress"),
+                                        AssocItem = dr.Field<string>("Associated Item"),
+                                        DataRowArray = dr.ItemArray
+                                    }).ToArray();
+
                 Parallel.ForEach(segments, element =>
                 //foreach (var element in segments)
                 {
 					Program.ConsoleParsingLog.Increment(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
 
-					var segmentView = (from dr in dtroCLog.AsEnumerable()
-									   let timeStamp = dr.Field<DateTime>("Timestamp")
-									   let flagged = dr.Field<int?>("Flagged")
-									   let indicator = dr.Field<string>("Indicator")
-									   where element.Item1 >= timeStamp && element.Item2 < timeStamp
-												&& ((flagged.HasValue && (flagged.Value == (int) LogFlagStatus.Exception || flagged.Value == (int) LogFlagStatus.Stats))
-														|| !dr.IsNull("Exception")
-														|| indicator == "ERROR"
-														|| indicator == "WARN")
-									   orderby timeStamp descending
-									   select new
-									   {
-										   Timestamp = timeStamp,
-										   Indicator = indicator,
-										   TaskItem = dr.Field<string>("Task"),
-										   Item = dr.Field<string>("Item"),
-										   Exception = dr.Field<string>("Exception"),
-										   Flagged = flagged.HasValue ? flagged.Value != 0 : false,
-										   DataCenter = dr.Field<string>("Data Center"),
-										   IpAdress = dr.Field<string>("Node IPAddress"),
-										   AssocItem = dr.Field<string>("Associated Item"),
-                                           DataRowArray = dr.ItemArray
-									   });
+					var segmentView = from dr in dtroCLogRows
+                                       where element.Item1 >= dr.Timestamp && element.Item2 < dr.Timestamp
+									   orderby dr.Timestamp descending
+									   select dr;
 
                     var startPeriod = element.Item1;
                     var endPeriod = startPeriod - element.Item3;
@@ -4321,16 +4349,25 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #endregion
                     }
-                    else if (item.Task == "MemtablePostFlush")
+                    else if (item.Task == "MemtablePostFlush" || item.Task == "StreamReceiveTask")
                     {
                         #region MemtablePostFlush
-                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM},                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM},                         
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  IndexWriter.java:3429 - commitInternalStart startTime = 1495198301573
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,770  IndexWriter.java:3454 - commitInternalComplete duration = 197 ms startTime = 1495198301573
 
-                        if (item.Item == "ColumnFamilyStore.java"
+                        /* DSE 5.X
+                         INFO  [StreamReceiveTask:832] 2017-06-29 10:18:31,883  SecondaryIndexManager.java:359 - Submitting index build of ckspsocp1_pymtsocp_solr_query_index for data in BigTableReader(path='/apps/cassandra/data/data2/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21290-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21291-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21292-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data2/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21293-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21294-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21295-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data2/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21296-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21297-big-Data.db'),BigTableReader(path='/apps/cassandra/data/data1/ckspsocp1/pymtsocp-17b3c431c42511e6b6a39d750c224e11/mc-21298-big-Data.db')
+                         INFO  [StreamReceiveTask:832] 2017-06-29 10:18:32,097  AbstractSolrSecondaryIndex.java:1183 - Executing hard commit on index ckspsocp1.pymtsocp
+                         INFO  [StreamReceiveTask:832] 2017-06-29 10:18:32,101  IndexWriter.java:3463 - commitInternalStart startTime=1498756712101
+                         INFO  [StreamReceiveTask:832] 2017-06-29 10:18:32,878  IndexWriter.java:3488 - commitInternalComplete duration=777 ms startTime=1498756712101
+                         */
+
+                        if ((item.Item == "ColumnFamilyStore.java"
                                 && item.Description.StartsWith("Flushing SecondaryIndex Cql3SolrSecondaryIndex"))
+                            || (item.Item == "SecondaryIndexManager.java"
+                                    && item.Description.StartsWith("Submitting index build")))
                         {
                             #region Flush Solr Index
                             var ksTbls = item.AssocItem.Split(',')
@@ -4360,10 +4397,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     return new Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>() { newSolrCommit };
                                 },
-                                (ignore, gcList) =>
+                                (ignore, hcList) =>
                                 {
-                                    gcList.Add(newSolrCommit);
-                                    return gcList;
+                                    hcList.Add(newSolrCommit);
+                                    return hcList;
                                 });
                             #endregion
                         }
@@ -5844,6 +5881,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						initializeCFStatsDataTable(dtCFStats);
 
 						var solrReIdxItems = from solrItem in solrReindexing
+                                              where solrItem.Duration > 0
 											  group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
 											  select new
 											  {
@@ -5946,6 +5984,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                     .Select(i => new {  Keyspace = i.Item1,
                                                                                                         Index =i.Item2,
                                                                                                         Duration = s.Duration}))
+                                             where solrItem.Duration > 0
                                              group solrItem by new { solrItem.Keyspace, solrItem.Index } into g
                                              select new
                                              {
@@ -8961,9 +9000,125 @@ namespace DSEDiagnosticAnalyticParserConsole
 			}
 
 		}
-	}
 
-	public static class GroupIndicatorHelpers
+        public static Task<DataTable> ReviewDropsBlocks(Task<DataTable> logTask,
+                                                        Task<DataTable> statsTask, 
+                                                        Task[] waitOnAdditionalTasks,
+                                                        int warningThreshold,
+                                                        int warningPeriodInMins)
+        {
+            return Task<DataTable>.Factory                           
+                           .ContinueWhenAll((new List<Task> { logTask, statsTask }).Append(waitOnAdditionalTasks).ToArray(),
+                                               tasks =>
+                                               {
+                                                   Program.ConsoleParsingLog.Increment("Processing Review of Drops/Blocks");
+                                                  
+                                                   var dtLog = ((Task<DataTable>)tasks[0]).Result;
+
+                                                   ReviewDropsBlocks(dtLog,
+                                                                        ((Task<DataTable>)tasks[1]).Result,                                                                        
+                                                                        warningThreshold,
+                                                                        warningPeriodInMins);
+
+                                                   dtLog.AcceptChanges();
+
+                                                   Program.ConsoleParsingLog.TaskEnd("Processing Review of Drops/Blocks");
+                                                   return dtLog;
+                                               },
+                                               TaskContinuationOptions.AttachedToParent
+                                                    | TaskContinuationOptions.LongRunning);
+        }
+
+        public static void ReviewDropsBlocks(DataTable dtLog,
+                                                DataTable dtStats,
+                                                int warningThreshold,
+                                                int warningPeriodInMins)
+        {
+            
+            if(dtLog == null || dtStats == null || dtStats.Rows.Count == 0)
+            {
+                return;
+            }
+
+            var droppedFromLog = from logRow in dtLog.AsEnumerable()
+                                   let tag = logRow.Field<string>("Exception")                                   
+                                   where tag != null && tag.StartsWith("Dropped ") && !logRow.IsNull("Associated Value")
+                                 select new
+                                   {
+                                       DataCenter = logRow.Field<string>("Data Center"),
+                                       Node = logRow.Field<string>("Node IPAddress"),
+                                       Timestamp = logRow.Field<DateTime>("Timestamp"),
+                                       Items = (long)logRow.Field<int>("Associated Value")
+                                   };
+            
+            var blocksFromStats = from statRow in dtStats.AsEnumerable()
+                                  let nbrBlocks = statRow.Field<long?>("Blocked")
+                                  let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
+                                  where (nbrBlocks.HasValue && nbrBlocks.Value > 0)
+                                            || (nbrAllBlocks.HasValue && nbrAllBlocks.Value > 0)
+                                  select new
+                                  {
+                                      DataCenter = statRow.Field<string>("Data Center"),
+                                      Node = statRow.Field<string>("Node IPAddress"),
+                                      Timestamp = statRow.Field<DateTime>("Timestamp"),
+                                      Items = (nbrAllBlocks.HasValue ? nbrAllBlocks.Value : 0)
+                                                + (nbrBlocks.HasValue ? nbrBlocks.Value : 0)
+                                  };
+
+            var allItems = droppedFromLog.Concat(blocksFromStats);
+
+            var warningItems = from item in allItems
+                               group item by new { item.DataCenter, item.Node } into grp
+                               select new
+                               {
+                                   DataCenter = grp.Key.DataCenter,
+                                   Node = grp.Key.Node,
+                                   Warnings = warningPeriodInMins > 0
+                                                ? (from tsValue in grp
+                                                   let timestamp = tsValue.Timestamp
+                                                   let groupTS1 = timestamp.AddMinutes(-(timestamp.Minute % warningPeriodInMins))
+                                                   let groupTS = groupTS1.AddMilliseconds(-groupTS1.Millisecond - 1000 * groupTS1.Second)
+                                                   group tsValue by groupTS into grpTS
+                                                   select new
+                                                   {
+                                                       TimeStampGrp = grpTS.Key,
+                                                       Total = grpTS.Sum(i => i.Items)
+                                                   }).Where(i => i.Total >= warningThreshold)
+                                                : (from tsValue in grp where tsValue.Items >= warningThreshold
+                                                   select new
+                                                   {
+                                                       TimeStampGrp = tsValue.Timestamp,
+                                                       Total = tsValue.Items
+                                                   })
+                               };
+
+            foreach(var warningItem in warningItems)
+            {
+                foreach(var warningValue in warningItem.Warnings)
+                {
+                    var dataRow = dtLog.NewRow();
+
+                    dataRow["Data Center"] = warningItem.DataCenter;                    
+                    dataRow["Node IPAddress"] = warningItem.Node;
+                    dataRow["Timestamp"] = warningValue.TimeStampGrp;
+                    dataRow["Exception"] = "Dropped/Blocked Warning";
+                    dataRow["Associated Value"] = warningValue.Total;
+                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                    dataRow["Indicator"] = "WARN";
+                    dataRow["Task"] = "DroppedBlockedReview";
+                    dataRow["Item"] = "Generated";
+                    dataRow["Description"] = string.Format("Dropped/Blocked Warning where a total of {0} detected that exceed threshold {1} during period of {2} in mintues",
+                                                            warningValue.Total,
+                                                            warningThreshold,
+                                                            warningPeriodInMins);
+                    dtLog.Rows.Add(dataRow);                    
+                }                
+            }
+        }
+
+
+    }
+    public static class GroupIndicatorHelpers
 	{
 		public static string GroupIndicatorString<T>(this IEnumerable<T> grpindCollection)
 			where T : ProcessFileTasks.ILogInfo

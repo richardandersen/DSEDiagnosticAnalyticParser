@@ -474,6 +474,28 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        [Option("QueueDroppedBlockedWarningThreshold", HelpText = "If less than or equal to zero, will disable this option. The number of drops and blocks detected in the log that will trigger this warning within QueueDroppedBlockedWarningPeriodInMins.",
+                   Required = false)]
+        public int QueueDroppedBlockedWarningThreshold
+        {
+            get { return ParserSettings.QueueDroppedBlockedWarningThreshold; }
+            set
+            {
+                ParserSettings.QueueDroppedBlockedWarningThreshold = value;
+            }
+        }
+
+        [Option("QueueDroppedBlockedWarningPeriodInMins", HelpText = "If less than or equal to zero, will allow any single instance to trigger this warning. The time frame, in minutes, that is used to aggregate the total number of drops and blocks detected in the logs.",
+                   Required = false)]
+        public int QueueDroppedBlockedWarningPeriodInMins
+        {
+            get { return ParserSettings.QueueDroppedBlockedWarningPeriodInMins; }
+            set
+            {
+                ParserSettings.QueueDroppedBlockedWarningPeriodInMins = value;
+            }
+        }
+
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
@@ -633,7 +655,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--GCTimeFrameDetectionPercentage|-e {24} " +
 									"--ReadRepairThresholdInMS|-r {27} " +
 									"--CLogLineFormatPosition|-o {28} " +
-                                    "--DivideWorksheetIfExceedMaxRows {29}",
+                                    "--DivideWorksheetIfExceedMaxRows {29} " +
+                                    "--QueueDroppedBlockedWarningThreshold {30} " +
+                                    "--QueueDroppedBlockedWarningPeriodInMins {31}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -663,7 +687,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     this.CompactionFlagThresholdAsIORate,
 									this.ReadRepairThresholdInMS, //27
 									this.CLogLineFormatPosition,
-                                    this.DivideWorksheetIfExceedMaxRows)
+                                    this.DivideWorksheetIfExceedMaxRows,
+                                    this.QueueDroppedBlockedWarningThreshold,
+                                    this.QueueDroppedBlockedWarningPeriodInMins)
                     : string.Format("--CreateDirStructForNodes|-x \"{0}\"", this.CreateDirStructForNodes);
         }
     }

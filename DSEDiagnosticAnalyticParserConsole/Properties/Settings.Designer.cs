@@ -1136,5 +1136,26 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((bool)(this["DivideWorksheetIfExccedMaxRows"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int QueueDroppedBlockedWarningThreshold {
+            get {
+                return ((int)(this["QueueDroppedBlockedWarningThreshold"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("30")]
+        public int QueueDroppedBlockedWarningPeriodInMins {
+            get {
+                return ((int)(this["QueueDroppedBlockedWarningPeriodInMins"]));
+            }
+            set {
+                this["QueueDroppedBlockedWarningPeriodInMins"] = value;
+            }
+        }
     }
 }
