@@ -2490,7 +2490,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 ? exceptionPath
                                 : exceptionPathNodes[exceptionPathNodes.Length - posFromEnd];
 
-            if(keyNode.Length > 1
+            if(keyNode.Length > 5
                     && keyNode[0] == '/'
                     && (exceptionPathNodes.Length - (posFromEnd + 1)) >= 0)
             {
