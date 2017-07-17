@@ -111,7 +111,7 @@ Below settings are related to how aggregation is performed on the "Summary Log" 
       Entry 2 -- Using the ending date/time from Entry 1 for 2 days ==> 2016-09-11 10:45 to 2016-09-08 10:45 (exclusive) where all log entries are aggregated for each 1 hour.
       Entry 3 -- Using the ending date/time from Entry 2 ==> 2016-09-08 10:45 to remaining entries where all log entries are aggregated for each 7 days. Note that the last entry (i.e., Entry 3 in this example) Item1's value (in this example 10.00:00:00) is ignored. 
 ```    
-    Default is [{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"1.00:00:00","Item2":"1.00:00:00"},{"Item1":"4.00:00:00","Item2":"7.00:00:00"}]. Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
+    Default is [{"Item1":"4.00:00:00","Item2":"00:30:00"},{"Item1":"3.00:00:00","Item2":"12:00:00"},{"Item1":"4.00:00:00","Item2":"1.00:00:00"}]. Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
 
 **LogStartDate** -- Only import log entries from this date/time. MinDate ('1/1/0001 00:00:00') will parse all entries which is the default.
 

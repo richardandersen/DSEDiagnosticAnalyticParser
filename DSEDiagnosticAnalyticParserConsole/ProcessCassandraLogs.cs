@@ -9094,24 +9094,38 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             foreach(var warningItem in warningItems)
             {
-                foreach(var warningValue in warningItem.Warnings)
+                foreach (var warningValue in warningItem.Warnings)
                 {
-                    var dataRow = dtLog.NewRow();
+                    DataRow dataRow = null;
+                    long runningTotal = 0;
 
-                    dataRow["Data Center"] = warningItem.DataCenter;                    
-                    dataRow["Node IPAddress"] = warningItem.Node;
-                    dataRow["Timestamp"] = warningValue.TimeStampGrp;
-                    dataRow["Exception"] = "Dropped/Blocked Warning";
-                    dataRow["Associated Value"] = warningValue.Total;
-                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
-                    dataRow["Indicator"] = "WARN";
-                    dataRow["Task"] = "DroppedBlockedReview";
-                    dataRow["Item"] = "Generated";
-                    dataRow["Description"] = string.Format("Dropped/Blocked Warning where a total of {0} detected that exceed threshold {1} during period of {2} in mintues",
-                                                            warningValue.Total,
-                                                            warningThreshold,
-                                                            warningPeriodInMins);
-                    dtLog.Rows.Add(dataRow);                    
+                    for (long i = 0; i < warningValue.Total/warningThreshold; i++)
+                    {
+                        dataRow = dtLog.NewRow();
+
+                        dataRow["Data Center"] = warningItem.DataCenter;
+                        dataRow["Node IPAddress"] = warningItem.Node;
+                        dataRow["Timestamp"] = warningValue.TimeStampGrp;
+                        dataRow["Exception"] = "Dropped/Blocked Warning";
+                        dataRow["Associated Value"] = warningThreshold;
+                        runningTotal += warningThreshold;
+                        dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                        dataRow["Indicator"] = "WARN";
+                        dataRow["Task"] = "DroppedBlockedReview";
+                        dataRow["Item"] = "Generated";
+                        dataRow["Description"] = string.Format("Dropped/Blocked Warning where a total of {0} detected that exceed threshold {1} during period of {2} in mintues",
+                                                                warningValue.Total,
+                                                                warningThreshold,
+                                                                warningPeriodInMins);
+                        dtLog.Rows.Add(dataRow);
+                    }
+
+                    if(dataRow != null && warningValue.Total > runningTotal)
+                    {
+                        dataRow.BeginEdit();
+                        dataRow["Associated Value"] = warningThreshold + (warningValue.Total - runningTotal);
+                        dataRow.EndEdit();
+                    }
                 }                
             }
         }
