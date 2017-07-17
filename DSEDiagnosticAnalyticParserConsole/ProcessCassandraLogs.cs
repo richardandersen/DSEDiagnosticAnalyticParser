@@ -2489,6 +2489,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             var keyNode = (defaultNodes = exceptionPathNodes.Length == 0 || posFromEnd > exceptionPathNodes.Length)
                                 ? exceptionPath
                                 : exceptionPathNodes[exceptionPathNodes.Length - posFromEnd];
+
+            if(keyNode.Length > 1
+                    && keyNode[0] == '/'
+                    && (exceptionPathNodes.Length - (posFromEnd + 1)) >= 0)
+            {
+                keyNode = exceptionPathNodes[exceptionPathNodes.Length - (posFromEnd + 1)];
+            }
+
             var exceptionNameSplit = RegExSummaryLogExceptionName.Split(keyNode);
             var exceptionName = exceptionNameSplit.Length < 2 ? keyNode : exceptionNameSplit[1];
 
