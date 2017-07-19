@@ -11,6 +11,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
+        static long ThrottleLogReaderCnt = 10;
+
 		static public Task<int> ProcessLogFileTasks(IFilePath logFilePath,
                                                         string excelWorkSheetLogCassandra,
                                                         string dcName,
@@ -37,9 +39,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtLog = new System.Data.DataTable(excelWorkSheetLogCassandra + "-" + ipAddress);
 			Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<int> archTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
-
+                       
             var logTask = Task.Factory.StartNew(() =>
-                                {
+                                {                                    
+                                    if (ParserSettings.EnableLogReadThrottle && System.Threading.Interlocked.Increment(ref ThrottleLogReaderCnt) > Properties.Settings.Default.LogReadThrottleTaskCount)
+                                    {                                        
+                                        Program.ConsoleLogReadFiles.Increment("Log Throttled");                                        
+                                        System.Threading.Thread.Sleep(Properties.Settings.Default.LogReadThrottleWaitPeriodMS);                                        
+                                        Program.ConsoleLogReadFiles.TaskEnd("Log Throttled");
+                                    }
+
                                     Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
                                     Program.ConsoleLogReadFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
@@ -63,8 +72,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     return linesRead;
-                                },
-                                TaskCreationOptions.LongRunning);
+                                });
 
             if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
                 || ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
@@ -99,8 +107,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));
                             },
-                            TaskContinuationOptions.AttachedToParent
-                                | TaskContinuationOptions.LongRunning
+                            TaskContinuationOptions.AttachedToParent                               
                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
@@ -139,7 +146,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             return Task<int>
                     .Factory
-                    .ContinueWhenAll(new Task[] { logTask, statusTask, archTask }, tasks => logTask.Result + archTask.Result);
+                    .ContinueWhenAll(new Task[] { logTask, statusTask, archTask }, tasks =>
+                    {
+                        if (ParserSettings.EnableLogReadThrottle)
+                        {
+                            System.Threading.Interlocked.Decrement(ref ThrottleLogReaderCnt);
+                        }
+                        return logTask.Result + archTask.Result;
+                    });
         }
 
         public static Task<Tuple<DataTable, DataTable, DateTimeRange>> ParseCassandraLogIntoSummaryDataTable(Task<DataTable> logTask,
@@ -224,8 +238,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     return new Tuple<DataTable,DataTable, DateTimeRange>(dtSummaryLog, dtExceptionSummaryLog, maxminLogDate);
                                 },
-                                TaskContinuationOptions.AttachedToParent
-                                    | TaskContinuationOptions.LongRunning
+                                TaskContinuationOptions.AttachedToParent                                   
                                     | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 

@@ -45,6 +45,8 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 
 **QueueDroppedBlockedWarningThreshold** -- The number of drops and blocks detected in the log that will trigger this warning within QueueDroppedBlockedWarningPeriodInMins. If less than or equal to zero, will disable this option. Default 100 drops/blocks
 
+**EnableLogReadThrottle** -- If Yes (default), all log file reads will be throttled based on the LogReadThrottleTaskCount and LogReadThrottleWaitPeriodMS application config settings.
+
 **LogCurrentDate** -- The date/time used to start collecting C* log entries. Log entries greater than and equal this date/time will be collected. If no value (null), all entries will be collected. Default is no value (all entries).
 
 **LogTimeSpanRange** -- Only valid if LogCurrentDate is defined. The time span from LogCurrentDate to collect the C* entries (e.g., the last 5 days from LogCurrentDate of 2016-09-15; From 2016-09-15 23:59:59 to 2016-09-10 00:00:00). Default 02:00:00 (2 days)

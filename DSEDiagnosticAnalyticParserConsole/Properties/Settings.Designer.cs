@@ -1146,15 +1146,30 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("30")]
         public int QueueDroppedBlockedWarningPeriodInMins {
             get {
                 return ((int)(this["QueueDroppedBlockedWarningPeriodInMins"]));
             }
-            set {
-                this["QueueDroppedBlockedWarningPeriodInMins"] = value;
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        public long LogReadThrottleTaskCount {
+            get {
+                return ((long)(this["LogReadThrottleTaskCount"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        public int LogReadThrottleWaitPeriodMS {
+            get {
+                return ((int)(this["LogReadThrottleWaitPeriodMS"]));
             }
         }
     }

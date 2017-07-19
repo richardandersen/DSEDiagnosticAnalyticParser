@@ -153,8 +153,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				}
                 #endregion
             },
-            TaskContinuationOptions.AttachedToParent
-                | TaskContinuationOptions.LongRunning
+            TaskContinuationOptions.AttachedToParent               
                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
             return runStatusLogToExcel;

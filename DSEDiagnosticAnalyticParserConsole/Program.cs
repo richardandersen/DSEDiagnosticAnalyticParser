@@ -1284,8 +1284,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                         return dtCFHistogramsStack.MergeIntoOneDataTable();
                                     },
-                                    TaskContinuationOptions.AttachedToParent
-                                        | TaskContinuationOptions.LongRunning
+                                    TaskContinuationOptions.AttachedToParent                                        
                                         | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
             else
@@ -1368,8 +1367,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 														return new Tuple<DataTable, DataTable, DataTable, Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>>(dtOSMachineInfo, dtRingInfo, dtYaml, nodeGCInfo);
 
 													},
-												TaskContinuationOptions.AttachedToParent
-													| TaskContinuationOptions.LongRunning
+												TaskContinuationOptions.AttachedToParent													
 													| TaskContinuationOptions.OnlyOnRanToCompletion);
 				}
 
@@ -1411,8 +1409,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                 return dtlog;
                                             },
-                                            TaskContinuationOptions.AttachedToParent
-                                                | TaskContinuationOptions.LongRunning
+                                            TaskContinuationOptions.AttachedToParent                                                
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
 						runAntiCompactionTask = runLogMergedTask.ContinueWith(logTask =>
@@ -1429,8 +1426,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 													Program.ConsoleParsingLog.TaskEnd("AntiCompaction Processing");
 												},
-												TaskContinuationOptions.AttachedToParent
-													| TaskContinuationOptions.LongRunning
+												TaskContinuationOptions.AttachedToParent													
 													| TaskContinuationOptions.OnlyOnRanToCompletion);
 
 						runMemTableFlushTask = runLogMergedTask.ContinueWith(logTask =>
@@ -1450,8 +1446,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 													Program.ConsoleParsingLog.TaskEnd("MemTable Flush Processing");
 												},
-												TaskContinuationOptions.AttachedToParent
-													| TaskContinuationOptions.LongRunning
+												TaskContinuationOptions.AttachedToParent													
 													| TaskContinuationOptions.OnlyOnRanToCompletion);
 
 						if (ParserSettings.ParsingExcelOptions.ParseReadRepairs.IsEnabled())
@@ -1474,8 +1469,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 																	return readRepairCollection;
 																},
-															   TaskContinuationOptions.AttachedToParent
-																   | TaskContinuationOptions.LongRunning
+															   TaskContinuationOptions.AttachedToParent																   
 																   | TaskContinuationOptions.OnlyOnRanToCompletion);
 
 							if (ParserSettings.ParsingExcelOptions.LoadReadRepairWorkSheets.IsEnabled())
@@ -1491,8 +1485,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 														return dtReadRepair;
 													},
-											   TaskContinuationOptions.AttachedToParent
-												   | TaskContinuationOptions.LongRunning
+											   TaskContinuationOptions.AttachedToParent												   
 												   | TaskContinuationOptions.OnlyOnRanToCompletion);
 							}
 						}
@@ -1526,8 +1519,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 																	Program.ConsoleParsingLog.TaskEnd("Concurrent Compaction/Memtable Flush Processing");
 																},
-															   TaskContinuationOptions.AttachedToParent
-																   | TaskContinuationOptions.LongRunning
+															   TaskContinuationOptions.AttachedToParent																   
 																   | TaskContinuationOptions.OnlyOnRanToCompletion);
 
 
@@ -1539,8 +1531,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
 																return dtNodeStatslog;
 															},
-															TaskContinuationOptions.AttachedToParent
-																| TaskContinuationOptions.LongRunning
+															TaskContinuationOptions.AttachedToParent																
 																| TaskContinuationOptions.OnlyOnRanToCompletion);
                     }
                     
@@ -1557,8 +1548,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												var dtNodeStatslog = dtNodeStatsStack.MergeIntoOneDataTable(new Tuple<string, string, DataViewRowState>(null, "[Data Center], [Node IPAddress]", DataViewRowState.CurrentRows));
                                                 Program.ConsoleParsingLog.TaskEnd("Node Stats Log Merge");
                                                 return dtNodeStatslog;
-                                            },
-                                       TaskCreationOptions.LongRunning);
+                                            });
                 }
 
 				tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
@@ -1597,8 +1587,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                                     return dtCFTable;
                                                 },
-                                            TaskContinuationOptions.AttachedToParent
-                                                | TaskContinuationOptions.LongRunning
+                                            TaskContinuationOptions.AttachedToParent                                                
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
                 Task.Factory

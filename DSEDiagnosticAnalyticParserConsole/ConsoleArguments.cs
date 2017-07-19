@@ -496,6 +496,19 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
+        [Option("EnableLogReadThrottle", HelpText = "If Yes (default), all log file reads will be throttled based on the LogReadThrottleTaskCount and LogReadThrottleWaitPeriodMS application config settings.",
+                   Required = false)]
+        public ParserSettings.YesNo EnableLogReadThrottle
+        {
+            get { return ParserSettings.EnableLogReadThrottle ? ParserSettings.YesNo.Yes : ParserSettings.YesNo.No; }
+            set
+            {
+                ParserSettings.EnableLogReadThrottle = value == ParserSettings.YesNo.Yes;
+            }
+        }
+
+        
+
         [Option('?', "DisplayDefaults", HelpText = "Displays Arguments and Default Values",
                     Required = false)]
         public bool DisplayDefaults
@@ -657,7 +670,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 									"--CLogLineFormatPosition|-o {28} " +
                                     "--DivideWorksheetIfExceedMaxRows {29} " +
                                     "--QueueDroppedBlockedWarningThreshold {30} " +
-                                    "--QueueDroppedBlockedWarningPeriodInMins {31}",
+                                    "--QueueDroppedBlockedWarningPeriodInMins {31} " +
+                                    "--EnableLogReadThrottle {32}",
                                     this.MaxRowInExcelWorkSheet,
                                     this.MaxRowInExcelWorkBook,
                                     this.GCFlagThresholdInMS,
@@ -689,7 +703,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 									this.CLogLineFormatPosition,
                                     this.DivideWorksheetIfExceedMaxRows,
                                     this.QueueDroppedBlockedWarningThreshold,
-                                    this.QueueDroppedBlockedWarningPeriodInMins)
+                                    this.QueueDroppedBlockedWarningPeriodInMins,
+                                    this.EnableLogReadThrottle == ParserSettings.YesNo.Yes
+                                            ? string.Format("Yes (Task Cnt: {0}, Wait: {1} ms)",
+                                                                Properties.Settings.Default.LogReadThrottleTaskCount,
+                                                                Properties.Settings.Default.LogReadThrottleWaitPeriodMS)
+                                            : "No")
                     : string.Format("--CreateDirStructForNodes|-x \"{0}\"", this.CreateDirStructForNodes);
         }
     }

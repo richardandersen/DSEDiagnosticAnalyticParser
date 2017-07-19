@@ -196,7 +196,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 			NodeSubFldStruct = 2
 		}
 
-		public class CLogLineFormat
+        public enum YesNo
+        {
+            Yes = 1,
+            No = 0,
+            True = 1,
+            False = 0,
+            Y = 1,
+            N = 0
+        }
+
+
+        public class CLogLineFormat
 		{
 			//ERROR [SharedPool-Worker-3] 2016-10-01 19:20:14,415  Message.java:538 - Unexpected exception during request;
 			public int IndicatorPos = 0; //ERROR
@@ -359,6 +370,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 		public static Tuple<string, string, System.Data.DataViewRowState> ReadRepairWorksheetFilterSort = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<string, string, System.Data.DataViewRowState>>(Properties.Settings.Default.ReadRepairWorksheetFilterSort);
 
         public static bool DivideWorksheetIfExceedMaxRows = Properties.Settings.Default.DivideWorksheetIfExccedMaxRows;
+
+        public static bool EnableLogReadThrottle = Properties.Settings.Default.LogReadThrottleTaskCount > 0;
 
         public static string[] CreateDirStructForNodes = null;
 
