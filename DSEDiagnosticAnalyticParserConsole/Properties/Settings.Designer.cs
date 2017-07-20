@@ -1172,5 +1172,32 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((int)(this["LogReadThrottleWaitPeriodMS"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("25")]
+        public decimal ConcurrentAccumulativeIORateThreshold {
+            get {
+                return ((decimal)(this["ConcurrentAccumulativeIORateThreshold"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        public int SolrHardCommitLatencyThresholdInMS {
+            get {
+                return ((int)(this["SolrHardCommitLatencyThresholdInMS"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2000")]
+        public int SolrReIndexLatencyThresholdInMS {
+            get {
+                return ((int)(this["SolrReIndexLatencyThresholdInMS"]));
+            }
+        }
     }
 }

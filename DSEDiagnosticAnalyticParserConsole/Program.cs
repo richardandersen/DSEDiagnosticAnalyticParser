@@ -1490,12 +1490,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 						}
 
-						var runContGCTask = runningLogTask.ContinueWith(action =>
+						var runContGCTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask, runReadRepairProcess, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+                                                    .ContinueWith(action =>
 													{
 														Program.ConsoleParsingLog.Increment("Continuous GC");
 														var dtTPStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Continuous GC");
 														dtNodeStatsStack.Push(dtTPStats);
-														ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
+                                                        //Warning Log data table can be updated!
+                                                        ProcessFileTasks.DetectContinuousGCIntoNodeStats(dtTPStats,
+                                                                                                            action.Result,
 																											ParserSettings.ToleranceContinuousGCInMS,
 																											ParserSettings.ContinuousGCNbrInSeries,
 																											ParserSettings.GCTimeFrameDetection,
@@ -1505,17 +1508,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 												   TaskContinuationOptions.AttachedToParent
 													   | TaskContinuationOptions.LongRunning
 													   | TaskContinuationOptions.OnlyOnRanToCompletion);
-						runConcurrentCompactionFlushTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runMemTableFlushTask, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
+						runConcurrentCompactionFlushTask = Task.Factory.ContinueWhenAll(new Task[] { runLogMergedTask, runContGCTask, runMemTableFlushTask, runReadRepairProcess, runAntiCompactionTask }, tasks => ((Task<DataTable>)tasks[0]).Result)
 																.ContinueWith(logTask =>
 																{
 																	Program.ConsoleParsingLog.Increment("Concurrent Compaction/Memtable Flush Processing");
 
+                                                                    //Warning Log data table can be updated!
 																	ProcessFileTasks.ConcurrentCompactionFlush(ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
 																													? dtLogStatusStack
 																													: null,
 																												ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
 																													? dtNodeStatsStack
-																													: null);
+																													: null,
+                                                                                                                logTask.Result);
 
 																	Program.ConsoleParsingLog.TaskEnd("Concurrent Compaction/Memtable Flush Processing");
 																},
@@ -1626,7 +1631,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         runStatsLogMerged,
                                                                                         new Task[] { runMemTableFlushTask,
                                                                                                         runAntiCompactionTask,
-                                                                                                        runReadRepairProcess },
+                                                                                                        runReadRepairProcess,
+                                                                                                        runNodeStatsMergedTask,
+                                                                                                        runConcurrentCompactionFlushTask },
                                                                                         ParserSettings.QueueDroppedBlockedWarningThreshold,
                                                                                         ParserSettings.QueueDroppedBlockedWarningPeriodInMins);                        
                     }                    

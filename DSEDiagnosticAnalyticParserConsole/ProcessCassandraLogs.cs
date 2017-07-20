@@ -5900,7 +5900,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					{
 						#region Solr ReIndexing
 						initializeCFStatsDataTable(dtCFStats);
-
+                        
 						var solrReIdxItems = from solrItem in solrReindexing
                                               where solrItem.Duration > 0
 											  group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
@@ -5999,7 +5999,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region Solr Hard Commit
                         initializeCFStatsDataTable(dtCFStats);
-
+                        
                         var solrHrdCmttems = from solrItem in solrHardCommit
                                                                 .SelectMany(s => s.SolrIndexes
                                                                                     .Select(i => new {  Keyspace = i.Item1,
@@ -6328,6 +6328,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         };
 
         public static void DetectContinuousGCIntoNodeStats(DataTable dtNodeStats,
+                                                                DataTable dtLog,
                                                                 int overlapToleranceInMS,
                                                                 int overlapContinuousGCNbrInSeries,
                                                                 TimeSpan gcTimeframeDetection,
@@ -6600,8 +6601,30 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
 
 							dtNodeStats.Rows.Add(dataRow);
+
+                            //Update Log with warning
+                            lock (dtLog)
+                            {
+                                dataRow = dtLog.NewRow();
+
+                                dataRow["Data Center"] = splitName[0];
+                                dataRow["Node IPAddress"] = splitName[1];
+                                dataRow["Timestamp"] = item.Timestamps.FirstOrDefault();
+                                dataRow["Exception"] = "GC Continuous Warning";
+                                dataRow["Associated Value"] = item.Latencies.Count;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Indicator"] = "WARN";
+                                dataRow["Task"] = "DetectContinuousGCIntoNodeStats";
+                                dataRow["Item"] = "Generated";
+                                dataRow["Description"] = string.Format("GC Continuous Warning where a total of {0} detected for a total latency of {1:###,###,##0} ms that had an ending timestamp of {2}",
+                                                                        item.Latencies.Count,
+                                                                        item.Latencies.Sum(),
+                                                                        item.Timestamps.LastOrDefault());
+
+                                dtLog.Rows.Add(dataRow);
+                            }
                             #endregion
-                        }
+                            }
                         else if (item.Type == "TimeFrame")
                         {
                             #region GC TimeFrame
@@ -6702,6 +6725,28 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Size (mb)"] = item.Percentage;
 
                             dtNodeStats.Rows.Add(dataRow);
+
+                            //Update Log with warning
+                            lock (dtLog)
+                            {
+                                dataRow = dtLog.NewRow();
+
+                                dataRow["Data Center"] = splitName[0];
+                                dataRow["Node IPAddress"] = splitName[1];
+                                dataRow["Timestamp"] = item.Timestamps.FirstOrDefault();
+                                dataRow["Exception"] = "GC TimeFrame percent Warning";
+                                dataRow["Associated Value"] = item.Latencies.Count;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Indicator"] = "WARN";
+                                dataRow["Task"] = "DetectContinuousGCIntoNodeStats";
+                                dataRow["Item"] = "Generated";
+                                dataRow["Description"] = string.Format("GC TimeFrame percent Warning where a total of {0} detected for a total latency of {1:###,###,##0) ms that had an ending timestamp of {2}",
+                                                                        item.Latencies.Count,
+                                                                        item.Latencies.Sum(),
+                                                                        item.Timestamps.LastOrDefault());
+
+                                dtLog.Rows.Add(dataRow);
+                            }
                             #endregion
                         }
 
@@ -8482,7 +8527,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 		}
 
 		public static void ConcurrentCompactionFlush(Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack)
+														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
+                                                        DataTable dtLog)
 		{
 			ConcurrentInfo currentConcurrentItem = null;
 			var concurrentCollection = from info in CompactionOccurrences.Values.SelectMany(i => i).Cast<ILogRateInfo>()
@@ -8608,6 +8654,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						#region NodeStats
 
 						{
+                            decimal totalIORate;
 							var dataRow = dtNodeStats.NewRow();
 
 							dataRow["Source"] = "Cassandra Log";
@@ -8692,10 +8739,34 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
 							dataRow["Reconciliation Reference"] = nbrAdded;
 							dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
-							dataRow["IORate (mb/sec)"] = item.ConcurrentList.Sum(i => i.IORate);
+							dataRow["IORate (mb/sec)"] = totalIORate = item.ConcurrentList.Sum(i => i.IORate);
 							dataRow["Occurrences"] = item.ConcurrentList.Count();
 
 							dtNodeStats.Rows.Add(dataRow);
+
+                            if(ParserSettings.ConcurrentAccumulativeIORateThreshold > 0
+                                    && totalIORate < ParserSettings.ConcurrentAccumulativeIORateThreshold)
+                            {
+                                lock (dtLog)
+                                {
+                                    dataRow = dtLog.NewRow();
+
+                                    dataRow["Data Center"] = item.DataCenter;
+                                    dataRow["Node IPAddress"] = item.IPAddress;
+                                    dataRow["Timestamp"] = item.StartFinish.Min;
+                                    dataRow["Exception"] = "Concurrent Compaction/Flush Total IO Rate Warning";
+                                    dataRow["Associated Value"] = totalIORate;
+                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                    dataRow["Indicator"] = "WARN";
+                                    dataRow["Task"] = "ConcurrentCompactionFlush";
+                                    dataRow["Item"] = "Generated";
+                                    dataRow["Description"] = string.Format("Concurrent Compaction/Flush Total IO Rate Warning where a total of {0} detected that had an ending timestamp of {1}",
+                                                                            item.ConcurrentList.Count,
+                                                                            item.StartFinish.Max);
+
+                                    dtLog.Rows.Add(dataRow);
+                                }
+                            }
 						}
 
 						var concurrentTypes = from typeItem in item.ConcurrentList
@@ -9041,6 +9112,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         warningThreshold,
                                                                         warningPeriodInMins);
 
+                                                   ReviewLogThresholds(dtLog);
+
                                                    dtLog.AcceptChanges();
 
                                                    Program.ConsoleParsingLog.TaskEnd("Processing Review of Drops/Blocks");
@@ -9148,6 +9221,73 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow.EndEdit();
                     }
                 }                
+            }
+        }
+
+        public static void ReviewLogThresholds(DataTable dtLog)
+        {
+            if (ParserSettings.SolrHardCommitLatencyThresholdInMS > 0)
+            {
+                foreach (var item in SolrHardCommits)
+                {
+                    foreach (var solrItem in item.Value)
+                    {
+                        if (solrItem.Duration >= ParserSettings.SolrHardCommitLatencyThresholdInMS)
+                        {
+                            var dataRow = dtLog.NewRow();
+
+                            dataRow["Data Center"] = solrItem.DataCenter;
+                            dataRow["Node IPAddress"] = solrItem.IPAddress;
+                            dataRow["Timestamp"] = solrItem.LogTimestamp;
+                            dataRow["Exception"] = "Solr Hard Commit duration Warning";
+                            dataRow["Associated Value"] = solrItem.Duration;
+                            dataRow["Associated Item"] = solrItem.Table == null
+                                            ? solrItem.Keyspace
+                                            : solrItem.Keyspace + '.' + solrItem.Table;
+                            dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                            dataRow["Indicator"] = "WARN";
+                            dataRow["Task"] = "ParseCassandraLogIntoStatusLogDataTable";
+                            dataRow["Item"] = "Generated";
+                            dataRow["Description"] = string.Format("Solr Hard Commit duration Warning where a duration of {0} ms detected for {1}",
+                                                solrItem.Duration,
+                                                dataRow["Associated Item"]);
+
+                            dtLog.Rows.Add(dataRow);                            
+                        }
+                    }
+                }
+            }
+
+            if (ParserSettings.SolrReIndexLatencyThresholdInMS > 0)
+            {
+                foreach (var item in SolrReindexingOccurrences)
+                {
+                    foreach (var solrItem in item.Value)
+                    {
+                        if (solrItem.Duration >= ParserSettings.SolrReIndexLatencyThresholdInMS)
+                        {
+                            var dataRow = dtLog.NewRow();
+
+                            dataRow["Data Center"] = solrItem.DataCenter;
+                            dataRow["Node IPAddress"] = solrItem.IPAddress;
+                            dataRow["Timestamp"] = solrItem.LogTimestamp;
+                            dataRow["Exception"] = "Solr reindex duration Warning";
+                            dataRow["Associated Value"] = solrItem.Duration;
+                            dataRow["Associated Item"] = solrItem.Table == null
+                                            ? solrItem.Keyspace
+                                            : solrItem.Keyspace + '.' + solrItem.Table;
+                            dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                            dataRow["Indicator"] = "WARN";
+                            dataRow["Task"] = "ParseCassandraLogIntoStatusLogDataTable";
+                            dataRow["Item"] = "Generated";
+                            dataRow["Description"] = string.Format("Solr reindex duration Warning where a duration of {0} ms detected for {1}",
+                                                solrItem.Duration,
+                                                dataRow["Associated Item"]);
+
+                            dtLog.Rows.Add(dataRow);                            
+                        }
+                    }
+                }
             }
         }
 
