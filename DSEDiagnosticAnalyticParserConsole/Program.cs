@@ -27,8 +27,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         static public ConsoleDisplay ConsoleExcelWorkbook = null;
         static public ConsoleDisplay ConsoleWarnings = null;
         static public ConsoleDisplay ConsoleErrors = null;
+        static public System.Data.DataTable DTRingInfo = null; //
 
-		static void Main(string[] args)
+        static void Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
@@ -177,7 +178,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 			//Local Variables used for processing
 			bool opsCtrDiag = false;
-            var dtRingInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingInfo);
+            var dtRingInfo = DTRingInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingInfo);
             var dtTokenRange = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingTokenRanges);
             var dtKeySpace = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLKeyspaces);
             var dtDDLTable = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLTables);

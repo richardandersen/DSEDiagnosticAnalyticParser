@@ -113,6 +113,33 @@ namespace DSEDiagnosticAnalyticParserConsole
             return true;
         }
 
+        static public bool DetermineDataCenterFromIPAddress(string ipAddress, out string dcName, DataTable dtRingInfo = null)
+        {
+            if(dtRingInfo == null)
+            {
+                dtRingInfo = Program.DTRingInfo;
+            }
+
+            if(dtRingInfo == null || string.IsNullOrEmpty(ipAddress))
+            {
+                dcName = null;
+                return false;
+            }
+            
+            var dcRow = dtRingInfo.Rows.Count == 0 ? null : dtRingInfo.Rows.Find(ipAddress);
+
+            if (dcRow == null)
+            {
+                dcName = null;
+            }
+            else
+            {
+                dcName = dcRow["Data Center"] as string;
+            }
+
+            return true;
+        }
+
         static bool LookForIPAddress(string value, string ignoreIPAddress, out string ipAddress)
         {
 

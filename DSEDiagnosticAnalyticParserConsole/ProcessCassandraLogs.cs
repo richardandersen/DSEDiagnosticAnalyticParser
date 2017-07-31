@@ -430,7 +430,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     line = readLine.Trim();
 
                     if (string.IsNullOrEmpty(line)
-                            || line.Length < 3)
+                            || line.Length < 3
+                            || line.StartsWith("---")
+                            || line[0] == '|')
                     {
                         continue;
                     }
@@ -1262,15 +1264,34 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 //dataRow["Associated Item"] = "Dropped Hints";
                                 dataRow["Exception"] = "Dropped Hints (node down)";
-                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;                                
+                                dataRow["Associated Value"] = int.Parse(parsedValues[nCell - 1]);
                                 handled = true;
 
                                 if (LookForIPAddress(parsedValues[nCell - 3], ipAddress, out lineIPAddress))
                                 {
                                     dataRow["Associated Item"] = lineIPAddress;
-                                }
+                                    string downDCName;
 
-                                dataRow["Associated Value"] = int.Parse(parsedValues[nCell - 1]);
+                                    if(ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out downDCName))
+                                    {
+                                        var nodedownDR = dtCLog.NewRow();
+                                        nodedownDR["Data Center"] = downDCName;
+                                        nodedownDR["Node IPAddress"] = lineIPAddress;
+                                        nodedownDR["Timestamp"] = dataRow["Timestamp"];
+                                        nodedownDR["Indicator"] = dataRow["Indicator"];
+                                        nodedownDR["Task"] = dataRow["Task"];
+                                        nodedownDR["TaskId"] = dataRow["TaskId"];
+                                        nodedownDR["Item"] = dataRow["Item"];
+                                        nodedownDR["Exception"] = "Node Marked Down (Dropped Hints)";
+                                        nodedownDR["Flagged"] = dataRow["Flagged"];
+                                        nodedownDR["Associated Item"] = dataRow["Node IPAddress"];
+                                        nodedownDR["Associated Value"] = dataRow["Associated Value"];
+                                        nodedownDR["Description"] = string.Format("{0} marked this node down. {1} dropped hints", dataRow["Node IPAddress"].ToString(), dataRow["Associated Value"].ToString());
+
+                                       dtCLog.Rows.Add(nodedownDR);
+                                    }
+                                }                                
                             }
 							else if (parsedValues[nCell] == "Timed"
 										&& parsedValues[nCell + 1] == "out")
@@ -1279,22 +1300,42 @@ namespace DSEDiagnosticAnalyticParserConsole
 								dataRow["Flagged"] = (int)LogFlagStatus.Stats;
 								handled = true;
 
-								if (LookForIPAddress(parsedValues[nCell + 5].Replace(";", string.Empty), ipAddress, out lineIPAddress))
+                                var matchNbrs = RegExNumerics.Matches(parsedValues[nCell + 7]);
+
+                                if (matchNbrs.Count > 0)
+                                {
+                                    dataRow["Associated Value"] = int.Parse(matchNbrs[0].Value);
+                                }
+                                else
+                                {
+                                    dataRow["Associated Value"] = 0;
+                                }
+
+                                if (LookForIPAddress(parsedValues[nCell + 5].Replace(";", string.Empty), ipAddress, out lineIPAddress))
 								{
 									dataRow["Associated Item"] = lineIPAddress;
-								}
 
-								var matchNbrs = RegExNumerics.Matches(parsedValues[nCell + 7]);
+                                    string timeoutDCName;
 
-								if(matchNbrs.Count > 0)
-								{
-									dataRow["Associated Value"] = int.Parse(matchNbrs[0].Value);
-								}
-								else
-								{
-									dataRow["Associated Value"] = 0;
-								}
+                                    if (ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out timeoutDCName))
+                                    {
+                                        var nodetimeoutDR = dtCLog.NewRow();
+                                        nodetimeoutDR["Data Center"] = timeoutDCName;
+                                        nodetimeoutDR["Node IPAddress"] = lineIPAddress;
+                                        nodetimeoutDR["Timestamp"] = dataRow["Timestamp"];
+                                        nodetimeoutDR["Indicator"] = dataRow["Indicator"];
+                                        nodetimeoutDR["Task"] = dataRow["Task"];
+                                        nodetimeoutDR["TaskId"] = dataRow["TaskId"];
+                                        nodetimeoutDR["Item"] = dataRow["Item"];
+                                        nodetimeoutDR["Exception"] = "Node Not Responding (Timed Out Hints)";
+                                        nodetimeoutDR["Flagged"] = dataRow["Flagged"];
+                                        nodetimeoutDR["Associated Item"] = dataRow["Node IPAddress"];
+                                        nodetimeoutDR["Associated Value"] = dataRow["Associated Value"];
+                                        nodetimeoutDR["Description"] = string.Format("{0} tried to replay hints to this node but replay timed out and was aborted. {1} delivered", dataRow["Node IPAddress"].ToString(), dataRow["Associated Value"].ToString());
 
+                                        dtCLog.Rows.Add(nodetimeoutDR);
+                                    }
+                                }								
 							}
 							#endregion
 						}
@@ -9094,13 +9135,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 		}
 
         public static Task<DataTable> ReviewDropsBlocks(Task<DataTable> logTask,
-                                                        Task<DataTable> statsTask, 
+                                                        Task<DataTable> statLogTask, 
                                                         Task[] waitOnAdditionalTasks,
                                                         int warningThreshold,
                                                         int warningPeriodInMins)
         {
             return Task<DataTable>.Factory                           
-                           .ContinueWhenAll((new List<Task> { logTask, statsTask }).Append(waitOnAdditionalTasks).ToArray(),
+                           .ContinueWhenAll((new List<Task> { logTask, statLogTask }).Append(waitOnAdditionalTasks).ToArray(),
                                                tasks =>
                                                {
                                                    Program.ConsoleParsingLog.Increment("Processing Review of Drops/Blocks");
@@ -9124,17 +9165,17 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         public static void ReviewDropsBlocks(DataTable dtLog,
-                                                DataTable dtStats,
+                                                DataTable dtStatLog,
                                                 int warningThreshold,
                                                 int warningPeriodInMins)
         {
             
-            if(dtLog == null || dtStats == null || dtStats.Rows.Count == 0)
+            if(dtLog == null || dtStatLog == null || dtStatLog.Rows.Count == 0)
             {
                 return;
             }
 
-            var droppedFromLog = from logRow in dtLog.AsEnumerable()
+           /* var droppedFromLog = from logRow in dtLog.AsEnumerable()
                                    let tag = logRow.Field<string>("Exception")                                   
                                    where tag != null && tag.StartsWith("Dropped ") && !logRow.IsNull("Associated Value")
                                  select new
@@ -9144,12 +9185,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                                        Timestamp = logRow.Field<DateTime>("Timestamp"),
                                        Items = (long)logRow.Field<int>("Associated Value")
                                    };
-            
-            var blocksFromStats = from statRow in dtStats.AsEnumerable()
+            */
+            var blocksFromStats = from statRow in dtStatLog.AsEnumerable()
                                   let nbrBlocks = statRow.Field<long?>("Blocked")
                                   let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
+                                  let nbrCompleted = statRow.Field<long?>("Completed")                                  
+                                  let attribute = statRow.Field<string>("Pool/Cache Type")
                                   where (nbrBlocks.HasValue && nbrBlocks.Value > 0)
                                             || (nbrAllBlocks.HasValue && nbrAllBlocks.Value > 0)
+                                            || (nbrCompleted.HasValue && nbrCompleted.Value > 0                                                    
+                                                    && attribute == "Dropped Mutation")
                                   select new
                                   {
                                       DataCenter = statRow.Field<string>("Data Center"),
@@ -9157,9 +9202,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                       Timestamp = statRow.Field<DateTime>("Timestamp"),
                                       Items = (nbrAllBlocks.HasValue ? nbrAllBlocks.Value : 0)
                                                 + (nbrBlocks.HasValue ? nbrBlocks.Value : 0)
+                                                + (nbrCompleted.HasValue ? nbrCompleted.Value : 0)
                                   };
 
-            var allItems = droppedFromLog.Concat(blocksFromStats);
+            var allItems = blocksFromStats; // droppedFromLog.Concat(blocksFromStats);
 
             var warningItems = from item in allItems
                                group item by new { item.DataCenter, item.Node } into grp
