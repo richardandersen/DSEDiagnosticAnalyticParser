@@ -192,8 +192,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var dtYaml = new System.Data.DataTable(ParserSettings.ExcelWorkSheetYaml);
             var dtOSMachineInfo = new System.Data.DataTable(ParserSettings.ExcelWorkSheetOSMachineInfo);
-            var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();
-            var maxminMaxLogDate = new DateTimeRange();
+            var nodeGCInfo = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, string>();            
 			Task<DataTable> tskdtCFHistogram = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
             int nbrNodes = -1;
 
@@ -242,13 +241,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             var parsedTPStatList = new Common.Patterns.Collections.ThreadSafe.List<string>();
             var parsedOSMachineList = new Common.Patterns.Collections.ThreadSafe.List<string>();
             var parsedYamlList = new Common.Patterns.Collections.ThreadSafe.List<string>();
-            
+            var alternativeDebugLogs = new List<IFilePath>();
+            var alternativeLogTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>();
+
             if (ParserSettings.FileParsingOption == ParserSettings.FileParsingOptions.IndivFiles)
             {
                 #region Read/Parse -- All Files under one Folder (IpAddress must be in the beginning/end of the file name)
 
                 var diagChildren = diagPath.Children()
                                             .Where(c => !ParserSettings.ExcludePathName(c.Name));
+                var logTaskStartPos = 0;
 
                 //Need to process nodetool ring files first
                 var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
@@ -379,6 +381,83 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 #endregion
+                #region alternative file paths (log)
+                if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
+                {
+                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
+                    IEnumerable<IFilePath> alterFiles = null;
+
+                    if (alterPath.HasWildCardPattern())
+                    {
+                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
+                    }
+                    else if (alterPath.IsDirectoryPath)
+                    {
+                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>();
+                    }
+                    else
+                    {
+                        alterFiles = new List<IFilePath>() { (IFilePath)alterPath };
+                    }
+
+                    Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
+                                                    alterFiles.Count(),
+                                                    string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
+                    var logTasks = new List<Task<int>>();
+
+                    alternativeDebugLogs.AddRange(alterFiles.Where(f => ProcessFileTasks.RegExIsDebugFile.IsMatch(f.FileName)));
+
+                    foreach (IFilePath element in alterFiles.Where(f => !ProcessFileTasks.RegExIsDebugFile.IsMatch(f.FileName)))
+                    {
+                        string ipAddress;
+                        string dcName;
+                        var nodeInfoFound = ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName);
+
+                        //No Node Info, look at parent directories...
+                        if (!nodeInfoFound && element.ParentDirectoryPath != null)
+                        {
+                            nodeInfoFound = element.ParentDirectoryPath.PathResolved.Replace(diagPath.PathResolved, string.Empty)
+                                                .Split(System.IO.Path.DirectorySeparatorChar)
+                                                .Any(f => ProcessFileTasks.DetermineIPDCFromFileName(f, dtRingInfo, out ipAddress, out dcName));
+                        }
+
+                        if (nodeInfoFound)
+                        {
+                            if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
+                            {
+                                element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                                Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
+                            }
+
+                            var logTask = ProcessFileTasks.DetermineLogFilesAndProcess(null,
+                                                                                        false,
+                                                                                        element,
+                                                                                        false,
+                                                                                        dcName,
+                                                                                        ipAddress,
+                                                                                        dtLogsStack,
+                                                                                        nodeGCInfo,
+                                                                                        kstblNames,
+                                                                                        dtLogStatusStack,
+                                                                                        dtCFStatsStack,
+                                                                                        dtNodeStatsStack);
+                            logParsingTasks.Add(logTask);
+                            logTasks.Add(logTask);
+                            parsedLogList.TryAdd(ipAddress);
+                        }
+                    }
+
+                    if (logTasks.Count > 0
+                            && alternativeDebugLogs.HasAtLeastOneElement())
+                    {
+                        alternativeLogTask = Task<int>
+                                                    .Factory
+                                                    .ContinueWhenAll(logTasks.ToArray(), tasks => tasks.Sum(t => t.Result));
+                    }
+                    logTaskStartPos = logParsingTasks.Count();
+                }
+
+                #endregion
 
                 Logger.Instance.InfoFormat("Queing {0} Files: {1}",
                                             diagChildren.Count(),
@@ -393,10 +472,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         string dcName;
 
                         if (ProcessFileTasks.DetermineIPDCFromFileName(((IFilePath)diagFile).FileName, dtRingInfo, out ipAddress, out dcName))
-                        {
+                        {                            
                             if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
                                     && diagFile.Name.Contains(ParserSettings.NodetoolCFStatsFile))
                             {
+                                #region Parse CFStats
                                 if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
@@ -418,9 +498,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
                                 parsedCFStatList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
+                                #endregion
                             }
                             else if (ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolTPStatsFile))
                             {
+                                #region Parse TPStats
                                 if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
@@ -434,9 +516,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 ProcessFileTasks.ReadTPStatsFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtTPStats);
                                 parsedTPStatList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
+                                #endregion
                             }
                             else if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolInfoFile))
                             {
+                                #region Ring Info
                                 if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
@@ -447,9 +531,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 ProcessFileTasks.ReadInfoFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtRingInfo);
                                 parsedRingList.TryAdd(ipAddress);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
+                                #endregion
                             }
                             else if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled() && diagFile.Name.Contains(ParserSettings.NodetoolCompactionHistFile))
                             {
+                                #region Parse Compacation History
                                 if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
@@ -462,38 +548,39 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dtCompHistStack.Push(dtCompHist);
                                 ProcessFileTasks.ReadCompactionHistFileParseIntoDataTable((IFilePath)diagFile, ipAddress, dcName, dtCompHist, dtDDLTable, ParserSettings.IgnoreKeySpaces, kstblNames);
                                 Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)diagFile);
+                                #endregion
                             }
                             else if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
                                         && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile))
                             {
+                                #region C* Log Parsing
                                 if (string.IsNullOrEmpty(dcName))
                                 {
                                     diagFile.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
                                     Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                                 }
 
-                                logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks((IFilePath)diagFile,
-                                                                                            ParserSettings.ExcelWorkSheetLogCassandra,
-                                                                                            dcName,
-                                                                                            ipAddress,
-                                                                                            ParserSettings.LogStartDate,
-                                                                                            maxminMaxLogDate,
-                                                                                            dtLogsStack,
-                                                                                            null,
-                                                                                            ParserSettings.LogParsingExcelOption,
-                                                                                            ParserSettings.ParsingExcelOption,
-                                                                                            ParserSettings.ExcelWorkSheetStatusLogCassandra,
-                                                                                            nodeGCInfo,
-                                                                                            ParserSettings.IgnoreKeySpaces,
-                                                                                            kstblNames,
-                                                                                            dtLogStatusStack,
-                                                                                            dtCFStatsStack,
-                                                                                            dtNodeStatsStack,
-                                                                                            ParserSettings.GCFlagThresholdInMS,
-                                                                                            ParserSettings.CompactionFlagThresholdInMS,
-                                                                                            ParserSettings.CompactionFlagThresholdAsIORate,
-                                                                                            ParserSettings.SlowLogQueryThresholdInMS));
-                                parsedLogList.TryAdd(ipAddress);
+                                if(ProcessFileTasks.RegExIsDebugFile.IsMatch(((IFilePath)diagFile).FileName))
+                                {
+                                    alternativeDebugLogs.Add((IFilePath)diagFile);
+                                }
+                                else
+                                {
+                                    logParsingTasks.Add(ProcessFileTasks.DetermineLogFilesAndProcess(null,
+                                                                                                        false,
+                                                                                                        (IFilePath)diagFile,
+                                                                                                        false,
+                                                                                                        dcName,
+                                                                                                        ipAddress,
+                                                                                                        dtLogsStack,
+                                                                                                        nodeGCInfo,
+                                                                                                        kstblNames,
+                                                                                                        dtLogStatusStack,
+                                                                                                        dtCFStatsStack,
+                                                                                                        dtNodeStatsStack));
+                                    parsedLogList.TryAdd(ipAddress);
+                                }
+                                #endregion
                             }
                         }
                         else if (((IFilePath)diagFile).FileExtension.ToLower() != ".cql")
@@ -504,84 +591,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 });
 
-                #region alternative file paths (Logs)
-
-                if (ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled() && !string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
+                if(alternativeDebugLogs.Count > 0 && logTaskStartPos < logParsingTasks.Count)
                 {
-                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
-                    IEnumerable<IFilePath> alterFiles;
+                    var logTasks = new List<Task<int>>() { alternativeLogTask };
 
-                    if (alterPath.HasWildCardPattern())
-                    {
-                        alterFiles = alterPath.GetWildCardMatches()
-                                                .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
-                                                .Cast<IFilePath>();
-                    }
-                    else if (alterPath.IsDirectoryPath)
-                    {
-                        alterFiles = ((IDirectoryPath)alterPath).Children()
-                                                                    .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
-                                                                    .Cast<IFilePath>();
-                    }
-                    else
-                    {
-                        alterFiles = ParserSettings.ExcludePathName(alterPath.Name)
-                                        ? Enumerable.Empty<IFilePath>()
-                                        : new IFilePath[] { (IFilePath)alterPath };
-                    }
+                    logTasks.AddRange(logParsingTasks.TakeLast(logParsingTasks.Count - logTaskStartPos).Cast<Task<int>>());
 
-                    Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
-                                                alterFiles.Count(),
-                                                string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
-                    foreach (IFilePath element in alterFiles)
-                    {
-                        string ipAddress;
-                        string dcName;
-						var nodeInfoFound = ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName);
-
-						//No Node Info, look at parent directories...
-						if (!nodeInfoFound && element.ParentDirectoryPath != null)
-						{
-							nodeInfoFound = element.ParentDirectoryPath.PathResolved.Replace(diagPath.PathResolved, string.Empty)
-												.Split(System.IO.Path.DirectorySeparatorChar)
-												.Any(f => ProcessFileTasks.DetermineIPDCFromFileName(f, dtRingInfo, out ipAddress, out dcName));
-						}
-
-						if (nodeInfoFound)
-                        {
-                            if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
-                            {
-                                element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
-                                Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
-                            }
-
-                            logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(element,
-                                                                                        ParserSettings.ExcelWorkSheetLogCassandra,
-                                                                                        dcName,
-                                                                                        ipAddress,
-                                                                                        ParserSettings.LogStartDate,
-                                                                                        maxminMaxLogDate,
-                                                                                        dtLogsStack,
-                                                                                        null,
-                                                                                        ParserSettings.LogParsingExcelOption,
-                                                                                        ParserSettings.ParsingExcelOption,
-                                                                                        ParserSettings.ExcelWorkSheetStatusLogCassandra,
-                                                                                        nodeGCInfo,
-                                                                                        ParserSettings.IgnoreKeySpaces,
-                                                                                        kstblNames,
-                                                                                        dtLogStatusStack,
-                                                                                        dtCFStatsStack,
-                                                                                        dtNodeStatsStack,
-                                                                                        ParserSettings.GCFlagThresholdInMS,
-                                                                                        ParserSettings.CompactionFlagThresholdInMS,
-                                                                                        ParserSettings.CompactionFlagThresholdAsIORate,
-                                                                                        ParserSettings.SlowLogQueryThresholdInMS));
-                            parsedLogList.TryAdd(ipAddress);
-                        }
-                    }
+                    alternativeLogTask = Task<int>
+                                            .Factory
+                                            .ContinueWhenAll(logTasks.ToArray(), tasks => tasks.Sum(t => t.Result));
                 }
-
-                #endregion
 
                 if (kstblNames.Count == 0)
                 {
@@ -813,15 +832,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 				if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
                     var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
-                    List<IFilePath> alterFiles = null;
+                    IEnumerable<IFilePath> alterFiles = null;
 
                     if (alterPath.HasWildCardPattern())
                     {
-                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
                     {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>().ToList();
+                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>();
                     }
                     else
                     {
@@ -829,9 +848,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     Logger.Instance.InfoFormat("Queing {0} Alternative Log Files: {1}",
-                                                    alterFiles.Count,
+                                                    alterFiles.Count(),
                                                     string.Join(", ", alterFiles.Select(p => p.Name).Sort()));
-                    foreach (IFilePath element in alterFiles)
+                    var logTasks = new List<Task<int>>();
+
+                    alternativeDebugLogs.AddRange(alterFiles.Where(f => ProcessFileTasks.RegExIsDebugFile.IsMatch(f.FileName)));
+
+                    foreach (IFilePath element in alterFiles.Where(f => !ProcessFileTasks.RegExIsDebugFile.IsMatch(f.FileName)))
                     {
                         string ipAddress;
                         string dcName;
@@ -853,30 +876,31 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                             }
 
-                            logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(element,
-                                                                                        ParserSettings.ExcelWorkSheetLogCassandra,
+                            var logTask = ProcessFileTasks.DetermineLogFilesAndProcess(null,
+                                                                                        false,
+                                                                                        element,
+                                                                                        false,
                                                                                         dcName,
                                                                                         ipAddress,
-                                                                                        ParserSettings.LogStartDate,
-                                                                                        maxminMaxLogDate,
                                                                                         dtLogsStack,
-                                                                                        null,
-                                                                                        ParserSettings.LogParsingExcelOption,
-                                                                                        ParserSettings.ParsingExcelOption,
-                                                                                        ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                         nodeGCInfo,
-                                                                                        ParserSettings.IgnoreKeySpaces,
                                                                                         kstblNames,
                                                                                         dtLogStatusStack,
                                                                                         dtCFStatsStack,
-                                                                                        dtNodeStatsStack,
-                                                                                        ParserSettings.GCFlagThresholdInMS,
-                                                                                        ParserSettings.CompactionFlagThresholdInMS,
-                                                                                        ParserSettings.CompactionFlagThresholdAsIORate,
-                                                                                        ParserSettings.SlowLogQueryThresholdInMS));
+                                                                                        dtNodeStatsStack);
+                            logParsingTasks.Add(logTask);
+                            logTasks.Add(logTask);
                             parsedLogList.TryAdd(ipAddress);
                         }
                     }
+
+                    if (logTasks.Count > 0
+                            && alternativeDebugLogs.HasAtLeastOneElement())
+                    {
+                        alternativeLogTask = Task<int>
+                                                    .Factory
+                                                    .ContinueWhenAll(logTasks.ToArray(), tasks => tasks.Sum(t => t.Result));
+                    }                        
                 }
 
                 #endregion
@@ -906,6 +930,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
                     }
 
+                    #region Parse OS/Machine info
                     if (ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles.IsEnabled())
                     {
                         Logger.Instance.InfoFormat("Processing Files {{{0}}} in directory \"{1}\"",
@@ -919,7 +944,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         dtOSMachineInfo);
                         parsedOSMachineList.TryAdd(ipAddress);
                     }
-
+                    #endregion
+                    #region Parse CF Stats
                     if (ParserSettings.ParsingExcelOptions.ParseCFStatsFiles.IsEnabled()
                             && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolCFStatsFile, opsCtrDiag, out diagFilePath))
                     {
@@ -939,7 +965,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
+                    #endregion
+                    #region Parse TPStats
                     if (ParserSettings.ParsingExcelOptions.ParseTPStatsFiles.IsEnabled()
                             && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolTPStatsFile, opsCtrDiag, out diagFilePath))
                     {
@@ -958,7 +985,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
+                    #endregion
+                    #region Parse Ring Info
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolInfoFile, opsCtrDiag, out diagFilePath))
                     {
@@ -975,7 +1003,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
+                    #endregion
+                    #region Parse Compaction History
                     if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled()
                             && MakeFile(element, ParserSettings.NodetoolDir, ParserSettings.NodetoolCompactionHistFile,opsCtrDiag ,out diagFilePath))
                     {
@@ -993,9 +1022,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
+                    #endregion
+                    #region Parse C* Log
                     if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
                     {
+                        var logTasks = new List<Task<int>>();
+
                         foreach (var logDir in ParserSettings.LogCassandraDirSystemLogs)
                         {
                             if (opsCtrDiag
@@ -1004,113 +1036,67 @@ namespace DSEDiagnosticAnalyticParserConsole
 							{
                                 if (diagFilePath.Exist())
                                 {
-                                    IFilePath[] archivedFilePaths = null;
-
-                                    if (ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
-                                    {
-                                        IFilePath archivedFilePath = null;
-
-										if (diagFilePath.ParentDirectoryPath.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
-																						out archivedFilePath))
-                                        {
-											Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
-
-											if (archivedFilePath.HasWildCardPattern())
-                                            {
-												archivedFilePaths = archivedFilePath.GetWildCardMatches()
-                                                                                        .Where(p => p.IsFilePath
-																										&& p.PathResolved != diagFilePath.PathResolved
-																										&& !ParserSettings.ExcludePathName(p.Name))
-                                                                                        .Cast<IFilePath>()
-                                                                                        .ToArray();
-											}
-                                            else
-                                            {
-                                                archivedFilePaths = new IFilePath[] { archivedFilePath };
-                                            }
-
-											List<IFilePath> newFiles = new List<IFilePath>();
-
-											for (int fIdx = 0; fIdx < archivedFilePaths.Length; ++fIdx)
-											{
-												IDirectoryPath extractedDir;
-
-												if (ProcessFileTasks.ExtractFileToFolder(archivedFilePaths[fIdx], out extractedDir))
-												{
-													Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
-																					archivedFilePaths[fIdx].PathResolved,
-																					extractedDir.PathResolved);
-													if (extractedDir.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
-                                                                                out archivedFilePath))
-													{
-														if (archivedFilePath.HasWildCardPattern())
-														{
-															newFiles.AddRange(archivedFilePath.GetWildCardMatches()
-																									.Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
-																									.Cast<IFilePath>());
-														}
-														else
-														{
-															newFiles.Add(archivedFilePath);
-														}
-														archivedFilePaths[fIdx] = null;
-													}
-												}
-											}
-
-											if(newFiles.Count > 0)
-											{
-												newFiles.AddRange(archivedFilePaths.Where(p => p != null));
-												archivedFilePaths = newFiles.ToArray();
-											}
-
-											if(ParserSettings.MaxNbrAchievedLogFiles > 0)
-											{
-												archivedFilePaths = archivedFilePaths
-																		.OrderByDescending(p => p.GetLastWriteTime())
-																		.ThenBy(p => p.FileName)
-																		.GetRange(0, ParserSettings.MaxNbrAchievedLogFiles)
-																		.ToArray();
-												Logger.Instance.InfoFormat("Node: {0} Achieved Files: {1}",
-																			ipAddress,
-																			string.Join(", ", archivedFilePaths.Select(i => i.FileName)));
-											}
-
-											Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
-										}
-									}
-
-                                    logParsingTasks.Add(ProcessFileTasks.ProcessLogFileTasks(diagFilePath,
-                                                                                                ParserSettings.ExcelWorkSheetLogCassandra,
+                                    var logTask = ProcessFileTasks.DetermineLogFilesAndProcess(null,
+                                                                                                false,
+                                                                                                diagFilePath,
+                                                                                                true,
                                                                                                 dcName,
                                                                                                 ipAddress,
-                                                                                                ParserSettings.LogStartDate,
-                                                                                                maxminMaxLogDate,
                                                                                                 dtLogsStack,
-                                                                                                archivedFilePaths,
-                                                                                                ParserSettings.LogParsingExcelOption,
-                                                                                                ParserSettings.ParsingExcelOption,
-                                                                                                ParserSettings.ExcelWorkSheetStatusLogCassandra,
                                                                                                 nodeGCInfo,
-                                                                                                ParserSettings.IgnoreKeySpaces,
                                                                                                 kstblNames,
                                                                                                 dtLogStatusStack,
                                                                                                 dtCFStatsStack,
-                                                                                                dtNodeStatsStack,
-                                                                                                ParserSettings.GCFlagThresholdInMS,
-                                                                                                ParserSettings.CompactionFlagThresholdInMS,
-                                                                                                ParserSettings.CompactionFlagThresholdAsIORate,
-                                                                                                ParserSettings.SlowLogQueryThresholdInMS));
+                                                                                                dtNodeStatsStack);
+                                    logParsingTasks.Add(logTask);
+                                    logTasks.Add(logTask);
                                     parsedLogList.TryAdd(ipAddress);
                                 }
                                 else
                                 {
-                                    Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
+                                    Logger.Instance.DebugFormat("Log File \"{0}\" does not exists.", diagFilePath.Path);
+                                }
+                            }
+                        }
+
+                        if (logTasks.Count > 0)
+                        {
+                            var completedLogTask = Task<int>
+                                                    .Factory
+                                                    .ContinueWhenAll(logTasks.ToArray(), tasks => tasks.Sum(t => t.Result));
+
+                            foreach (var logDir in ParserSettings.LogCassandraDebugDirSystemLogs)
+                            {
+                                if (opsCtrDiag
+                                        ? element.MakeChild(ParserSettings.LogsDir).MakeFile(logDir, out diagFilePath)
+                                        : element.MakeFile(logDir, out diagFilePath))
+                                {
+                                    if (diagFilePath.Exist())
+                                    {
+                                        logParsingTasks.Add(ProcessFileTasks.DetermineLogFilesAndProcess(completedLogTask,
+                                                                                                            true,
+                                                                                                            diagFilePath,
+                                                                                                            true,
+                                                                                                            dcName,
+                                                                                                            ipAddress,
+                                                                                                            dtLogsStack,
+                                                                                                            nodeGCInfo,
+                                                                                                            kstblNames,
+                                                                                                            dtLogStatusStack,
+                                                                                                            dtCFStatsStack,
+                                                                                                            dtNodeStatsStack));
+                                        parsedLogList.TryAdd(ipAddress);
+                                    }
+                                    else
+                                    {
+                                        Logger.Instance.DebugFormat("Log Debug File \"{0}\" does not exists.", diagFilePath.Path);
+                                    }
                                 }
                             }
                         }
                     }
-
+                    #endregion
+                    #region Parse Yaml
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
                             && (opsCtrDiag
 									? element.MakeChild(ParserSettings.ConfCassandraDir).MakeFile(ParserSettings.ConfCassandraFile, out diagFilePath)
@@ -1131,7 +1117,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
+                    
                     if (ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
                             && (opsCtrDiag
 									? element.MakeChild(ParserSettings.ConfDSEDir).MakeFile(ParserSettings.ConfDSEYamlFile, out diagFilePath)
@@ -1174,11 +1160,55 @@ namespace DSEDiagnosticAnalyticParserConsole
                             Logger.Instance.DebugFormat("File \"{0}\" does not exists.", diagFilePath.Path);
                         }
                     }
-
-                });
-
-                #endregion
+                    #endregion
+                });               
+            #endregion
             }
+
+            #region Alternative Debug Logs
+
+            if (alternativeDebugLogs.Count > 0)
+            {
+                foreach (IFilePath element in alternativeDebugLogs)
+                {
+                    string ipAddress;
+                    string dcName;
+                    var nodeInfoFound = ProcessFileTasks.DetermineIPDCFromFileName(element.FileName, dtRingInfo, out ipAddress, out dcName);
+
+                    //No Node Info, look at parent directories...
+                    if (!nodeInfoFound && element.ParentDirectoryPath != null)
+                    {
+                        nodeInfoFound = element.ParentDirectoryPath.PathResolved.Replace(diagPath.PathResolved, string.Empty)
+                                            .Split(System.IO.Path.DirectorySeparatorChar)
+                                            .Any(f => ProcessFileTasks.DetermineIPDCFromFileName(f, dtRingInfo, out ipAddress, out dcName));
+                    }
+
+                    if (nodeInfoFound)
+                    {
+                        if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && string.IsNullOrEmpty(dcName))
+                        {
+                            element.Path.Dump(Logger.DumpType.Warning, "A DataCenter Name was not found in the associated IP Address in the Ring File.");
+                            Program.ConsoleWarnings.Increment("DataCenter Name Not Found");
+                        }
+
+                        var logTask = ProcessFileTasks.DetermineLogFilesAndProcess(alternativeLogTask,
+                                                                                    true,
+                                                                                    element,
+                                                                                    false,
+                                                                                    dcName,
+                                                                                    ipAddress,
+                                                                                    dtLogsStack,
+                                                                                    nodeGCInfo,
+                                                                                    kstblNames,
+                                                                                    dtLogStatusStack,
+                                                                                    dtCFStatsStack,
+                                                                                    dtNodeStatsStack);
+                        logParsingTasks.Add(logTask);
+                        parsedLogList.TryAdd(ipAddress);
+                    }
+                }
+            }
+            #endregion
 
             #region cfHistogram
 
@@ -1544,7 +1574,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     ProcessFileTasks.LogCassandraNodeMaxMinTimestamps.ForEach(nodeLogRanges
                         => Logger.Instance.InfoFormat("Log IP: {0} Range(s): {1}",
                                                         nodeLogRanges.Key,
-                                                        string.Join(", ", nodeLogRanges.Value.OrderBy(s => s))));
+                                                        string.Join(", ", nodeLogRanges.Value.OrderBy(s => s.LogRange))));
                 }
                 else
                 {

@@ -562,11 +562,9 @@
     <Setting Name="LogCassandraDirSystemLogs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-  &lt;string&gt;.\cassandra\debug.log&lt;/string&gt;
   &lt;string&gt;.\cassandra\system.log&lt;/string&gt;
   &lt;string&gt;.\cassandra\cassandra-system.log&lt;/string&gt;
   &lt;string&gt;.\system.log&lt;/string&gt;
-  &lt;string&gt;.\debug.log&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
     <Setting Name="DDLTableWorksheetFilterSort" Type="System.String" Scope="Application">
@@ -694,6 +692,16 @@
     </Setting>
     <Setting Name="SolrReIndexLatencyThresholdInMS" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">2000</Value>
+    </Setting>
+    <Setting Name="DebugLogFileRegExMatch" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">^debug\.log(?:.+)?$</Value>
+    </Setting>
+    <Setting Name="LogCassandraDebugDirSystemLogs" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;.\cassandra\debug.log&lt;/string&gt;
+  &lt;string&gt;.\debug.log&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
     </Setting>
   </Settings>
 </SettingsFile>

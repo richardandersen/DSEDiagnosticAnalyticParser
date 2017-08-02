@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using Common;
+using Common.Patterns.Tasks;
 using System.Text.RegularExpressions;
 
 namespace DSEDiagnosticAnalyticParserConsole
@@ -13,12 +14,126 @@ namespace DSEDiagnosticAnalyticParserConsole
     {
         static long ThrottleLogReaderCnt = 10;
 
-		static public Task<int> ProcessLogFileTasks(IFilePath logFilePath,
+        static public Task<int> DetermineLogFilesAndProcess(Task<int> continousLogTask,
+                                                                bool continousLogTaskRestrictByLogDateRange,
+                                                                IFilePath diagFilePath,
+                                                                bool allowArchiveParsing,
+                                                                string dcName,
+                                                                string ipAddress,
+                                                                Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
+                                                                Common.Patterns.Collections.ThreadSafe.Dictionary<string, string> nodeGCInfo,
+                                                                List<CKeySpaceTableNames> kstblNames,
+                                                                Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+                                                                Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
+                                                                Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack)
+        {
+            IFilePath[] archivedFilePaths = null;
+            
+            if (allowArchiveParsing && ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
+            {
+                IFilePath archivedFilePath = null;
+
+                if (diagFilePath.ParentDirectoryPath.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
+                                                                out archivedFilePath))
+                {
+                    Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
+
+                    if (archivedFilePath.HasWildCardPattern())
+                    {
+                        archivedFilePaths = archivedFilePath.GetWildCardMatches()
+                                                                .Where(p => p.IsFilePath
+                                                                                && p.PathResolved != diagFilePath.PathResolved
+                                                                                && !ParserSettings.ExcludePathName(p.Name))
+                                                                .Cast<IFilePath>()
+                                                                .ToArray();
+                    }
+                    else
+                    {
+                        archivedFilePaths = new IFilePath[] { archivedFilePath };
+                    }
+
+                    List<IFilePath> newFiles = new List<IFilePath>();
+
+                    for (int fIdx = 0; fIdx < archivedFilePaths.Length; ++fIdx)
+                    {
+                        IDirectoryPath extractedDir;
+
+                        if (ProcessFileTasks.ExtractFileToFolder(archivedFilePaths[fIdx], out extractedDir))
+                        {
+                            Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
+                                                            archivedFilePaths[fIdx].PathResolved,
+                                                            extractedDir.PathResolved);
+                            if (extractedDir.MakeFile(string.Format(ParserSettings.LogCassandraSystemLogFileArchive, diagFilePath.FileName, diagFilePath.FileNameWithoutExtension),
+                                                        out archivedFilePath))
+                            {
+                                if (archivedFilePath.HasWildCardPattern())
+                                {
+                                    newFiles.AddRange(archivedFilePath.GetWildCardMatches()
+                                                                            .Where(p => p.IsFilePath && !ParserSettings.ExcludePathName(p.Name))
+                                                                            .Cast<IFilePath>());
+                                }
+                                else
+                                {
+                                    newFiles.Add(archivedFilePath);
+                                }
+                                archivedFilePaths[fIdx] = null;
+                            }
+                        }
+                    }
+
+                    if (newFiles.Count > 0)
+                    {
+                        newFiles.AddRange(archivedFilePaths.Where(p => p != null));
+                        archivedFilePaths = newFiles.ToArray();
+                    }
+
+                    if (ParserSettings.MaxNbrAchievedLogFiles > 0)
+                    {
+                        archivedFilePaths = archivedFilePaths
+                                                .OrderByDescending(p => p.GetLastWriteTime())
+                                                .ThenBy(p => p.FileName)
+                                                .GetRange(0, ParserSettings.MaxNbrAchievedLogFiles)
+                                                .ToArray();
+                        Logger.Instance.InfoFormat("Node: {0} Achieved Files: {1}",
+                                                    ipAddress,
+                                                    string.Join(", ", archivedFilePaths.Select(i => i.FileName)));
+                    }
+
+                    Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
+                }
+            }
+
+            return ProcessFileTasks.ProcessLogFileTasks(continousLogTask,
+                                                        continousLogTaskRestrictByLogDateRange,
+                                                        diagFilePath,
+                                                        ParserSettings.ExcelWorkSheetLogCassandra,
+                                                        dcName,
+                                                        ipAddress,
+                                                        ParserSettings.LogStartDate,                                                        
+                                                        dtLogsStack,
+                                                        archivedFilePaths,
+                                                        ParserSettings.LogParsingExcelOption,
+                                                        ParserSettings.ParsingExcelOption,
+                                                        ParserSettings.ExcelWorkSheetStatusLogCassandra,
+                                                        nodeGCInfo,
+                                                        ParserSettings.IgnoreKeySpaces,
+                                                        kstblNames,
+                                                        dtLogStatusStack,
+                                                        dtCFStatsStack,
+                                                        dtNodeStatsStack,
+                                                        ParserSettings.GCFlagThresholdInMS,
+                                                        ParserSettings.CompactionFlagThresholdInMS,
+                                                        ParserSettings.CompactionFlagThresholdAsIORate,
+                                                        ParserSettings.SlowLogQueryThresholdInMS);            
+        }
+
+		static public Task<int> ProcessLogFileTasks(Task<int> continousLogTask,
+                                                        bool continousLogTaskRestrictByLogDateRange,
+                                                        IFilePath logFilePath,
                                                         string excelWorkSheetLogCassandra,
                                                         string dcName,
                                                         string ipAddress,
-                                                        DateTimeRange includeLogEntriesRange,
-                                                        DateTimeRange maxminMaxLogDate,
+                                                        DateTimeRange includeLogEntriesRange,                                                        
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
                                                         IFilePath[] archiveFilePaths, //null disables archive parsing
                                                         ParserSettings.LogParsingExcelOptions parseLogOptions,
@@ -35,12 +150,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
-            DateTime maxLogTimestamp = DateTime.MinValue;
             var dtLog = new System.Data.DataTable(excelWorkSheetLogCassandra + "-" + ipAddress);
 			Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<int> archTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
-                       
-            var logTask = Task.Factory.StartNew(() =>
+            
+            var logTask = continousLogTask.NewOrContinueWith( ignore =>
                                 {                                    
                                     if (ParserSettings.EnableLogReadThrottle && System.Threading.Interlocked.Increment(ref ThrottleLogReaderCnt) > Properties.Settings.Default.LogReadThrottleTaskCount)
                                     {                                        
@@ -49,26 +163,49 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         Program.ConsoleLogReadFiles.TaskEnd("Log Throttled");
                                     }
 
-                                    Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
                                     Program.ConsoleLogReadFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     dtLogsStack.Push(dtLog);
+
+                                    if(continousLogTaskRestrictByLogDateRange)
+                                    {
+                                        var onlyLogRanges = LogCassandraNodeMaxMinTimestamps.Where(r => r.Key == ipAddress)
+                                                                                                .SelectMany(r => r.Value)
+                                                                                                .Where(r => !r.IsDebugFile)
+                                                                                                .Select(r => r.LogRange);
+
+                                        if (onlyLogRanges.HasAtLeastOneElement())
+                                        {
+                                            var minTimeFrame = onlyLogRanges.Min(c => c.Min);
+                                            var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
+
+                                            includeLogEntriesRange = new DateTimeRange(minTimeFrame, maxTimeFrame);
+
+                                            Logger.Instance.InfoFormat("Processing File \"{0}\" using Detected Range {1}",
+                                                                        logFilePath.Path,
+                                                                        includeLogEntriesRange);
+                                        }
+                                        else
+                                        {
+                                            Logger.Instance.InfoFormat("Processing File \"{0}\" (No Detected Range Found)", logFilePath.Path);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
+                                    }
+
+
                                     var linesRead = ReadCassandraLogParseIntoDataTable(logFilePath,
                                                                                         ipAddress,
                                                                                         dcName,
                                                                                         includeLogEntriesRange,
                                                                                         dtLog,
-                                                                                        out maxLogTimestamp,
                                                                                         gcPausedFlagThresholdInMS,
                                                                                         compactionFllagThresholdInMS,
                                                                                         compactionFlagThresholdAsIORate,
                                                                                         slowLogQueryThresholdInMS);
-
-                                    lock (maxminMaxLogDate)
-                                    {
-                                        maxminMaxLogDate.SetMinMax(maxLogTimestamp);
-                                    }
-
+                                    
                                     Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     return linesRead;
@@ -118,12 +255,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     if (archiveElement.PathResolved != logFilePath.PathResolved)
                     {
-                        archTask = ProcessLogFileTasks(archiveElement,
+                        archTask = ProcessLogFileTasks(logTask,
+                                                            continousLogTaskRestrictByLogDateRange,
+                                                            archiveElement,
                                                             excelWorkSheetLogCassandra,
                                                             dcName,
                                                             ipAddress,
-                                                            includeLogEntriesRange,
-                                                            maxminMaxLogDate,
+                                                            includeLogEntriesRange,                                                            
                                                             dtLogsStack,
                                                             null,
                                                             parseLogOptions,
@@ -161,7 +299,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                 Tuple<DateTime, TimeSpan>[] logSummaryPeriods,
                                                                                                                 Tuple<TimeSpan, TimeSpan>[] logSummaryPeriodRanges,
                                                                                                                 bool summarizeOnlyOverlappingDateRangesForNodes,
-                                                                                                                IDictionary<string, List<Common.DateTimeRange>> nodeLogDateRanges,
+                                                                                                                IDictionary<string, List<LogCassandraNodeMaxMinTimestamp>> nodeLogDateRanges,
                                                                                                                 string[] logAggregateAdditionalTaskExceptionItems,
                                                                                                                 string[] logSummaryIgnoreTaskExceptions)
         {
@@ -180,7 +318,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         {
                                             DateTimeRange nodeInnerRange = new DateTimeRange();
 
-                                            nodeLogRanges.Value.ForEach(range =>
+                                            nodeLogRanges.Value.Where(r => !r.IsDebugFile)
+                                                                .Select(r => r.LogRange)
+                                                                .ForEach(range =>
                                             {
                                                 nodeInnerRange.SetMinMax(range.Min);
                                                 nodeInnerRange.SetMinMax(range.Max);
@@ -246,30 +386,59 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         static public DateTimeRange LogCassandraMaxMinTimestamp = new Common.DateTimeRange();
-        static public Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>> LogCassandraNodeMaxMinTimestamps = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>>();
 
-        static Regex RegExCLogCL = new Regex(@".*Cannot achieve consistency level\s+(\w+)\s*",
-                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExCLogTO = new Regex(@".*(?:No response after timeout:|Operation timed out - received only).*\s+(\d+)\s*",
-                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExExpErrClassName = new Regex(@"^[^\[\(\']\S+(exception|error)",
-                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public class LogCassandraNodeMaxMinTimestamp
+        {
+            private LogCassandraNodeMaxMinTimestamp() { }
+            public LogCassandraNodeMaxMinTimestamp(DateTimeRange range, bool isDebugFile)
+            {
+                this.IsDebugFile = isDebugFile;
+                this.LogRange = range;
+            }
+
+            public LogCassandraNodeMaxMinTimestamp(DateTime minDate, DateTime maxDate, bool isDebugFile)
+            {
+                this.IsDebugFile = isDebugFile;
+                this.LogRange = new DateTimeRange(minDate, maxDate);
+            }
+
+            public DateTimeRange LogRange { get; }
+            public bool IsDebugFile { get; }
+
+            public override string ToString()
+            {
+                return string.Format("{0}<{1}>",
+                                        this.IsDebugFile ? "DebugLog" : "SystemLog",
+                                        this.LogRange);
+            }
+        }
+
+        static public Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<LogCassandraNodeMaxMinTimestamp>> LogCassandraNodeMaxMinTimestamps = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<LogCassandraNodeMaxMinTimestamp>>();
+
+        static readonly Regex RegExCLogCL = new Regex(@".*Cannot achieve consistency level\s+(\w+)\s*",
+                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex RegExCLogTO = new Regex(@".*(?:No response after timeout:|Operation timed out - received only).*\s+(\d+)\s*",
+                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex RegExExpErrClassName = new Regex(@"^[^\[\(\']\S+(exception|error)",
+                                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //INFO[SharedPool - Worker - 1] 2016 - 09 - 24 16:33:58,099  Message.java:532 - Unexpected exception during request; channel = [id: 0xa6a28fb0, / 10.14.50.24:44796 => / 10.14.50.24:9042]
         //io.netty.handler.ssl.NotSslRecordException: not an SSL / TLS record: 0300000001000000160001000b43514c5f56455253494f4e0005332e302e30
 
-        static Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
-                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
+                                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		//returns only numeric values in string via Matches
-		static Regex RegExNumerics = new Regex(@"([0-9-.,]+)",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		static readonly Regex RegExNumerics = new Regex(@"([0-9-.,]+)",
+												            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		static Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		static readonly Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
+															        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        static Regex RegExSolrFlushIndexNames = new Regex("^Cql3SolrSecondaryIndex\\{columnDefs=\\[(?:\\s*ColumnDefinition\\{(?:\\s*(?:indexname\\=(?<indexname>[a-z0-9\\\\-_$%+!?<>^*&@]+)|[^,}]+)\\,?\\s*)+\\s*\\}\\,?)+",
-                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex RegExSolrFlushIndexNames = new Regex("^Cql3SolrSecondaryIndex\\{columnDefs=\\[(?:\\s*ColumnDefinition\\{(?:\\s*(?:indexname\\=(?<indexname>[a-z0-9\\\\-_$%+!?<>^*&@]+)|[^,}]+)\\,?\\s*)+\\s*\\}\\,?)+",
+                                                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        public static readonly Regex RegExIsDebugFile = new Regex(Properties.Settings.Default.DebugLogFileRegExMatch,
+                                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public enum LogFlagStatus
         {
@@ -311,14 +480,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         string dcName,
                                                         DateTimeRange onlyEntriesAllowedRange,
                                                         System.Data.DataTable dtCLog,
-                                                        out DateTime maxTimestamp,
                                                         int gcPausedFlagThresholdInMS,
                                                         int compactionFlagThresholdInMS,
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
-        {
-			maxTimestamp = DateTime.MinValue;
-
+        {			
 			if (ParserSettings.IgnoreLogFileExtensions.Contains(clogFilePath.FileExtension))
 			{
 				return 0;
@@ -346,6 +512,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             int consumeNextLine = 0;
             string currentSolrSchemaName = null;
             bool allowRange = !onlyEntriesAllowedRange.IsEmpty();
+            bool isDebugLogFile = RegExIsDebugFile.IsMatch(clogFilePath.FileName);
 
             //int tableItemValuePos = -1;
 
@@ -667,12 +834,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
 
-                    List<Common.DateTimeRange> nodeRangers;
+                    List<LogCassandraNodeMaxMinTimestamp> nodeRangers;
                     if (LogCassandraNodeMaxMinTimestamps.TryGetValue(ipAddress, out nodeRangers))
                     {
                         lock (nodeRangers)
                         {
-                            if (nodeRangers.Any(r => r.IsBetween(lineDateTime)))
+                            if (nodeRangers.Any(r => r.IsDebugFile == isDebugLogFile && r.LogRange.IsBetween(lineDateTime)))
                             {
                                 //nodeRangers.Dump(string.Format("Warning: Log Date \"{1}\" falls between already processed timestamp ranges. Processing of this log file is aborted. Log File is \"{0}\"",
                                 //                                    clogFilePath.PathResolved,
@@ -1940,20 +2107,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                     lastRow = dataRow;
                 }
             }
-
-            maxTimestamp = minmaxDate.Max;
-
+            
             if (!minmaxDate.IsEmpty())
             {
-                lock (LogCassandraMaxMinTimestamp)
+                if (!isDebugLogFile)
                 {
-                    LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Min);
-                    LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Max);
+                    lock (LogCassandraMaxMinTimestamp)
+                    {
+                        LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Min);
+                        LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Max);
+                    }
                 }
 
                 LogCassandraNodeMaxMinTimestamps.AddOrUpdate(ipAddress,
-                                                                strAddress => new List<Common.DateTimeRange>() { new Common.DateTimeRange(minmaxDate.Max, minmaxDate.Min) },
-                                                                (strAddress, dtRanges) => { lock (dtRanges) { dtRanges.Add(minmaxDate); } return dtRanges; });
+                                                                strAddress => new List<LogCassandraNodeMaxMinTimestamp>()
+                                                                                { new LogCassandraNodeMaxMinTimestamp(minmaxDate.Max, minmaxDate.Min, isDebugLogFile) },
+                                                                (strAddress, dtRanges) => { lock (dtRanges) { dtRanges.Add(new LogCassandraNodeMaxMinTimestamp(minmaxDate, isDebugLogFile)); } return dtRanges; });
             }
 
             return nbrRows;
@@ -6382,8 +6551,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCContinuousInfo>();
 
-            System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
-            //foreach (var gcInfo in GCOccurrences)
+            //System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
+            foreach (var gcInfo in GCOccurrences)
                 {
                     var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
                     DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
@@ -6410,8 +6579,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             };
                     GCContinuousInfo currentGCOverlappingInfo = null;
                     bool overLapped = false;
+                    var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
 
-                    for (int nIndex = 1; nIndex < gcInfoTimeLine.Count(); ++nIndex)
+                    for (int nIndex = 1; nIndex < gcInfoTimeLineCnt; ++nIndex)
                     {
                         #region GC Continous (overlapping)
 
@@ -6524,7 +6694,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     #endregion
                 }
-            );
+            //);
 
             if (gcList.Count > 0)
             {

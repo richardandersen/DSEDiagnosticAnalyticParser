@@ -229,7 +229,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         static public void UpdateRingInfo(DataTable dtRingInfo,
-                                            Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<Common.DateTimeRange>> logCassandraNodeMaxMinTimestamps)
+                                            Common.Patterns.Collections.ThreadSafe.Dictionary<string, List<LogCassandraNodeMaxMinTimestamp>> logCassandraNodeMaxMinTimestamps)
         {
             if (logCassandraNodeMaxMinTimestamps.Count == 0)
             {
@@ -238,9 +238,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             foreach (var logNodeMaxMin in logCassandraNodeMaxMinTimestamps)
             {
-                var minTimeFrame = logNodeMaxMin.Value.Min(c => c.Min);
-                var maxTimeFrame = logNodeMaxMin.Value.Max(c => c.Max);
-                var timespan = TimeSpan.FromMilliseconds(logNodeMaxMin.Value.Sum(c => c.TimeSpan().TotalMilliseconds));
+                var onlyLogRanges = logNodeMaxMin.Value.Where(r => !r.IsDebugFile).Select(r => r.LogRange);
+                var minTimeFrame = onlyLogRanges.Min(c => c.Min);
+                var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
+                var timespan = TimeSpan.FromMilliseconds(onlyLogRanges.Sum(c => c.TimeSpan().TotalMilliseconds));
                             
                 if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
                             && minTimeFrame != DateTime.MinValue
