@@ -30,12 +30,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtRingInfo.Columns.Add("Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Log Duration", typeof(TimeSpan)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//N
-                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;//P
-				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;//Q
-				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;//R
-                dtRingInfo.Columns.Add("Percent Repaired", typeof(decimal)).AllowDBNull = true;//S
-                dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;//T
+                dtRingInfo.Columns.Add("Debug Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//o
+                dtRingInfo.Columns.Add("Debug Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Debug Log Duration", typeof(TimeSpan)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Debug Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//r
+
+                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true; //s
+				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;//t
+				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;//u
+				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;//v
+                dtRingInfo.Columns.Add("Percent Repaired", typeof(decimal)).AllowDBNull = true;//w
+                dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;//x
 				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
@@ -239,34 +244,78 @@ namespace DSEDiagnosticAnalyticParserConsole
             foreach (var logNodeMaxMin in logCassandraNodeMaxMinTimestamps)
             {
                 var onlyLogRanges = logNodeMaxMin.Value.Where(r => !r.IsDebugFile).Select(r => r.LogRange);
-                var minTimeFrame = onlyLogRanges.Min(c => c.Min);
-                var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
-                var timespan = TimeSpan.FromMilliseconds(onlyLogRanges.Sum(c => c.TimeSpan().TotalMilliseconds));
-                            
-                if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
-                            && minTimeFrame != DateTime.MinValue
-                            && maxTimeFrame != DateTime.MaxValue)
-                {
-                    var nodeRow = dtRingInfo.Rows.Find(logNodeMaxMin.Key);
+                DataRow nodeRow = null;
 
-                    if (nodeRow == null)
+                if (onlyLogRanges.HasAtLeastOneElement())
+                {
+                    var minTimeFrame = onlyLogRanges.Min(c => c.Min);
+                    var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
+                    var timespan = TimeSpan.FromMilliseconds(onlyLogRanges.Sum(c => c.TimeSpan().TotalMilliseconds));
+                    
+                    if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
+                                && minTimeFrame != DateTime.MinValue
+                                && maxTimeFrame != DateTime.MaxValue)
                     {
-                        nodeRow = dtRingInfo.NewRow();
-                        nodeRow.SetField<string>("Node IPAddress", logNodeMaxMin.Key);
-                        nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
-                        nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
-                        nodeRow.SetField<TimeSpan>("Log Duration", timespan);
-                        nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
-                        dtRingInfo.Rows.Add(nodeRow);
+                        nodeRow = dtRingInfo.Rows.Find(logNodeMaxMin.Key);
+
+                        if (nodeRow == null)
+                        {
+                            nodeRow = dtRingInfo.NewRow();
+                            nodeRow.SetField<string>("Node IPAddress", logNodeMaxMin.Key);
+                            nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
+                            nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
+                            nodeRow.SetField<TimeSpan>("Log Duration", timespan);
+                            nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
+                            dtRingInfo.Rows.Add(nodeRow);
+                        }
+                        else
+                        {
+                            nodeRow.BeginEdit();
+                            nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
+                            nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
+                            nodeRow.SetField<TimeSpan>("Log Duration", timespan);
+                            nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
+                            nodeRow.EndEdit();
+                        }
                     }
-                    else
+                }
+
+                onlyLogRanges = logNodeMaxMin.Value.Where(r => r.IsDebugFile).Select(r => r.LogRange);
+
+                if (onlyLogRanges.HasAtLeastOneElement())
+                {
+                    var minTimeFrame = onlyLogRanges.Min(c => c.Min);
+                    var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
+                    var timespan = TimeSpan.FromMilliseconds(onlyLogRanges.Sum(c => c.TimeSpan().TotalMilliseconds));
+
+                    if (!string.IsNullOrEmpty(logNodeMaxMin.Key)
+                                && minTimeFrame != DateTime.MinValue
+                                && maxTimeFrame != DateTime.MaxValue)
                     {
-                        nodeRow.BeginEdit();
-                        nodeRow.SetField<DateTime>("Log Min Timestamp", minTimeFrame);
-                        nodeRow.SetField<DateTime>("Log Max Timestamp", maxTimeFrame);
-                        nodeRow.SetField<TimeSpan>("Log Duration", timespan);
-                        nodeRow.SetField<TimeSpan>("Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
-                        nodeRow.EndEdit();                    
+                        if (nodeRow == null)
+                        {
+                            nodeRow = dtRingInfo.Rows.Find(logNodeMaxMin.Key);
+                        }
+
+                        if (nodeRow == null)
+                        {
+                            nodeRow = dtRingInfo.NewRow();
+                            nodeRow.SetField<string>("Node IPAddress", logNodeMaxMin.Key);
+                            nodeRow.SetField<DateTime>("Debug Log Min Timestamp", minTimeFrame);
+                            nodeRow.SetField<DateTime>("Debug Log Max Timestamp", maxTimeFrame);
+                            nodeRow.SetField<TimeSpan>("Debug Log Duration", timespan);
+                            nodeRow.SetField<TimeSpan>("Debug Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
+                            dtRingInfo.Rows.Add(nodeRow);
+                        }
+                        else
+                        {
+                            nodeRow.BeginEdit();
+                            nodeRow.SetField<DateTime>("Debug Log Min Timestamp", minTimeFrame);
+                            nodeRow.SetField<DateTime>("Debug Log Max Timestamp", maxTimeFrame);
+                            nodeRow.SetField<TimeSpan>("Debug Log Duration", timespan);
+                            nodeRow.SetField<TimeSpan>("Debug Log Timespan Difference", TimeSpan.FromMilliseconds(Math.Abs((maxTimeFrame - minTimeFrame).TotalMilliseconds - timespan.TotalMilliseconds)));
+                            nodeRow.EndEdit();
+                        }
                     }
                 }
             }

@@ -182,7 +182,6 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtTokenRange = new System.Data.DataTable(ParserSettings.ExcelWorkSheetRingTokenRanges);
             var dtKeySpace = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLKeyspaces);
             var dtDDLTable = new System.Data.DataTable(ParserSettings.ExcelWorkSheetDDLTables);
-            var cqlHashCheck = new Dictionary<string, int>();
             var dtCFStatsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var dtNodeStatsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
             var dtLogsStack = new Common.Patterns.Collections.LockFree.Stack<System.Data.DataTable>();
@@ -301,25 +300,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
-                        ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
-                                                                        null,
-                                                                        null,
-                                                                        dtKeySpace,
-                                                                        dtDDLTable,
-                                                                        cqlHashCheck,
-                                                                        ParserSettings.IgnoreKeySpaces);
-
-                        foreach (DataRow dataRow in dtDDLTable.Rows)
-                        {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
-                            {
-                                kstblNames.Add(new CKeySpaceTableNames(dataRow));
-                            }
-                        }
+                        ProcessFileTasks.ReadParseCQLDDLParse(element);                        
                         parsedDDLList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
                         Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
+
+                    Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                    ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                    foreach (DataRow dataRow in dtDDLTable.Rows)
+                    {
+                        if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
+                        {
+                            kstblNames.Add(new CKeySpaceTableNames(dataRow));
+                        }
+                    }
+                    Program.ConsoleNonLogReadFiles.TaskEnd("CQL DDL into Data table");
                 }
 
                 #endregion
@@ -359,25 +355,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                         Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
 
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
-                        ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
-                                                                        null,
-                                                                        null,
-                                                                        dtKeySpace,
-                                                                        dtDDLTable,
-                                                                        cqlHashCheck,
-                                                                        ParserSettings.IgnoreKeySpaces);
-
-                        foreach (DataRow dataRow in dtDDLTable.Rows)
-                        {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
-                            {
-                                kstblNames.Add(new CKeySpaceTableNames(dataRow));
-                            }
-                        }
+                        ProcessFileTasks.ReadParseCQLDDLParse(element);                        
                         parsedDDLList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
                         Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
                         element.MakeEmpty();
                     }
+
+                    Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                    ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                    foreach (DataRow dataRow in dtDDLTable.Rows)
+                    {
+                        if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
+                        {
+                            kstblNames.Add(new CKeySpaceTableNames(dataRow));
+                        }
+                    }
+                    Program.ConsoleNonLogReadFiles.TaskEnd("CQL DDL into Data table");
                 }
 
                 #endregion
@@ -721,21 +714,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             Program.ConsoleNonLogReadFiles.Increment(filePath);
                             Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                            ProcessFileTasks.ReadCQLDDLParseIntoDataTable(filePath,
-                                                                            null,
-                                                                            null,
-                                                                            dtKeySpace,
-                                                                            dtDDLTable,
-                                                                            cqlHashCheck,
-                                                                            ParserSettings.IgnoreKeySpaces);
-
-                            foreach (DataRow dataRow in dtDDLTable.Rows)
-                            {
-                                if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
-                                {
-                                    kstblNames.Add(new CKeySpaceTableNames(dataRow));
-                                }
-                            }
+                            ProcessFileTasks.ReadParseCQLDDLParse(filePath);
                             parsedDDLList.TryAdd(filePath.PathResolved);
                             Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
 
@@ -747,6 +726,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
+
+                Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                foreach (DataRow dataRow in dtDDLTable.Rows)
+                {
+                    if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
+                    {
+                        kstblNames.Add(new CKeySpaceTableNames(dataRow));
+                    }
+                }
+                Program.ConsoleNonLogReadFiles.TaskEnd("CQL DDL into Data table");
 
                 #endregion
 
@@ -783,25 +773,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         Program.ConsoleNonLogReadFiles.Increment(element);
                         Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
-                        ProcessFileTasks.ReadCQLDDLParseIntoDataTable(element,
-                                                                        null,
-                                                                        null,
-                                                                        dtKeySpace,
-                                                                        dtDDLTable,
-                                                                        cqlHashCheck,
-                                                                        ParserSettings.IgnoreKeySpaces);
-
-                        foreach (DataRow dataRow in dtDDLTable.Rows)
-                        {
-                            if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
-                            {
-                                kstblNames.Add(new CKeySpaceTableNames(dataRow));
-                            }
-                        }
+                        ProcessFileTasks.ReadParseCQLDDLParse(element);
                         parsedDDLList.TryAdd(filePath.FileNameWithoutExtension);
                         Program.ConsoleNonLogReadFiles.TaskEnd(element);
                         element.MakeEmpty();
                     }
+
+                    Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                    ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                    foreach (DataRow dataRow in dtDDLTable.Rows)
+                    {
+                        if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
+                        {
+                            kstblNames.Add(new CKeySpaceTableNames(dataRow));
+                        }
+                    }
+                    Program.ConsoleNonLogReadFiles.TaskEnd("CQL DDL into Data table");
                 }
 
                 if (kstblNames.Count == 0)

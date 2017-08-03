@@ -38,10 +38,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["L:L"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
                                                 workSheet.Cells["M:M"].Style.Numberformat.Format = "d hh:mm";
                                                 workSheet.Cells["N:N"].Style.Numberformat.Format = "d hh:mm";
-                                                workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###,###,##0.00";
-                                                workSheet.Cells["Q:Q"].Style.Numberformat.Format = "#,###,###,##0";
-                                                workSheet.Cells["R:R"].Style.Numberformat.Format = "#,###,###,##0";
-                                                workSheet.Cells["S:S"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                workSheet.Cells["O:O"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
+                                                workSheet.Cells["P:P"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
+                                                workSheet.Cells["Q:Q"].Style.Numberformat.Format = "d hh:mm";
+                                                workSheet.Cells["R:R"].Style.Numberformat.Format = "d hh:mm";
+
+                                                workSheet.Cells["T:T"].Style.Numberformat.Format = "#,###,###,##0.00";
+                                                workSheet.Cells["U:U"].Style.Numberformat.Format = "#,###,###,##0";
+                                                workSheet.Cells["V:V"].Style.Numberformat.Format = "#,###,###,##0";
+                                                workSheet.Cells["W:W"].Style.Numberformat.Format = "#,###,###,##0.00";
 
                                                 workSheet.InsertColumn(11, 1);
                                                 //workSheet.Column(10).Hidden = true;

@@ -108,6 +108,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\AndersenAssoc\Common Patterns\Assemblies\40\Release\Common.Patterns.Threading.dll</HintPath>
     </Reference>
+    <Reference Include="DSEDiagnosticFileParser">
+      <HintPath>..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\bin\Release\DSEDiagnosticFileParser.dll</HintPath>
+    </Reference>
+    <Reference Include="DSEDiagnosticLibrary">
+      <HintPath>..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\bin\Release\DSEDiagnosticLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="EPPlus, Version=4.1.0.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.4.1.0\lib\net40\EPPlus.dll</HintPath>
       <Private>True</Private>
@@ -184,6 +190,34 @@
     <Compile Include="YamlInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\CLogLineTypeParser Schema.json">
+      <Link>Json\CLogLineTypeParser Schema.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\DiagnosticFileRegExAssocations.json">
+      <Link>Json\DiagnosticFileRegExAssocations.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\file-create-folder-structure-Mappings.json">
+      <Link>Json\file-create-folder-structure-Mappings.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\Log4NetParser.json">
+      <Link>Json\Log4NetParser.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappings-CreateOpsCenterCopy.json">
+      <Link>Json\ProcessFileMappings-CreateOpsCenterCopy.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappings.json">
+      <Link>Json\ProcessFileMappings.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappingsNoLogs.json">
+      <Link>Json\ProcessFileMappingsNoLogs.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\dseTemplate.xlsm">
       <Link>dseTemplate.xlsm</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
