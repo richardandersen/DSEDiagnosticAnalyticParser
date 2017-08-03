@@ -725,7 +725,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "g>\r\n  <string>Concurrent Compaction/Flush GC minimum</string>\r\n  <string>Concurr" +
             "ent Compaction/Flush GC mean</string>\r\n  <string>Concurrent Compaction/Flush GC " +
             "standard deviation</string>\r\n  <string>Shard State Change Schema</string>\r\n  <st" +
-            "ring>Shard State Change Dead Node</string>\r\n</ArrayOfString>")]
+            "ring>Shard State Change Dead Node</string>\r\n  <string>Node Marked Down (Dropped " +
+            "Hints)</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection NodeAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["NodeAttribs"]));
