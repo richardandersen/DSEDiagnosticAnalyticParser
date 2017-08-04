@@ -21,11 +21,13 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtCmpHist.Columns.Add("KeySpace", typeof(string));
 				dtCmpHist.Columns.Add("Table", typeof(string));
 				dtCmpHist.Columns.Add("Compaction Timestamp (UTC)", typeof(DateTime));
-				dtCmpHist.Columns.Add("SSTable Size Before", typeof(long));
+                dtCmpHist.Columns.Add("Compaction Timestamp (Node TZ)", typeof(DateTime)).AllowDBNull = true;
+                dtCmpHist.Columns.Add("SSTable Size Before", typeof(long));
 				dtCmpHist.Columns.Add("Before Size (MB)", typeof(decimal));
 				dtCmpHist.Columns.Add("SSTable Size After", typeof(long));
 				dtCmpHist.Columns.Add("After Size (MB)", typeof(decimal));
-				dtCmpHist.Columns.Add("Compaction Strategy", typeof(string)).AllowDBNull = true;
+                dtCmpHist.Columns.Add("Compaction Size (MB)", typeof(decimal));
+                dtCmpHist.Columns.Add("Compaction Strategy", typeof(string)).AllowDBNull = true;
 				dtCmpHist.Columns.Add("Partitions Merged (tables:rows)", typeof(string));
 				dtCmpHist.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
 
@@ -37,8 +39,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		string ipAddress,
 																		string dcName,
 																		DataTable dtCmpHist,
-																		DataTable dtTable,
-																		IEnumerable<string> ignoreKeySpaces,
+																		DataTable dtDDL,
+                                                                        IEnumerable<string> ignoreKeySpaces,
 																		List<CKeySpaceTableNames> kstblExists)
 		{
 			initializeCompactionHistDataTable(dtCmpHist);
@@ -179,28 +181,39 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					try
 					{
-						dataRow = dtCmpHist.NewRow();
+                        var beforeSize = ConvertInToMB(parsedLine[4 - offSet], "byte");
+                        var afterSize = ConvertInToMB(parsedLine[5 - offSet], "byte");
+                        var utcDateTime = FromUnixTime(parsedLine[3 - offSet]);
+
+                        dataRow = dtCmpHist.NewRow();
 
 						dataRow["Source"] = "CompactionHistory";
 						dataRow["Data Center"] = dcName;
 						dataRow["Node IPAddress"] = ipAddress;
 						dataRow["KeySpace"] = currentKeySpace;
 						dataRow["Table"] = currentTable;
-						dataRow["Compaction Timestamp (UTC)"] = FromUnixTime(parsedLine[3 - offSet]);
-						dataRow["SSTable Size Before"] = long.Parse(parsedLine[4 - offSet]);
-						dataRow["Before Size (MB)"] = ConvertInToMB(parsedLine[4 - offSet], "MB");
+                        dataRow["Compaction Timestamp (UTC)"] = utcDateTime;
+
+                        dataRow["SSTable Size Before"] = long.Parse(parsedLine[4 - offSet]);
+						dataRow["Before Size (MB)"] = beforeSize;
 						dataRow["SSTable Size After"] = long.Parse(parsedLine[5 - offSet]);
-						dataRow["After Size (MB)"] = ConvertInToMB(parsedLine[5 - offSet], "MB");
+						dataRow["After Size (MB)"] = afterSize;
+
+                        if (afterSize != 0 || beforeSize == 0)
+                        {
+                            dataRow["Compaction Size (MB)"] = afterSize - beforeSize;
+                        }
+
 						dataRow["Partitions Merged (tables:rows)"] = parsedLine[6 - offSet];
 
-						ksDataRow = dtTable.Rows.Find(new object[] { currentKeySpace, currentTable });
+						ksDataRow = dtDDL.Rows.Find(new object[] { currentKeySpace, currentTable });
 
 						if (ksDataRow != null)
 						{
 							dataRow["Compaction Strategy"] = ksDataRow["Compaction Strategy"];
 						}
-
-						dtCmpHist.Rows.Add(dataRow);
+                        
+                        dtCmpHist.Rows.Add(dataRow);
 					}
 					catch (System.Exception ex)
 					{
@@ -213,5 +226,53 @@ namespace DSEDiagnosticAnalyticParserConsole
 				}
 			}
 		}
+
+        static public void UpdateTZCompactionHistDataTable(DataTable dtCmpHist,
+                                                            DataTable dtOSInfo)
+        {
+            if(dtCmpHist != null
+                    && dtCmpHist.Rows.Count > 0
+                    && dtOSInfo != null
+                    && dtOSInfo.Rows.Count > 0)
+            {
+                var compHistRow = from dr in dtCmpHist.AsEnumerable()
+                                  group dr by new { DC = dr.Field<string>("Data Center"), IP = dr.Field<string>("Node IPAddress") } into g
+                                  select new
+                                  {
+                                      DC = g.Key.DC,
+                                      Node = g.Key.IP,
+                                      Rows = (from r in g
+                                              let utcDate = r.Field<DateTime?>("Compaction Timestamp (UTC)")
+                                              where utcDate.HasValue
+                                              select new { UTCDate = utcDate.Value, Row = r })
+                                  };
+
+                foreach(var grp in compHistRow)
+                {
+                    var ksDataRow = dtOSInfo.AsEnumerable()
+                                        .FirstOrDefault(r => r.Field<string>("Node IPAddress") == grp.Node);
+
+                    if (ksDataRow != null)
+                    {
+                        var tzName = ksDataRow.Field<string>("TimeZone");
+
+                        if (!string.IsNullOrEmpty(tzName))
+                        {
+                            var tzInstance = Common.TimeZones.Find(tzName, Common.Patterns.TimeZoneInfo.ZoneNameTypes.IANATZName);
+
+                            if (tzInstance != null)
+                            {
+                                foreach (var dr in grp.Rows)
+                                {
+                                    dr.Row.BeginEdit();
+                                    dr.Row["Compaction Timestamp (Node TZ)"] = Common.TimeZones.ConvertFromUTC(dr.UTCDate, tzInstance).DateTime;
+                                    dr.Row.EndEdit();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

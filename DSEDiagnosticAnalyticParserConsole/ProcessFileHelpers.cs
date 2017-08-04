@@ -760,7 +760,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             //
             // C* 3.X -- /mnt/dse/data1/<keyspace>/<column family>-<uuid>/mb-1-big-Data.db
             // C* 3.X -- /mnt/dse/data1/<keyspace>/<column family>-<uuid>/.<secondary index>/mb-1-big-Data.db
-            //
+            //           
+
             // Where <version> can be 'jb', 'ka', 'ja', and 'ic' and [tmp marker] can be 'tmp'
             var sstableFilePathParts = sstableFilePath.Split('/');
 

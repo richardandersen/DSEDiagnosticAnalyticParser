@@ -22,7 +22,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 											DataTable dtTokenRange,
 											DataTable dtKeySpace,
 											DataTable dtDDLTable,
-											Common.Patterns.Collections.LockFree.Stack<DataTable> dtCompHistStack,
+											Task<DataTable> runCompHistMergeTask,
 											Task runReleaseDependentLogTask)
 		{
 
@@ -150,15 +150,20 @@ namespace DSEDiagnosticAnalyticParserConsole
 					{
 						if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
 						{
-							DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);
-							DTLoadIntoExcel.LoadCompacationHistory(excelPkg, dtCompHistStack, ParserSettings.ExcelWorkSheetCompactionHist);
-                            
+							DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);							
                             DTLoadIntoExcel.LoadYamlRingOSInfo(runLogMergedTask,
                                                                 updateRingWYamlInfoTask,
 																excelPkg,
 																ParserSettings.ExcelWorkSheetYaml,
 																ParserSettings.ExcelWorkSheetRingInfo,
 																ParserSettings.ExcelWorkSheetOSMachineInfo);
+
+                            if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled())
+                            {
+                                runCompHistMergeTask.Wait();
+                                DTLoadIntoExcel.LoadCompacationHistory(excelPkg, runCompHistMergeTask.Result, ParserSettings.ExcelWorkSheetCompactionHist);
+                            }
+
                             runLogMergedTask?.Wait();
                             runCFStatsMergedDDLUpdated?.Wait();
 							runNodeStatsMergedTask?.Wait();

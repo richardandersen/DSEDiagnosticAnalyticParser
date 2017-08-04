@@ -1352,6 +1352,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 			Task runReleaseDependentLogTask;
 			Task runConcurrentCompactionFlushTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<DataTable> runLogAdditionalInfoTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
+            Task<DataTable> runCompHistMergeTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<DataTable>();
 
             {
                 var runYamlListIntoDTTask = ParserSettings.ParsingExcelOptions.ParseYamlFiles.IsEnabled()
@@ -1396,7 +1397,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 .ContinueWhenAll(logParsingTasks.ToArray(), tasks => tasks.Sum(t => ((Task<int>)t).Result));
 				Task<IEnumerable<ProcessFileTasks.RepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.RepairLogInfo>>();
 
-				if (logParsingTasks.Count > 0)
+                if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled())
+                {
+                    runCompHistMergeTask = Task.Factory.StartNew<DataTable>( () =>
+                    {
+                        Program.ConsoleParsingNonLog.Increment("Compaction History Merge");
+                        var dtCompHist = dtCompHistStack.MergeIntoOneDataTable(ParserSettings.CompactionHistWorksheetFilterSort);
+                        ProcessFileTasks.UpdateTZCompactionHistDataTable(dtCompHist, dtOSMachineInfo); 
+                        Program.ConsoleParsingNonLog.TaskEnd("Compaction History Merge");
+
+                        return dtCompHist;
+                    });
+                }
+
+                if (logParsingTasks.Count > 0)
                 {
                     if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
                     {
@@ -1573,8 +1587,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 return dtNodeStatslog;
                                             });
                 }
-
-				tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
+                
+                tskdtCFHistogram = tskdtCFHistogram.ContinueWith(taskResult =>
                                     {
 										Program.ConsoleParsingNonLog.Increment("TableHistogram => CFStats...");
 										var dtCFHist = taskResult.Result;
@@ -1714,7 +1728,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 											dtTokenRange,
 											dtKeySpace,
 											dtDDLTable,
-											dtCompHistStack,
+                                            runCompHistMergeTask,
 											runReleaseDependentLogTask)?.Wait();
 
             Program.ConsoleExcelWorkbook.Terminate();

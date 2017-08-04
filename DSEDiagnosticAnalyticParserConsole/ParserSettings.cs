@@ -431,16 +431,26 @@ namespace DSEDiagnosticAnalyticParserConsole
 				return default(T);
 			}
 
-			if (enumString[0] == '+'
-					|| enumString[0] == '-'
-					|| enumString[0] == '|'
+			if (enumString[0] == '|'
 					|| enumString[0] == ','
 					|| enumString[0] == '~')
 			{
-				return ParseEnumString<T>(appendValue.ToString() + " " + enumString);
+				return ParseEnumString<T>(appendValue.ToString()
+                                                + " "
+                                                + enumString);
 			}
 
-			if (enumString[0] == '!')
+            if (enumString[0] == '+'
+                    || enumString[0] == '-')
+            {
+                return ParseEnumString<T>(appendValue.ToString()
+                                                + " "
+                                                + enumString[0]
+                                                + " "
+                                                + enumString.Substring(1));
+            }
+
+            if (enumString[0] == '!')
 			{
 				return ParseEnumString<T>(appendValue.ToString() + ", " + enumString);
 			}

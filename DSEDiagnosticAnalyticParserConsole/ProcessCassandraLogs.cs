@@ -459,6 +459,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     dtCLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
                 }
+                dtCLog.Columns.Add("Source", typeof(string));
                 dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Node IPAddress", typeof(string));
                 dtCLog.Columns.Add("Timestamp", typeof(DateTime)).AllowDBNull = false;
@@ -492,6 +493,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             CreateCassandraLogDataTable(dtCLog);
 
+            string fileName = clogFilePath.FileName;
             string line;
             string readLine = null;
             string readNextLine = null;
@@ -1696,7 +1698,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 itemPos = nCell + 1;
                             }
                             #endregion
-                        }
+                        }                        
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairSession.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairJob.java")
                         {
 							#region RepairSession.java RepairJob.java
@@ -2095,6 +2097,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     dataRow["Description"] = logDesc.ToString().Trim();
+                    dataRow["Source"] = fileName;
 
                     #endregion
 
@@ -7837,53 +7840,65 @@ namespace DSEDiagnosticAnalyticParserConsole
             SolrHardCommits.Clear();
 		}
 
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.blobreadmodel on 0/[] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.schemaversions on 0/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-6-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-5-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.paymentidorderidmap on 0/[] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapuseridtop2pidreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,558  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,560  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtotestksnumberreadmodel on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.symmetrickeyinfomodel on 0/[] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.accountnumbertoprivateaccountidreadmodel on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtouseridreadmodel on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.blobreadmodel on 0/[] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,554  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.schemaversions on 0/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-6-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/schemaversions-e8647090a43411e6a2a7f19e9c4c25c4/mc-5-big-Data.db')] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,555  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.paymentidorderidmap on 0/[] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,556  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapuseridtop2pidreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db')] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,558  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,560  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapuseridtop2pidreadmodel-ef77a872a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtotestksnumberreadmodel on 0/[] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.symmetrickeyinfomodel on 0/[] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.accountnumbertoprivateaccountidreadmodel on 0/[] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,563  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2paccountidtouseridreadmodel on 0/[] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,564  CompactionManager.java:578 - Completed anticompaction successfully
 
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests on 0/[] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.schemaversions on 1/[BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,592  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests_by_userid on 0/[] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
-		//INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests on 0/[] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,591  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.schemaversions on 1/[BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db')] sstables
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,592  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_usersettings/schemaversions-5f8694d0baf811e6a2a7f19e9c4c25c4/mc-1-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,592  CompactionManager.java:511 - Starting anticompaction for testks_usersettings.action_requests_by_userid on 0/[] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
+        //INFO  [CompactionExecutor:659] 2016-12-11 03:09:49,593  CompactionManager.java:578 - Completed anticompaction successfully
 
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
-		//INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
-		//
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,554  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,557  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,559  CompactionManager.java:540 - SSTable BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db') fully contained in range (-9223372036854775808,-9223372036854775808], mutating repairedAt instead of anticompacting
+        //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,562  CompactionManager.java:578 - Completed anticompaction successfully
+
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:42,444 CompactionManager.java:1226 - Performing anticompaction on 1 sstables
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:42,444 CompactionManager.java:1263 - Anticompacting[BigTableReader(path = '/var/lib/cassandra/data/product_v2/schema_updates-6c7c3d50fe0211e6a001c12716c256ee/mc-21-big-Data.db')]
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:42,471 CompactionManager.java:1242 - Anticompaction completed successfully, anticompacted from 0 to 1 sstable(s).
+
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:42,513 CompactionManager.java:1226 - Performing anticompaction on 3 sstables
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:42,513 CompactionManager.java:1263 - Anticompacting[BigTableReader(path = '/var/lib/cassandra/data/product_v2/clientproducts_by_client_class_cpk_view-852430b0fe0211e6acbe19d8c614acf1/mc-404-big-Data.db'), BigTableReader(path = '/var/lib/cassandra/data/product_v2/clientproducts_by_client_class_cpk_view-852430b0fe0211e6acbe19d8c614acf1/mc-397-big-Data.db')]
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,762 CompactionManager.java:1263 - Anticompacting[BigTableReader(path = '/var/lib/cassandra/data/product_v2/clientproducts_by_client_class_cpk_view-852430b0fe0211e6acbe19d8c614acf1/mc-393-big-Data.db')]
+        //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,801 CompactionManager.java:1242 - Anticompaction completed successfully, anticompacted from 0 to 4 sstable(s).
+
 		static Regex RegExAntiCompStarting = new Regex(@".*Starting\s+anticompaction\s+for\s+(.+)\.(.+)\s+on\s+(\d+)\/.*",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		static Regex RegExAntiCompRange = new Regex(@".*SSTable\s+BigTableReader.+in\s+range\s*\(\s*([0-9-]+)\,\s*([0-9-]+)\s*\].+",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		public static void ParseAntiCompactionFromLog(DataTable dtroCLog,
+        static Regex RegExAntiCompStarting2 = new Regex(@"^\s*Anticompacting\s*\[(?:\s*BigTableReader\s*\(\s*path\s*\=\s*'([^\'\)]+)'\s*\)\s*\,?)+\s*\]",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        public static void ParseAntiCompactionFromLog(DataTable dtroCLog,
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
 														IEnumerable<string> ignoreKeySpaces)
@@ -7902,8 +7917,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 											 let timestamp = dr.Field<DateTime>("Timestamp")
 											 let descr = dr.Field<string>("Description")?.Trim()
 											 let taskId = dr.Field<int?>("TaskId")
-											 where dr.Field<string>("Task") == "CompactionExecutor"
-													&& dr.Field<string>("Item") == "CompactionManager.java"
+                                             let task = dr.Field<string>("Task")
+                                             where (task == "CompactionExecutor"
+                                                        || task == "AntiCompactionExecutor")
+                                                    && dr.Field<string>("Item") == "CompactionManager.java"
 													&& taskId.HasValue
 											 group new
 											 {
@@ -7911,11 +7928,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 												 Description = descr,
 												 RecordNbr = ++recNbr
 											 }
-												by new { dcName, ipAddress, taskId.Value } into g
+												by new { dcName, ipAddress, task, taskId.Value } into g
 											 select new
 											 {
 												 DCName = g.Key.dcName,
 												 IPAddress = g.Key.ipAddress,
+                                                 Task = g.Key.task,
 												 TaskId = g.Key.Value,
 												 LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
 											 };
@@ -7940,67 +7958,134 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					foreach (var item in logGroupItem.LogItems)
 					{
-						if(item.Description.StartsWith("completed anticompaction", StringComparison.CurrentCultureIgnoreCase))
-						{
-							if (currentAntiCompaction != null)
-							{
-								#region Completed
+                        if (logGroupItem.Task == "AntiCompactionExecutor")
+                        {
+                            #region AntiCompactionExecutor
+                            if (item.Description.StartsWith("anticompaction completed", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (currentAntiCompaction != null)
+                                {
+                                    #region Completed
 
-								currentAntiCompaction.CompletionTime = item.Timestamp;
-								antiCompactionDCNodeList.Add(currentAntiCompaction);
+                                    currentAntiCompaction.CompletionTime = item.Timestamp;
+                                    antiCompactionDCNodeList.Add(currentAntiCompaction);
 
-								#endregion
-								currentAntiCompaction = null;
-							}
-						}
-						else
-						{
-							var startingSplit = RegExAntiCompStarting.Split(item.Description);
+                                    #endregion
+                                    currentAntiCompaction = null;
+                                }
+                            }
+                            else
+                            {
+                                var startingSplit = RegExAntiCompStarting2.Split(item.Description);
 
-							if(startingSplit.Length == 5)
-							{
-								#region Starting
-								var keySpace = RemoveQuotes(startingSplit[1].Trim());
+                                if (startingSplit.Length == 3)
+                                {
+                                    #region Starting
+                                    var ssTable = RemoveQuotes(startingSplit[1].Trim());
+                                    var ksTblItem = ParseSSTableFileIntoKSTableNames(ssTable);
 
-								if(currentAntiCompaction != null)
-								{
-									currentAntiCompaction.Aborted = true;
-									currentAntiCompaction.CompletionTime = item.Timestamp;
-								}
+                                    if (currentAntiCompaction != null
+                                            && (currentAntiCompaction.Keyspace != ksTblItem.Item1
+                                                    || currentAntiCompaction.Table != ksTblItem.Item2))
+                                    {
+                                        currentAntiCompaction.Aborted = true;
+                                        currentAntiCompaction.CompletionTime = item.Timestamp;
+                                        currentAntiCompaction = null;
+                                    }
 
-								if (ignoreKeySpaces.Contains(keySpace))
-								{
-									currentAntiCompaction = null;
-								}
-								else
-								{
-									currentAntiCompaction = new AntiCompactionLogInfo()
-									{
-										DataCenter = logGroupItem.DCName,
-										IPAddress = logGroupItem.IPAddress,
-										StartTime = item.Timestamp,
-										Keyspace = keySpace,
-										Table = RemoveQuotes(startingSplit[2].Trim()),
-										SSTables = string.IsNullOrEmpty(startingSplit[3].Trim()) ? 0 : int.Parse(startingSplit[3]),
-										GroupIndicator = groupIndicator
-									};
-									localAntiCompList.Add(currentAntiCompaction);
-								}
-								#endregion
-							}
-							else if (currentAntiCompaction != null)
-							{
-								var rangeSplit = RegExAntiCompRange.Split(item.Description);
+                                    if (ignoreKeySpaces.Contains(ksTblItem.Item1))
+                                    {
+                                        currentAntiCompaction = null;
+                                    }
+                                    else if(currentAntiCompaction != null)
+                                    {
+                                        currentAntiCompaction.SSTables += item.Description.Count(c => c == ',') + 1;
+                                    }
+                                    else
+                                    {
+                                        currentAntiCompaction = new AntiCompactionLogInfo()
+                                        {
+                                            DataCenter = logGroupItem.DCName,
+                                            IPAddress = logGroupItem.IPAddress,
+                                            StartTime = item.Timestamp,
+                                            Keyspace = ksTblItem.Item1,
+                                            Table = ksTblItem.Item2,
+                                            SSTables = item.Description.Count(c => c == ',') + 1,
+                                            GroupIndicator = groupIndicator
+                                        };
+                                        localAntiCompList.Add(currentAntiCompaction);
+                                    }
+                                    #endregion
+                                }                                
+                            }
+                            #endregion
+                        }
+                        else
+                        {
+                            #region CompactionExecutor
+                            if (item.Description.StartsWith("completed anticompaction", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                if (currentAntiCompaction != null)
+                                {
+                                    #region Completed
 
-								if(rangeSplit.Length == 4)
-								{
-									currentAntiCompaction.AddRange(rangeSplit[1], rangeSplit[2]);
-								}
-							}
-						}
-					}
+                                    currentAntiCompaction.CompletionTime = item.Timestamp;
+                                    antiCompactionDCNodeList.Add(currentAntiCompaction);
 
-					if(currentAntiCompaction != null)
+                                    #endregion
+                                    currentAntiCompaction = null;
+                                }
+                            }
+                            else
+                            {
+                                var startingSplit = RegExAntiCompStarting.Split(item.Description);
+
+                                if (startingSplit.Length == 5)
+                                {
+                                    #region Starting
+                                    var keySpace = RemoveQuotes(startingSplit[1].Trim());
+
+                                    if (currentAntiCompaction != null)
+                                    {
+                                        currentAntiCompaction.Aborted = true;
+                                        currentAntiCompaction.CompletionTime = item.Timestamp;
+                                    }
+
+                                    if (ignoreKeySpaces.Contains(keySpace))
+                                    {
+                                        currentAntiCompaction = null;
+                                    }
+                                    else
+                                    {
+                                        currentAntiCompaction = new AntiCompactionLogInfo()
+                                        {
+                                            DataCenter = logGroupItem.DCName,
+                                            IPAddress = logGroupItem.IPAddress,
+                                            StartTime = item.Timestamp,
+                                            Keyspace = keySpace,
+                                            Table = RemoveQuotes(startingSplit[2].Trim()),
+                                            SSTables = string.IsNullOrEmpty(startingSplit[3].Trim()) ? 0 : int.Parse(startingSplit[3]),
+                                            GroupIndicator = groupIndicator
+                                        };
+                                        localAntiCompList.Add(currentAntiCompaction);
+                                    }
+                                    #endregion
+                                }
+                                else if (currentAntiCompaction != null)
+                                {
+                                    var rangeSplit = RegExAntiCompRange.Split(item.Description);
+
+                                    if (rangeSplit.Length == 4)
+                                    {
+                                        currentAntiCompaction.AddRange(rangeSplit[1], rangeSplit[2]);
+                                    }
+                                }
+                            }
+                            #endregion
+                        }
+                    }
+
+                    if (currentAntiCompaction != null)
 					{
 						currentAntiCompaction.Aborted = true;
 						currentAntiCompaction = null;
