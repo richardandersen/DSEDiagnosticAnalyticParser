@@ -1380,6 +1380,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             #region ReadCommand.java
                             // ReadCommand.java:509 - Read 1000 live rows and 2506 tombstone cells for query SELECT * FROM ods.d_account WHERE token(accnt_id, tenant_id) > token(1:2017853945, 1) AND token(accnt_id, tenant_id) <= 2028415374372988170 AND () = () LIMIT 1000 (see tombstone_warn_threshold)
+                            // ReadCommand.java:509 - Read 16882 live rows and 1256 tombstone cells for query SELECT *FROM product_v2.clientproducts_by_client_class_v2 WHERE token(client_id, class_id) > -58434642643959632 AND token(client_id, class_id) <= 170473102188219941 LIMIT 100000(see tombstone_warn_threshold)
+
                             if (nCell > itemPos && parsedValues[nCell].ToLower() == "from")
                             {
                                 var splitItems = SplitTableName(parsedValues[nCell + 1]);
@@ -2921,7 +2923,18 @@ namespace DSEDiagnosticAnalyticParserConsole
 			public DateTime StartTime { get; set; }
 			public DateTime LogTimestamp { get { return this.StartTime; } }
 			public DateTime CompletionTime { get; set; }
-			public decimal IORate {  get { return 0; } }
+			public decimal IORate
+            {
+                get
+                {
+                    if(this.OldSize.HasValue && this.NewSize.HasValue)
+                    {
+                        return (this.OldSize.Value + this.NewSize.Value) / ((decimal)this.Duration / 1000M);
+                    }
+
+                    return 0;
+                }
+            }
 			public int Duration
 			{
 				get
@@ -2956,7 +2969,22 @@ namespace DSEDiagnosticAnalyticParserConsole
 				}
 			}
 			public bool Aborted { get; set; }
-		}
+
+            public decimal? OldSize;
+            public decimal? NewSize;
+
+            public decimal? CompactedStorage
+            {
+                get
+                {
+                    if (this.OldSize.HasValue && this.NewSize.HasValue)
+                    {
+                        return Math.Abs(this.OldSize.Value - this.NewSize.Value);
+                    }
+                    return null;
+                }
+            }
+        }
 
         public class SolrHardCommitLogInfo : ILogInfo
         {
@@ -7718,8 +7746,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 								newDataRow["New Size (mb)"] = ((CompactionLogInfo)item.Comp).NewSize;
 								newDataRow["Compaction IORate (mb/sec)"] = ((CompactionLogInfo)item.Comp).IORate;
 							}
+                            else if (item.Comp is AntiCompactionLogInfo)
+                            {
+                                if (((AntiCompactionLogInfo)item.Comp).OldSize.HasValue)
+                                {
+                                    newDataRow["Old Size (mb)"] = ((AntiCompactionLogInfo)item.Comp).OldSize.Value;
+                                }
+                                if (((AntiCompactionLogInfo)item.Comp).NewSize.HasValue)
+                                {
+                                    newDataRow["New Size (mb)"] = ((AntiCompactionLogInfo)item.Comp).NewSize.Value;
+                                }
+                                if (((AntiCompactionLogInfo)item.Comp).IORate > 0)
+                                {
+                                    newDataRow["Compaction IORate (mb/sec)"] = ((AntiCompactionLogInfo)item.Comp).IORate;
+                                }
+                            }
 
-							dtReadRepair.Rows.Add(newDataRow);
+                            dtReadRepair.Rows.Add(newDataRow);
 						}
 					}
 
@@ -7897,8 +7940,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         static Regex RegExAntiCompStarting2 = new Regex(@"^\s*Anticompacting\s*\[(?:\s*BigTableReader\s*\(\s*path\s*\=\s*'([^\'\)]+)'\s*\)\s*\,?)+\s*\]",
                                                             RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static bool HasAntiCompactions = false;
 
         public static void ParseAntiCompactionFromLog(DataTable dtroCLog,
+                                                        DataTable dtCompactionHist,
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
 														IEnumerable<string> ignoreKeySpaces)
@@ -7911,6 +7956,29 @@ namespace DSEDiagnosticAnalyticParserConsole
 			ulong recNbr = 0;
 			var globalAntiCompactions = CompactionOccurrences; //ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, ThreadSafe.List<ICompactionLogInto>>
 			{
+                IReadOnlyDictionary<string, IEnumerable<Tuple<DateTime,decimal,decimal>>> compHistSizeInfo = null;
+
+                if(dtCompactionHist != null && dtCompactionHist.Rows.Count > 0)
+                {
+                    compHistSizeInfo = (from drCompHist in dtCompactionHist.AsEnumerable()
+                                        let dc = drCompHist.Field<string>("Data Center")
+                                        let nodeIP = drCompHist.Field<string>("Node IPAddress")
+                                        let ks = drCompHist.Field<string>("KeySpace")
+                                        let tbl = drCompHist.Field<string>("Table")
+                                        group drCompHist by new { DC = dc, Node = nodeIP, Keyspace = ks, Table = tbl } into g
+                                        select new
+                                        {
+                                            Key = g.Key.DC + '|' + g.Key.Node + '|' + g.Key.Keyspace + '|' + g.Key.Table,
+                                            Info = (from dr in g
+                                                    let timestamp = dr.Field<DateTime>("Compaction Timestamp (Node TZ)")
+                                                    orderby timestamp ascending
+                                                    select new Tuple<DateTime, decimal, decimal>
+                                                                (timestamp,
+                                                                    dr.Field<decimal>("Before Size (MB)"),
+                                                                    dr.Field<decimal>("After Size (MB)")))
+                                        }).ToDictionary(i => i.Key, i => i.Info);
+                }
+
 				var antiCompactionLogItems = from dr in dtroCLog.AsEnumerable()
 											 let dcName = dr.Field<string>("Data Center")
 											 let ipAddress = dr.Field<string>("Node IPAddress")
@@ -8093,8 +8161,33 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					if (localAntiCompList.Count > 0)
 					{
-						#region Log Status DT
-						if (dtLogStatusStack != null)
+                        HasAntiCompactions = true;
+
+                        #region Determine Compacted Sizes from Compaction History
+
+                        if (compHistSizeInfo != null && compHistSizeInfo.Count > 0)
+                        {
+                            foreach (var antiComp in localAntiCompList.Where(i => !i.Aborted))
+                            {
+                                IEnumerable<Tuple<DateTime,decimal,decimal>> compTSSizeInfo;
+
+                                if(compHistSizeInfo.TryGetValue(antiComp.DataCenter + '|' + antiComp.IPAddress + '|' + antiComp.Keyspace + '|' + antiComp.Table, out compTSSizeInfo))
+                                {
+                                    var sizeItem = compTSSizeInfo.FirstOrDefault(i => i.Item1 >= antiComp.StartTime && i.Item1 <= antiComp.CompletionTime);
+
+                                    if(sizeItem != null)
+                                    {
+                                        antiComp.OldSize = sizeItem.Item2;
+                                        antiComp.NewSize = sizeItem.Item3;
+                                    }
+                                }
+                            }
+                        }
+
+                        #endregion
+
+                        #region Log Status DT
+                        if (dtLogStatusStack != null)
 						{
 							var dtCStatusLog = new DataTable(string.Format("NodeStatus-AntiCompaction-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
 							InitializeStatusDataTable(dtCStatusLog);
@@ -8121,6 +8214,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 								{
 									dtCStatusLogRow["Aborted"] = 1;
 								}
+
+                                if(antiComp.IORate > 0)
+                                {
+                                    dtCStatusLogRow["Rate (MB/s)"] = antiComp.IORate;
+                                }
+
 								dtCStatusLog.Rows.Add(dtCStatusLogRow);
 							}
 						}
@@ -8140,16 +8239,21 @@ namespace DSEDiagnosticAnalyticParserConsole
 							//AntiCompaction SSTable count
 
 							var grpStats = from item in localAntiCompList
-											 group new { Latency = item.Duration, SSTables = item.SSTables, GrpInd = item.GroupIndicator }
+											 group new { Latency = item.Duration, SSTables = item.SSTables, Rate=item.IORate, GrpInd = item.GroupIndicator }
 														by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
-											 let latencyEnum = g.Select(i => i.Latency)
+											 let latencyEnum = g.Select(i => i.Latency)                                             
 											 let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
+                                             let rateEnum = g.Where(i => i.Rate > 0).Select(i => i.Rate).DefaultIfEmpty()
 											 select new
 											 {
 												 Max = latencyEnum.Max(),
 												 Min = latencyEnum1.Min(),
 												 Mean = latencyEnum1.Average(),
-												 SSTables = g.Sum(i => i.SSTables),
+                                                 RateMax = rateEnum.Max(),
+                                                 RateMin = rateEnum.Min(),
+                                                 RateMean = rateEnum.Average(),
+                                                 RateOccurrences = rateEnum.Count(),
+                                                 SSTables = g.Sum(i => i.SSTables),
 												 GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
 												 Count = g.Count(),
 												 DCName = g.Key.DataCenter,
@@ -8243,7 +8347,80 @@ namespace DSEDiagnosticAnalyticParserConsole
 								//dataRow["Unit of Measure"] = "";
 
 								dtCFStats.Rows.Add(dataRow);
-							}
+
+                                //AntiCompaction maximum rate                                
+                                //AntiCompaction mean rate
+                                //AntiCompaction minimum rate
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction maximum rate";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.RateMax > 0)
+                                {
+                                    dataRow["Value"] = stats.RateMax;
+                                    dataRow["(Value)"] = stats.RateMax;
+                                }
+                                dataRow["Unit of Measure"] = "mb/sec";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction mean rate";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.RateMean > 0)
+                                {
+                                    dataRow["Value"] = stats.RateMean;
+                                    dataRow["(Value)"] = stats.RateMean;
+                                }
+                                dataRow["Unit of Measure"] = "mb/sec";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction minimum rate";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.RateMin > 0)
+                                {
+                                    dataRow["Value"] = stats.RateMin;
+                                    dataRow["(Value)"] = stats.RateMin;
+                                }
+                                dataRow["Unit of Measure"] = "mb/sec";
+
+                                dtCFStats.Rows.Add(dataRow);
+
+                                dataRow = dtCFStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction rate occurrences";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                dataRow["Value"] = stats.RateOccurrences;
+                                dataRow["(Value)"] = stats.RateOccurrences;
+                                //dataRow["Unit of Measure"] = "";
+
+                                dtCFStats.Rows.Add(dataRow);
+                            }
 						}
 					}
 					#endregion
@@ -9547,7 +9724,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             : solrItem.Keyspace + '.' + solrItem.Table;
                             dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                             dataRow["Indicator"] = "WARN";
-                            dataRow["Task"] = "ParseCassandraLogIntoStatusLogDataTable";
+                            dataRow["Task"] = "ReviewLogThresholds";
                             dataRow["Item"] = "Generated";
                             dataRow["Description"] = string.Format("Solr Hard Commit duration Warning where a duration of {0} ms detected for {1}",
                                                 solrItem.Duration,
@@ -9579,13 +9756,47 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             : solrItem.Keyspace + '.' + solrItem.Table;
                             dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                             dataRow["Indicator"] = "WARN";
-                            dataRow["Task"] = "ParseCassandraLogIntoStatusLogDataTable";
+                            dataRow["Task"] = "ReviewLogThresholds";
                             dataRow["Item"] = "Generated";
                             dataRow["Description"] = string.Format("Solr reindex duration Warning where a duration of {0} ms detected for {1}",
                                                 solrItem.Duration,
                                                 dataRow["Associated Item"]);
 
                             dtLog.Rows.Add(dataRow);                            
+                        }
+                    }
+                }
+            }
+
+            if(ParserSettings.AntiCompactionLatencyThresholdMS > 0
+                    && HasAntiCompactions)
+            {
+                foreach (var item in CompactionOccurrences)
+                {
+                    foreach (var compactionItem in item.Value)
+                    {
+                        if (compactionItem is AntiCompactionLogInfo
+                                && compactionItem.Duration >= ParserSettings.AntiCompactionLatencyThresholdMS)
+                        {
+                            var dataRow = dtLog.NewRow();
+
+                            dataRow["Data Center"] = compactionItem.DataCenter;
+                            dataRow["Node IPAddress"] = compactionItem.IPAddress;
+                            dataRow["Timestamp"] = compactionItem.LogTimestamp;
+                            dataRow["Exception"] = "AntiCompaction Latency Warning";
+                            dataRow["Associated Value"] = compactionItem.Duration;
+                            dataRow["Associated Item"] = compactionItem.Table == null
+                                            ? compactionItem.Keyspace
+                                            : compactionItem.Keyspace + '.' + compactionItem.Table;
+                            dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                            dataRow["Indicator"] = "WARN";
+                            dataRow["Task"] = "ReviewLogThresholds";
+                            dataRow["Item"] = "Generated";
+                            dataRow["Description"] = string.Format("AntiCompaction duration Warning where a duration of {0} ms detected for {1}",
+                                                compactionItem.Duration,
+                                                dataRow["Associated Item"]);
+
+                            dtLog.Rows.Add(dataRow);
                         }
                     }
                 }

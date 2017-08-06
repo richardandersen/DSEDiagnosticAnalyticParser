@@ -1444,10 +1444,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             TaskContinuationOptions.AttachedToParent                                                
                                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
 
-						runAntiCompactionTask = runLogMergedTask.ContinueWith(logTask =>
+						runAntiCompactionTask = Task.Factory.ContinueWhenAll(new Task<DataTable>[]
+                                                                                { runLogMergedTask, runCompHistMergeTask},
+                                                
+                                                logTasks =>
 												{
 													Program.ConsoleParsingLog.Increment("AntiCompaction Processing");
-													ProcessFileTasks.ParseAntiCompactionFromLog(logTask.Result,
+													ProcessFileTasks.ParseAntiCompactionFromLog(logTasks[0].Result,
+                                                                                                logTasks[1].Result,
 																								ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
 																									? dtLogStatusStack
 																									: null,
@@ -1457,9 +1461,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 																								ParserSettings.IgnoreKeySpaces);
 
 													Program.ConsoleParsingLog.TaskEnd("AntiCompaction Processing");
-												},
-												TaskContinuationOptions.AttachedToParent													
-													| TaskContinuationOptions.OnlyOnRanToCompletion);
+												});
 
 						runMemTableFlushTask = runLogMergedTask.ContinueWith(logTask =>
 												{

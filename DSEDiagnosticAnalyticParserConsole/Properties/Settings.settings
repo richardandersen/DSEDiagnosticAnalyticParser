@@ -219,7 +219,6 @@
   &lt;string&gt;Compaction maximum rate&lt;/string&gt;
   &lt;string&gt;Compaction mean latency&lt;/string&gt;
   &lt;string&gt;Compaction mean rate&lt;/string&gt;
-  &lt;string&gt;Compaction mean rate&lt;/string&gt;
   &lt;string&gt;Compaction minimum latency&lt;/string&gt;
   &lt;string&gt;Compaction minimum rate&lt;/string&gt;
   &lt;string&gt;Compaction occurrences&lt;/string&gt;
@@ -291,6 +290,10 @@
   &lt;string&gt;AntiCompaction minimum latency&lt;/string&gt;
   &lt;string&gt;AntiCompaction occurrences&lt;/string&gt;
   &lt;string&gt;AntiCompaction SSTable count&lt;/string&gt;
+  &lt;string&gt;AntiCompaction maximum rate&lt;/string&gt;
+  &lt;string&gt;AntiCompaction mean rate&lt;/string&gt;
+  &lt;string&gt;AntiCompaction minimum rate&lt;/string&gt;
+  &lt;string&gt;AntiCompaction rate occurrences&lt;/string&gt;
   &lt;string&gt;Memtable Flush maximum latency&lt;/string&gt;
   &lt;string&gt;Memtable Flush mean latency&lt;/string&gt;
   &lt;string&gt;Memtable Flush minimum latency&lt;/string&gt;
@@ -704,6 +707,9 @@
   &lt;string&gt;.\cassandra\debug.log&lt;/string&gt;
   &lt;string&gt;.\debug.log&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="AntiCompactionLatencyThresholdMS" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10000</Value>
     </Setting>
   </Settings>
 </SettingsFile>

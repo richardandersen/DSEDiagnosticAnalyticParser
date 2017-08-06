@@ -162,6 +162,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 runCompHistMergeTask.Wait();
                                 DTLoadIntoExcel.LoadCompacationHistory(excelPkg, runCompHistMergeTask.Result, ParserSettings.ExcelWorkSheetCompactionHist);
+                                runCompHistMergeTask.Result?.Clear();
                             }
 
                             runLogMergedTask?.Wait();

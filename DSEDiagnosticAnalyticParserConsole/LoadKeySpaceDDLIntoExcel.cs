@@ -48,7 +48,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 5].FormulaR1C1 = string.Format("sum(E2:E{0})", dtKeySpace.Rows.Count + 1);
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 6].FormulaR1C1 = string.Format("sum(F2:F{0})", dtKeySpace.Rows.Count + 1);
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 7].FormulaR1C1 = string.Format("sum(G2:G{0})", dtKeySpace.Rows.Count + 1);
-                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 8].FormulaR1C1 = string.Format("sum(H2:G{0})", dtKeySpace.Rows.Count + 1);
+                                                workSheet.Cells[dtKeySpace.Rows.Count + 2, 8].FormulaR1C1 = string.Format("sum(H2:H{0})", dtKeySpace.Rows.Count + 1);
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 9].FormulaR1C1 = string.Format("sum(I2:I{0})", dtKeySpace.Rows.Count + 1);
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 10].FormulaR1C1 = string.Format("sum(J2:J{0})", dtKeySpace.Rows.Count + 1);
                                                 workSheet.Cells[dtKeySpace.Rows.Count + 2, 11].FormulaR1C1 = string.Format("sum(K2:K{0})", dtKeySpace.Rows.Count + 1);

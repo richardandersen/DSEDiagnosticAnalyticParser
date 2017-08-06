@@ -556,66 +556,68 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "tition mean bytes</string>\r\n  <string>Compacted partition minimum bytes</string>" +
             "\r\n  <string>Compaction maximum latency</string>\r\n  <string>Compaction maximum ra" +
             "te</string>\r\n  <string>Compaction mean latency</string>\r\n  <string>Compaction me" +
-            "an rate</string>\r\n  <string>Compaction mean rate</string>\r\n  <string>Compaction " +
-            "minimum latency</string>\r\n  <string>Compaction minimum rate</string>\r\n  <string>" +
-            "Compaction occurrences</string>\r\n  <string>Compression metadata off heap memory " +
-            "used</string>\r\n  <string>Index summary off heap memory used</string>\r\n  <string>" +
-            "Local read count</string>\r\n  <string>Local read latency</string>\r\n  <string>Loca" +
-            "l write count</string>\r\n  <string>Local write latency</string>\r\n  <string>Maximu" +
-            "m live cells per slice (last five minutes)</string>\r\n  <string>Maximum tombstone" +
-            "s per slice (last five minutes)</string>\r\n  <string>MemTable Write OPS maximum</" +
-            "string>\r\n  <string>MemTable Write OPS mean</string>\r\n  <string>MemTable Write OP" +
-            "S minimum</string>\r\n  <string>MemTable Write Size maximum</string>\r\n  <string>Me" +
-            "mTable Write Size mean</string>\r\n  <string>MemTable Write Size minimum</string>\r" +
-            "\n  <string>MemTable Write occurrences</string>\r\n  <string>Memtable cell count</s" +
-            "tring>\r\n  <string>Memtable data size</string>\r\n  <string>Memtable off heap memor" +
-            "y used</string>\r\n  <string>Memtable switch count</string>\r\n  <string>Number of k" +
-            "eys (estimate)</string>\r\n  <string>Off heap memory used (total)</string>\r\n  <str" +
-            "ing>Partition large maximum</string>\r\n  <string>Partition large mean</string>\r\n " +
-            " <string>Partition large minimum</string>\r\n  <string>Partition large occurrences" +
-            "</string>\r\n  <string>Pending flushes</string>\r\n  <string>Read Count</string>\r\n  " +
-            "<string>Read latency</string>\r\n  <string>Read latency maximum</string>\r\n  <strin" +
-            "g>SSTable Compression Ratio</string>\r\n  <string>SSTable count</string>\r\n  <strin" +
-            "g>SSTable read maximum </string>\r\n  <string>Space used (live)</string>\r\n  <strin" +
-            "g>Space used (total)</string>\r\n  <string>Space used by snapshots (total)</string" +
-            ">\r\n  <string>Tombstones warning Total</string>\r\n  <string>Tombstones warning max" +
-            "imum</string>\r\n  <string>Tombstones warning mean</string>\r\n  <string>Tombstones " +
-            "warning minimum</string>\r\n  <string>Tombstones warning occurrences</string>\r\n  <" +
-            "string>Write Count</string>\r\n  <string>Write latency</string>\r\n  <string>Write l" +
-            "atency maximum</string>\r\n  <string>Unlogged Batch Partitions Count Total</string" +
-            ">\r\n  <string>Unlogged Batch Partitions Count maximum</string>\r\n  <string>Unlogge" +
-            "d Batch Partitions Count mean</string>\r\n  <string>Unlogged Batch Partitions Coun" +
-            "t minimum</string>\r\n  <string>Unlogged Batch Partitions Count occurrences</strin" +
-            "g>\r\n  <string>Tombstones query aborted Total</string>\r\n  <string>Tombstones quer" +
-            "y aborted maximum</string>\r\n  <string>Tombstones query aborted mean</string>\r\n  " +
-            "<string>Tombstones query aborted minimum</string>\r\n  <string>Tombstones query ab" +
-            "orted occurences</string>\r\n  <string>Read Repair maximum latency</string>\r\n  <st" +
-            "ring>Read Repair minimum latency</string>\r\n  <string>Read Repair mean latency</s" +
-            "tring>\r\n  <string>Read Repair occurrences</string>\r\n  <string>Read Repair Aborte" +
-            "d occurrences</string>\r\n  <string>Solr reindex duration maximum</string>\r\n  <str" +
-            "ing>Solr reindex duration minimum</string>\r\n  <string>Solr reindex duration mean" +
-            "</string>\r\n  <string>Solr reindex duration stdev</string>\r\n  <string>Solr reinde" +
-            "x occurrences</string>\r\n  <string>AntiCompaction maximum latency</string>\r\n  <st" +
-            "ring>AntiCompaction mean latency</string>\r\n  <string>AntiCompaction minimum late" +
-            "ncy</string>\r\n  <string>AntiCompaction occurrences</string>\r\n  <string>AntiCompa" +
-            "ction SSTable count</string>\r\n  <string>Memtable Flush maximum latency</string>\r" +
-            "\n  <string>Memtable Flush mean latency</string>\r\n  <string>Memtable Flush minimu" +
-            "m latency</string>\r\n  <string>Memtable Flush occurrences</string>\r\n  <string>Mem" +
-            "table Flush maximum IORate</string>\r\n  <string>Memtable Flush mean IORate</strin" +
-            "g>\r\n  <string>Memtable Flush minimum IORate</string>\r\n  <string>Memtable Flush m" +
-            "aximum Storage</string>\r\n  <string>Memtable Flush mean Storage</string>\r\n  <stri" +
-            "ng>Memtable Flush minimum Storage</string>\r\n  <string>Memtable Flush total Stora" +
-            "ge</string>\r\n  <string>Solr Hard Commit duration maximum</string>\r\n  <string>Sol" +
-            "r Hard Commit duration minimum</string>\r\n  <string>Solr Hard Commit duration mea" +
-            "n</string>\r\n  <string>Solr Hard Commit duration stdev</string>\r\n  <string>Solr H" +
-            "ard Commit occurrences</string>\r\n  <string>Schema Created occurrences</string>\r\n" +
-            "  <string>Schema Dropped occurrences</string>\r\n  <string>Schema Updated occurren" +
-            "ces</string>\r\n  <string>MemTable Write OPS Delta maximum</string>\r\n  <string>Mem" +
-            "Table Write OPS Delta minimum</string>\r\n  <string>MemTable Write OPS Delta mean<" +
-            "/string>\r\n  <string>MemTable Write Delta occurrences</string>\r\n  <string>MemTabl" +
-            "e Write Size Delta maximum</string>\r\n  <string>MemTable Write Size Delta minimum" +
-            "</string>\r\n  <string>MemTable Write Size Delta mean</string>\r\n  <string>MemTable" +
-            " Write Size Delta Total</string>\r\n</ArrayOfString>")]
+            "an rate</string>\r\n  <string>Compaction minimum latency</string>\r\n  <string>Compa" +
+            "ction minimum rate</string>\r\n  <string>Compaction occurrences</string>\r\n  <strin" +
+            "g>Compression metadata off heap memory used</string>\r\n  <string>Index summary of" +
+            "f heap memory used</string>\r\n  <string>Local read count</string>\r\n  <string>Loca" +
+            "l read latency</string>\r\n  <string>Local write count</string>\r\n  <string>Local w" +
+            "rite latency</string>\r\n  <string>Maximum live cells per slice (last five minutes" +
+            ")</string>\r\n  <string>Maximum tombstones per slice (last five minutes)</string>\r" +
+            "\n  <string>MemTable Write OPS maximum</string>\r\n  <string>MemTable Write OPS mea" +
+            "n</string>\r\n  <string>MemTable Write OPS minimum</string>\r\n  <string>MemTable Wr" +
+            "ite Size maximum</string>\r\n  <string>MemTable Write Size mean</string>\r\n  <strin" +
+            "g>MemTable Write Size minimum</string>\r\n  <string>MemTable Write occurrences</st" +
+            "ring>\r\n  <string>Memtable cell count</string>\r\n  <string>Memtable data size</str" +
+            "ing>\r\n  <string>Memtable off heap memory used</string>\r\n  <string>Memtable switc" +
+            "h count</string>\r\n  <string>Number of keys (estimate)</string>\r\n  <string>Off he" +
+            "ap memory used (total)</string>\r\n  <string>Partition large maximum</string>\r\n  <" +
+            "string>Partition large mean</string>\r\n  <string>Partition large minimum</string>" +
+            "\r\n  <string>Partition large occurrences</string>\r\n  <string>Pending flushes</str" +
+            "ing>\r\n  <string>Read Count</string>\r\n  <string>Read latency</string>\r\n  <string>" +
+            "Read latency maximum</string>\r\n  <string>SSTable Compression Ratio</string>\r\n  <" +
+            "string>SSTable count</string>\r\n  <string>SSTable read maximum </string>\r\n  <stri" +
+            "ng>Space used (live)</string>\r\n  <string>Space used (total)</string>\r\n  <string>" +
+            "Space used by snapshots (total)</string>\r\n  <string>Tombstones warning Total</st" +
+            "ring>\r\n  <string>Tombstones warning maximum</string>\r\n  <string>Tombstones warni" +
+            "ng mean</string>\r\n  <string>Tombstones warning minimum</string>\r\n  <string>Tombs" +
+            "tones warning occurrences</string>\r\n  <string>Write Count</string>\r\n  <string>Wr" +
+            "ite latency</string>\r\n  <string>Write latency maximum</string>\r\n  <string>Unlogg" +
+            "ed Batch Partitions Count Total</string>\r\n  <string>Unlogged Batch Partitions Co" +
+            "unt maximum</string>\r\n  <string>Unlogged Batch Partitions Count mean</string>\r\n " +
+            " <string>Unlogged Batch Partitions Count minimum</string>\r\n  <string>Unlogged Ba" +
+            "tch Partitions Count occurrences</string>\r\n  <string>Tombstones query aborted To" +
+            "tal</string>\r\n  <string>Tombstones query aborted maximum</string>\r\n  <string>Tom" +
+            "bstones query aborted mean</string>\r\n  <string>Tombstones query aborted minimum<" +
+            "/string>\r\n  <string>Tombstones query aborted occurences</string>\r\n  <string>Read" +
+            " Repair maximum latency</string>\r\n  <string>Read Repair minimum latency</string>" +
+            "\r\n  <string>Read Repair mean latency</string>\r\n  <string>Read Repair occurrences" +
+            "</string>\r\n  <string>Read Repair Aborted occurrences</string>\r\n  <string>Solr re" +
+            "index duration maximum</string>\r\n  <string>Solr reindex duration minimum</string" +
+            ">\r\n  <string>Solr reindex duration mean</string>\r\n  <string>Solr reindex duratio" +
+            "n stdev</string>\r\n  <string>Solr reindex occurrences</string>\r\n  <string>AntiCom" +
+            "paction maximum latency</string>\r\n  <string>AntiCompaction mean latency</string>" +
+            "\r\n  <string>AntiCompaction minimum latency</string>\r\n  <string>AntiCompaction oc" +
+            "currences</string>\r\n  <string>AntiCompaction SSTable count</string>\r\n  <string>A" +
+            "ntiCompaction maximum rate</string>\r\n  <string>AntiCompaction mean rate</string>" +
+            "\r\n  <string>AntiCompaction minimum rate</string>\r\n  <string>AntiCompaction rate " +
+            "occurrences</string>\r\n  <string>Memtable Flush maximum latency</string>\r\n  <stri" +
+            "ng>Memtable Flush mean latency</string>\r\n  <string>Memtable Flush minimum latenc" +
+            "y</string>\r\n  <string>Memtable Flush occurrences</string>\r\n  <string>Memtable Fl" +
+            "ush maximum IORate</string>\r\n  <string>Memtable Flush mean IORate</string>\r\n  <s" +
+            "tring>Memtable Flush minimum IORate</string>\r\n  <string>Memtable Flush maximum S" +
+            "torage</string>\r\n  <string>Memtable Flush mean Storage</string>\r\n  <string>Memta" +
+            "ble Flush minimum Storage</string>\r\n  <string>Memtable Flush total Storage</stri" +
+            "ng>\r\n  <string>Solr Hard Commit duration maximum</string>\r\n  <string>Solr Hard C" +
+            "ommit duration minimum</string>\r\n  <string>Solr Hard Commit duration mean</strin" +
+            "g>\r\n  <string>Solr Hard Commit duration stdev</string>\r\n  <string>Solr Hard Comm" +
+            "it occurrences</string>\r\n  <string>Schema Created occurrences</string>\r\n  <strin" +
+            "g>Schema Dropped occurrences</string>\r\n  <string>Schema Updated occurrences</str" +
+            "ing>\r\n  <string>MemTable Write OPS Delta maximum</string>\r\n  <string>MemTable Wr" +
+            "ite OPS Delta minimum</string>\r\n  <string>MemTable Write OPS Delta mean</string>" +
+            "\r\n  <string>MemTable Write Delta occurrences</string>\r\n  <string>MemTable Write " +
+            "Size Delta maximum</string>\r\n  <string>MemTable Write Size Delta minimum</string" +
+            ">\r\n  <string>MemTable Write Size Delta mean</string>\r\n  <string>MemTable Write S" +
+            "ize Delta Total</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -1218,6 +1220,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public global::System.Collections.Specialized.StringCollection LogCassandraDebugDirSystemLogs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["LogCassandraDebugDirSystemLogs"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10000")]
+        public int AntiCompactionLatencyThresholdMS {
+            get {
+                return ((int)(this["AntiCompactionLatencyThresholdMS"]));
             }
         }
     }
