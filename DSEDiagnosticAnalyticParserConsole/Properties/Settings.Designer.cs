@@ -1231,5 +1231,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((int)(this["AntiCompactionLatencyThresholdMS"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(".\\driver\\schema")]
+        public string CQLDDLDirFileOpsCtr6 {
+            get {
+                return ((string)(this["CQLDDLDirFileOpsCtr6"]));
+            }
+        }
     }
 }

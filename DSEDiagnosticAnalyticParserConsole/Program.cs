@@ -724,7 +724,20 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else
                         {
-                            Logger.Instance.InfoFormat("CQL DDL file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
+                            //Look for DDL in OpsCenter 6 folder structure
+                            if (nodeDirs[fileIndex].MakeFile(Properties.Settings.Default.CQLDDLDirFileOpsCtr6, out filePath)
+                                    && filePath.Exist())
+                            {
+                                Program.ConsoleNonLogReadFiles.Increment(filePath);
+                                Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
+                                ProcessFileTasks.ReadParseCQLDDLParse(filePath);
+                                parsedDDLList.TryAdd(filePath.PathResolved);
+                                Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
+                            }
+                            else
+                            {
+                                Logger.Instance.InfoFormat("CQL DDL file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
+                            }
                         }
                     }
                 }

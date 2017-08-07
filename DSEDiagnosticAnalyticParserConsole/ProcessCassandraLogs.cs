@@ -28,7 +28,58 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack)
         {
             IFilePath[] archivedFilePaths = null;
-            
+
+            #region Extract Zip File
+            if (diagFilePath.Exist()
+                    && (ParserSettings.ExtractFilesWithExtensions.Contains(diagFilePath.FileExtension)))
+            {
+                IDirectoryPath extractedDir;
+                var logFileTasks = new List<Task<int>>();
+
+                Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", diagFilePath.PathResolved));
+
+                if (ProcessFileTasks.ExtractFileToFolder(diagFilePath, out extractedDir))
+                {                    
+                    Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
+                                                    diagFilePath.PathResolved,
+                                                    extractedDir.PathResolved);
+
+                    foreach(var logFilePath in extractedDir.Children())
+                    {
+                        if (logFilePath.IsFilePath)
+                        {
+                            logFileTasks.Add(DetermineLogFilesAndProcess(continousLogTask,
+                                                                            continousLogTaskRestrictByLogDateRange,
+                                                                            (IFilePath)logFilePath,
+                                                                            allowArchiveParsing,
+                                                                            dcName,
+                                                                            ipAddress,
+                                                                            dtLogsStack,
+                                                                            nodeGCInfo,
+                                                                            kstblNames,
+                                                                            dtLogStatusStack,
+                                                                            dtCFStatsStack,
+                                                                            dtNodeStatsStack));
+                        }
+                    }                    
+                }
+                Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", extractedDir.PathResolved));
+
+                if(logFileTasks.Count == 0)
+                {
+                    Logger.Instance.InfoFormat("File \"{0}\" Extraction Failed. Skipping File...",
+                                                    diagFilePath.PathResolved);
+
+                    return Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
+                }
+                else
+                {
+                    return Task.Factory.ContinueWhenAll(logFileTasks.ToArray(), items => items.Sum(i => i.Result));
+                }
+            }
+            #endregion
+
+            #region Archive Parsing
             if (allowArchiveParsing && ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
             {
                 IFilePath archivedFilePath = null;
@@ -102,6 +153,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", archivedFilePath.PathResolved));
                 }
             }
+            #endregion
 
             return ProcessFileTasks.ProcessLogFileTasks(continousLogTask,
                                                         continousLogTaskRestrictByLogDateRange,
