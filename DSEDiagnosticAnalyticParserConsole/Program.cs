@@ -33,6 +33,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
+            Logger.Instance.Info("DSEDiagnosticAnalyticParserConsole");
+
             #region Command Line Argument and Settings
 
             CommandLineArgsString = string.Join(" ", args);
@@ -166,12 +168,12 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
             ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
 
-			#endregion
-
-			//if (!System.Runtime.GCSettings.IsServerGC
-			//		&& System.Runtime.GCSettings.LatencyMode == System.Runtime.GCLatencyMode.Batch)
-			//{
-			GCMonitor.GetInstance().StartGCMonitoring();
+            #endregion
+            
+            //if (!System.Runtime.GCSettings.IsServerGC
+            //		&& System.Runtime.GCSettings.LatencyMode == System.Runtime.GCLatencyMode.Batch)
+            //{
+            GCMonitor.GetInstance().StartGCMonitoring();
 			//}
 
 			#region Local Variables
@@ -728,7 +730,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
 
                 Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                Logger.Instance.InfoFormat("Processing CQL DDL into DataTable");
                 ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                Logger.Instance.InfoFormat("Inserted {0} CQL DDLs into DataTable", dtDDLTable.Rows.Count + dtKeySpace.Rows.Count);
                 foreach (DataRow dataRow in dtDDLTable.Rows)
                 {
                     if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
@@ -780,7 +784,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     Program.ConsoleNonLogReadFiles.Increment("CQL DDL into Data table");
+                    Logger.Instance.InfoFormat("Processing CQL DDL into DataTable");
                     ProcessFileTasks.ProcessCQLDDLIntoDataTable(dtKeySpace, dtDDLTable, ParserSettings.IgnoreKeySpaces);
+                    Logger.Instance.InfoFormat("Inserted {0} CQL DDLs into DataTable", dtDDLTable.Rows.Count + dtKeySpace.Rows.Count);
                     foreach (DataRow dataRow in dtDDLTable.Rows)
                     {
                         if (!kstblNames.Exists(item => item.KeySpaceName == (dataRow["Keyspace Name"] as string) && item.Name == (dataRow["Name"] as string)))
@@ -800,7 +806,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         if (filePath.Exist())
                         {
-                            filePath.Path.Dump(Logger.DumpType.Warning, "DDL was not found, parsing a TPStats file to obtain data model information");
+                            filePath.Path.Dump(Logger.DumpType.Warning, "DDL was not found, parsing a CFStats file to obtain data model information");
                             Program.ConsoleWarnings.Increment("DDL Not Found");
                             Program.ConsoleNonLogReadFiles.Increment(filePath);
                             ProcessFileTasks.ReadCFStatsFileForKeyspaceTableInfo(filePath, ParserSettings.IgnoreKeySpaces, kstblNames);

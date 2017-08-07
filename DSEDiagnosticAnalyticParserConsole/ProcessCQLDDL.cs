@@ -86,6 +86,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                         "Local");
 
                 ddlParser.ProcessFile();
+                ddlParser.Task?.Wait();
             }
             catch (System.Exception ex)
             {

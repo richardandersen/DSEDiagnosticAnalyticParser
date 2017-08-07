@@ -12,7 +12,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     public static class Logger
     {
-        static public readonly log4net.ILog Instance = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        //static public readonly log4net.ILog Instance = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        static public readonly DSEDiagnosticLogger.Logger Instance = null;
+
+        static Logger()
+        {
+            log4net.Config.XmlConfigurator.Configure();
+            Instance = DSEDiagnosticLogger.Logger.Instance;
+            Instance.Log4NetInstance = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
 
         public enum DumpType
         {
