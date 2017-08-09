@@ -503,6 +503,51 @@ namespace DSEDiagnosticAnalyticParserConsole
             Ignore = 999
         }
 
+
+        static public readonly Common.Patterns.Collections.ThreadSafe.ReaderWriter.HashSet<string> LogLinesHash = new Common.Patterns.Collections.ThreadSafe.ReaderWriter.HashSet<string>();
+        public static bool AddRowToLogDataTable(DataTable dtCLog, DataRow dataRow, bool isDebugLog, bool forceAdd = false)
+        {
+            bool rowAlreadyAdded = !forceAdd;
+
+            if (!forceAdd)
+            {
+                var strLogLine = new StringBuilder();
+
+                strLogLine.Append(dataRow.ItemArray[1] == null ? string.Empty : dataRow.ItemArray[1]);
+                strLogLine.Append('|');
+                strLogLine.Append(dataRow.ItemArray[2] == null ? string.Empty : dataRow.ItemArray[2]);
+                strLogLine.Append('|');
+                strLogLine.Append(dataRow.ItemArray[3] == null ? string.Empty : ((DateTime)dataRow.ItemArray[3]).ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                strLogLine.Append('|');
+
+                for (int nIdx = 5; nIdx <= 9; ++nIdx)
+                {
+                    strLogLine.Append(dataRow.ItemArray[nIdx] == null ? string.Empty : dataRow.ItemArray[nIdx]);
+                    strLogLine.Append('|');
+                }
+
+                //strLogLine.Append(dataRow.ItemArray[10] == null ? string.Empty : dataRow.ItemArray[10]);
+                //strLogLine.Append('|');
+                strLogLine.Append(dataRow.ItemArray[12] == null ? string.Empty : dataRow.ItemArray[12]);
+                
+                rowAlreadyAdded = LogLinesHash.Contains(strLogLine.ToString());
+
+                if(!rowAlreadyAdded)
+                {
+                    LogLinesHash.Add(strLogLine.ToString());
+                }
+
+            }
+
+            if(!rowAlreadyAdded)
+            {
+                dtCLog.Rows.Add(dataRow);
+                return true;
+            }
+
+            return false;
+        }
+
         static void CreateCassandraLogDataTable(System.Data.DataTable dtCLog, bool includeGroupIndiator = false)
         {
             if (dtCLog.Columns.Count == 0)
@@ -1512,7 +1557,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         nodedownDR["Associated Value"] = dataRow["Associated Value"];
                                         nodedownDR["Description"] = string.Format("{0} marked this node down. {1} dropped hints", dataRow["Node IPAddress"].ToString(), dataRow["Associated Value"].ToString());
 
-                                       dtCLog.Rows.Add(nodedownDR);
+                                        AddRowToLogDataTable(dtCLog, nodedownDR, isDebugLogFile);
                                     }
                                 }                                
                             }
@@ -1556,7 +1601,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         nodetimeoutDR["Associated Value"] = dataRow["Associated Value"];
                                         nodetimeoutDR["Description"] = string.Format("{0} tried to replay hints to this node but replay timed out and was aborted. {1} delivered", dataRow["Node IPAddress"].ToString(), dataRow["Associated Value"].ToString());
 
-                                        dtCLog.Rows.Add(nodetimeoutDR);
+                                        AddRowToLogDataTable(dtCLog, nodetimeoutDR, isDebugLogFile);                                        
                                     }
                                 }								
 							}
@@ -2157,8 +2202,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (dataRow["Flagged"] == DBNull.Value
                             || dataRow.Field<int>("Flagged") != (int)LogFlagStatus.Ignore)                    
-                    {
-                        dtCLog.Rows.Add(dataRow);
+                    {                        
+                        AddRowToLogDataTable(dtCLog, dataRow, isDebugLogFile);
                         ++nbrRows;                        
                     }
                     lastRow = dataRow;
@@ -6634,8 +6679,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCContinuousInfo>();
 
-            //System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
-            foreach (var gcInfo in GCOccurrences)
+            Logger.Instance.InfoFormat("Detecting Continuous (tolerance {0}, series {1})/Timeframe (timeframe {2}, percentage {3}) GCs for {4}",
+                                            overlapToleranceInMS,
+                                            overlapContinuousGCNbrInSeries,
+                                            gcTimeframeDetection,
+                                            gcDetectionPercent,
+                                            string.Join(", ", GCOccurrences.Select(g => string.Format("{0} nbr GC events {1}", g.Key, g.Value.Count))));
+
+            System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
+            //foreach (var gcInfo in GCOccurrences)
                 {
                     var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
                     DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
@@ -6777,7 +6829,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     #endregion
                 }
-            //);
+            );
 
             if (gcList.Count > 0)
             {

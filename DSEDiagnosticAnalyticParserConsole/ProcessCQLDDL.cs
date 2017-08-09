@@ -111,16 +111,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                 {
                     continue;
                 }
-
+                
                 if(keySpace.LocalStrategy || keySpace.EverywhereStrategy)
                 {
-                    dataRow = dtKeySpace.NewRow();
-                    dataRow["Name"] = keySpace.Name;
-                    dataRow["Replication Strategy"] = keySpace.ReplicationStrategy;
-                    dataRow["Data Center"] = keySpace.DataCenter.Name;
-                    dataRow["Replication Factor"] = 0;
-                    dataRow["DDL"] = keySpace.DDL;
-                    dtKeySpace.Rows.Add(dataRow);
+                    if (!dtKeySpace.Rows.Contains(new object[] { keySpace.Name, keySpace.DataCenter.Name }))
+                    {
+                        dataRow = dtKeySpace.NewRow();
+                        dataRow["Name"] = keySpace.Name;
+                        dataRow["Replication Strategy"] = keySpace.ReplicationStrategy;
+                        dataRow["Data Center"] = keySpace.DataCenter.Name;
+                        dataRow["Replication Factor"] = 0;
+                        dataRow["DDL"] = keySpace.DDL;
+                        dtKeySpace.Rows.Add(dataRow);
+                    }
                 }
                 else
                 {
@@ -128,6 +131,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     foreach(var replication in keySpace.Replications)
                     {
+                        if (dtKeySpace.Rows.Contains(new object[] { keySpace.Name, replication.DataCenter.Name }))
+                        {
+                            continue;
+                        }
+
                         dataRow = dtKeySpace.NewRow();
                         dataRow["Name"] = keySpace.Name;
                         dataRow["Replication Strategy"] = keySpace.ReplicationStrategy;
@@ -168,6 +176,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 foreach(var ddlItem in keySpace.DDLs)
                 {
+                    if (dtTable.Rows.Contains(new object[] { keySpace.Name, ddlItem.Name }))
+                    {
+                        continue;
+                    }
+
                     dataRow = dtTable.NewRow();
 
                     dataRow["Keyspace Name"] = keySpace.Name;
@@ -184,7 +197,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         dataRow["Associated Table"] = ((DSEDiagnosticLibrary.ICQLIndex)ddlItem).Table.FullName;
                         dataRow["Index"] = true;
-
+                        dataRow["Partition Key"] = string.Join(", ", ((DSEDiagnosticLibrary.ICQLIndex)ddlItem).Columns
+                                                                        .Select(cf => cf.PrettyPrint()));
                         if (!string.IsNullOrEmpty(((DSEDiagnosticLibrary.ICQLIndex)ddlItem).UsingClass))                        
                         {
                             dataRow["Compaction Strategy"] = RemoveNamespace(((DSEDiagnosticLibrary.ICQLIndex)ddlItem).UsingClass);

@@ -597,7 +597,7 @@
       <Value Profile="(Default)">{"Item1":null,"Item2":"[Timestamp Period] DESC, [Data Center], [Key], [Path]","Item3":"CurrentRows"}</Value>
     </Setting>
     <Setting Name="ExcludePathNamesRegEx" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">^\.</Value>
+      <Value Profile="(Default)">^\.|^.+\.zip\.?</Value>
     </Setting>
     <Setting Name="ContinuousGCNbrInSeries" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">3</Value>

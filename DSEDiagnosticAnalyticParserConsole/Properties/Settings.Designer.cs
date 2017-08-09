@@ -947,7 +947,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("^\\.")]
+        [global::System.Configuration.DefaultSettingValueAttribute("^\\.|^.+\\.zip\\.?")]
         public string ExcludePathNamesRegEx {
             get {
                 return ((string)(this["ExcludePathNamesRegEx"]));
