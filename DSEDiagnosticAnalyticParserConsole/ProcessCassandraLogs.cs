@@ -505,6 +505,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 
         static public readonly Common.Patterns.Collections.ThreadSafe.ReaderWriter.HashSet<string> LogLinesHash = new Common.Patterns.Collections.ThreadSafe.ReaderWriter.HashSet<string>();
+        static public long NbrDuplicatedLogEventsTotal = 0;
+        static public long NbrDuplicatedDebugLogEventsTotal = 0;
+
         public static bool AddRowToLogDataTable(DataTable dtCLog, DataRow dataRow, bool isDebugLog, bool forceAdd = false)
         {
             bool rowAlreadyAdded = !forceAdd;
@@ -543,6 +546,15 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 dtCLog.Rows.Add(dataRow);
                 return true;
+            }
+
+            if (isDebugLog)
+            {
+                System.Threading.Interlocked.Increment(ref NbrDuplicatedDebugLogEventsTotal);
+            }
+            else
+            {
+                System.Threading.Interlocked.Increment(ref NbrDuplicatedLogEventsTotal);
             }
 
             return false;
@@ -852,7 +864,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else
                             {
                                 ParseExceptions(ipAddress, parsedValues[0], lastRow, string.Join(" ", parsedValues.Skip(1)), null);
-                                lastRow.AcceptChanges();
+                                if(lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
                             }
 
                             exceptionOccurred = true;
@@ -870,7 +882,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else
                             {
                                 ParseExceptions(ipAddress, parsedValues[2], lastRow, string.Join(" ", parsedValues.Skip(2)), null);
-                                lastRow.AcceptChanges();
+                                if(lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
                             }
                             exceptionOccurred = true;
                             continue;
@@ -6688,136 +6700,112 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
             //foreach (var gcInfo in GCOccurrences)
-                {
-                    var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
-                    DateTime timeFrame = gcDetectionPercent < 0 || gcTimeframeDetection == TimeSpan.Zero
-                                            ? DateTime.MinValue
-                                            : gcInfoTimeLine.First().LogTimestamp + gcTimeframeDetection;
-                    GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
-                                                            ? null
-                                                            : new GCContinuousInfo()
+            {
+                var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
+                var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
+                bool disableGCTimeFrameAnalysis = gcInfoTimeLineCnt > ParserSettings.GCComplexAnalysisDisabledOverEvents;
+                DateTime timeFrame = disableGCTimeFrameAnalysis
+                                        || gcDetectionPercent < 0
+                                        || gcTimeframeDetection == TimeSpan.Zero
+                                                ? DateTime.MinValue
+                                                : gcInfoTimeLine.First().LogTimestamp + gcTimeframeDetection;
+                GCContinuousInfo detectionTimeFrame = timeFrame == DateTime.MinValue
+                                                        ? null
+                                                        : new GCContinuousInfo()
+                                                        {
+                                                            Node = gcInfo.Key,
+                                                            Latencies = new List<int>() { gcInfoTimeLine.First().Duration },
+                                                            GroupRefIds = new List<object>() { gcInfoTimeLine.First().GroupIndicator },
+                                                            Timestamps = new List<DateTime>() { gcInfoTimeLine.First().LogTimestamp },
+                                                            GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
                                                             {
-                                                                Node = gcInfo.Key,
-                                                                Latencies = new List<int>() { gcInfoTimeLine.First().Duration },
-                                                                GroupRefIds = new List<object>() { gcInfoTimeLine.First().GroupIndicator },
-                                                                Timestamps = new List<DateTime>() { gcInfoTimeLine.First().LogTimestamp },
-																GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
-																{
-																	new GCContinuousInfo.SpaceChanged()
-																	{
-																		Eden = gcInfoTimeLine.First().GCEdenTo - gcInfoTimeLine.First().GCEdenFrom,
-																		Survivor = gcInfoTimeLine.First().GCSurvivorTo - gcInfoTimeLine.First().GCSurvivorFrom,
-																		Old = gcInfoTimeLine.First().GCOldTo - gcInfoTimeLine.First().GCOldFrom
-																	}
-																},
-																Type = "TimeFrame"
-                                                            };
-                    GCContinuousInfo currentGCOverlappingInfo = null;
-                    bool overLapped = false;
-                    var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
+                                                                    new GCContinuousInfo.SpaceChanged()
+                                                                    {
+                                                                        Eden = gcInfoTimeLine.First().GCEdenTo - gcInfoTimeLine.First().GCEdenFrom,
+                                                                        Survivor = gcInfoTimeLine.First().GCSurvivorTo - gcInfoTimeLine.First().GCSurvivorFrom,
+                                                                        Old = gcInfoTimeLine.First().GCOldTo - gcInfoTimeLine.First().GCOldFrom
+                                                                    }
+                                                            },
+                                                            Type = "TimeFrame"
+                                                        };
+                GCContinuousInfo currentGCOverlappingInfo = null;
+                bool overLapped = false;
+                
+                if(disableGCTimeFrameAnalysis)
+                {
+                    Logger.Instance.WarnFormat("Disabled GC Timeframe analysis due to large number of GCs ({1:###,###,###,000}) for node {0}",
+                                                gcInfo.Key,
+                                                gcInfoTimeLineCnt);
+                }
 
-                    for (int nIndex = 1; nIndex < gcInfoTimeLineCnt; ++nIndex)
+                for (int nIndex = 1; nIndex < gcInfoTimeLineCnt; ++nIndex)
+                {
+                    #region GC Continous (overlapping)
+
+                    if (overlapToleranceInMS >= 0
+                            && gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Duration + overlapToleranceInMS)
+                                        >= gcInfoTimeLine.ElementAt(nIndex).LogTimestamp)
                     {
-                        #region GC Continous (overlapping)
-
-                        if (overlapToleranceInMS >= 0
-                                && gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp.AddMilliseconds(gcInfoTimeLine.ElementAt(nIndex).Duration + overlapToleranceInMS)
-                                            >= gcInfoTimeLine.ElementAt(nIndex).LogTimestamp)
+                        if (overLapped)
                         {
-                            if (overLapped)
+                            currentGCOverlappingInfo.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Duration);
+                            currentGCOverlappingInfo.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
+                            currentGCOverlappingInfo.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
                             {
-                                currentGCOverlappingInfo.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Duration);
-                                currentGCOverlappingInfo.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
-								currentGCOverlappingInfo.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
-																				{
-																					Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
-																					Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
-																					Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
-																				});
-							}
-                            else
-                            {
-                                overLapped = true;
-                                gcList.Add(currentGCOverlappingInfo = new GCContinuousInfo()
-                                {
-                                    Node = gcInfo.Key,
-                                    Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Duration, gcInfoTimeLine.ElementAt(nIndex).Duration },
-                                    GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex - 1).GroupIndicator },
-                                    Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp },
-									GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
-														{
-															new GCContinuousInfo.SpaceChanged()
-															{
-																Eden = gcInfoTimeLine.ElementAt(nIndex-1).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex-1).GCEdenFrom,
-																Survivor = gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorFrom,
-																Old = gcInfoTimeLine.ElementAt(nIndex-1).GCOldTo - gcInfoTimeLine.ElementAt(nIndex-1).GCOldFrom
-															},
-															new GCContinuousInfo.SpaceChanged()
-															{
-																Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
-																Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
-																Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
-															}
-														},
-									Type = "Overlap"
-                                });
-                            }
+                                Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+                                Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+                                Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+                            });
                         }
                         else
                         {
-                            overLapped = false;
-                        }
-                        #endregion
-
-                        #region GC TimeFrame
-
-                        if (gcInfoTimeLine.ElementAt(nIndex).LogTimestamp <= timeFrame)
-                        {
-                            detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
-                            detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Duration);
-                            detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).LogTimestamp);
-							detectionTimeFrame.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
-																			{
-																				Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
-																				Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
-																				Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
-																			});
-						}
-                        else if (detectionTimeFrame != null)
-                        {
-                            var totalGCLat = detectionTimeFrame.Latencies.Sum();
-                            detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
-
-                            if (detectionTimeFrame.Percentage >= gcDetectionPercent)
-                            {
-                                gcList.Add(detectionTimeFrame);
-                            }
-
-                            timeFrame = gcInfoTimeLine.ElementAt(nIndex).LogTimestamp + gcTimeframeDetection;
-                            detectionTimeFrame = new GCContinuousInfo()
+                            overLapped = true;
+                            gcList.Add(currentGCOverlappingInfo = new GCContinuousInfo()
                             {
                                 Node = gcInfo.Key,
-                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Duration },
-                                GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex).GroupIndicator },
-                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).LogTimestamp },
-								GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
-													{
-														new GCContinuousInfo.SpaceChanged()
-														{
-															Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
-															Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
-															Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
-														}
-													},
-								Type = "TimeFrame"
-                            };
+                                Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex - 1).Duration, gcInfoTimeLine.ElementAt(nIndex).Duration },
+                                GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex - 1).GroupIndicator },
+                                Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex - 1).LogTimestamp },
+                                GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
+                                                        {
+                                                            new GCContinuousInfo.SpaceChanged()
+                                                            {
+                                                                Eden = gcInfoTimeLine.ElementAt(nIndex-1).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex-1).GCEdenFrom,
+                                                                Survivor = gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex-1).GCSurvivorFrom,
+                                                                Old = gcInfoTimeLine.ElementAt(nIndex-1).GCOldTo - gcInfoTimeLine.ElementAt(nIndex-1).GCOldFrom
+                                                            },
+                                                            new GCContinuousInfo.SpaceChanged()
+                                                            {
+                                                                Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+                                                                Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+                                                                Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+                                                            }
+                                                        },
+                                Type = "Overlap"
+                            });
                         }
-                        #endregion
                     }
+                    else
+                    {
+                        overLapped = false;
+                    }
+                    #endregion
 
                     #region GC TimeFrame
 
-                    if (detectionTimeFrame != null)
+                    if (gcInfoTimeLine.ElementAt(nIndex).LogTimestamp <= timeFrame)
+                    {
+                        detectionTimeFrame.GroupRefIds.Add(gcInfoTimeLine.ElementAt(nIndex).GroupIndicator);
+                        detectionTimeFrame.Latencies.Add(gcInfoTimeLine.ElementAt(nIndex).Duration);
+                        detectionTimeFrame.Timestamps.Add(gcInfoTimeLine.ElementAt(nIndex).LogTimestamp);
+                        detectionTimeFrame.GCSpacePoolChanges.Add(new GCContinuousInfo.SpaceChanged()
+                        {
+                            Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+                            Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+                            Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+                        });
+                    }
+                    else if (detectionTimeFrame != null)
                     {
                         var totalGCLat = detectionTimeFrame.Latencies.Sum();
                         detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
@@ -6826,9 +6814,43 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             gcList.Add(detectionTimeFrame);
                         }
+
+                        timeFrame = gcInfoTimeLine.ElementAt(nIndex).LogTimestamp + gcTimeframeDetection;
+                        detectionTimeFrame = new GCContinuousInfo()
+                        {
+                            Node = gcInfo.Key,
+                            Latencies = new List<int>() { gcInfoTimeLine.ElementAt(nIndex).Duration },
+                            GroupRefIds = new List<object>() { gcInfoTimeLine.ElementAt(nIndex).GroupIndicator },
+                            Timestamps = new List<DateTime>() { gcInfoTimeLine.ElementAt(nIndex).LogTimestamp },
+                            GCSpacePoolChanges = new List<GCContinuousInfo.SpaceChanged>()
+                                                    {
+                                                        new GCContinuousInfo.SpaceChanged()
+                                                        {
+                                                            Eden = gcInfoTimeLine.ElementAt(nIndex).GCEdenTo - gcInfoTimeLine.ElementAt(nIndex).GCEdenFrom,
+                                                            Survivor = gcInfoTimeLine.ElementAt(nIndex).GCSurvivorTo - gcInfoTimeLine.ElementAt(nIndex).GCSurvivorFrom,
+                                                            Old = gcInfoTimeLine.ElementAt(nIndex).GCOldTo - gcInfoTimeLine.ElementAt(nIndex).GCOldFrom
+                                                        }
+                                                    },
+                            Type = "TimeFrame"
+                        };
                     }
                     #endregion
                 }
+
+                #region GC TimeFrame
+
+                if (detectionTimeFrame != null)
+                {
+                    var totalGCLat = detectionTimeFrame.Latencies.Sum();
+                    detectionTimeFrame.Percentage = 1m - ((decimal)(gcTimeframeDetection.TotalMilliseconds - totalGCLat) / (decimal)gcTimeframeDetection.TotalMilliseconds);
+
+                    if (detectionTimeFrame.Percentage >= gcDetectionPercent)
+                    {
+                        gcList.Add(detectionTimeFrame);
+                    }
+                }
+                #endregion
+            }
             );
 
             if (gcList.Count > 0)

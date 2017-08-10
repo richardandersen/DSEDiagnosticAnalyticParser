@@ -1240,5 +1240,14 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((string)(this["CQLDDLDirFileOpsCtr6"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3000")]
+        public int GCComplexAnalysisDisabledOverEvents {
+            get {
+                return ((int)(this["GCComplexAnalysisDisabledOverEvents"]));
+            }
+        }
     }
 }

@@ -1413,7 +1413,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             ? Common.Patterns.Tasks.CompletionExtensions.CompletedTask<int>()
                                             : Task<int>
                                                 .Factory
-                                                .ContinueWhenAll(logParsingTasks.ToArray(), tasks => { ProcessFileTasks.LogLinesHash.Clear(); return tasks.Sum(t => ((Task<int>)t).Result); });
+                                                .ContinueWhenAll(logParsingTasks.ToArray(), tasks =>
+                                                {
+                                                    Logger.Instance.InfoFormat("Duplicated Log Events {0:###,###,##0}, Debug Log Events {1:###,###,##0}",
+                                                                                    ProcessFileTasks.NbrDuplicatedLogEventsTotal,
+                                                                                    ProcessFileTasks.NbrDuplicatedDebugLogEventsTotal);
+
+                                                    ProcessFileTasks.LogLinesHash.Clear();
+                                                    return tasks.Sum(t => ((Task<int>)t).Result);
+                                                });
 				Task<IEnumerable<ProcessFileTasks.RepairLogInfo>> runReadRepairProcess = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<IEnumerable<ProcessFileTasks.RepairLogInfo>>();
 
                 if (ParserSettings.ParsingExcelOptions.ParseCompacationHistFiles.IsEnabled())
