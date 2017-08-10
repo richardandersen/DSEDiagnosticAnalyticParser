@@ -47,21 +47,19 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 
 **EnableLogReadThrottle** -- If Yes (default), all log file reads will be throttled based on the LogReadThrottleTaskCount and LogReadThrottleWaitPeriodMS application config settings.
 
-**LogCurrentDate** -- The date/time used to start collecting C* log entries. Log entries greater than and equal this date/time will be collected. If no value (null), all entries will be collected. Default is no value (all entries).
-
-**LogTimeSpanRange** -- Only valid if LogCurrentDate is defined. The time span from LogCurrentDate to collect the C* entries (e.g., the last 5 days from LogCurrentDate of 2016-09-15; From 2016-09-15 23:59:59 to 2016-09-10 00:00:00). Default 02:00:00 (2 days)
+**LogStartDate|Z** -- The date/time used to start collecting C* log entries. Log entries greater than and equal this date/time will be collected. If no value (null), all entries will be collected. Default is no value (all entries).
 
 **LogMaxRowsPerNode** -- The maximum number of C* log entries that are read per log file node. -1 will allow all entries to be read. Default is -1. Note: If this is enabled (> 0), reading C* achieve logs are disabled (only the most LogMaxRowsPerNode current lines in each Cassandra/system.log are read).
 
-**IgnoreKeySpaces** -- A collection of keyspaces that are ignored during parsing. Default is: dse_system, system_auth, system_traces, system, dse_perf
+**IgnoreKeySpaces|-I** -- A collection of keyspaces that are ignored during parsing. Default is: dse_system, system_auth, system_traces, system, dse_perf
 
-**IncludePerformanceKeyspaces** -- If true, performance keyspaces are included during parsing. The default is to ignore these keyspaces.
+**IncludePerformanceKeyspaces|-i** -- If true, performance keyspaces are included during parsing. The default is to ignore these keyspaces.
 
-**IncludeOpsCenterKeyspace** -- if true, the OpsCenter Keyspace is included. The default is false.
+**IncludeOpsCenterKeyspace|-k** -- if true, the OpsCenter Keyspace is included. The default is false.
 
-**DiagnosticPath** -- The path of the folder that contains the diagnostic files. This can be an absolute or a relative path. This is a required field. The default is "[MyDocuments]\DataStax\TestData\OpsCenter-diagnostics-2016_08_30_19_08_03_UTC". Note the structure of the content of this folder is dependent on the value of DiagnosticNoSubFolders. 
+**DiagnosticPath|-D** -- The path of the folder that contains the diagnostic files. This can be an absolute or a relative path. This is a required field. The default is "[MyDocuments]\DataStax\TestData\OpsCenter-diagnostics-2016_08_30_19_08_03_UTC". Note the structure of the content of this folder is dependent on the value of DiagnosticNoSubFolders. 
 
-**FileParsingOption** -- Structure of the folders and file names used to determine the diagnostic content. The default is OpsCtrDiagStrut. Values are:
+**FileParsingOption|-O** -- Structure of the folders and file names used to determine the diagnostic content. The default is OpsCtrDiagStrut. Values are:
 ```
 	OpsCtrDiagStruct -- OpsCenter Diagnostic Tar-Ball structure
       		<MySpecialFolder> -- this is the location used for the diagnosticPath variable
@@ -93,38 +91,16 @@ Note: Using the default values, if GC(s) take up 25% of 5 minutes (i.e., 1.25 mi
 
 Below settings are related to how aggregation is performed on the "Summary Log" worksheet. Below settings determine the aggregation period or buckets:
 
-**LogSummaryPeriods** -- Defines the period as a series of dates and time entries. Each entry is defined by two fields. First field (Item1) is the beginning date/time bucket and the second (Item2) is the aggregation of that time gor that bucket. The time ranges starts at this entry and ends at the next entry. Here is an example:
-```    
-    [{"Item1":"2016-08-02T00:00:00","Item2":"00:30:00"},{"Item1":"2016-08-01T00:00:00","Item2":"1.00:00:00"},{"Item1":"2016-07-20T00:00:00","Item2":"7.00:00:00"}]
-
-    This defines the following date/time ranges:
-      Range 1 -- 2016-08-02 midnight to 2016-08-01 midnight (exclusive) where all log entries are aggregated for each 30 mins.
-      Range 2 -- 2016-08-01 midnight to 2016-07-20 midnight (exclusive) where all log entries are aggregated for each 1 day.
-      Range 3 -- 2016-07-20 midnight to remaining entries where all log entries are aggregated for each 7 days.
-```    
-  Default is no value (disabled). Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
-
-**LogSummaryPeriodRanges** -- Defines the period as a series of time spans and time range entries. Each entry is defined by two fields. First field (Item1) is the time span from the most recent log entry or the last entry, and the second (Item2) is the aggregation of that time range. Here is an example:
-```
-    [{"Item1":"1.00:00:00","Item2":"00:15:00"},{"Item1":"2.00:00:00","Item2":"01:00:00"},{"Item1":"10.00:00:00","Item2":"7.00:00:00"}]
-  
-    This defines the following date/time ranges assuming the most recent log entry date is 2016-09-12 10:45:
-      Entry 1 -- using most recent log date for 1 day ==> 2016-09-12 10:45 to 2016-09-11 10:45 (exclusive) where all log entries are aggregated for each 15 mins.
-      Entry 2 -- Using the ending date/time from Entry 1 for 2 days ==> 2016-09-11 10:45 to 2016-09-08 10:45 (exclusive) where all log entries are aggregated for each 1 hour.
-      Entry 3 -- Using the ending date/time from Entry 2 ==> 2016-09-08 10:45 to remaining entries where all log entries are aggregated for each 7 days. Note that the last entry (i.e., Entry 3 in this example) Item1's value (in this example 10.00:00:00) is ignored. 
-```    
-    Default is [{"Item1":"4.00:00:00","Item2":"00:30:00"},{"Item1":"3.00:00:00","Item2":"12:00:00"},{"Item1":"4.00:00:00","Item2":"1.00:00:00"}]. Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
-
 **LogStartDate** -- Only import log entries from this date/time. MinDate ('1/1/0001 00:00:00') will parse all entries which is the default.
 
 **MaxNbrAchievedLogFiles** -- The maximum number of archived log files that are read per node. If the value is -1 (default), all file are read (disabled).
 
-**CLogLineFormatPosition** -- Defines how the C* Log line format layout is parsed where (zero based index) IndicatorPos is the position of the log indicator (e.g., INFO, WARN, ERROR), TaskPos is task value (e.g., [SharedPool-Worker-3]), ItemPos position (e.g., Message.java:53), TimeStampPos is the date/time position (e.g., 2016-10-01 19:20:14,415), and DescribePos is the beginning of the describe (e.g., - Unexpected exception during request;).  The default is {IndicatorPos:0, TaskPos:1 , ItemPos:4, TimeStampPos:2, DescribePos:5}"
+**CLogLineFormatPosition|-o** -- Defines how the C* Log line format layout is parsed where (zero based index) IndicatorPos is the position of the log indicator (e.g., INFO, WARN, ERROR), TaskPos is task value (e.g., [SharedPool-Worker-3]), ItemPos position (e.g., Message.java:53), TimeStampPos is the date/time position (e.g., 2016-10-01 19:20:14,415), and DescribePos is the beginning of the describe (e.g., - Unexpected exception during request;).  The default is {IndicatorPos:0, TaskPos:1 , ItemPos:4, TimeStampPos:2, DescribePos:5}"
 
 
 Below settings are used for parsing of diagnostic fles and creation of the Excel worksheets/workbooks:
 
-**ParsingExcelOptions** -- A list of parsing and Excel workbook and worksheet creation options (flags). Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The options are split into "Parse" and "Produce" actions. "Parse" actions are used to parse certain segements of the diagnostic files. "Produce" actions are used to create/generate the corresponding Excel workbooks/worksheets. Typically, you specify the “Produce” actions and the corresponding “Parse” actions are selected by the application. The default is "ParseLoadWorksheets" (unless changed in the aplication config file). Below are the options:
+**ParsingExcelOptions|-E** -- A list of parsing and Excel workbook and worksheet creation options (flags). Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The options are split into "Parse" and "Produce" actions. "Parse" actions are used to parse certain segements of the diagnostic files. "Produce" actions are used to create/generate the corresponding Excel workbooks/worksheets. Typically, you specify the “Produce” actions and the corresponding “Parse” actions are selected by the application. The default is "ParseLoadWorksheets" (unless changed in the aplication config file). Below are the options:
 ```
   ParseCFStatsFiles         -- Enables nodetool CFStats file parsing which is used by the analysis worksheets
   ParseTPStatsFiles         -- Enables nodetool TPStats file parsing which is used by the analysis worksheets
@@ -171,7 +147,7 @@ Below settings are used for parsing of diagnostic fles and creation of the Excel
   ParseLoadOnlySummaryLogs = ParseSummaryLogsOnlyOverlappingDateRanges | LoadSummaryWorkSheets | ProduceSummaryWorkbook
 ```
 
-**LogParsingExcelOption** -- A list of options around how logs are parsed and if seperate Ecel workbooks are created. Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The default is "Detect" (unless changed in the aplication config file). Below are the options:
+**LogParsingExcelOption|-L** -- A list of options around how logs are parsed and if seperate Ecel workbooks are created. Multiple options should be separated by a comma (,) or can be proceed by an plus/minus sign to add or remove options from the default. The default is "Detect" (unless changed in the aplication config file). Below are the options:
 ```
   Detect            -- If enabled, the log settings will be determined based on ParsingExcelOptions settings (above).
   Parse             -- If enabled, current log files will be included for parsing
@@ -191,7 +167,7 @@ Below settings are used for processing of Excel worksheets/workbooks:
 	**Warning:** This can split the base worksheets in the main workbook that will result in the pivot tables containing incomplete information. 
 			If MS-Excel 64-bit is being used, the divided worksheets can be merged into one base worksheet and refresh all pivot tables should fit this issue.
                    
-**LogExcelWorkbookFilter** -- This is a filter that is applied to only log entries when loading into Excel. The default is no value (null). See http://www.csharp-examples.net/dataview-rowfilter/ for more information. Below is an example of a filter:
+**LogExcelWorkbookFilter|-F** -- This is a filter that is applied to only log entries when loading into Excel. The default is no value (null). See http://www.csharp-examples.net/dataview-rowfilter/ for more information. Below is an example of a filter:
     "[Timestamp] >= #2016-08-01 15:30:00#"
 ```    
     Filter Columns are:
@@ -200,22 +176,23 @@ Below settings are used for processing of Excel worksheets/workbooks:
   	  [Timestamp], DateTime    	
 ```
 
-**ExcelTemplateFilePath** -- The location of the Diagnostic Analytic Excel template workbook file that is used to create the "main" workbook. This can be no value (null), no template will be used. Default is ".\dseTemplate.xlsx" (looks in the current directory for the file).
+**ExcelTemplateFilePath|-T** -- The location of the Diagnostic Analytic Excel template workbook file that is used to create the "main" workbook. This can be no value (null), no template will be used. Default is ".\dseTemplate.xlsx" (looks in the current directory for the file).
 
-**ExcelFilePath** -- The folder and file name of the "main" Excel workbook. Any additionally created workbooks (i.e., MaxRowInExcelWorkBook) are also placed into this folder. The default is "[DeskTop]\Test.xlsx"
+**ExcelFilePath|-P** -- The folder and file name of the "main" Excel workbook. Any additionally created workbooks (i.e., MaxRowInExcelWorkBook) are also placed into this folder. The default is "[DeskTop]\Test.xlsx"
 
 Alternative Folder Locations. These are additional locations to find additional log or CQL/DDL files.
 
-**AlternativeLogFilePath** -- Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. Wild cards in the path are supported. Default is no value (null). 
+**AlternativeLogFilePath|-l** -- Additional file path that is used to parse log files where the IP address must be in the beginning or end of the file name. Wild cards in the path are supported. Default is no value (null). 
 
-**AlternativeDDLFilePath** -- Additional file path that is used to parse CQL/DDL files. Wild cards in the path are supported. Default is no value (null). 
+**AlternativeDDLFilePath|-d** -- Additional file path that is used to parse CQL/DDL files. Wild cards in the path are supported. Default is no value (null). 
 
-**TableHistogramDirPath** -- Directory of files that contain the results of a nodetool TableHistogram. The file names must have the node's IP address in the beginning or end of the name. If this argument is not provide, the 'DiagnosticPath' is searched looking for files with the string "TableHistogram" embedded in the name.
+**TableHistogramDirPath|-t** -- Directory of files that contain the results of a nodetool TableHistogram. The file names must have the node's IP address in the beginning or end of the name. If this argument is not provide, the 'DiagnosticPath' is searched looking for files with the string "TableHistogram" embedded in the name.
 
 
 Other Commands:
 
-**CreateDirStructForNodes** -- This will create the OpsCenter directory structure using a list of IP4 node addresses separated by comma. If this is specified all other commands/arguments are ignored except for argument **DiagnosticPath** which is the location where the folders are created.
+**CreateDirStructForNodes|-x** -- This will create the OpsCenter directory structure using a list of IP4 node addresses separated by comma. If this is specified all other commands/arguments are ignored except for argument **DiagnosticPath** which is the location where the folders are created.
+**Validate|-V** -- If defined the analysis will parse required options for validation purposes only
 
 **Note** that any of the C# "Special Folder" values can be used in any of the path settings (just surround the name of the enumeration with square brackets, e.g., [DeskTop]\Test.xlsx). See https://msdn.microsoft.com/en-us/library/system.environment.specialfolder%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396 or https://ibboard.co.uk/Programming/mono-special-folders.html
 

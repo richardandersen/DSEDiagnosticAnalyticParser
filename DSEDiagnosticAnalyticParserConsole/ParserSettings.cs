@@ -241,6 +241,19 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);
         public static string[] LogSummaryTaskItems = Properties.Settings.Default.LogSummaryTaskItems.ToArray(false);
         public static Tuple<DateTime, TimeSpan>[] LogSummaryPeriods = Newtonsoft.Json.JsonConvert.DeserializeObject<Tuple<DateTime, TimeSpan>[]>(Properties.Settings.Default.LogSummaryPeriods);
+        /*
+         * **LogSummaryPeriods** -- Defines the period as a series of dates and time entries. Each entry is defined by two fields. First field (Item1) is the beginning date/time bucket and the second (Item2) is the aggregation of that time gor that bucket. The time ranges starts at this entry and ends at the next entry. Here is an example:
+             
+            [{"Item1":"2016-08-02T00:00:00","Item2":"00:30:00"},{"Item1":"2016-08-01T00:00:00","Item2":"1.00:00:00"},{"Item1":"2016-07-20T00:00:00","Item2":"7.00:00:00"}]
+
+            This defines the following date/time ranges:
+                Range 1 -- 2016-08-02 midnight to 2016-08-01 midnight (exclusive) where all log entries are aggregated for each 30 mins.
+                Range 2 -- 2016-08-01 midnight to 2016-07-20 midnight (exclusive) where all log entries are aggregated for each 1 day.
+                Range 3 -- 2016-07-20 midnight to remaining entries where all log entries are aggregated for each 7 days.
+            
+            Default is no value (disabled). Note that either LogSummaryPeriods or LogSummaryPeriodRanges are set. 
+
+         */
         //new Tuple<DateTime, TimeSpan>[] { new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 02), new TimeSpan(0, 0, 30, 0)), //From By date/time and aggregation period
         //                                  new Tuple<DateTime,TimeSpan>(new DateTime(2016, 08, 1, 0, 0, 0), new TimeSpan(0, 1, 0, 0)),
         //                                  new Tuple<DateTime,TimeSpan>(new DateTime(2016, 07, 29, 0, 0, 0), new TimeSpan(1, 0, 0, 0))}; //null disable Summaries.

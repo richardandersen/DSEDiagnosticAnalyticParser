@@ -388,7 +388,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
         }
 
-        [Option('v', "NbrGCInSeriesToConsiderContinuous", HelpText = "The number of GC in a series (row) that will be considered as continuous (back-to-back). This works in conjunction with ToleranceContinuousGCInMS to determine the series.",
+        [Option("NbrGCInSeriesToConsiderContinuous", HelpText = "The number of GC in a series (row) that will be considered as continuous (back-to-back). This works in conjunction with ToleranceContinuousGCInMS to determine the series.",
                     Required = false)]
         public int NbrGCInSeriesToConsiderContinuous
         {
@@ -504,6 +504,35 @@ namespace DSEDiagnosticAnalyticParserConsole
             set
             {
                 ParserSettings.EnableLogReadThrottle = value == ParserSettings.YesNo.Yes;
+            }
+        }
+
+        private bool _validateLogs = false;
+        [Option('V', "Validate", HelpText = "If defined the analysis will parse required options for validation purposes only",
+                   Required = false)]
+        public bool ValidateLogs
+        {
+            get { return this._validateLogs; }
+            set
+            {
+                this._validateLogs = value;
+
+                if(this._validateLogs)
+                {
+                    ParserSettings.ParsingExcelOption = ParserSettings.ParsingExcelOptions.ParseCFStatsFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseTPStatsFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseDDLFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseRingInfoFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseMachineInfoFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseYamlFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseOpsCenterFiles
+                                    | ParserSettings.ParsingExcelOptions.ParseSummaryLogs
+                                    | ParserSettings.ParsingExcelOptions.ParseCFStatsLogs
+                                    | ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs
+                                    | ParserSettings.ParsingExcelOptions.LoadAllWorkSheets                                    
+                                    | ParserSettings.ParsingExcelOptions.ParseReadRepairs;
+                    ParserSettings.LogParsingExcelOption = ParserSettings.LogParsingExcelOptions.ParseLogs;                                    
+                }
             }
         }
 
@@ -663,7 +692,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     "--IncludeOpsCenterKeyspace|-k {20} " +
                                     "--TableHistogramDirPath|-t \"{21}\" " +
                                     "--ToleranceContinuousGCInMS|-g {22} " +
-                                    "--NbrGCInSeriesToConsiderContinuous|-v {26} " +
+                                    "--NbrGCInSeriesToConsiderContinuous {26} " +
                                     "--GCTimeFrameDetection|-f {23} " +
                                     "--GCTimeFrameDetectionPercentage|-e {24} " +
 									"--ReadRepairThresholdInMS|-r {27} " +
