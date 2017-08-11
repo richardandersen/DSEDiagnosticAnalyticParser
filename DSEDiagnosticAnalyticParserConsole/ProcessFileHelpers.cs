@@ -12,16 +12,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static partial class ProcessFileTasks
     {
-        readonly static Regex IPFileNameRegEx = new Regex(@"(\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        readonly static Regex IPFileNameRegEx = new Regex(@"^(\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3})|^.+[.\-_ ](\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3}[.\-_\ ]\d{1,3})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         static public bool DetermineIPDCFromFileName(string pathItem, DataTable dtRingInfo, out string ipAddress, out string dcName)
         {
             var ipMatch = IPFileNameRegEx.Match(pathItem);
             ipAddress = null;
 
-            if (ipMatch.Success)
+            if (ipMatch.Success && ipMatch.Groups.Count == 3)
             {
-                ipAddress = Regex.Replace(ipMatch.Value, @"[\-_\ ]", @".") ?? ipMatch.Value;
+                var matchedAddr = string.IsNullOrEmpty(ipMatch.Groups[1].Value)
+                                        ? ipMatch.Groups[2].Value
+                                        : ipMatch.Groups[1].Value;
+                ipAddress = Regex.Replace(matchedAddr, @"[\-_\ ]", @".") ?? matchedAddr;
             }
             else
             {
