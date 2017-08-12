@@ -32,8 +32,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 workSheet.Cells["G:G"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["H:H"].Style.Numberformat.Format = "##0.00%";
                                                 workSheet.Cells["I:I"].Style.Numberformat.Format = "0.00";
-                                                workSheet.Cells["K:K"].Style.Numberformat.Format = "#,###,###,##0.00";
                                                 workSheet.Cells["J:J"].Style.Numberformat.Format = "0.00";
+                                                //workSheet.Cells["K:K"].Style.Numberformat.Format = "d hh:mm";
                                                 workSheet.Cells["L:L"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
                                                 workSheet.Cells["M:M"].Style.Numberformat.Format = "mm/dd/yyyy hh:mm:ss.000";
                                                 workSheet.Cells["N:N"].Style.Numberformat.Format = "d hh:mm";
@@ -51,8 +51,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 //workSheet.InsertColumn(11, 1);
                                                 //workSheet.Column(10).Hidden = true;
                                                 //workSheet.Cells["J1"].Value = "Uptime (Days)";
-                                                workSheet.Cells["K1"].Value = "Uptime";
-                                                workSheet.Cells["K2"].FormulaR1C1 = "CONCATENATE(TEXT(FLOOR(J2,1),\"@\"),\" \",TEXT(J2,\"hh:mm:ss\"))";
+                                                //workSheet.Cells["K1"].Value = "Uptime";
+                                                //workSheet.Cells[string.Format("K2:K{0}", dtRingInfo.Rows.Count + 2)].FormulaR1C1 = "CONCATENATE(TEXT(FLOOR(J2,1),\"@\"),\" \",TEXT(J2,\"hh:mm:ss\"))";
 
                                                 DTLoadIntoExcel.AutoFitColumn(workSheet);                                                
                                             },

@@ -74,7 +74,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                         //dataRow["Number of Restarts"] = int.Parse(lineValue);
                         break;
                     case "uptime (seconds)":
-                        dataRow["Uptime"] = TimeSpan.FromSeconds(double.Parse(lineValue));
+                        {
+                            var tsUptime = TimeSpan.FromSeconds(double.Parse(lineValue));
+                            dataRow["Uptime"] = tsUptime.ToString(@"d\ hh\:mm");
+                            dataRow["Uptime (Days)"] = tsUptime;
+                        }
                         break;
                     case "heap memory (mb)":
                         dataRow["Heap Memory (MB)"] = lineValue;

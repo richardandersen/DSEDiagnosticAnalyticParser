@@ -25,28 +25,29 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtRingInfo.Columns.Add("Storage Used (MB)", typeof(decimal)).AllowDBNull = true; //G
 				dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true; //J
-                dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//K
+				dtRingInfo.Columns.Add("Uptime (Days)", typeof(TimeSpan)).AllowDBNull = true; //J
+                dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true; //K
+                dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//L
                 dtRingInfo.Columns.Add("Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Log Duration", typeof(TimeSpan)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//N
-                dtRingInfo.Columns.Add("Debug Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//o
+                dtRingInfo.Columns.Add("Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//O
+                dtRingInfo.Columns.Add("Debug Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//P
                 dtRingInfo.Columns.Add("Debug Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Debug Log Duration", typeof(TimeSpan)).AllowDBNull = true;
-                dtRingInfo.Columns.Add("Debug Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//r
+                dtRingInfo.Columns.Add("Debug Log Timespan Difference", typeof(TimeSpan)).AllowDBNull = true;//s
 
-                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true; //s
-				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;//t
-				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;//u
-				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;//v
-                dtRingInfo.Columns.Add("Percent Repaired", typeof(decimal)).AllowDBNull = true;//w
-                dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;//x
-				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Key Cache Information", typeof(string)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Row Cache Information", typeof(string)).AllowDBNull = true;
-				dtRingInfo.Columns.Add("Counter Cache Information", typeof(string)).AllowDBNull = true;
+                dtRingInfo.Columns.Add("Heap Memory (MB)", typeof(string)).AllowDBNull = true; //t
+				dtRingInfo.Columns.Add("Off Heap Memory (MB)", typeof(decimal)).AllowDBNull = true;//u
+				dtRingInfo.Columns.Add("Nbr VNodes", typeof(int)).AllowDBNull = true;//v
+				dtRingInfo.Columns.Add("Nbr of Exceptions", typeof(int)).AllowDBNull = true;//w
+                dtRingInfo.Columns.Add("Percent Repaired", typeof(decimal)).AllowDBNull = true;//x
+                dtRingInfo.Columns.Add("Repair Service Enabled", typeof(bool)).AllowDBNull = true;//y
+				dtRingInfo.Columns.Add("Gossip Enabled", typeof(bool)).AllowDBNull = true;//z
+				dtRingInfo.Columns.Add("Thrift Enabled", typeof(bool)).AllowDBNull = true;//aa
+				dtRingInfo.Columns.Add("Native Transport Enabled", typeof(bool)).AllowDBNull = true;//ab
+				dtRingInfo.Columns.Add("Key Cache Information", typeof(string)).AllowDBNull = true;//ac
+				dtRingInfo.Columns.Add("Row Cache Information", typeof(string)).AllowDBNull = true;//ad
+				dtRingInfo.Columns.Add("Counter Cache Information", typeof(string)).AllowDBNull = true;//ae
 			}
 		}
 
