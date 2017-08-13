@@ -26,7 +26,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtRingInfo.Columns.Add("Storage Utilization", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Health Rating", typeof(decimal)).AllowDBNull = true;
 				dtRingInfo.Columns.Add("Uptime (Days)", typeof(TimeSpan)).AllowDBNull = true; //J
-                dtRingInfo.Columns.Add("Uptime", typeof(TimeSpan)).AllowDBNull = true; //K
+                dtRingInfo.Columns.Add("Uptime", typeof(string)).AllowDBNull = true; //K
                 dtRingInfo.Columns.Add("Log Min Timestamp", typeof(DateTime)).AllowDBNull = true;//L
                 dtRingInfo.Columns.Add("Log Max Timestamp", typeof(DateTime)).AllowDBNull = true;
                 dtRingInfo.Columns.Add("Log Duration", typeof(TimeSpan)).AllowDBNull = true;
