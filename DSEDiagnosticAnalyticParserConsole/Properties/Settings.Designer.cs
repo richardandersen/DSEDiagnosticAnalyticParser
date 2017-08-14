@@ -617,7 +617,10 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "\r\n  <string>MemTable Write Delta occurrences</string>\r\n  <string>MemTable Write " +
             "Size Delta maximum</string>\r\n  <string>MemTable Write Size Delta minimum</string" +
             ">\r\n  <string>MemTable Write Size Delta mean</string>\r\n  <string>MemTable Write S" +
-            "ize Delta Total</string>\r\n</ArrayOfString>")]
+            "ize Delta Total</string>\r\n  <string>Query read warning Total</string>\r\n  <string" +
+            ">Query read warning maximum</string>\r\n  <string>Query read warning minimum</stri" +
+            "ng>\r\n  <string>Query read warning mean</string>\r\n  <string>Query read warning oc" +
+            "currences</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
