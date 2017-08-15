@@ -1200,6 +1200,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //INFO [FlushWriter:262] 2017-03-06 17:37:15,303 Memtable.java (line 362) Writing Memtable-readerdata@354586264(3332/33320 serialized/live bytes, 70 ops)
                             //INFO[FlushWriter: 262] 2017 - 03 - 06 17:37:15,320 Memtable.java(line 402) Completed flushing / var / lib / cassandra / data / ampdata / readerdata / ampdata - readerdata - jb - 116694 - Data.db(4876 bytes) for commitlog position ReplayPosition(segmentId = 1488732865093, position = 30876408)
 
+                            //DEBUG [MemtableFlushWriter:23] 2017-08-11 13:03:04,864  Memtable.java:364 - Writing Memtable-logmnemonicrecentvalue@1160967395(268.396KiB serialized bytes, 3174 ops, 0%/0% of on/off-heap limit)
+                            //DEBUG [MemtableFlushWriter:23] 2017-08-11 13:03:04,872  Memtable.java:397 - Completed flushing / d5 / data / rts_data / logmnemonicrecentvalue - bb61e781f7d111e692c82747a9704109 / mc - 7750112 - big - Data.db(95.876KiB) for commitlog position ReplayPosition(segmentId = 1502112368275, position = 18085469)
 
 
                             if ((parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
@@ -1211,7 +1213,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							}
 							#endregion
 						}
-						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
                         {
                             #region SSTableWriter.java
                             //WARN  [CompactionExecutor:6] 2016-06-07 06:57:44,146  SSTableWriter.java:240 - Compacting large partition kinesis_events/event_messages:49c023da-0bb8-46ce-9845-111514b43a63 (186949948 bytes)
@@ -4029,7 +4031,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (splits.Length == 12)
                         {
-                            var ksItems = ProcessFileTasks.ParseSSTableFileIntoKSTableNames(splits[2]);
+                            var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(splits[2]);
 
                             if (ksItems != null)
                             {
@@ -8176,7 +8178,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     #region Starting
                                     var ssTable = RemoveQuotes(startingSplit[1].Trim());
-                                    var ksTblItem = ParseSSTableFileIntoKSTableNames(ssTable);
+                                    var ksTblItem = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(ssTable);
 
                                     if (currentAntiCompaction != null
                                             && (currentAntiCompaction.Keyspace != ksTblItem.Item1
@@ -8577,10 +8579,14 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO[ValidationExecutor:82] 2016-10-24 18:31:32,529  ColumnFamilyStore.java:917 - Enqueuing flush of rtics_inquiry: 956 (0%) on-heap, 964 (0%) off-heap
         //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,530  Memtable.java:347 - Writing Memtable-rtics_inquiry@694978413(0.735KiB serialized bytes, 23 ops, 0%/0% of on/off-heap limit)
         //INFO[MemtableFlushWriter:1522] 2016-10-24 18:31:32,531  Memtable.java:382 - Completed flushing /data/2/dse/data/prod_fcra/rtics_inquiry-9af27501901611e6a0d90dbb03ae0b81/prod_fcra-rtics_inquiry-tmp-ka-430-Data.db (0.000KiB) for commitlog position ReplayPosition(segmentId= 1476849887309, position= 1639529)
-        
+
         //DEBUG [ValidationExecutor:33] 2017-06-29 05:14:36,413  ColumnFamilyStore.java:850 - Enqueuing flush of pymt_soc_by_setlid: 102357 (0%) on-heap, 0 (0%) off-heap
         //DEBUG[MemtableFlushWriter:167] 2017-06-29 05:14:36,413  Memtable.java:368 - Writing Memtable-pymt_soc_by_setlid@1578363409(16.938KiB serialized bytes, 79 ops, 0%/0% of on/off-heap limit)
         //DEBUG[MemtableFlushWriter:167] 2017-06-29 05:14:36,415  Memtable.java:401 - Completed flushing /apps/cassandra/data/data1/cksprocp1/pymt_soc_by_setlid-dc3a4960f00c11e6b7494d6a36aa5e20/mc-12525-big-Data.db (8.132KiB) for commitlog position ReplayPosition(segmentId= 1498723221746, position= 14670565)
+
+        //DEBUG[MemtableFlushWriter:23] 2017-08-11 13:03:04,864  Memtable.java:364 - Writing Memtable-logmnemonicrecentvalue@1160967395(268.396KiB serialized bytes, 3174 ops, 0%/0% of on/off-heap limit)
+        //DEBUG[MemtableFlushWriter:23] 2017-08-11 13:03:04,872  Memtable.java:397 - Completed flushing /d5/data/rts_data/logmnemonicrecentvalue-bb61e781f7d111e692c82747a9704109/mc-7750112-big-Data.db (95.876KiB) for commitlog position ReplayPosition(segmentId= 1502112368275, position= 18085469)
+
 
         //INFO  [BatchlogTasks:1] 2017-01-18 08:41:09,879  ColumnFamilyStore.java:905 - Enqueuing flush of batchlog: 116840 (0%) on-heap, 0 (0%) off-heap
         //INFO[MemtableFlushWriter:16472] 2017-01-18 08:41:09,879  Memtable.java:347 - Writing Memtable-batchlog@1865343912(61.708KiB serialized bytes, 425 ops, 0%/0% of on/off-heap limit)
@@ -8717,8 +8723,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 								EnqueuingStart = item.Timestamp,
 								Type = item.Task,
 								GroupIndicator = groupIndicator += ReferenceIncrementValue,
-								Table = RemoveQuotes(splitInfo[1].Trim()),
-								LogDataRow = item.DataRow
+								Table = tableName,
+                                LogDataRow = item.DataRow
 							};
 							currentFlushes.Add(flushInfo);
 						}
@@ -8734,7 +8740,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 					if (splitInfo.Length > 1)
 					{
-                        var ksItems = ProcessFileTasks.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
+                        var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
 
 						if (ksItems == null)
                         {
