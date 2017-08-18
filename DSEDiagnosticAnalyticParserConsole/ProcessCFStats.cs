@@ -88,7 +88,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
                         {
-							var warningItem = warrningItems.SingleOrDefault(i => i.Item1 == parsedLine[1]);
+							var warningItem = warrningItems.FirstOrDefault(i => i.Item1 == parsedLine[1]);
 
 							if (warningItem != null)
 							{

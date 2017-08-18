@@ -6679,6 +6679,10 @@ namespace DSEDiagnosticAnalyticParserConsole
             public bool Deleted = false;
         };
 
+        /// <summary>
+        /// Log Timestamp, DC|Node, Keyspace.Table, Component (e.g., GC, flushing, etc.), nbr of detected items
+        /// </summary>
+        static Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, string, string, string, int>> ComponentDisabled = new Common.Patterns.Collections.ThreadSafe.List<Tuple<DateTime, string, string, string, int>>();
         public static void DetectContinuousGCIntoNodeStats(DataTable dtNodeStats,
                                                                 DataTable dtLog,
                                                                 int overlapToleranceInMS,
@@ -6703,11 +6707,59 @@ namespace DSEDiagnosticAnalyticParserConsole
             System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
             //foreach (var gcInfo in GCOccurrences)
             {
-                var gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
+                IEnumerable<GCLogInfo> gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
                 var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
-                bool disableGCTimeFrameAnalysis = gcInfoTimeLineCnt > ParserSettings.GCComplexAnalysisDisabledOverEvents;
-                DateTime timeFrame = disableGCTimeFrameAnalysis
-                                        || gcDetectionPercent < 0
+                bool redueGCTimeFrameAnalysis = ParserSettings.GCComplexReduceAnalysisOverEvents > 0 && gcInfoTimeLineCnt > ParserSettings.GCComplexReduceAnalysisOverEvents;
+
+                if(redueGCTimeFrameAnalysis)
+                {                  
+                    int maxDur = 0;
+                    int maxPos = 0;
+                    int nbrPos = 0;
+                    int midWayPt = ParserSettings.GCComplexReduceAnalysisOverEvents / 2;
+                    var orgCount = gcInfoTimeLineCnt;
+
+                    gcInfoTimeLine.ForEach(g =>
+                                    {
+                                        if (g.Duration > maxDur)
+                                        {
+                                            maxDur = g.Duration;
+                                            maxPos = nbrPos;
+                                        }
+                                        ++nbrPos;
+                                    });
+
+                    int skipNbr = 0;
+
+                    if(maxPos > midWayPt)
+                    {
+                        skipNbr = maxPos - midWayPt;
+
+                        if (skipNbr >= midWayPt)
+                        {
+                            skipNbr = orgCount - ParserSettings.GCComplexReduceAnalysisOverEvents;
+                        }
+                    }
+
+                    gcInfoTimeLine = gcInfoTimeLine.Skip(skipNbr).Take(ParserSettings.GCComplexReduceAnalysisOverEvents);
+                    gcInfoTimeLineCnt = gcInfoTimeLine.Count();
+
+                    Logger.Instance.WarnFormat("Reduced GC Timeframe analysis due to large number of GCs ({1:###,###,###,000}) for node {0}. Items Skipped {2:###,###,###,000}, Taken next {3:###,###,###,000} resulting in {4:###,###,###,000} total GCs.",
+                                                gcInfo.Key,
+                                                orgCount,
+                                                skipNbr,
+                                                ParserSettings.GCComplexReduceAnalysisOverEvents,
+                                                gcInfoTimeLineCnt);
+
+                    ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
+                                                gcInfo.Value.First().LogTimestamp,
+                                                gcInfo.Key,
+                                                null,
+                                                "GC TimeFrame Analysis Reduced",
+                                                orgCount));
+                }
+
+                DateTime timeFrame = gcDetectionPercent < 0
                                         || gcTimeframeDetection == TimeSpan.Zero
                                                 ? DateTime.MinValue
                                                 : gcInfoTimeLine.First().LogTimestamp + gcTimeframeDetection;
@@ -6732,13 +6784,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         };
                 GCContinuousInfo currentGCOverlappingInfo = null;
                 bool overLapped = false;
-                
-                if(disableGCTimeFrameAnalysis)
-                {
-                    Logger.Instance.WarnFormat("Disabled GC Timeframe analysis due to large number of GCs ({1:###,###,###,000}) for node {0}",
-                                                gcInfo.Key,
-                                                gcInfoTimeLineCnt);
-                }
 
                 for (int nIndex = 1; nIndex < gcInfoTimeLineCnt; ++nIndex)
                 {
@@ -8009,7 +8054,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 			MemTableFlushOccurrences.Clear();
 			PerformanceOccurrences.Clear();
             SolrHardCommits.Clear();
-		}
+            ComponentDisabled.Clear();
+
+        }
 
         //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
         //INFO  [CompactionExecutor:658] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.mapp2pidtouseridreadmodel on 3/[BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-105-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-22-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-17-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-91-big-Data.db'), BigTableReader(path='/var/lib/cassandra/data/testks_synchronization/mapp2pidtouseridreadmodel-ebdbe410a43411e6b05641bd36123114/mc-104-big-Data.db')] sstables
@@ -8667,8 +8714,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 										LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
 									};
 
-			//Parallel.ForEach(flushLogItems, logGroupItem =>
-			foreach (var logGroupItem in flushLogItems)
+			Parallel.ForEach(flushLogItems, logGroupItem =>
+			//foreach (var logGroupItem in flushLogItems)
 			{
 				var currentFlushes = new List<MemTableFlushLogInfo>();
 				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
@@ -9112,7 +9159,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				#endregion
 
 				currentFlushes.Clear();
-			}//);
+			});
 		}
 
 		private class ConcurrentInfo
@@ -9135,7 +9182,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
                                                         DataTable dtLog)
 		{
-			ConcurrentInfo currentConcurrentItem = null;
+            Logger.Instance.InfoFormat("Detecting Concurrent Compactions/Flushes Occurrences");
+
+            ConcurrentInfo currentConcurrentItem = null;
 			var concurrentCollection = from info in CompactionOccurrences.Values.SelectMany(i => i).Cast<ILogRateInfo>()
 														.Union(MemTableFlushOccurrences.Values.SelectMany(i => i).Cast<ILogRateInfo>())
 									   group new { Item = info } by new { info.DataCenter, info.IPAddress} into g
@@ -9172,14 +9221,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 																		})
 												.Append(currentConcurrentItem)
 												.Where(i => i != null);
+            var concurrentCollectionCnt = concurrentCollection.Count();
 
-			if(concurrentCollection.Count() > 0)
+
+            if (concurrentCollectionCnt > 0)
 			{
 				DataTable dtNodeStats = null;
 				DataTable dtCStatusLog = null;
-				decimal nbrAdded = CLogSummaryInfo.IncrementGroupInicator();
+				decimal grpRef = CLogSummaryInfo.IncrementGroupInicator();
+                int nbrAdded = 0;
 
-				if (dtLogStatusStack != null)
+                Logger.Instance.InfoFormat("Processing Concurrent Compactions/Flushes Occurrences ({0})", concurrentCollectionCnt);
+
+                if (dtLogStatusStack != null)
 				{
 					dtCStatusLog = new DataTable(ParserSettings.ExcelWorkSheetNodeStats + " Workbook - Concurrent Compaction");
 					InitializeStatusDataTable(dtCStatusLog);
@@ -9196,9 +9250,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 				foreach (var item in concurrentCollection.SelectMany(i => i))
 				{
-					nbrAdded += ReferenceIncrementValue;
+					grpRef += ReferenceIncrementValue;
+                    ++nbrAdded;
 
-					var listItemsDuration = item.ConcurrentList.Select(i => i.Duration);
+                    var listItemsDuration = item.ConcurrentList.Select(i => i.Duration);
 					var listItemsIORate = item.ConcurrentList.Select(i => i.IORate);
 					var maxDuration = listItemsDuration.Max();
 					var maxIORate = listItemsIORate.Max();
@@ -9228,7 +9283,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = item.DataCenter;
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Start";
-						dataRow["Reconciliation Reference"] = nbrAdded;
+						dataRow["Reconciliation Reference"] = grpRef;
 						dataRow["Active"] = item.ConcurrentList.Count;
 						dataRow["KeySpace"] = keyspaces;
 
@@ -9240,7 +9295,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dataRow["Data Center"] = item.DataCenter;
 						dataRow["Node IPAddress"] = item.IPAddress;
 						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Finish";
-						dataRow["Reconciliation Reference"] = nbrAdded;
+						dataRow["Reconciliation Reference"] = grpRef;
 						dataRow["Completed"] = item.ConcurrentList.Count();
 						dataRow["KeySpace"] = keyspaces;
 						dataRow["Nbr GCs"] = gcItems == null ? 0 : gcItems.Count();
@@ -9266,7 +9321,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = item.DataCenter;
 							dataRow["Node IPAddress"] = item.IPAddress;
 							dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
-							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Reconciliation Reference"] = grpRef;
 							if (maxDuration > 0)
 							{
 								dataRow["Latency (ms)"] = maxDuration;
@@ -9285,7 +9340,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = item.DataCenter;
 							dataRow["Node IPAddress"] = item.IPAddress;
 							dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
-							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Reconciliation Reference"] = grpRef;
 							if (minDuration > 0)
 							{
 								dataRow["Latency (ms)"] = minDuration;
@@ -9304,7 +9359,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = item.DataCenter;
 							dataRow["Node IPAddress"] = item.IPAddress;
 							dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
-							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Reconciliation Reference"] = grpRef;
 							if (avgDuration > 0)
 							{
 								dataRow["Latency (ms)"] = avgDuration;
@@ -9323,7 +9378,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = item.DataCenter;
 							dataRow["Node IPAddress"] = item.IPAddress;
 							dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
-							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Reconciliation Reference"] = grpRef;
 							if (stdDevDuration > 0)
 							{
 								dataRow["Latency (ms)"] = stdDevDuration;
@@ -9342,7 +9397,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = item.DataCenter;
 							dataRow["Node IPAddress"] = item.IPAddress;
 							dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
-							dataRow["Reconciliation Reference"] = nbrAdded;
+							dataRow["Reconciliation Reference"] = grpRef;
 							dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
 							dataRow["IORate (mb/sec)"] = totalIORate = item.ConcurrentList.Sum(i => i.IORate);
 							dataRow["Occurrences"] = item.ConcurrentList.Count();
@@ -9387,7 +9442,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 												  IPAddress = item.IPAddress,
 												  Type = g.Key,
 												  RefIds = refIds,
-												  RefId = nbrAdded.ToString() + "|" + string.Join(",", refIds),
+												  RefId = grpRef.ToString() + "|" + string.Join(",", refIds),
 												  TimeStamps = g.Select(i => i.StartTime),
 												  MaxDuration = durationEnum.Max(),
 												  MinDuration = durationEnum1.Min(),
@@ -9505,7 +9560,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							dataRow["Data Center"] = typeItem.DCName;
 							dataRow["Node IPAddress"] = typeItem.IPAddress;
 							dataRow["Attribute"] = string.Format("Concurrent {0} occurrences", typeItem.Type);
-							dataRow["Reconciliation Reference"] = nbrAdded.ToString() + "|["
+							dataRow["Reconciliation Reference"] = grpRef.ToString() + "|["
 																	+ string.Join(", ", typeItem.RefIds
 																							.SelectWithIndex((refId, idx)
 																								=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
@@ -9529,7 +9584,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							var minPerfLatency = perfLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
 							var avgPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
 							var stddevPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-							var refIds = nbrAdded.ToString() + "|" + perfItems.GroupIndicatorLogTimestamp();
+							var refIds = grpRef.ToString() + "|" + perfItems.GroupIndicatorLogTimestamp();
 							var dataRow = dtNodeStats.NewRow();
 
 							dataRow["Source"] = "Cassandra Log";
@@ -9613,7 +9668,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							var minGCLatency = gcLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
 							var avgGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
 							var stddevGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-							var refIds = nbrAdded.ToString() + "|["
+							var refIds = grpRef.ToString() + "|["
 											+ string.Join(", ", gcItems
 																	.SelectWithIndex((refId, idx)
 																		=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
@@ -9693,7 +9748,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					}
 				}
 
-				Logger.Instance.InfoFormat("Adding Concurrent Compactions/Flushes Occurrences ({0}) to TPStats", nbrAdded);
+				Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to TPStats", nbrAdded);
 			}
 
 		}
@@ -9931,6 +9986,32 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dtLog.Rows.Add(dataRow);
                         }
                     }
+                }
+            }
+
+            if(ComponentDisabled.UnSafe.Count > 0)
+            {
+                /// Log Timestamp, DC|Node, Keyspace.Table, Component (e.g., GC, flushing, etc.), nbr of detected items
+                foreach (var componentItem in ComponentDisabled.UnSafe)
+                {
+                    var dataRow = dtLog.NewRow();
+                    var ksTblSplit = componentItem.Item2.Split('|');
+
+                    dataRow["Data Center"] = ksTblSplit[0];
+                    dataRow["Node IPAddress"] = ksTblSplit[1];
+                    dataRow["Timestamp"] = componentItem.Item1;
+                    dataRow["Exception"] = string.Format("Component Warning {0}", componentItem.Item4);
+                    dataRow["Associated Value"] = componentItem.Item5;
+                    dataRow["Associated Item"] = componentItem.Item3;
+                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                    dataRow["Indicator"] = "WARN";
+                    dataRow["Task"] = "DisableComponent";
+                    dataRow["Item"] = "Generated";
+                    dataRow["Description"] = string.Format("Component Warning for {0} at {1}",
+                                        componentItem.Item4,
+                                        componentItem.Item5);
+
+                    dtLog.Rows.Add(dataRow);                    
                 }
             }
         }
