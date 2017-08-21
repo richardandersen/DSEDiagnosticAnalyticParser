@@ -173,7 +173,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             true);
         }
 
-        static public void UpdateApplicationWs(ExcelPackage excelPkg)
+        static public void UpdateApplicationWs(ExcelPackage excelPkg, bool aborted = false)
         {
             var workSheet = excelPkg.Workbook.Worksheets["Application"];
             if (workSheet == null)
@@ -183,6 +183,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             workSheet.Column(1).Width = 150;
             workSheet.Column(1).Style.WrapText = true;
+
+            if (aborted)
+            {
+                workSheet.Cells["A1"].Value = "ABORTED! Results are probably incomplete! " + (string)workSheet.Cells["A1"].Value;
+                workSheet.Cells["A1"].Style.Font.Bold = true;
+            }
 
             workSheet.Cells["A2"].Value = string.Format("Start Timestamp: {0} Duration: {1:hh\\:mm\\:ss\\.ffff}",
 															Program.RunDateTime,
@@ -210,6 +216,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Max,
                                                             ProcessFileTasks.LogCassandraMaxMinTimestamp.Max - ProcessFileTasks.LogCassandraMaxMinTimestamp.Min,
 															Program.ConsoleLogCount.Counter);
+            }
+
+            if(aborted)
+            {
+                workSheet.Cells["A9"].Value = "ABORTED! Results are probably incomplete!";
+                workSheet.Cells["A9"].Style.Font.Bold = true;                
             }
         }
     }

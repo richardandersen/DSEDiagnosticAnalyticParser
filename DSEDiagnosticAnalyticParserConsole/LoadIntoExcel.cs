@@ -148,7 +148,35 @@ namespace DSEDiagnosticAnalyticParserConsole
 				{
 					using (var excelPkg = new ExcelPackage(excelFile.FileInfo()))
 					{
-						if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
+                        System.Console.CancelKeyPress += (sender, eventArgs) =>
+                        {
+                            try
+                            {
+                                var newExcelFile = (IFilePath)excelFile.Clone("Aborted-" + excelFile.FileName);
+                                Logger.Instance.InfoFormat("ABORTED Excel WorkBook saved to \"{0}\"", newExcelFile.PathResolved);
+                                DTLoadIntoExcel.UpdateApplicationWs(excelPkg, true);
+                                excelPkg.SaveAs(newExcelFile.FileInfo());
+                                Program.ConsoleExcelWorkbook.Increment(newExcelFile);                                
+                            }
+                            catch
+                            {
+                                Logger.Instance.Error("ABORTED Excel WorkBook Save failed!");
+                            }
+                            try
+                            {
+                                if (excelFileFound)
+                                {
+                                    excelFile.SetAttributes(excelFileAttrs);
+                                }
+                                else
+                                {
+                                    excelFile.Delete();
+                                }
+                            }
+                            catch { }
+                        };
+
+                        if (ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
 						{
 							DTLoadIntoExcel.LoadTokenRangeInfo(excelPkg, dtTokenRange, ParserSettings.ExcelWorkSheetRingTokenRanges);							
                             DTLoadIntoExcel.LoadYamlRingOSInfo(runLogMergedTask,

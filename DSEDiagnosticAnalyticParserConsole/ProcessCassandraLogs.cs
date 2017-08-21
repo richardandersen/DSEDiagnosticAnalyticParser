@@ -6697,15 +6697,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             var gcList = new Common.Patterns.Collections.ThreadSafe.List<GCContinuousInfo>();
 
-            Logger.Instance.InfoFormat("Detecting Continuous (tolerance {0}, series {1})/Timeframe (timeframe {2}, percentage {3}) GCs for {4}",
+            Logger.Instance.InfoFormat("Begin Detecting Continuous (tolerance {0}, series {1})/Timeframe (timeframe {2}, percentage {3}) GCs for {4}",
                                             overlapToleranceInMS,
                                             overlapContinuousGCNbrInSeries,
                                             gcTimeframeDetection,
                                             gcDetectionPercent,
                                             string.Join(", ", GCOccurrences.Select(g => string.Format("{0} nbr GC events {1}", g.Key, g.Value.Count))));
 
-            System.Threading.Tasks.Parallel.ForEach(GCOccurrences, gcInfo =>
-            //foreach (var gcInfo in GCOccurrences)
+            System.Threading.Tasks.Parallel.ForEach(GCOccurrences.UnSafe, gcInfo =>
+            //foreach (var gcInfo in GCOccurrences.UnSafe)
             {
                 IEnumerable<GCLogInfo> gcInfoTimeLine = gcInfo.Value.OrderBy(item => item.LogTimestamp);
                 var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
@@ -7172,9 +7172,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Logger.Instance.InfoFormat("Adding GC Continuous Occurrences ({0}) to TPStats", nbrAdded);
 
             }
+
+            Logger.Instance.Info("Completed Detecting Continuous/Timeframe GCs");
         }
 
-		public static IEnumerable<RepairLogInfo> ParseReadRepairFromLog(DataTable dtroCLog,
+        public static IEnumerable<RepairLogInfo> ParseReadRepairFromLog(DataTable dtroCLog,
 																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
 																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
 																			IEnumerable<string> ignoreKeySpaces,
@@ -7186,7 +7188,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 				return Enumerable.Empty<RepairLogInfo>();
 			}
 
-			var globalReadRepairs = new Common.Patterns.Collections.ThreadSafe.List<RepairLogInfo>();
+            Logger.Instance.Info("Begin Parsing of Repairs from logs");
+
+            var globalReadRepairs = new Common.Patterns.Collections.ThreadSafe.List<RepairLogInfo>();
 			{
 				var logItems = from dr in dtroCLog.AsEnumerable()
 							   let dcName = dr.Field<string>("Data Center")
@@ -7224,11 +7228,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 								   IPAddress = g.Key.ipAddress,
 								   LogItems = (from l in g orderby l.Timestamp ascending select l)
 							   };
-
-				Parallel.ForEach(logItems, logGroupItem =>
+                
+                Parallel.ForEach(logItems, logGroupItem =>
 				//foreach (var logGroupItem in logItems)
 				{
-					DateTime oldestLogTimeStamp = DateTime.MaxValue;
+                    Logger.Instance.InfoFormat("Begin Parsing of Repairs for {0}|{1} with {2} items",
+                                                    logGroupItem.DCName,
+                                                    logGroupItem.IPAddress,
+                                                    logGroupItem.LogItems.Count());
+
+                    DateTime oldestLogTimeStamp = DateTime.MaxValue;
 					var dtStatusLog = new DataTable(string.Format("NodeStatus-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
 					var currentReadRepairs = new List<RepairLogInfo>();
 					var optionsReadRepair = new List<Tuple<string, string>>(); //Keyspace, Options
@@ -7720,10 +7729,16 @@ namespace DSEDiagnosticAnalyticParserConsole
 						}
 						#endregion
 					}
-				});
+
+                    Logger.Instance.InfoFormat("Completed Parsing of Repairs for {0}|{1}",
+                                                    logGroupItem.DCName,
+                                                    logGroupItem.IPAddress);
+                });
 			}//end of scope for logItems
 
-			return globalReadRepairs.UnSafe;
+            Logger.Instance.Info("Completed Parsing of Repairs from logs");
+
+            return globalReadRepairs.UnSafe;
 		}
 
 		public static void ReadRepairIntoDataTable(IEnumerable<RepairLogInfo> readRepairs,
@@ -8128,7 +8143,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 				return;
 			}
 
-			ulong recNbr = 0;
+            Logger.Instance.Info("Begin Review of AntiCompacation from logs");
+
+            ulong recNbr = 0;
 			var globalAntiCompactions = CompactionOccurrences; //ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, ThreadSafe.List<ICompactionLogInto>>
 			{
                 IReadOnlyDictionary<string, IEnumerable<Tuple<DateTime,decimal,decimal>>> compHistSizeInfo = null;
@@ -8199,7 +8216,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 																return antiCompactionDCNodeList = gcList;
 															});
 
-					foreach (var item in logGroupItem.LogItems)
+                    Logger.Instance.InfoFormat("Start Review of AntiCompacation for {0}|{1} {2}.{3} with {4} items",
+                                                    logGroupItem.DCName,
+                                                    logGroupItem.IPAddress,
+                                                    logGroupItem.Task,
+                                                    logGroupItem.TaskId,
+                                                    logGroupItem.LogItems.Count());
+
+                    foreach (var item in logGroupItem.LogItems)
 					{
                         if (logGroupItem.Task == "AntiCompactionExecutor")
                         {
@@ -8597,11 +8621,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dtCFStats.Rows.Add(dataRow);
                             }
 						}
-					}
-					#endregion
-				});
+                        #endregion
+                    }
+
+                    Logger.Instance.InfoFormat("Completed Review of AntiCompacation for {0}|{1} {2}.{3}",
+                                                    logGroupItem.DCName,
+                                                    logGroupItem.IPAddress,
+                                                    logGroupItem.Task,
+                                                    logGroupItem.TaskId);
+                });
 			}//end of scope for antiCompactionLogItems
-		}
+
+            Logger.Instance.Info("Completed Review of AntiCompacation from logs");
+        }
 
         //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
         //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
@@ -8690,7 +8722,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 				return;
 			}
 
-			ulong recNbr = 0;
+            Logger.Instance.Info("Begin Parsing Memtable flushing from logs");
+
+            ulong recNbr = 0;
 			var flushLogItems = from dr in dtCLog.AsEnumerable()
 									let dcName = dr.Field<string>("Data Center")
 									let ipAddress = dr.Field<string>("Node IPAddress")
@@ -8720,7 +8754,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 				var currentFlushes = new List<MemTableFlushLogInfo>();
 				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
 
-				foreach (var item in logGroupItem.LogItems)
+                Logger.Instance.InfoFormat("Start Parsing Memtable flushing for {0}|{1} with {2} items",
+                                                logGroupItem.DCName,
+                                                logGroupItem.IPAddress,
+                                                logGroupItem.LogItems.Count());
+
+                foreach (var item in logGroupItem.LogItems)
 				{
 					#region Memtable Flush Processing
 					//New Flush Event
@@ -9156,11 +9195,15 @@ namespace DSEDiagnosticAnalyticParserConsole
 						dtCFStats.Rows.Add(dataRow);
 					}
 				}
-				#endregion
+                #endregion
 
-				currentFlushes.Clear();
-			});
-		}
+                Logger.Instance.InfoFormat("Completed Parsing Memtable flushing for {0}|{1}",
+                                                logGroupItem.DCName,
+                                                logGroupItem.IPAddress);
+            });
+
+            Logger.Instance.Info("Completed Parsing Memtable flushing from logs");
+        }
 
 		private class ConcurrentInfo
 		{
@@ -9182,11 +9225,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
                                                         DataTable dtLog)
 		{
-            Logger.Instance.InfoFormat("Detecting Concurrent Compactions/Flushes Occurrences");
+            Logger.Instance.Info("Begin Detecting Concurrent Compactions/Flushes Occurrences");
 
             ConcurrentInfo currentConcurrentItem = null;
-			var concurrentCollection = from info in CompactionOccurrences.Values.SelectMany(i => i).Cast<ILogRateInfo>()
-														.Union(MemTableFlushOccurrences.Values.SelectMany(i => i).Cast<ILogRateInfo>())
+			var concurrentCollection = from info in CompactionOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>()
+														.Union(MemTableFlushOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>())
 									   group new { Item = info } by new { info.DataCenter, info.IPAddress} into g
 									   select (from i in g orderby i.Item.StartTime ascending, i.Item.CompletionTime ascending select i.Item)
 												.SelectWithPrevious((prevInfo, currentInfo)
@@ -9250,508 +9293,521 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 				foreach (var item in concurrentCollection.SelectMany(i => i))
 				{
-					grpRef += ReferenceIncrementValue;
-                    ++nbrAdded;
+                    try
+                    {
+                        grpRef += ReferenceIncrementValue;
+                        ++nbrAdded;
 
-                    var listItemsDuration = item.ConcurrentList.Select(i => i.Duration);
-					var listItemsIORate = item.ConcurrentList.Select(i => i.IORate);
-					var maxDuration = listItemsDuration.Max();
-					var maxIORate = listItemsIORate.Max();
-					var minDuration = listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Min();
-					var minIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Min();
-					var avgDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Average();
-					var avgIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Average();
-					var stdDevDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-					var stdDevIORate = (decimal)listItemsIORate.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+                        var listItemsDuration = item.ConcurrentList.Select(i => i.Duration);
+                        var listItemsIORate = item.ConcurrentList.Select(i => i.IORate);
+                        var maxDuration = listItemsDuration.Max();
+                        var maxIORate = listItemsIORate.Max();
+                        var minDuration = listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Min();
+                        var minIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Min();
+                        var avgDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().Average();
+                        var avgIORate = listItemsIORate.Where(i => i > 0).DefaultIfEmpty().Average();
+                        var stdDevDuration = (int)listItemsDuration.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+                        var stdDevIORate = (decimal)listItemsIORate.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
 
-					Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
-					var dcIpAddress = (item.DataCenter == null ? string.Empty : item.DataCenter) + "|" + item.IPAddress;
-					PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
-					var perfItems = nodePerfCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.StartTime));
-					Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
-					GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
-					var gcItems = nodeGCCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.StartTime));
+                        Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
+                        var dcIpAddress = (item.DataCenter == null ? string.Empty : item.DataCenter) + "|" + item.IPAddress;
+                        PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
+                        var perfItems = nodePerfCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.StartTime));
+                        Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
+                        GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
+                        var gcItems = nodeGCCollection?.UnSafe.Where(c => item.StartFinish.Includes(c.StartTime));
 
-					if (dtCStatusLog != null)
-					{
-						var compflushType = item.ConcurrentList.First().Type;
-						var keyspaces = string.Join(", ", item.ConcurrentList.Select(i => i.Keyspace).DuplicatesRemoved(i => i));
+                        if (dtCStatusLog != null)
+                        {
+                            var compflushType = item.ConcurrentList.First().Type;
+                            var keyspaces = string.Join(", ", item.ConcurrentList.Select(i => i.Keyspace).DuplicatesRemoved(i => i));
 
-						var dataRow = dtCStatusLog.NewRow();
+                            var dataRow = dtCStatusLog.NewRow();
 
-						dataRow["Timestamp"] = item.StartFinish.Min;
-						dataRow["Data Center"] = item.DataCenter;
-						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Start";
-						dataRow["Reconciliation Reference"] = grpRef;
-						dataRow["Active"] = item.ConcurrentList.Count;
-						dataRow["KeySpace"] = keyspaces;
+                            dataRow["Timestamp"] = item.StartFinish.Min;
+                            dataRow["Data Center"] = item.DataCenter;
+                            dataRow["Node IPAddress"] = item.IPAddress;
+                            dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Start";
+                            dataRow["Reconciliation Reference"] = grpRef;
+                            dataRow["Active"] = item.ConcurrentList.Count;
+                            dataRow["KeySpace"] = keyspaces;
 
-						dtCStatusLog.Rows.Add(dataRow);
+                            dtCStatusLog.Rows.Add(dataRow);
 
-						dataRow = dtCStatusLog.NewRow();
+                            dataRow = dtCStatusLog.NewRow();
 
-						dataRow["Timestamp"] = item.StartFinish.Max;
-						dataRow["Data Center"] = item.DataCenter;
-						dataRow["Node IPAddress"] = item.IPAddress;
-						dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Finish";
-						dataRow["Reconciliation Reference"] = grpRef;
-						dataRow["Completed"] = item.ConcurrentList.Count();
-						dataRow["KeySpace"] = keyspaces;
-						dataRow["Nbr GCs"] = gcItems == null ? 0 : gcItems.Count();
-						dataRow["Nbr Compactions"] = compflushType.StartsWith("Compaction") ? item.ConcurrentList.Count : 0;
-						dataRow["Nbr MemTable Flush Events"] = compflushType.StartsWith("MemTable") ? item.ConcurrentList.Count : 0;
-						dataRow["Nbr Exceptions"] = perfItems == null ? 0 : perfItems.Count();
-						dataRow["Latency (ms)"] = avgDuration;
-						dataRow["Rate (MB/s)"] = avgIORate;
-						dataRow["Duration (ms)"] = item.StartFinish.TimeSpan().TotalMilliseconds;
+                            dataRow["Timestamp"] = item.StartFinish.Max;
+                            dataRow["Data Center"] = item.DataCenter;
+                            dataRow["Node IPAddress"] = item.IPAddress;
+                            dataRow["Pool/Cache Type"] = "Concurrent Compaction/Flush (" + compflushType + ") Finish";
+                            dataRow["Reconciliation Reference"] = grpRef;
+                            dataRow["Completed"] = item.ConcurrentList.Count();
+                            dataRow["KeySpace"] = keyspaces;
+                            dataRow["Nbr GCs"] = gcItems == null ? 0 : gcItems.Count();
+                            dataRow["Nbr Compactions"] = compflushType.StartsWith("Compaction") ? item.ConcurrentList.Count : 0;
+                            dataRow["Nbr MemTable Flush Events"] = compflushType.StartsWith("MemTable") ? item.ConcurrentList.Count : 0;
+                            dataRow["Nbr Exceptions"] = perfItems == null ? 0 : perfItems.Count();
+                            dataRow["Latency (ms)"] = avgDuration;
+                            dataRow["Rate (MB/s)"] = avgIORate;
+                            dataRow["Duration (ms)"] = item.StartFinish.TimeSpan().TotalMilliseconds;
 
-						dtCStatusLog.Rows.Add(dataRow);
-					}
+                            dtCStatusLog.Rows.Add(dataRow);
+                        }
 
-					if (dtNodeStats != null)
-					{
-						#region NodeStats
+                        if (dtNodeStats != null)
+                        {
+                            #region NodeStats
 
-						{
-                            decimal totalIORate;
-							var dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
-							dataRow["Reconciliation Reference"] = grpRef;
-							if (maxDuration > 0)
-							{
-								dataRow["Latency (ms)"] = maxDuration;
-							}
-							if (maxIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = maxIORate;
-							}
-							dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
-							dataRow["Reconciliation Reference"] = grpRef;
-							if (minDuration > 0)
-							{
-								dataRow["Latency (ms)"] = minDuration;
-							}
-							if (minIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = minIORate;
-							}
-							dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
-							dataRow["Reconciliation Reference"] = grpRef;
-							if (avgDuration > 0)
-							{
-								dataRow["Latency (ms)"] = avgDuration;
-							}
-							if (avgIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = avgIORate;
-							}
-							dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
-							dataRow["Reconciliation Reference"] = grpRef;
-							if (stdDevDuration > 0)
-							{
-								dataRow["Latency (ms)"] = stdDevDuration;
-							}
-							if (stdDevIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = stdDevIORate;
-							}
-							dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
-							dataRow["Reconciliation Reference"] = grpRef;
-							dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
-							dataRow["IORate (mb/sec)"] = totalIORate = item.ConcurrentList.Sum(i => i.IORate);
-							dataRow["Occurrences"] = item.ConcurrentList.Count();
-
-							dtNodeStats.Rows.Add(dataRow);
-
-                            if(ParserSettings.ConcurrentAccumulativeIORateThreshold > 0
-                                    && totalIORate < ParserSettings.ConcurrentAccumulativeIORateThreshold)
                             {
-                                lock (dtLog)
+                                decimal totalIORate;
+                                var dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush maximum";
+                                dataRow["Reconciliation Reference"] = grpRef;
+                                if (maxDuration > 0)
                                 {
-                                    dataRow = dtLog.NewRow();
+                                    dataRow["Latency (ms)"] = maxDuration;
+                                }
+                                if (maxIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = maxIORate;
+                                }
+                                dataRow["Occurrences"] = item.ConcurrentList.Count();
 
-                                    dataRow["Data Center"] = item.DataCenter;
-                                    dataRow["Node IPAddress"] = item.IPAddress;
-                                    dataRow["Timestamp"] = item.StartFinish.Min;
-                                    dataRow["Exception"] = "Concurrent Compaction/Flush Total IO Rate Warning";
-                                    dataRow["Associated Value"] = totalIORate;
-                                    dataRow["Flagged"] = (int)LogFlagStatus.Stats;
-                                    dataRow["Indicator"] = "WARN";
-                                    dataRow["Task"] = "ConcurrentCompactionFlush";
-                                    dataRow["Item"] = "Generated";
-                                    dataRow["Description"] = string.Format("Concurrent Compaction/Flush Total IO Rate Warning where a total of {0} detected that had an ending timestamp of {1}",
-                                                                            item.ConcurrentList.Count,
-                                                                            item.StartFinish.Max);
+                                dtNodeStats.Rows.Add(dataRow);
 
-                                    dtLog.Rows.Add(dataRow);
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush minimum";
+                                dataRow["Reconciliation Reference"] = grpRef;
+                                if (minDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = minDuration;
+                                }
+                                if (minIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = minIORate;
+                                }
+                                dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush mean";
+                                dataRow["Reconciliation Reference"] = grpRef;
+                                if (avgDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = avgDuration;
+                                }
+                                if (avgIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = avgIORate;
+                                }
+                                dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush standard deviation";
+                                dataRow["Reconciliation Reference"] = grpRef;
+                                if (stdDevDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = stdDevDuration;
+                                }
+                                if (stdDevIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = stdDevIORate;
+                                }
+                                dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush Total";
+                                dataRow["Reconciliation Reference"] = grpRef;
+                                dataRow["Latency (ms)"] = item.ConcurrentList.Sum(i => i.Duration);
+                                dataRow["IORate (mb/sec)"] = totalIORate = item.ConcurrentList.Sum(i => i.IORate);
+                                dataRow["Occurrences"] = item.ConcurrentList.Count();
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                if (ParserSettings.ConcurrentAccumulativeIORateThreshold > 0
+                                        && totalIORate < ParserSettings.ConcurrentAccumulativeIORateThreshold)
+                                {
+                                    lock (dtLog)
+                                    {
+                                        dataRow = dtLog.NewRow();
+
+                                        dataRow["Data Center"] = item.DataCenter;
+                                        dataRow["Node IPAddress"] = item.IPAddress;
+                                        dataRow["Timestamp"] = item.StartFinish.Min;
+                                        dataRow["Exception"] = "Concurrent Compaction/Flush Total IO Rate Warning";
+                                        dataRow["Associated Value"] = totalIORate;
+                                        dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                        dataRow["Indicator"] = "WARN";
+                                        dataRow["Task"] = "ConcurrentCompactionFlush";
+                                        dataRow["Item"] = "Generated";
+                                        dataRow["Description"] = string.Format("Concurrent Compaction/Flush Total IO Rate Warning where a total of {0} detected that had an ending timestamp of {1}",
+                                                                                item.ConcurrentList.Count,
+                                                                                item.StartFinish.Max);
+
+                                        dtLog.Rows.Add(dataRow);
+                                    }
                                 }
                             }
-						}
-
-						var concurrentTypes = from typeItem in item.ConcurrentList
-											  group typeItem by typeItem.Type into g
-											  let durationEnum = g.Select(i => i.Duration)
-											  let iorateEnum = g.Select(i => i.IORate)
-											  let durationEnum1 = durationEnum.Where(i => i > 0).DefaultIfEmpty()
-											  let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
-											  let refIds = g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)
-											  select new
-											  {
-												  DCName = item.DataCenter,
-												  IPAddress = item.IPAddress,
-												  Type = g.Key,
-												  RefIds = refIds,
-												  RefId = grpRef.ToString() + "|" + string.Join(",", refIds),
-												  TimeStamps = g.Select(i => i.StartTime),
-												  MaxDuration = durationEnum.Max(),
-												  MinDuration = durationEnum1.Min(),
-												  AvgDuration = (int)durationEnum1.Average(),
-												  StdDuration = (int)durationEnum1.StandardDeviationP(),
-												  TotalDuration = durationEnum.Sum(),
-												  MaxIORate = iorateEnum.Max(),
-												  MinIORate = iorateEnum1.Min(),
-												  AvgIORate = iorateEnum1.Average(),
-												  StdIORate = (decimal)iorateEnum1.StandardDeviationP(),
-												  TotalIORate = iorateEnum.Sum(),
-												  Occurrences = g.Count()
-											  };
-
-						foreach (var typeItem in concurrentTypes)
-						{
-							var dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} maximum", typeItem.Type);
-							dataRow["Reconciliation Reference"] = typeItem.RefId;
-							if (typeItem.MaxDuration > 0)
-							{
-								dataRow["Latency (ms)"] = typeItem.MaxDuration;
-							}
-							if (typeItem.MaxIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
-							}
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} minimum", typeItem.Type);
-							dataRow["Reconciliation Reference"] = typeItem.RefId;
-							if (typeItem.MinDuration > 0)
-							{
-								dataRow["Latency (ms)"] = typeItem.MinDuration;
-							}
-							if (typeItem.MinIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
-							}
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} mean", typeItem.Type);
-							dataRow["Reconciliation Reference"] = typeItem.RefId;
-							if (typeItem.AvgDuration > 0)
-							{
-								dataRow["Latency (ms)"] = typeItem.AvgDuration;
-							}
-							if (typeItem.AvgIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
-							}
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} standard deviation", typeItem.Type);
-							dataRow["Reconciliation Reference"] = typeItem.RefId;
-							if (typeItem.StdDuration > 0)
-							{
-								dataRow["Latency (ms)"] = typeItem.StdDuration;
-							}
-							if (typeItem.StdIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = typeItem.StdIORate;
-							}
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} Total", typeItem.Type);
-							dataRow["Reconciliation Reference"] = typeItem.RefId;
-							if (typeItem.TotalDuration > 0)
-							{
-								dataRow["Latency (ms)"] = typeItem.TotalDuration;
-							}
-							if (typeItem.TotalIORate > 0)
-							{
-								dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
-							}
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = typeItem.DCName;
-							dataRow["Node IPAddress"] = typeItem.IPAddress;
-							dataRow["Attribute"] = string.Format("Concurrent {0} occurrences", typeItem.Type);
-							dataRow["Reconciliation Reference"] = grpRef.ToString() + "|["
-																	+ string.Join(", ", typeItem.RefIds
-																							.SelectWithIndex((refId, idx)
-																								=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
-																													refId,
-																													typeItem.TimeStamps.ElementAtOrDefault(idx)))) + "]";
-							dataRow["Occurrences"] = typeItem.Occurrences;
-
-							dtNodeStats.Rows.Add(dataRow);
-						}
-
-						if (perfItems != null && perfItems.Count() > 0)
-						{
-							//Concurrent Compaction/Flush Performance Warnings maximum
-							// Concurrent Compaction/Flush Performance Warnings minimum
-							// Concurrent Compaction/Flush Performance Warnings mean
-							//Concurrent Compaction/Flush Performance Warnings standard deviation
-
-							var perfCount = perfItems.Count();
-							var perfLatencies = perfItems.Select(i => i.Latency);
-							var maxPerfLatency = perfLatencies.Max();
-							var minPerfLatency = perfLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
-							var avgPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
-							var stddevPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-							var refIds = grpRef.ToString() + "|" + perfItems.GroupIndicatorLogTimestamp();
-							var dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings maximum";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (maxPerfLatency > 0)
-							{
-								dataRow["Latency (ms)"] = maxPerfLatency;
-							}
-
-							dataRow["Occurrences"] = perfCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings minimum";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (minPerfLatency > 0)
-							{
-								dataRow["Latency (ms)"] = minPerfLatency;
-							}
-
-							dataRow["Occurrences"] = perfCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings mean";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (minPerfLatency > 0)
-							{
-								dataRow["Latency (ms)"] = avgPerfLatency;
-							}
-
-							dataRow["Occurrences"] = perfCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings standard deviation";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (stddevPerfLatency > 0)
-							{
-								dataRow["Latency (ms)"] = stddevPerfLatency;
-							}
-
-							dataRow["Occurrences"] = perfCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-						}
-
-						if (gcItems != null && gcItems.Count() > 0)
-						{
-							//Concurrent Compaction/Flush GC maximum
-							// Concurrent Compaction/Flush GC minimum
-							// Concurrent Compaction/Flush GC mean
-							//Concurrent Compaction/Flush GC standard deviation
-
-							var gcCount = gcItems.Count();
-							var gcLatencies = gcItems.Select(i => i.Duration);
-							var maxGCLatency = gcLatencies.Max();
-							var minGCLatency = gcLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
-							var avgGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
-							var stddevGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
-							var refIds = grpRef.ToString() + "|["
-											+ string.Join(", ", gcItems
-																	.SelectWithIndex((refId, idx)
-																		=> string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
-																							refId.GroupIndicator,
-																							gcItems.ElementAtOrDefault(idx).LogTimestamp))) + "]";
-							var dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush GC maximum";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (maxGCLatency > 0)
-							{
-								dataRow["Latency (ms)"] = maxGCLatency;
-							}
-
-							dataRow["Occurrences"] = gcCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush GC minimum";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (minGCLatency > 0)
-							{
-								dataRow["Latency (ms)"] = minGCLatency;
-							}
-
-							dataRow["Occurrences"] = gcCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush GC mean";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (minGCLatency > 0)
-							{
-								dataRow["Latency (ms)"] = avgGCLatency;
-							}
-
-							dataRow["Occurrences"] = gcCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-							dataRow = dtNodeStats.NewRow();
-
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = item.DataCenter;
-							dataRow["Node IPAddress"] = item.IPAddress;
-							dataRow["Attribute"] = "Concurrent Compaction/Flush GC standard deviation";
-							dataRow["Reconciliation Reference"] = refIds;
-
-							if (stddevGCLatency > 0)
-							{
-								dataRow["Latency (ms)"] = stddevGCLatency;
-							}
-
-							dataRow["Occurrences"] = gcCount;
-
-							dtNodeStats.Rows.Add(dataRow);
-
-						}
-
-						#endregion
-					}
+
+                            var concurrentTypes = from typeItem in item.ConcurrentList
+                                                  group typeItem by typeItem.Type into g
+                                                  let durationEnum = g.Select(i => i.Duration)
+                                                  let iorateEnum = g.Select(i => i.IORate)
+                                                  let durationEnum1 = durationEnum.Where(i => i > 0).DefaultIfEmpty()
+                                                  let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
+                                                  let refIds = g.Select(i => i.GroupIndicator).DuplicatesRemoved(id => id)
+                                                  select new
+                                                  {
+                                                      DCName = item.DataCenter,
+                                                      IPAddress = item.IPAddress,
+                                                      Type = g.Key,
+                                                      RefIds = refIds,
+                                                      RefId = grpRef.ToString() + "|" + string.Join(",", refIds),
+                                                      TimeStamps = g.Select(i => i.StartTime),
+                                                      MaxDuration = durationEnum.Max(),
+                                                      MinDuration = durationEnum1.Min(),
+                                                      AvgDuration = (int)durationEnum1.Average(),
+                                                      StdDuration = (int)durationEnum1.StandardDeviationP(),
+                                                      TotalDuration = durationEnum.Sum(),
+                                                      MaxIORate = iorateEnum.Max(),
+                                                      MinIORate = iorateEnum1.Min(),
+                                                      AvgIORate = iorateEnum1.Average(),
+                                                      StdIORate = (decimal)iorateEnum1.StandardDeviationP(),
+                                                      TotalIORate = iorateEnum.Sum(),
+                                                      Occurrences = g.Count()
+                                                  };
+
+                            foreach (var typeItem in concurrentTypes)
+                            {
+                                var dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} maximum", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = typeItem.RefId;
+                                if (typeItem.MaxDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = typeItem.MaxDuration;
+                                }
+                                if (typeItem.MaxIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = typeItem.MaxIORate;
+                                }
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} minimum", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = typeItem.RefId;
+                                if (typeItem.MinDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = typeItem.MinDuration;
+                                }
+                                if (typeItem.MinIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = typeItem.MinIORate;
+                                }
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} mean", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = typeItem.RefId;
+                                if (typeItem.AvgDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = typeItem.AvgDuration;
+                                }
+                                if (typeItem.AvgIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = typeItem.AvgIORate;
+                                }
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} standard deviation", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = typeItem.RefId;
+                                if (typeItem.StdDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = typeItem.StdDuration;
+                                }
+                                if (typeItem.StdIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = typeItem.StdIORate;
+                                }
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} Total", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = typeItem.RefId;
+                                if (typeItem.TotalDuration > 0)
+                                {
+                                    dataRow["Latency (ms)"] = typeItem.TotalDuration;
+                                }
+                                if (typeItem.TotalIORate > 0)
+                                {
+                                    dataRow["IORate (mb/sec)"] = typeItem.TotalIORate;
+                                }
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = typeItem.DCName;
+                                dataRow["Node IPAddress"] = typeItem.IPAddress;
+                                dataRow["Attribute"] = string.Format("Concurrent {0} occurrences", typeItem.Type);
+                                dataRow["Reconciliation Reference"] = grpRef.ToString() + "|["
+                                                                        + string.Join(", ", typeItem.RefIds
+                                                                                                .SelectWithIndex((refId, idx)
+                                                                                                    => string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+                                                                                                                        refId,
+                                                                                                                        typeItem.TimeStamps.ElementAtOrDefault(idx)))) + "]";
+                                dataRow["Occurrences"] = typeItem.Occurrences;
+
+                                dtNodeStats.Rows.Add(dataRow);
+                            }
+
+                            if (perfItems != null && perfItems.Count() > 0)
+                            {
+                                //Concurrent Compaction/Flush Performance Warnings maximum
+                                // Concurrent Compaction/Flush Performance Warnings minimum
+                                // Concurrent Compaction/Flush Performance Warnings mean
+                                //Concurrent Compaction/Flush Performance Warnings standard deviation
+
+                                var perfCount = perfItems.Count();
+                                var perfLatencies = perfItems.Select(i => i.Latency);
+                                var maxPerfLatency = perfLatencies.Max();
+                                var minPerfLatency = perfLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
+                                var avgPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
+                                var stddevPerfLatency = (int)perfLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+                                var refIds = grpRef.ToString() + "|" + perfItems.GroupIndicatorLogTimestamp();
+                                var dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings maximum";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (maxPerfLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = maxPerfLatency;
+                                }
+
+                                dataRow["Occurrences"] = perfCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings minimum";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (minPerfLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = minPerfLatency;
+                                }
+
+                                dataRow["Occurrences"] = perfCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings mean";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (minPerfLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = avgPerfLatency;
+                                }
+
+                                dataRow["Occurrences"] = perfCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush Performance Warnings standard deviation";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (stddevPerfLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = stddevPerfLatency;
+                                }
+
+                                dataRow["Occurrences"] = perfCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                            }
+
+                            if (gcItems != null && gcItems.Count() > 0)
+                            {
+                                //Concurrent Compaction/Flush GC maximum
+                                // Concurrent Compaction/Flush GC minimum
+                                // Concurrent Compaction/Flush GC mean
+                                //Concurrent Compaction/Flush GC standard deviation
+
+                                var gcCount = gcItems.Count();
+                                var gcLatencies = gcItems.Select(i => i.Duration);
+                                var maxGCLatency = gcLatencies.Max();
+                                var minGCLatency = gcLatencies.Where(i => i > 0).DefaultIfEmpty().Min();
+                                var avgGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().Average();
+                                var stddevGCLatency = (int)gcLatencies.Where(i => i > 0).DefaultIfEmpty().StandardDeviationP();
+                                var refIds = grpRef.ToString() + "|["
+                                                + string.Join(", ", gcItems
+                                                                        .SelectWithIndex((refId, idx)
+                                                                            => string.Format("[{0}, {1:yyyy-MM-dd HH:mm:ss.ff}]",
+                                                                                                refId.GroupIndicator,
+                                                                                                gcItems.ElementAtOrDefault(idx).LogTimestamp))) + "]";
+                                var dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush GC maximum";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (maxGCLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = maxGCLatency;
+                                }
+
+                                dataRow["Occurrences"] = gcCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush GC minimum";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (minGCLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = minGCLatency;
+                                }
+
+                                dataRow["Occurrences"] = gcCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush GC mean";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (minGCLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = avgGCLatency;
+                                }
+
+                                dataRow["Occurrences"] = gcCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                                dataRow = dtNodeStats.NewRow();
+
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = item.DataCenter;
+                                dataRow["Node IPAddress"] = item.IPAddress;
+                                dataRow["Attribute"] = "Concurrent Compaction/Flush GC standard deviation";
+                                dataRow["Reconciliation Reference"] = refIds;
+
+                                if (stddevGCLatency > 0)
+                                {
+                                    dataRow["Latency (ms)"] = stddevGCLatency;
+                                }
+
+                                dataRow["Occurrences"] = gcCount;
+
+                                dtNodeStats.Rows.Add(dataRow);
+
+                            }
+
+                            #endregion
+                        }
+                    }
+                    catch(System.Exception ex)
+                    {
+                        Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} Item count {3}",
+                                                        item.DataCenter,
+                                                        item.IPAddress,
+                                                        item.StartFinish,
+                                                        item.ConcurrentList.Count);
+                        Logger.Instance.Error("Concurrent Compactions/Flushes Exception", ex);
+                    }
 				}
 
 				Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to TPStats", nbrAdded);
 			}
 
-		}
+            Logger.Instance.Info("Completed Detecting Concurrent Compactions/Flushes Occurrences");
+        }
 
         public static Task<DataTable> ReviewDropsBlocks(Task<DataTable> logTask,
                                                         Task<DataTable> statLogTask, 
@@ -9794,17 +9850,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return;
             }
 
-           /* var droppedFromLog = from logRow in dtLog.AsEnumerable()
-                                   let tag = logRow.Field<string>("Exception")                                   
-                                   where tag != null && tag.StartsWith("Dropped ") && !logRow.IsNull("Associated Value")
-                                 select new
-                                   {
-                                       DataCenter = logRow.Field<string>("Data Center"),
-                                       Node = logRow.Field<string>("Node IPAddress"),
-                                       Timestamp = logRow.Field<DateTime>("Timestamp"),
-                                       Items = (long)logRow.Field<int>("Associated Value")
-                                   };
-            */
+            Logger.Instance.Info("Begin Review of Drops/Blocks from logs");
+
+            /* var droppedFromLog = from logRow in dtLog.AsEnumerable()
+                                    let tag = logRow.Field<string>("Exception")                                   
+                                    where tag != null && tag.StartsWith("Dropped ") && !logRow.IsNull("Associated Value")
+                                  select new
+                                    {
+                                        DataCenter = logRow.Field<string>("Data Center"),
+                                        Node = logRow.Field<string>("Node IPAddress"),
+                                        Timestamp = logRow.Field<DateTime>("Timestamp"),
+                                        Items = (long)logRow.Field<int>("Associated Value")
+                                    };
+             */
             var blocksFromStats = from statRow in dtStatLog.AsEnumerable()
                                   let nbrBlocks = statRow.Field<long?>("Blocked")
                                   let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
@@ -9887,13 +9945,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }                
             }
+
+            Logger.Instance.Info("Completed Review of Drops/Blocks from logs");
         }
 
         public static void ReviewLogThresholds(DataTable dtLog)
         {
             if (ParserSettings.SolrHardCommitLatencyThresholdInMS > 0)
             {
-                foreach (var item in SolrHardCommits)
+                Logger.Instance.Info("Begin Review of Solr Hard Commit Thresholds");
+
+                foreach (var item in SolrHardCommits.UnSafe)
                 {
                     foreach (var solrItem in item.Value)
                     {
@@ -9921,11 +9983,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
+
+                Logger.Instance.Info("Completed Review of Solr Hard Commit Thresholds");
             }
 
             if (ParserSettings.SolrReIndexLatencyThresholdInMS > 0)
             {
-                foreach (var item in SolrReindexingOccurrences)
+                Logger.Instance.Info("Begin Review of Solr Reindexing Thresholds");
+
+                foreach (var item in SolrReindexingOccurrences.UnSafe)
                 {
                     foreach (var solrItem in item.Value)
                     {
@@ -9953,12 +10019,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
+
+                Logger.Instance.Info("Begin Review of Solr ReIndexing Thresholds");
             }
 
             if(ParserSettings.AntiCompactionLatencyThresholdMS > 0
                     && HasAntiCompactions)
             {
-                foreach (var item in CompactionOccurrences)
+                Logger.Instance.Info("Begin Review of AntiCompacation Thresholds");
+
+                foreach (var item in CompactionOccurrences.UnSafe)
                 {
                     foreach (var compactionItem in item.Value)
                     {
@@ -9987,6 +10057,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
+
+                Logger.Instance.Info("Completed Review of AntiCompacation Thresholds");
             }
 
             if(ComponentDisabled.UnSafe.Count > 0)
@@ -10013,7 +10085,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     dtLog.Rows.Add(dataRow);                    
                 }
-            }
+            }            
         }
 
 

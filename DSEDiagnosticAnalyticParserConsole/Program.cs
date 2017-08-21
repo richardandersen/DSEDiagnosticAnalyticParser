@@ -167,7 +167,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleExcelWorkbook = new ConsoleDisplay("Excel Workbooks: {0} File: {2}");
             ConsoleWarnings = new ConsoleDisplay("Warnings: {0} Last: {2}", 2, false);
             ConsoleErrors = new ConsoleDisplay("Errors: {0} Last: {2}", 2, false);
-
+            
             #endregion
             
             //if (!System.Runtime.GCSettings.IsServerGC
@@ -200,6 +200,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             ProcessFileTasks.InitializeCQLDDLDataTables(dtKeySpace, dtDDLTable);
 
             #endregion
+
+            System.Console.CancelKeyPress += Console_CancelKeyPress;
 
             ConsoleDisplay.Start();
 
@@ -1791,6 +1793,27 @@ namespace DSEDiagnosticAnalyticParserConsole
             Logger.Instance.InfoFormat("Completed");
 
             Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Gray, ConsoleColor.DarkRed);            
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            Logger.Instance.Warn("Application Aborted");
+            Program.ConsoleErrors.Increment("Aborted");
+
+            try
+            {
+                var rep = Logger.Instance.Log4NetInstance.Logger.Repository;
+
+                rep.GetAppenders().Cast<log4net.Appender.IFlushable>()
+                    .ForEach(appender =>
+                        {
+                            appender.Flush(2000);
+                        });
+            }
+            catch
+            {
+                Logger.Instance.Error("Log4Net Appender Flush Failed!");
+            }
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

@@ -10,6 +10,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     public class ConsoleDisplay
     {
+        static DateTime ConsoleStartTime = DateTime.Now;
+        static readonly string ConsoleRunningTimerTag = "ConsoleRunningTimer";
+
         static ConsoleWriter consoleWriter = new ConsoleWriter();
         static Timer timer = new Timer(TimerCallback, consoleWriter, Timeout.Infinite, Timeout.Infinite);
         static List<ConsoleDisplay> ConsoleDisplays = new List<ConsoleDisplay>();
@@ -207,7 +210,13 @@ namespace DSEDiagnosticAnalyticParserConsole
             if (EnableWriters)
             {
                 timer.Change(100, Timeout.Infinite);
-            }
+
+                ConsoleWriter.ReWriteInfo rewriteInfo;
+                if(!consoleWriter.TryGetReWriteInformation(ConsoleRunningTimerTag, out rewriteInfo))
+                {
+                    consoleWriter.ReserveRwWriteConsoleSpace(ConsoleRunningTimerTag, 2, -1);
+                }                
+            }            
         }
 
         public static void End()
@@ -224,7 +233,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         {
             var consoleWriter = (ConsoleWriter)state;
 
-			//timer.Change(Timeout.Infinite, Timeout.Infinite);
+            //timer.Change(Timeout.Infinite, Timeout.Infinite);
+
+            consoleWriter.ReWrite(ConsoleRunningTimerTag, @"Running Time: {0:d\.hh\:mm\:ss}", DateTime.Now - ConsoleStartTime);
 
 			try
 			{
