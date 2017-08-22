@@ -90,6 +90,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 				while (isRunning)
 				{
+                    gcStart = DateTime.MinValue;
+
 					// Check for a notification of an approaching collection.
 					GCNotificationStatus s = GC.WaitForFullGCApproach(10000);
 					if (s == GCNotificationStatus.Succeeded)
@@ -99,8 +101,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 						var msg = string.Format("Full GC is imminent. Memory before GC: {0:###,###,##0} Nbr: {1}", beforeGC, ++this.nbrGCs);
 						this.consolerWriter.ReWrite("GCMonitor", msg);
-                       
-						GC.Collect();
+                        gcStart = DateTime.Now;
+
+                        GC.Collect();
 
 					}
 					else if (s == GCNotificationStatus.Canceled)
@@ -119,8 +122,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 					{
 						continue;
 					}
-
-                    gcStart = DateTime.Now;
+                    
+                    if(gcStart == DateTime.MinValue)
+                    {
+                        gcStart = DateTime.Now;
+                    }
 
                     while (isRunning)
 					{
