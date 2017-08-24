@@ -8754,7 +8754,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 				var currentFlushes = new List<MemTableFlushLogInfo>();
 				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
 
-                Logger.Instance.InfoFormat("Start Parsing Memtable flushing for {0}|{1} with {2} items",
+                Logger.Instance.InfoFormat("Start Parsing Memtable flushing for {0}|{1} with Memtable Log items {2}",
                                                 logGroupItem.DCName,
                                                 logGroupItem.IPAddress,
                                                 logGroupItem.LogItems.Count());
@@ -8861,7 +8861,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 					#endregion
 				}
 
-				currentFlushes.Where(i => !i.Completed && !i.Occurrences.IsEmpty() && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
+                Logger.Instance.InfoFormat("Parsed Memtable flushing for {0}|{1} resulting in {2} flushes",
+                                                logGroupItem.DCName,
+                                                logGroupItem.IPAddress,
+                                                currentFlushes.Count);
+
+                currentFlushes.Where(i => !i.Completed && !i.Occurrences.IsEmpty() && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
 								.ForEach(i => i.Completed = true);
 				MemTableFlushOccurrences.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
 														ignore => { return new Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>(currentFlushes.Where(i => i.Completed)); },
@@ -8870,9 +8875,9 @@ namespace DSEDiagnosticAnalyticParserConsole
 															gcList.AddRange(currentFlushes.Where(i => i.Completed));
 															return gcList;
 														});
-
-				#region Log Status DT and Warnings
-				if (dtLogStatusStack != null)
+               
+                #region Log Status DT and Warnings
+                if (dtLogStatusStack != null)
 				{
 					var dtStatusLog = new DataTable(string.Format("NodeStatus-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
 					InitializeStatusDataTable(dtStatusLog);
@@ -9791,7 +9796,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             #endregion
                         }
-                    }
+                    }                    
                     catch(System.Exception ex)
                     {
                         Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} Item count {3}",
@@ -9800,6 +9805,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         item.StartFinish,
                                                         item.ConcurrentList.Count);
                         Logger.Instance.Error("Concurrent Compactions/Flushes Exception", ex);
+
+                        if(ex is System.OutOfMemoryException)
+                        {
+                            throw;
+                        }
                     }
 				}
 

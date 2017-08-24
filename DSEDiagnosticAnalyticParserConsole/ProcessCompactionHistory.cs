@@ -215,14 +215,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                         
                         dtCmpHist.Rows.Add(dataRow);
 					}
-					catch (System.Exception ex)
+                    catch (System.Exception ex)
 					{
 						Logger.Instance.Error(string.Format("Parsing for Compacation History for Node {0} failed during parsing of line \"{1}\". Line skipped.",
 																ipAddress,
 																line),
 												ex);
 						Program.ConsoleWarnings.Increment("Compaction History Parsing Exception; Line Skipped");
-					}
+
+                        if (ex is System.OutOfMemoryException)
+                        {
+                            throw;
+                        }
+                    }
 				}
 			}
 		}
