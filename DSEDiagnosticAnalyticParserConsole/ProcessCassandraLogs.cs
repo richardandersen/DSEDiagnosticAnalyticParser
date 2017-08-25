@@ -39,7 +39,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", diagFilePath.PathResolved));
 
                 if (ProcessFileTasks.ExtractFileToFolder(diagFilePath, out extractedDir))
-                {                    
+                {
                     Logger.Instance.InfoFormat("Extracted file \"{0}\" to directory \"{1}\"",
                                                     diagFilePath.PathResolved,
                                                     extractedDir.PathResolved);
@@ -61,7 +61,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             dtCFStatsStack,
                                                                             dtNodeStatsStack));
                         }
-                    }                    
+                    }
                 }
                 Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", extractedDir.PathResolved));
 
@@ -161,7 +161,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         ParserSettings.ExcelWorkSheetLogCassandra,
                                                         dcName,
                                                         ipAddress,
-                                                        ParserSettings.LogStartDate,                                                        
+                                                        ParserSettings.LogStartDate,
                                                         dtLogsStack,
                                                         archivedFilePaths,
                                                         ParserSettings.LogParsingExcelOption,
@@ -176,7 +176,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         ParserSettings.GCFlagThresholdInMS,
                                                         ParserSettings.CompactionFlagThresholdInMS,
                                                         ParserSettings.CompactionFlagThresholdAsIORate,
-                                                        ParserSettings.SlowLogQueryThresholdInMS);            
+                                                        ParserSettings.SlowLogQueryThresholdInMS);
         }
 
 		static public Task<int> ProcessLogFileTasks(Task<int> continousLogTask,
@@ -185,7 +185,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         string excelWorkSheetLogCassandra,
                                                         string dcName,
                                                         string ipAddress,
-                                                        DateTimeRange includeLogEntriesRange,                                                        
+                                                        DateTimeRange includeLogEntriesRange,
                                                         Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogsStack,
                                                         IFilePath[] archiveFilePaths, //null disables archive parsing
                                                         ParserSettings.LogParsingExcelOptions parseLogOptions,
@@ -205,13 +205,13 @@ namespace DSEDiagnosticAnalyticParserConsole
             var dtLog = new System.Data.DataTable(excelWorkSheetLogCassandra + "-" + ipAddress);
 			Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<int> archTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
-            
+
             var logTask = continousLogTask.NewOrContinueWith( ignore =>
-                                {                                    
+                                {
                                     if (ParserSettings.EnableLogReadThrottle && System.Threading.Interlocked.Increment(ref ThrottleLogReaderCnt) > Properties.Settings.Default.LogReadThrottleTaskCount)
-                                    {                                        
-                                        Program.ConsoleLogReadFiles.Increment("Log Throttled");                                        
-                                        System.Threading.Thread.Sleep(Properties.Settings.Default.LogReadThrottleWaitPeriodMS);                                        
+                                    {
+                                        Program.ConsoleLogReadFiles.Increment("Log Throttled");
+                                        System.Threading.Thread.Sleep(Properties.Settings.Default.LogReadThrottleWaitPeriodMS);
                                         Program.ConsoleLogReadFiles.TaskEnd("Log Throttled");
                                     }
 
@@ -257,7 +257,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                         compactionFllagThresholdInMS,
                                                                                         compactionFlagThresholdAsIORate,
                                                                                         slowLogQueryThresholdInMS);
-                                    
+
                                     Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
                                     return linesRead;
@@ -296,7 +296,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 Program.ConsoleParsingLog.TaskEnd(string.Format("Status {0}", dtLog.TableName));
                             },
-                            TaskContinuationOptions.AttachedToParent                               
+                            TaskContinuationOptions.AttachedToParent
                                 | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
@@ -313,7 +313,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             excelWorkSheetLogCassandra,
                                                             dcName,
                                                             ipAddress,
-                                                            includeLogEntriesRange,                                                            
+                                                            includeLogEntriesRange,
                                                             dtLogsStack,
                                                             null,
                                                             parseLogOptions,
@@ -430,7 +430,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     return new Tuple<DataTable,DataTable, DateTimeRange>(dtSummaryLog, dtExceptionSummaryLog, maxminLogDate);
                                 },
-                                TaskContinuationOptions.AttachedToParent                                   
+                                TaskContinuationOptions.AttachedToParent
                                     | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
@@ -532,7 +532,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //strLogLine.Append(dataRow.ItemArray[10] == null ? string.Empty : dataRow.ItemArray[10]);
                 //strLogLine.Append('|');
                 strLogLine.Append(dataRow.ItemArray[12] == null ? string.Empty : dataRow.ItemArray[12]);
-                
+
                 rowAlreadyAdded = LogLinesHash.Contains(strLogLine.ToString());
 
                 if(!rowAlreadyAdded)
@@ -594,7 +594,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         int compactionFlagThresholdInMS,
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
-        {			
+        {
 			if (ParserSettings.IgnoreLogFileExtensions.Contains(clogFilePath.FileExtension))
 			{
 				return 0;
@@ -715,7 +715,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-					if ((line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[                            
+					if ((line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[
 							|| (!assertError && line.Length >= 3 && line.Substring(0, 3).ToLower() == "at ")
                             || (line.Length >= 4 && line.Substring(0, 4) == "... "))
                     {
@@ -1051,7 +1051,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     var logDesc = new StringBuilder();
                     var startRange = parsedValues[ParserSettings.CLogLineFormats.DescribePos] == "-" ? ParserSettings.CLogLineFormats.DescribePos + 1 : ParserSettings.CLogLineFormats.DescribePos;
                     bool handled = false;
-                    
+
                     if (parsedValues.Count > startRange && parsedValues[startRange][0] == '(')
                     {
                         ++startRange;
@@ -1109,7 +1109,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexWriter.java"))
                         {
                             #region Solr Hard Commit DSE 5.x
-                            //INFO  [StreamReceiveTask:832] 2017-06-29 10:18:31,883  SecondaryIndexManager.java:359 - Submitting index build of ckspsocp1_pymtsocp_solr_query_index 
+                            //INFO  [StreamReceiveTask:832] 2017-06-29 10:18:31,883  SecondaryIndexManager.java:359 - Submitting index build of ckspsocp1_pymtsocp_solr_query_index
 
                             if (parsedValues[nCell] == "Submitting"
                                     && parsedValues[nCell + 1] == "index")
@@ -1546,7 +1546,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 //dataRow["Associated Item"] = "Dropped Hints";
                                 dataRow["Exception"] = "Dropped Hints (node down)";
-                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;                                
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
                                 dataRow["Associated Value"] = int.Parse(parsedValues[nCell - 1]);
                                 handled = true;
 
@@ -1573,7 +1573,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                         AddRowToLogDataTable(dtCLog, nodedownDR, isDebugLogFile);
                                     }
-                                }                                
+                                }
                             }
 							else if (parsedValues[nCell] == "Timed"
 										&& parsedValues[nCell + 1] == "out")
@@ -1615,9 +1615,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         nodetimeoutDR["Associated Value"] = dataRow["Associated Value"];
                                         nodetimeoutDR["Description"] = string.Format("{0} tried to replay hints to this node but replay timed out and was aborted. {1} delivered", dataRow["Node IPAddress"].ToString(), dataRow["Associated Value"].ToString());
 
-                                        AddRowToLogDataTable(dtCLog, nodetimeoutDR, isDebugLogFile);                                        
+                                        AddRowToLogDataTable(dtCLog, nodetimeoutDR, isDebugLogFile);
                                     }
-                                }								
+                                }
 							}
 							#endregion
 						}
@@ -1811,7 +1811,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 itemPos = nCell + 1;
                             }
                             #endregion
-                        }                        
+                        }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairSession.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairJob.java")
                         {
 							#region RepairSession.java RepairJob.java
@@ -1923,8 +1923,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                             #region CassandraIndexSchema.java
                             //WARN[http - 10.203.40.61 - 8983 - 1] 2017 - 03 - 11 07:00:39,433  CassandraIndexSchema.java:534 - No Cassandra column found for field: transactions_contentRef
                             //Unless it's a non stored copy field, Cassandra columns must have the same case or be quoted in order to be correctly mapped.
-                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN" 
-                                    && parsedValues[nCell] == "No" 
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN"
+                                    && parsedValues[nCell] == "No"
                                     && parsedValues.ElementAtOrDefault(nCell + 2) == "column"
                                     && parsedValues.ElementAtOrDefault(nCell + 3) == "found")
                             {
@@ -1989,7 +1989,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Associated Value"] = preparedSize;
                                     handled = true;
                                 }
-                            }                            
+                            }
                             #endregion
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ThriftServer.java")
@@ -2159,8 +2159,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     dataRow["Exception"] = "Updating shard state due to change";
                                 }
-                                handled = true;                                
-                                
+                                handled = true;
+
                                 dataRow["Associated Value"] = parsedValues.Last();
                             }
                             #endregion
@@ -2215,15 +2215,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                     #endregion
 
                     if (dataRow["Flagged"] == DBNull.Value
-                            || dataRow.Field<int>("Flagged") != (int)LogFlagStatus.Ignore)                    
-                    {                        
+                            || dataRow.Field<int>("Flagged") != (int)LogFlagStatus.Ignore)
+                    {
                         AddRowToLogDataTable(dtCLog, dataRow, isDebugLogFile);
-                        ++nbrRows;                        
+                        ++nbrRows;
                     }
                     lastRow = dataRow;
                 }
             }
-            
+
             if (!minmaxDate.IsEmpty())
             {
                 if (!isDebugLogFile)
@@ -2307,7 +2307,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             if(exception == "java.lang.OutOfMemoryError")
             {
                 //Flag it so that it can be included in the stats
-                dataRow["Flagged"] = (int)LogFlagStatus.Stats;                                
+                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
             }
 
             UpdateRowColumn(dataRow, "Exception Description", dataRow["Exception Description"] as string, exception + "(" + exceptionDesc + ")");
@@ -3510,7 +3510,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             public long InitialSize { get; set; }
 
             public long EndingOPS { get; set; }
-            public long EndingSize { get; set; }            
+            public long EndingSize { get; set; }
         }
 
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
@@ -3933,7 +3933,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             Keyspace = ksTable.Item1,
                                                             Table = ksTable.Item2,
                                                             StartTime = item.Timestamp,
-                                                            LogTimestamp = item.Timestamp,                                            
+                                                            LogTimestamp = item.Timestamp,
                                                             GroupIndicator = grpInd,
                                                             InitialOPS = memTblStat == null ? mOPS : 0,
                                                             InitialSize = memTblStat == null ? (long) (mSize * BytesToMB) : 0,
@@ -4725,7 +4725,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (item.Task == "MemtablePostFlush" || item.Task == "StreamReceiveTask")
                     {
                         #region MemtablePostFlush
-                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM},                         
+                        //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,572  ColumnFamilyStore.java:1006 - Flushing SecondaryIndex Cql3SolrSecondaryIndex{columnDefs=[ColumnDefinition{name=appownrtxt, type=org.apache.cassandra.db.marshal.UTF8Type, kind=REGULAR, componentIndex=0, indexName=coafstatim_application_appownrtxt_index, indexType=CUSTOM},
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index coafstatim.application
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,573  IndexWriter.java:3429 - commitInternalStart startTime = 1495198301573
                         //INFO [MemtablePostFlush:22429] 2017-05-19 08:51:41,770  IndexWriter.java:3454 - commitInternalComplete duration = 197 ms startTime = 1495198301573
@@ -4850,7 +4850,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else if (item.Item == "ShardRouter.java")
                     {
-                        #region ShardRouter.java (shard change)                        
+                        #region ShardRouter.java (shard change)
                         shardStateChanges.Add((string) item.AssocValue);
                         #endregion
                     }
@@ -5565,7 +5565,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                               into g
                                         select new
                                         {
-                                            ShardType = g.Key,                     
+                                            ShardType = g.Key,
                                             Count = g.Count()
                                         };
 
@@ -5589,7 +5589,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Occurrences"] = statItem.Count;
 
                             dtTPStats.Rows.Add(dataRow);
-                        }                           
+                        }
                     }
                     #endregion
                 }
@@ -5975,7 +5975,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             Logger.Instance.InfoFormat("Adding MemTables Stats ({2}) to CFStats for \"{0}\" \"{1}\"", dcName, ipAddress, statusMemTables.Count);
 
-                            var memtblStats = from cmpItem in statusMemTables                                              
+                            var memtblStats = from cmpItem in statusMemTables
                                               group cmpItem by new { cmpItem.Item1, cmpItem.Item2 }
                                                   into g
                                               select new
@@ -5987,7 +5987,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                   avgItem3 = (long)g.Average(s => s.Item3),
                                                   maxItem4 = g.Max(s => s.Item4),
                                                   minItem4 = g.Min(s => s.Item4),
-                                                  avgItem4 = g.Average(s => s.Item4),                                                                                                  
+                                                  avgItem4 = g.Average(s => s.Item4),
                                                   Count = g.Count()
                                               };
 
@@ -6096,7 +6096,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Size in MB"] = statItem.avgItem4;
                                 dataRow["Unit of Measure"] = "bytes";
 
-                                dtCFStats.Rows.Add(dataRow);                                                                
+                                dtCFStats.Rows.Add(dataRow);
                             }
                         }
 
@@ -6252,7 +6252,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 					{
 						#region Solr ReIndexing
 						initializeCFStatsDataTable(dtCFStats);
-                        
+
 						var solrReIdxItems = from solrItem in solrReindexing
                                               where solrItem.Duration > 0
 											  group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
@@ -6351,7 +6351,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         #region Solr Hard Commit
                         initializeCFStatsDataTable(dtCFStats);
-                        
+
                         var solrHrdCmttems = from solrItem in solrHardCommit
                                                                 .SelectMany(s => s.SolrIndexes
                                                                                     .Select(i => new {  Keyspace = i.Item1,
@@ -6477,7 +6477,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 case 'D': changeType = "Dropped";
                                     break;
                                 case 'U': changeType = "Updated";
-                                    break;                                    
+                                    break;
                             }
 
                             dataRow["Source"] = "Cassandra Log";
@@ -6653,7 +6653,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 #endregion
 
-                
+
             }
         }
 
@@ -6712,7 +6712,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 bool redueGCTimeFrameAnalysis = ParserSettings.GCComplexReduceAnalysisOverEvents > 0 && gcInfoTimeLineCnt > ParserSettings.GCComplexReduceAnalysisOverEvents;
 
                 if(redueGCTimeFrameAnalysis)
-                {                  
+                {
                     int maxDur = 0;
                     int maxPos = 0;
                     int nbrPos = 0;
@@ -7228,7 +7228,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 								   IPAddress = g.Key.ipAddress,
 								   LogItems = (from l in g orderby l.Timestamp ascending select l)
 							   };
-                
+
                 Parallel.ForEach(logItems, logGroupItem =>
 				//foreach (var logGroupItem in logItems)
 				{
@@ -7398,7 +7398,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 									if(!gcInfo.RepairNodes.Contains(regExNbrSession[3]))
 									{
-										gcInfo.RepairNodes.Add(regExNbrSession[3]);										
+										gcInfo.RepairNodes.Add(regExNbrSession[3]);
 									}
 								}
 							}
@@ -8123,9 +8123,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,762 CompactionManager.java:1263 - Anticompacting[BigTableReader(path = '/var/lib/cassandra/data/product_v2/clientproducts_by_client_class_cpk_view-852430b0fe0211e6acbe19d8c614acf1/mc-393-big-Data.db')]
         //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,801 CompactionManager.java:1242 - Anticompaction completed successfully, anticompacted from 0 to 4 sstable(s).
 
-		static Regex RegExAntiCompStarting = new Regex(@".*Starting\s+anticompaction\s+for\s+(.+)\.(.+)\s+on\s+(\d+)\/.*",
+		static Regex RegExAntiCompStarting = new Regex(@"^Starting\s+anticompaction\s+for\s+([a-z0-9'-_$%+=@!?<>^*&]+)\.([a-z0-9'-_$%+=@!?<>^*&]+)\s+on\s+(\d+)\/",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		static Regex RegExAntiCompRange = new Regex(@".*SSTable\s+BigTableReader.+in\s+range\s*\(\s*([0-9-]+)\,\s*([0-9-]+)\s*\].+",
+		static Regex RegExAntiCompRange = new Regex(@"^SSTable\s+BigTableReader(?:\(path='[0-9a-z\-_/.]+'\))\sfully\scontained\sin\s+range\s*\(\s*([0-9-]+)\,\s*([0-9-]+)\s*\]",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static Regex RegExAntiCompStarting2 = new Regex(@"^\s*Anticompacting\s*\[(?:\s*BigTableReader\s*\(\s*path\s*\=\s*'([^\'\)]+)'\s*\)\s*\,?)+\s*\]",
@@ -8283,7 +8283,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         localAntiCompList.Add(currentAntiCompaction);
                                     }
                                     #endregion
-                                }                                
+                                }
                             }
                             #endregion
                         }
@@ -8440,7 +8440,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 							var grpStats = from item in localAntiCompList
 											 group new { Latency = item.Duration, SSTables = item.SSTables, Rate=item.IORate, GrpInd = item.GroupIndicator }
 														by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
-											 let latencyEnum = g.Select(i => i.Latency)                                             
+											 let latencyEnum = g.Select(i => i.Latency)
 											 let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
                                              let rateEnum = g.Where(i => i.Rate > 0).Select(i => i.Rate).DefaultIfEmpty()
 											 select new
@@ -8547,7 +8547,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
 								dtCFStats.Rows.Add(dataRow);
 
-                                //AntiCompaction maximum rate                                
+                                //AntiCompaction maximum rate
                                 //AntiCompaction mean rate
                                 //AntiCompaction minimum rate
 
@@ -8688,25 +8688,25 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         //Group1					Group2
         //"'homeKS'"	"'homebase_tasktracking_ops_l3'"
-        static Regex RegexMFFlushing = new Regex(@"Flushing.+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\).+",
+        static Regex RegexMFFlushing = new Regex(@"^Flushing[a-z ]+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)",
 													RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
         //"inode"	"971"	"0"		"%"		"0"		"0"		"%"
         //
         //Enqueuing flush of Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
-        //"user_ids.user_ids_gid"	"1890"	
-        static Regex RegexMFEnqueuing = new Regex(@"Enqueuing\s+flush\s+of\s+(?:Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+|([a-z0-9'-_$%+=@!?<>^*&]+))\s*(?:\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap.+\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)|\(([0-9,.]+)\/.+\))",
+        //"user_ids.user_ids_gid"	"1890"
+        static Regex RegexMFEnqueuing = new Regex(@"^Enqueuing\s+flush\s+of\s+(?:Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\@\d+|([a-z0-9'-_$%+=@!?<>^*&]+))\s*(?:\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap\s*,\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)|\(([0-9,.]+))",
 													RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1							Group2		Group3	    Group4		
+		//Group1							Group2		Group3	    Group4
 		//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"85762"
-		static Regex RegexMFWritingMemTbl = new Regex(@"Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@.+\(([0-9.]+)\s*([a-z]{0,5})?.+serialized.+\,\s+([0-9,.]+)\s+ops\s*",
+		static Regex RegexMFWritingMemTbl = new Regex(@"^Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@\d+\(([0-9.]+)\s*([a-z]{1,5})?/?\d*\s+serialized(?:/live)?\s+bytes\,\s+([0-9,.]+)\s+ops",
 														RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1																																			Group2		Group3
-		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
-		static Regex RegexMFCompletedMemTbl = new Regex(@"Completed\s+flushing\s+(.+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;.+nothing\s+needed.+retained).+",
+		//Group1																																			Group2		    Group3
+		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"|NULL	"MiB"|NULL
+		static Regex RegexMFCompletedMemTbl = new Regex(@"^Completed\s+flushing\s+([0-9a-z\-_/.]+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;\s+nothing\s+needed[a-z ]+retained)",
 															RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 		public static void ParseMemTblFlushFromLog(DataTable dtCLog,
@@ -8875,7 +8875,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 															gcList.AddRange(currentFlushes.Where(i => i.Completed));
 															return gcList;
 														});
-               
+
                 #region Log Status DT and Warnings
                 if (dtLogStatusStack != null)
 				{
@@ -9796,7 +9796,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             #endregion
                         }
-                    }                    
+                    }
                     catch(System.Exception ex)
                     {
                         Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} Item count {3}",
@@ -9820,21 +9820,21 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         public static Task<DataTable> ReviewDropsBlocks(Task<DataTable> logTask,
-                                                        Task<DataTable> statLogTask, 
+                                                        Task<DataTable> statLogTask,
                                                         Task[] waitOnAdditionalTasks,
                                                         int warningThreshold,
                                                         int warningPeriodInMins)
         {
-            return Task<DataTable>.Factory                           
+            return Task<DataTable>.Factory
                            .ContinueWhenAll((new List<Task> { logTask, statLogTask }).Append(waitOnAdditionalTasks).ToArray(),
                                                tasks =>
                                                {
                                                    Program.ConsoleParsingLog.Increment("Processing Review of Drops/Blocks");
-                                                  
+
                                                    var dtLog = ((Task<DataTable>)tasks[0]).Result;
 
                                                    ReviewDropsBlocks(dtLog,
-                                                                        ((Task<DataTable>)tasks[1]).Result,                                                                        
+                                                                        ((Task<DataTable>)tasks[1]).Result,
                                                                         warningThreshold,
                                                                         warningPeriodInMins);
 
@@ -9854,7 +9854,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 int warningThreshold,
                                                 int warningPeriodInMins)
         {
-            
+
             if(dtLog == null || dtStatLog == null || dtStatLog.Rows.Count == 0)
             {
                 return;
@@ -9863,7 +9863,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             Logger.Instance.Info("Begin Review of Drops/Blocks from logs");
 
             /* var droppedFromLog = from logRow in dtLog.AsEnumerable()
-                                    let tag = logRow.Field<string>("Exception")                                   
+                                    let tag = logRow.Field<string>("Exception")
                                     where tag != null && tag.StartsWith("Dropped ") && !logRow.IsNull("Associated Value")
                                   select new
                                     {
@@ -9876,11 +9876,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             var blocksFromStats = from statRow in dtStatLog.AsEnumerable()
                                   let nbrBlocks = statRow.Field<long?>("Blocked")
                                   let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
-                                  let nbrCompleted = statRow.Field<long?>("Completed")                                  
+                                  let nbrCompleted = statRow.Field<long?>("Completed")
                                   let attribute = statRow.Field<string>("Pool/Cache Type")
                                   where (nbrBlocks.HasValue && nbrBlocks.Value > 0)
                                             || (nbrAllBlocks.HasValue && nbrAllBlocks.Value > 0)
-                                            || (nbrCompleted.HasValue && nbrCompleted.Value > 0                                                    
+                                            || (nbrCompleted.HasValue && nbrCompleted.Value > 0
                                                     && attribute == "Dropped Mutation")
                                   select new
                                   {
@@ -9953,7 +9953,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Associated Value"] = warningThreshold + (warningValue.Total - runningTotal);
                         dataRow.EndEdit();
                     }
-                }                
+                }
             }
 
             Logger.Instance.Info("Completed Review of Drops/Blocks from logs");
@@ -9989,7 +9989,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 solrItem.Duration,
                                                 dataRow["Associated Item"]);
 
-                            dtLog.Rows.Add(dataRow);                            
+                            dtLog.Rows.Add(dataRow);
                         }
                     }
                 }
@@ -10025,7 +10025,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 solrItem.Duration,
                                                 dataRow["Associated Item"]);
 
-                            dtLog.Rows.Add(dataRow);                            
+                            dtLog.Rows.Add(dataRow);
                         }
                     }
                 }
@@ -10093,9 +10093,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         componentItem.Item4,
                                         componentItem.Item5);
 
-                    dtLog.Rows.Add(dataRow);                    
+                    dtLog.Rows.Add(dataRow);
                 }
-            }            
+            }
         }
 
 
