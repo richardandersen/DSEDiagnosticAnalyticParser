@@ -6713,11 +6713,31 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 if(redueGCTimeFrameAnalysis)
                 {
+
+                    if(ParserSettings.GCComplexAnalysisTakeEventsWhenOver <= 0 || ParserSettings.GCComplexAnalysisTakeEventsWhenOver > ParserSettings.GCComplexReduceAnalysisOverEvents)
+                    {
+                        Logger.Instance.WarnFormat("GC Timeframe analysis disabled due to large number of GCs ({1:###,###,###,000}) for node {0}. GC Log Timestamp {2}, Ending Timestamp {3}",
+                                                gcInfo.Key,
+                                                gcInfoTimeLineCnt,
+                                                gcInfoTimeLine.First().LogTimestamp,                                                
+                                                gcInfoTimeLine.Last().LogTimestamp);
+
+                        ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
+                                                    gcInfo.Value.First().LogTimestamp,
+                                                    gcInfo.Key,
+                                                    null,
+                                                    "GC TimeFrame Analysis Reduced",
+                                                    gcInfoTimeLineCnt));
+                        return;
+                    }
+
                     int maxDur = 0;
                     int maxPos = 0;
                     int nbrPos = 0;
-                    int midWayPt = ParserSettings.GCComplexReduceAnalysisOverEvents / 2;
+                    int midWayPt = ParserSettings.GCComplexAnalysisTakeEventsWhenOver / 2;
                     var orgCount = gcInfoTimeLineCnt;
+                    var orgLogTimestamp = gcInfoTimeLine.First().LogTimestamp;
+                    var orgEndLogTimestamp = gcInfoTimeLine.Last().LogTimestamp;
 
                     gcInfoTimeLine.ForEach(g =>
                                     {
@@ -6737,19 +6757,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (skipNbr >= midWayPt)
                         {
-                            skipNbr = orgCount - ParserSettings.GCComplexReduceAnalysisOverEvents;
+                            skipNbr = orgCount - ParserSettings.GCComplexAnalysisTakeEventsWhenOver;
                         }
                     }
 
-                    gcInfoTimeLine = gcInfoTimeLine.Skip(skipNbr).Take(ParserSettings.GCComplexReduceAnalysisOverEvents);
+                    gcInfoTimeLine = gcInfoTimeLine.Skip(skipNbr).Take(ParserSettings.GCComplexAnalysisTakeEventsWhenOver);
                     gcInfoTimeLineCnt = gcInfoTimeLine.Count();
 
-                    Logger.Instance.WarnFormat("Reduced GC Timeframe analysis due to large number of GCs ({1:###,###,###,000}) for node {0}. Items Skipped {2:###,###,###,000}, Taken next {3:###,###,###,000} resulting in {4:###,###,###,000} total GCs.",
+                    Logger.Instance.WarnFormat("Reduced GC Timeframe analysis due to large number of GCs ({1:###,###,###,000}) for node {0}. Items Skipped {2:###,###,###,000}, Taken next {3:###,###,###,000} resulting in {4:###,###,###,000} total GCs. New Starting GC Log Timestamp {5} (old {6}), New Ending Timestamp {7} (old {8})",
                                                 gcInfo.Key,
                                                 orgCount,
                                                 skipNbr,
-                                                ParserSettings.GCComplexReduceAnalysisOverEvents,
-                                                gcInfoTimeLineCnt);
+                                                ParserSettings.GCComplexAnalysisTakeEventsWhenOver,
+                                                gcInfoTimeLineCnt,
+                                                gcInfoTimeLine.First().LogTimestamp,
+                                                orgLogTimestamp,
+                                                gcInfoTimeLine.Last().LogTimestamp,
+                                                orgEndLogTimestamp);
 
                     ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
                                                 gcInfo.Value.First().LogTimestamp,
@@ -9274,12 +9298,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (concurrentCollectionCnt > 0)
 			{
-				DataTable dtNodeStats = null;
-				DataTable dtCStatusLog = null;
-				decimal grpRef = CLogSummaryInfo.IncrementGroupInicator();
-                int nbrAdded = 0;
-
-                Logger.Instance.InfoFormat("Processing Concurrent Compactions/Flushes Occurrences ({0})", concurrentCollectionCnt);
+                DataTable dtNodeStats = null;
+                DataTable dtCStatusLog = null;
+               
+                Logger.Instance.InfoFormat("Processing Concurrent Compactions/Flushes for {0} Nodes", concurrentCollectionCnt);
 
                 if (dtLogStatusStack != null)
 				{
@@ -9296,7 +9318,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 					initializeTPStatsDataTable(dtNodeStats);
 				}
 
-				foreach (var item in concurrentCollection.SelectMany(i => i))
+                var concurrentTotalItems = concurrentCollection.SelectMany(i => i);
+                decimal grpRef = CLogSummaryInfo.IncrementGroupInicator();
+                int nbrAdded = 0;
+
+                foreach (var item in concurrentTotalItems)
 				{
                     try
                     {
@@ -9799,21 +9825,29 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     catch(System.Exception ex)
                     {
-                        Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} Item count {3}",
+                        Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2}. Current Items Added {3}, Total Nbr Items {4}",
                                                         item.DataCenter,
                                                         item.IPAddress,
                                                         item.StartFinish,
-                                                        item.ConcurrentList.Count);
+                                                        nbrAdded,
+                                                        concurrentTotalItems.Count());
                         Logger.Instance.Error("Concurrent Compactions/Flushes Exception", ex);
 
                         if(ex is System.OutOfMemoryException)
-                        {
+                        {                            
+                            ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
+                                                        item.StartFinish.Min,
+                                                        string.Format("{0}|{1}", item.DataCenter, item.IPAddress),
+                                                        null,
+                                                        "Concurrent Compactions/Flushes analysis disabled due to OOM",
+                                                        concurrentTotalItems.Count()));
                             throw;
                         }
-                    }
-				}
+                    }                    
+                }
 
-				Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to TPStats", nbrAdded);
+				Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to NodeStats",
+                                            nbrAdded);
 			}
 
             Logger.Instance.Info("Completed Detecting Concurrent Compactions/Flushes Occurrences");

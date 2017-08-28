@@ -236,6 +236,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         public static int SolrReIndexLatencyThresholdInMS = Properties.Settings.Default.SolrReIndexLatencyThresholdInMS;
         public static int AntiCompactionLatencyThresholdMS = Properties.Settings.Default.AntiCompactionLatencyThresholdMS;
         public static int GCComplexReduceAnalysisOverEvents = Properties.Settings.Default.GCComplexAnalysisDisabledOverEvents;
+        public static int GCComplexAnalysisTakeEventsWhenOver = Properties.Settings.Default.GCComplexAnalysisTakeEventsWhenOver;
 
         public static DateTimeRange LogStartDate = Properties.Settings.Default.LogCurrentDate.ToDateTimeRange(); //DateTime.Now.Date; //If DateTime.MinValue all log entries are parsed
         public static string[] LogSummaryIgnoreTaskExceptions = Properties.Settings.Default.LogSummaryIgnoreTaskExceptions.ToArray(false);

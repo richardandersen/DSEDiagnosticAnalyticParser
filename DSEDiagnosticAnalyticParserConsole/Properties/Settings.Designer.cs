@@ -1248,10 +1248,19 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("4000")]
         public int GCComplexAnalysisDisabledOverEvents {
             get {
                 return ((int)(this["GCComplexAnalysisDisabledOverEvents"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3000")]
+        public int GCComplexAnalysisTakeEventsWhenOver {
+            get {
+                return ((int)(this["GCComplexAnalysisTakeEventsWhenOver"]));
             }
         }
     }
