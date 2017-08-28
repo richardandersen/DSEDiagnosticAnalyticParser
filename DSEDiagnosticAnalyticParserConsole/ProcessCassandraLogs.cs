@@ -44,7 +44,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     diagFilePath.PathResolved,
                                                     extractedDir.PathResolved);
 
-                    foreach(var logFilePath in extractedDir.Children())
+                    foreach (var logFilePath in extractedDir.Children())
                     {
                         if (logFilePath.IsFilePath)
                         {
@@ -65,7 +65,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 Program.ConsoleLogReadFiles.TaskEnd(string.Format("Getting Files for {0}...", extractedDir.PathResolved));
 
-                if(logFileTasks.Count == 0)
+                if (logFileTasks.Count == 0)
                 {
                     Logger.Instance.InfoFormat("File \"{0}\" Extraction Failed. Skipping File...",
                                                     diagFilePath.PathResolved);
@@ -179,7 +179,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         ParserSettings.SlowLogQueryThresholdInMS);
         }
 
-		static public Task<int> ProcessLogFileTasks(Task<int> continousLogTask,
+        static public Task<int> ProcessLogFileTasks(Task<int> continousLogTask,
                                                         bool continousLogTaskRestrictByLogDateRange,
                                                         IFilePath logFilePath,
                                                         string excelWorkSheetLogCassandra,
@@ -203,65 +203,65 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         int slowLogQueryThresholdInMS)
         {
             var dtLog = new System.Data.DataTable(excelWorkSheetLogCassandra + "-" + ipAddress);
-			Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
+            Task statusTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask();
             Task<int> archTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
 
-            var logTask = continousLogTask.NewOrContinueWith( ignore =>
-                                {
-                                    if (ParserSettings.EnableLogReadThrottle && System.Threading.Interlocked.Increment(ref ThrottleLogReaderCnt) > Properties.Settings.Default.LogReadThrottleTaskCount)
-                                    {
-                                        Program.ConsoleLogReadFiles.Increment("Log Throttled");
-                                        System.Threading.Thread.Sleep(Properties.Settings.Default.LogReadThrottleWaitPeriodMS);
-                                        Program.ConsoleLogReadFiles.TaskEnd("Log Throttled");
-                                    }
+            var logTask = continousLogTask.NewOrContinueWith(ignore =>
+                               {
+                                   if (ParserSettings.EnableLogReadThrottle && System.Threading.Interlocked.Increment(ref ThrottleLogReaderCnt) > Properties.Settings.Default.LogReadThrottleTaskCount)
+                                   {
+                                       Program.ConsoleLogReadFiles.Increment("Log Throttled");
+                                       System.Threading.Thread.Sleep(Properties.Settings.Default.LogReadThrottleWaitPeriodMS);
+                                       Program.ConsoleLogReadFiles.TaskEnd("Log Throttled");
+                                   }
 
-                                    Program.ConsoleLogReadFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
+                                   Program.ConsoleLogReadFiles.Increment(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
-                                    dtLogsStack.Push(dtLog);
+                                   dtLogsStack.Push(dtLog);
 
-                                    if(continousLogTaskRestrictByLogDateRange)
-                                    {
-                                        var onlyLogRanges = LogCassandraNodeMaxMinTimestamps.Where(r => r.Key == ipAddress)
-                                                                                                .SelectMany(r => r.Value)
-                                                                                                .Where(r => !r.IsDebugFile)
-                                                                                                .Select(r => r.LogRange);
+                                   if (continousLogTaskRestrictByLogDateRange)
+                                   {
+                                       var onlyLogRanges = LogCassandraNodeMaxMinTimestamps.Where(r => r.Key == ipAddress)
+                                                                                               .SelectMany(r => r.Value)
+                                                                                               .Where(r => !r.IsDebugFile)
+                                                                                               .Select(r => r.LogRange);
 
-                                        if (onlyLogRanges.HasAtLeastOneElement())
-                                        {
-                                            var minTimeFrame = onlyLogRanges.Min(c => c.Min);
-                                            var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
+                                       if (onlyLogRanges.HasAtLeastOneElement())
+                                       {
+                                           var minTimeFrame = onlyLogRanges.Min(c => c.Min);
+                                           var maxTimeFrame = onlyLogRanges.Max(c => c.Max);
 
-                                            includeLogEntriesRange = new DateTimeRange(minTimeFrame, maxTimeFrame);
+                                           includeLogEntriesRange = new DateTimeRange(minTimeFrame, maxTimeFrame);
 
-                                            Logger.Instance.InfoFormat("Processing File \"{0}\" using Detected Range {1}",
-                                                                        logFilePath.Path,
-                                                                        includeLogEntriesRange);
-                                        }
-                                        else
-                                        {
-                                            Logger.Instance.InfoFormat("Processing File \"{0}\" (No Detected Range Found)", logFilePath.Path);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
-                                    }
+                                           Logger.Instance.InfoFormat("Processing File \"{0}\" using Detected Range {1}",
+                                                                       logFilePath.Path,
+                                                                       includeLogEntriesRange);
+                                       }
+                                       else
+                                       {
+                                           Logger.Instance.InfoFormat("Processing File \"{0}\" (No Detected Range Found)", logFilePath.Path);
+                                       }
+                                   }
+                                   else
+                                   {
+                                       Logger.Instance.InfoFormat("Processing File \"{0}\"", logFilePath.Path);
+                                   }
 
 
-                                    var linesRead = ReadCassandraLogParseIntoDataTable(logFilePath,
-                                                                                        ipAddress,
-                                                                                        dcName,
-                                                                                        includeLogEntriesRange,
-                                                                                        dtLog,
-                                                                                        gcPausedFlagThresholdInMS,
-                                                                                        compactionFllagThresholdInMS,
-                                                                                        compactionFlagThresholdAsIORate,
-                                                                                        slowLogQueryThresholdInMS);
+                                   var linesRead = ReadCassandraLogParseIntoDataTable(logFilePath,
+                                                                                       ipAddress,
+                                                                                       dcName,
+                                                                                       includeLogEntriesRange,
+                                                                                       dtLog,
+                                                                                       gcPausedFlagThresholdInMS,
+                                                                                       compactionFllagThresholdInMS,
+                                                                                       compactionFlagThresholdAsIORate,
+                                                                                       slowLogQueryThresholdInMS);
 
-                                    Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
+                                   Program.ConsoleLogReadFiles.TaskEnd(string.Format("{0} - {1}", ipAddress, logFilePath.FileName));
 
-                                    return linesRead;
-                                });
+                                   return linesRead;
+                               });
 
             if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled()
                 || ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs.IsEnabled()
@@ -273,12 +273,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 var dtCFStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseCFStatsLogs) ? new DataTable("CFStats-Logs" + "-" + ipAddress) : null;
                                 var dtTPStats = parseNonLogOptions.CheckEnabled(ParserSettings.ParsingExcelOptions.ParseNodeStatsLogs) ? new DataTable("TPStats-Logs" + "-" + ipAddress) : null;
 
-								if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
-								{
-									dtLogStatusStack.Push(dtStatusLog);
-								}
+                                if (ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
+                                {
+                                    dtLogStatusStack.Push(dtStatusLog);
+                                }
 
-								if (dtCFStats != null) dtCFStatsStack.Push(dtCFStats);
+                                if (dtCFStats != null) dtCFStatsStack.Push(dtCFStats);
                                 if (dtTPStats != null) dtTPStatsStack.Push(dtTPStats);
 
                                 Logger.Instance.InfoFormat("Status Log Processing File \"{0}\"", logFilePath.Path);
@@ -355,7 +355,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                 string[] logAggregateAdditionalTaskExceptionItems,
                                                                                                                 string[] logSummaryIgnoreTaskExceptions)
         {
-			Task<Tuple<DataTable, DataTable, DateTimeRange>> summaryTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
+            Task<Tuple<DataTable, DataTable, DateTimeRange>> summaryTask = Common.Patterns.Tasks.CompletionExtensions.CompletedTask<Tuple<DataTable, DataTable, DateTimeRange>>();
 
             if ((logSummaryPeriods != null && logSummaryPeriods.Length > 0)
                             || (logSummaryPeriodRanges != null && logSummaryPeriodRanges.Length > 0))
@@ -389,7 +389,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     Program.ConsoleParsingLog.Increment(string.Format("Summary {0}", dtLog.TableName));
 
-									Tuple <DateTime,TimeSpan>[] summaryPeriods = logSummaryPeriods;
+                                    Tuple<DateTime, TimeSpan>[] summaryPeriods = logSummaryPeriods;
 
                                     if (logSummaryPeriods == null || logSummaryPeriods.Length == 0)
                                     {
@@ -422,13 +422,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                             dtSummaryLog,
                                                                             dtExceptionSummaryLog,
                                                                             maxminLogDate,
-																			logAggregateAdditionalTaskExceptionItems,
+                                                                            logAggregateAdditionalTaskExceptionItems,
                                                                             logSummaryIgnoreTaskExceptions,
                                                                             summaryPeriods);
 
                                     Program.ConsoleParsingLog.TaskEnd(string.Format("Summary {0}", dtLog.TableName));
 
-                                    return new Tuple<DataTable,DataTable, DateTimeRange>(dtSummaryLog, dtExceptionSummaryLog, maxminLogDate);
+                                    return new Tuple<DataTable, DataTable, DateTimeRange>(dtSummaryLog, dtExceptionSummaryLog, maxminLogDate);
                                 },
                                 TaskContinuationOptions.AttachedToParent
                                     | TaskContinuationOptions.OnlyOnRanToCompletion);
@@ -480,12 +480,12 @@ namespace DSEDiagnosticAnalyticParserConsole
         static readonly Regex RegExExceptionDesc = new Regex(@"(.+?)(?:(\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\:?\d{1,5})|(?:\:)|(?:\;)|(?:\$)|(?:\#)|(?:\[\G\])|(?:\(\G\))|(?:0x\w+)|(?:\w+\-\w+\-\w+\-\w+\-\w+)|(\'.+\')|(?:\s+\-?\d+\s+)|(?:[0-9a-zA-z]{12,}))",
                                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//returns only numeric values in string via Matches
-		static readonly Regex RegExNumerics = new Regex(@"([0-9-.,]+)",
-												            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //returns only numeric values in string via Matches
+        static readonly Regex RegExNumerics = new Regex(@"([0-9-.,]+)",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		static readonly Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
-															        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static readonly Regex RegExSolrSecondaryIndex = new Regex(@"SolrSecondaryIndex\s+([^\s]+\.[^\s]+)\s+(.+)",
+                                                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static readonly Regex RegExSolrFlushIndexNames = new Regex("^Cql3SolrSecondaryIndex\\{columnDefs=\\[(?:\\s*ColumnDefinition\\{(?:\\s*(?:indexname\\=(?<indexname>[a-z0-9\\\\-_$%+!?<>^*&@]+)|[^,}]+)\\,?\\s*)+\\s*\\}\\,?)+",
                                                                     RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -498,8 +498,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             Exception = 1, //Includes Errors, Warns, etc. (Summary only)
             Stats = 2, //Stats and Summary
             ReadRepair = 3,
-			StatsOnly = 4, //Only Stats (no summary)
-			MemTblFlush = 5,
+            StatsOnly = 4, //Only Stats (no summary)
+            MemTblFlush = 5,
             Ignore = 999
         }
 
@@ -535,14 +535,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 rowAlreadyAdded = LogLinesHash.Contains(strLogLine.ToString());
 
-                if(!rowAlreadyAdded)
+                if (!rowAlreadyAdded)
                 {
                     LogLinesHash.Add(strLogLine.ToString());
                 }
 
             }
 
-            if(!rowAlreadyAdded)
+            if (!rowAlreadyAdded)
             {
                 dtCLog.Rows.Add(dataRow);
                 return true;
@@ -574,8 +574,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCLog.Columns.Add("Timestamp", typeof(DateTime)).AllowDBNull = false;
                 dtCLog.Columns.Add("Indicator", typeof(string));
                 dtCLog.Columns.Add("Task", typeof(string));
-				dtCLog.Columns.Add("TaskId", typeof(int)).AllowDBNull = true;
-				dtCLog.Columns.Add("Item", typeof(string));
+                dtCLog.Columns.Add("TaskId", typeof(int)).AllowDBNull = true;
+                dtCLog.Columns.Add("Item", typeof(string));
                 dtCLog.Columns.Add("Exception", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Exception Description", typeof(string)).AllowDBNull = true;
                 dtCLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true;
@@ -595,10 +595,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         decimal compactionFlagThresholdAsIORate,
                                                         int slowLogQueryThresholdInMS)
         {
-			if (ParserSettings.IgnoreLogFileExtensions.Contains(clogFilePath.FileExtension))
-			{
-				return 0;
-			}
+            if (ParserSettings.IgnoreLogFileExtensions.Contains(clogFilePath.FileExtension))
+            {
+                return 0;
+            }
 
             CreateCassandraLogDataTable(dtCLog);
 
@@ -632,7 +632,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 readNextLine = readStream.ReadLine();
 
                 #region Check to see if log file is within time frame
-                if(allowRange && readNextLine != null)
+                if (allowRange && readNextLine != null)
                 {
                     var testLine = Common.StringFunctions.Split(readNextLine,
                                                                 ' ',
@@ -699,7 +699,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     readLine = readNextLine;
                     readNextLine = readStream.ReadLine();
 
-                    if(skipNextRead)
+                    if (skipNextRead)
                     {
                         skipNextRead = false;
                         continue;
@@ -715,8 +715,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-					if ((line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[
-							|| (!assertError && line.Length >= 3 && line.Substring(0, 3).ToLower() == "at ")
+                    if ((line[0] == '/' && line.Contains(":[")) // /10.14.148.34:[
+                            || (!assertError && line.Length >= 3 && line.Substring(0, 3).ToLower() == "at ")
                             || (line.Length >= 4 && line.Substring(0, 4) == "... "))
                     {
                         continue;
@@ -724,7 +724,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     Program.ConsoleLogCount.Increment();
 
-                    if(consumeNextLine > 0)
+                    if (consumeNextLine > 0)
                     {
                         --consumeNextLine;
                         if (lastRow != null)
@@ -864,7 +864,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else
                             {
                                 ParseExceptions(ipAddress, parsedValues[0], lastRow, string.Join(" ", parsedValues.Skip(1)), null);
-                                if(lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
+                                if (lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
                             }
 
                             exceptionOccurred = true;
@@ -882,7 +882,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             else
                             {
                                 ParseExceptions(ipAddress, parsedValues[2], lastRow, string.Join(" ", parsedValues.Skip(2)), null);
-                                if(lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
+                                if (lastRow.RowState != DataRowState.Detached) lastRow.AcceptChanges();
                             }
                             exceptionOccurred = true;
                             continue;
@@ -906,7 +906,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     #region Timestamp/Number of lines Parsing
-                    if (DateTime.TryParse(parsedValues[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + parsedValues[ParserSettings.CLogLineFormats.TimeStampPos+1].Replace(',', '.'), out lineDateTime))
+                    if (DateTime.TryParse(parsedValues[ParserSettings.CLogLineFormats.TimeStampPos] + ' ' + parsedValues[ParserSettings.CLogLineFormats.TimeStampPos + 1].Replace(',', '.'), out lineDateTime))
                     {
                         if (allowRange)
                         {
@@ -995,19 +995,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         if (nPos > 2)
                         {
-							var strTaskId = strItem.Substring(nPos + 1, strItem.Length - nPos - 2).Trim();
-							int taskId;
+                            var strTaskId = strItem.Substring(nPos + 1, strItem.Length - nPos - 2).Trim();
+                            int taskId;
 
-							if(int.TryParse(strTaskId, out taskId))
-							{
-								dataRow["TaskId"] = taskId;
-							}
+                            if (int.TryParse(strTaskId, out taskId))
+                            {
+                                dataRow["TaskId"] = taskId;
+                            }
 
-							dataRow["Task"] = strItem.Substring(1, nPos - 1);
-						}
-						else
+                            dataRow["Task"] = strItem.Substring(1, nPos - 1);
+                        }
+                        else
                         {
-							dataRow["Task"] = strItem.Substring(1, strItem.Length - 2);
+                            dataRow["Task"] = strItem.Substring(1, strItem.Length - 2);
                         }
                     }
                     else
@@ -1057,26 +1057,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                         ++startRange;
                     }
 
-					if(((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
-					{
-						var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
+                    if (((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
+                    {
+                        var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
 
-						if (taskItems.Length > 1)
-						{
-							var splitItems = SplitTableName(taskItems[1]);
+                        if (taskItems.Length > 1)
+                        {
+                            var splitItems = SplitTableName(taskItems[1]);
 
-							dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
-						}
-					}
+                            dataRow["Associated Item"] = splitItems.Item1 + '.' + splitItems.Item2;
+                        }
+                    }
 
                     for (int nCell = startRange; nCell < parsedValues.Count; ++nCell)
                     {
-                        if(parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[MemtablePostFlush")
+                        if (parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[MemtablePostFlush")
                                 && (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ColumnFamilyStore.java"
                                         || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexWriter.java"))
                         {
                             #region Solr Hard Commit
-                            if(parsedValues[nCell] == "SecondaryIndex"
+                            if (parsedValues[nCell] == "SecondaryIndex"
                                     && parsedValues.Last().StartsWith("Cql3SolrSecondaryIndex"))
                             {
                                 var indexNameMatch = RegExSolrFlushIndexNames.Match(parsedValues.Last());
@@ -1085,7 +1085,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 {
                                     var solrIndexes = new List<string>();
 
-                                    foreach(Capture indexNameGrpCapture in indexNameMatch.Groups["indexname"].Captures)
+                                    foreach (Capture indexNameGrpCapture in indexNameMatch.Groups["indexname"].Captures)
                                     {
                                         if (!solrIndexes.Exists(i => i == indexNameGrpCapture.Value))
                                         {
@@ -1097,14 +1097,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     handled = true;
                                 }
                             }
-                            else if(parsedValues[nCell].StartsWith("commitInternal"))
+                            else if (parsedValues[nCell].StartsWith("commitInternal"))
                             {
                                 dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
                                 handled = true;
                             }
                             #endregion
                         }
-                        else if(parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[StreamReceiveTask")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.TaskPos].StartsWith("[StreamReceiveTask")
                                     && (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SecondaryIndexManager.java"
                                             || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexWriter.java"))
                         {
@@ -1173,24 +1173,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ColumnFamilyStore.java")
-						{
-							#region ColumnFamilyStore.java
-							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
-							//INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
-							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
-							//INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ColumnFamilyStore.java")
+                        {
+                            #region ColumnFamilyStore.java
+                            //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
+                            //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
+                            //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
+                            //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
 
-							if (parsedValues[nCell] == "Flushing"
-									|| (parsedValues[nCell] == "Enqueuing" && parsedValues[nCell+1] == "flush"))
-							{
-								dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
-								handled = true;
-							}
-							#endregion
-						}
-						else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Memtable.java")
-						{
+                            if (parsedValues[nCell] == "Flushing"
+                                    || (parsedValues[nCell] == "Enqueuing" && parsedValues[nCell + 1] == "flush"))
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
+                                handled = true;
+                            }
+                            #endregion
+                        }
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Memtable.java")
+                        {
                             #region Memtable.java
                             //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:1211 - Flushing largest CFS(Keyspace= 'homeKS', ColumnFamily= 'homebase_tasktracking_ops_l3') to free up room.Used total: 0.33/0.00, live: 0.33/0.00, flushing: 0.00/0.00, this: 0.07/0.07
                             //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
@@ -1207,12 +1207,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if ((parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
                                     || (parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("FlushWriter")))
                                             && (parsedValues[nCell] == "Writing" || parsedValues[nCell] == "Completed"))
-							{
-								dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
-								handled = true;
-							}
-							#endregion
-						}
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
+                                handled = true;
+                            }
+                            #endregion
+                        }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "SSTableWriter.java")
                         {
                             #region SSTableWriter.java
@@ -1358,7 +1358,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 int batchSize;
 
-								if (int.TryParse(parsedValues[nCell].Replace(",", string.Empty), out batchSize))
+                                if (int.TryParse(parsedValues[nCell].Replace(",", string.Empty), out batchSize))
                                 {
                                     dataRow["Associated Value"] = batchSize;
                                 }
@@ -1539,10 +1539,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "HintedHandoffMetrics.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "HintedHandOffManager.java")
                         {
-							#region HintedHandoffMetrics.java
-							//		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
-							//INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
-							if (parsedValues[nCell] == "dropped")
+                            #region HintedHandoffMetrics.java
+                            //		WARN  [HintedHandoffManager:1] 2016-07-25 04:26:10,445  HintedHandoffMetrics.java:79 - /10.170.110.191 has 1711 dropped hints, because node is down past configured hint window.
+                            //INFO  [HintedHandoff:2] 2016-10-29 09:04:51,254  HintedHandOffManager.java:486 - Timed out replaying hints to /10.12.51.20; aborting (0 delivered)
+                            if (parsedValues[nCell] == "dropped")
                             {
                                 //dataRow["Associated Item"] = "Dropped Hints";
                                 dataRow["Exception"] = "Dropped Hints (node down)";
@@ -1555,7 +1555,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Associated Item"] = lineIPAddress;
                                     string downDCName;
 
-                                    if(ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out downDCName))
+                                    if (ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out downDCName))
                                     {
                                         var nodedownDR = dtCLog.NewRow();
                                         nodedownDR["Data Center"] = downDCName;
@@ -1575,12 +1575,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     }
                                 }
                             }
-							else if (parsedValues[nCell] == "Timed"
-										&& parsedValues[nCell + 1] == "out")
-							{
-								dataRow["Exception"] = "Hints (timeout)";
-								dataRow["Flagged"] = (int)LogFlagStatus.Stats;
-								handled = true;
+                            else if (parsedValues[nCell] == "Timed"
+                                        && parsedValues[nCell + 1] == "out")
+                            {
+                                dataRow["Exception"] = "Hints (timeout)";
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                handled = true;
 
                                 var matchNbrs = RegExNumerics.Matches(parsedValues[nCell + 7]);
 
@@ -1594,8 +1594,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 }
 
                                 if (LookForIPAddress(parsedValues[nCell + 5].Replace(";", string.Empty), ipAddress, out lineIPAddress))
-								{
-									dataRow["Associated Item"] = lineIPAddress;
+                                {
+                                    dataRow["Associated Item"] = lineIPAddress;
 
                                     string timeoutDCName;
 
@@ -1618,23 +1618,23 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         AddRowToLogDataTable(dtCLog, nodetimeoutDR, isDebugLogFile);
                                     }
                                 }
-							}
-							#endregion
-						}
+                            }
+                            #endregion
+                        }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "StorageService.java")
                         {
-							#region StorageService.java
-							//	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
-							//INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
-							//INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
-							//INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
-							//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
-							//INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
-							//INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
-							//INFO  [RMI TCP Connection(20943)-10.12.50.10] 2016-10-17 15:50:56,821  StorageService.java:2891 - starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
-							//INFO[Thread - 361905] 2016 - 10 - 17 15:50:56,822  StorageService.java:2970 - Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
+                            #region StorageService.java
+                            //	WARN [ScheduledTasks:1] 2013-04-10 10:18:12,042 StorageService.java (line 2645) Flushing CFS(Keyspace='Company', ColumnFamily='01_Meta') to relieve memory pressure
+                            //INFO  [main] 2016-10-08 15:48:11,974  StorageService.java:1715 - Node /192.168.247.61 state jump to NORMAL
+                            //INFO[StorageServiceShutdownHook] 2016 - 10 - 08 15:45:53,400  StorageService.java:1715 - Node / 192.168.247.61 state jump to shutdown
+                            //INFO  [main] 2016-10-08 15:48:11,665  StorageService.java:622 - Cassandra version: 2.1.14.1272
+                            //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:623 - Thrift API version: 19.39.0
+                            //INFO[main] 2016 - 10 - 08 15:48:11,665  StorageService.java:624 - CQL supported versions: 2.0.0,3.2.1(default: 3.2.1)
+                            //INFO  [ACCEPT-vmdse0408c1.andersen.local/192.168.247.60] 2016-10-26 22:15:56,042  MessagingService.java:1018 - MessagingService has terminated the accept() thread
+                            //INFO  [RMI TCP Connection(20943)-10.12.50.10] 2016-10-17 15:50:56,821  StorageService.java:2891 - starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
+                            //INFO[Thread - 361905] 2016 - 10 - 17 15:50:56,822  StorageService.java:2970 - Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
 
-							if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
+                            if (nCell >= itemValuePos && parsedValues[nCell].Contains("Keyspace="))
                             {
                                 nCell = -1;
                                 var kstblValues = Common.StringFunctions.Split(parsedValues[nCell],
@@ -1670,15 +1670,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 itemValuePos = nCell + 3;
                             }
-							else if((parsedValues[nCell] == "starting"
-										&& parsedValues[nCell + 1] == "user-requested"
-										&& parsedValues[nCell + 2] == "repair")
-									|| (parsedValues[nCell] == "Starting"
-											&& parsedValues[nCell + 1] == "repair"
-											&& parsedValues[nCell + 2] == "command"))
-							{
-								dataRow["Flagged"] = (int)LogFlagStatus.ReadRepair;
-							}
+                            else if ((parsedValues[nCell] == "starting"
+                                        && parsedValues[nCell + 1] == "user-requested"
+                                        && parsedValues[nCell + 2] == "repair")
+                                    || (parsedValues[nCell] == "Starting"
+                                            && parsedValues[nCell + 1] == "repair"
+                                            && parsedValues[nCell + 2] == "command"))
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.ReadRepair;
+                            }
                             #endregion
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "StatusLogger.java")
@@ -1814,24 +1814,24 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairSession.java" || parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "RepairJob.java")
                         {
-							#region RepairSession.java RepairJob.java
-							//ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
-							//INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
-							//ERROR [AntiEntropySessions:1] 2016-10-19 10:42:49,900  RepairSession.java:303 - [repair #ff8f8db0-95eb-11e6-8ab5-71e7251f2ea8] session completed with the following error
+                            #region RepairSession.java RepairJob.java
+                            //ERROR [AntiEntropySessions:1857] 2016-06-10 21:56:53,281  RepairSession.java:276 - [repair #dc161200-2f4d-11e6-bd0c-93368bf2a346] Cannot proceed on repair because a neighbor (/10.27.34.54) is dead: session failed
+                            //INFO[AntiEntropySessions: 9665] 2016 - 08 - 10 07:08:06, 218  RepairJob.java:163 - [repair #cde0eaa0-5ec0-11e6-8767-f5197346a00e] requesting merkle trees for memberfundingeventaggregate (to [/10.211.34.167, /10.211.34.165, /10.211.34.164, /10.211.34.158, /10.211.34.150])
+                            //ERROR [AntiEntropySessions:1] 2016-10-19 10:42:49,900  RepairSession.java:303 - [repair #ff8f8db0-95eb-11e6-8ab5-71e7251f2ea8] session completed with the following error
 
-							if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR")
+                            if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "ERROR")
                             {
                                 if (parsedValues[nCell].ToLower() == "failed")
                                 {
                                     dataRow["Exception"] = "Read Repair Failed";
                                     itemPos = 0;
                                 }
-								else if (parsedValues[nCell].ToLower() == "session" && parsedValues[nCell+1] == "completed")
-								{
-									dataRow["Exception"] = "Read Repair Session completed with Error";
-									itemPos = 0;
-								}
-								else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
+                                else if (parsedValues[nCell].ToLower() == "session" && parsedValues[nCell + 1] == "completed")
+                                {
+                                    dataRow["Exception"] = "Read Repair Session completed with Error";
+                                    itemPos = 0;
+                                }
+                                else if (itemPos == -1 && dataRow["Associated Item"] == DBNull.Value)
                                 {
                                     dataRow["Exception"] = "Read Repair Error";
                                 }
@@ -1901,16 +1901,16 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexSchema.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "IndexSchema.java")
                         {
                             #region IndexSchema.java
                             //INFO  [http-10.203.40.61-8983-1] 2017-03-11 07:00:39,426  IndexSchema.java:470 - [null] Schema name=autoSolrSchema
                             //WARN  [http-10.203.40.61-8983-1] 2017-03-11 07:00:39,432  IndexSchema.java:745 - Field q is not multivalued and destination for multiple copyFields (15)
                             if (parsedValues[nCell] == "Schema" && parsedValues[nCell + 1].StartsWith("name"))
                             {
-                                currentSolrSchemaName = parsedValues[nCell] + " " + parsedValues[nCell + 1] ;
+                                currentSolrSchemaName = parsedValues[nCell] + " " + parsedValues[nCell + 1];
                             }
-                            else if(parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
+                            else if (parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
                             {
                                 dataRow["Exception"] = "Solr Warning";
                                 dataRow["Associated Item"] = currentSolrSchemaName;
@@ -2046,25 +2046,25 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-						else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "AbstractSolrSecondaryIndex.java")
-						{
-							#region AbstractSolrSecondaryIndex
-							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:52:23,011  AbstractSolrSecondaryIndex.java:1566 - Finished reindexing on keyspace prod_fcra and column family rtics_contribution
-							//INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:12:02,937  AbstractSolrSecondaryIndex.java:1539 - Reindexing on keyspace prod_fcra and column family rtics_contribution
-							//INFO  [SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:09,999  AbstractSolrSecondaryIndex.java:546 - Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
-							//INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "AbstractSolrSecondaryIndex.java")
+                        {
+                            #region AbstractSolrSecondaryIndex
+                            //INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:52:23,011  AbstractSolrSecondaryIndex.java:1566 - Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+                            //INFO  [SolrSecondaryIndex prod_fcra.rtics_contribution index reloader.] 2016-10-12 21:12:02,937  AbstractSolrSecondaryIndex.java:1539 - Reindexing on keyspace prod_fcra and column family rtics_contribution
+                            //INFO  [SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:09,999  AbstractSolrSecondaryIndex.java:546 - Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+                            //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
+                            //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
+                            //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
 
-							if (parsedValues[nCell] == "Reindexing"
-								|| (parsedValues[nCell] == "Finished" && parsedValues[nCell + 1] == "reindexing")
-								|| (parsedValues[nCell] == "Executing" && parsedValues[nCell + 1] == "hard")
-								|| (parsedValues[nCell] == "Truncated" && parsedValues[nCell + 1] == "commit"))
-							{
-								dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
-							}
-							#endregion
-						}
+                            if (parsedValues[nCell] == "Reindexing"
+                                || (parsedValues[nCell] == "Finished" && parsedValues[nCell + 1] == "reindexing")
+                                || (parsedValues[nCell] == "Executing" && parsedValues[nCell + 1] == "hard")
+                                || (parsedValues[nCell] == "Truncated" && parsedValues[nCell + 1] == "commit"))
+                            {
+                                dataRow["Flagged"] = (int)LogFlagStatus.StatsOnly;
+                            }
+                            #endregion
+                        }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "Gossiper.java"
                                     && parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
                         {
@@ -2080,7 +2080,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
-                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "MigrationManager.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "MigrationManager.java")
                         {
                             #region MigrationManager.java (change in keyspace)
                             //INFO  [SharedPool-Worker-1] 2017-05-12 18:02:58,880  MigrationManager.java:279 - Update Keyspace 'OpsCenter' From KSMetaData{name=OpsCenter, strategyClass=NetworkTopologyStrategy, strategyOptions={us-east-dsestorage=1, us-west-2-dsestorage=1, us-west-2-2-dsestorage=1},
@@ -2134,7 +2134,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             #endregion
                         }
-                        else if(parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ShardRouter.java")
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "ShardRouter.java")
                         {
                             #region ShardRouter.java Updated
                             //INFO  [GossipStage:1] 2017-05-12 18:03:01,432  ShardRouter.java:645 - Updating shards state due to endpoint /10.186.72.198 changing state SCHEMA=541fdec0-47c9-33fd-b79c-4a37acd21019
@@ -2251,7 +2251,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         Action<string, bool, DataRow> additionalUpdates,
                                         bool checkLastException = true)
         {
-            if(exceptionClass.StartsWith("error...") && exceptionClass.Length > 8)
+            if (exceptionClass.StartsWith("error...") && exceptionClass.Length > 8)
             {
                 exceptionClass = exceptionClass.Substring(9);
             }
@@ -2266,45 +2266,45 @@ namespace DSEDiagnosticAnalyticParserConsole
             bool extendedExceptionDesc = false;
             var exceptionDescSplits = exceptionDesc == null ? new string[0] : RegExExceptionDesc.Split(exceptionDesc);
 
-            if(checkLastException
+            if (checkLastException
                     && lastException == null
                     && dataRow["Exception Description"] == DBNull.Value)
             {
-				if (dataRow["Task"] is string && ((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
-				{
-					var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
+                if (dataRow["Task"] is string && ((string)dataRow["Task"]).StartsWith("SolrSecondaryIndex "))
+                {
+                    var taskItems = RegExSolrSecondaryIndex.Split((string)dataRow["Task"]);
 
-					if (taskItems.Length > 1)
-					{
-						var splitItems = SplitTableName(taskItems[1]);
+                    if (taskItems.Length > 1)
+                    {
+                        var splitItems = SplitTableName(taskItems[1]);
 
-						UpdateRowColumn(dataRow,
-										"Associated Item",
-										dataRow["Associated Item"] as string,
-										splitItems.Item1 + '.' + splitItems.Item2,
-										"->");
+                        UpdateRowColumn(dataRow,
+                                        "Associated Item",
+                                        dataRow["Associated Item"] as string,
+                                        splitItems.Item1 + '.' + splitItems.Item2,
+                                        "->");
 
-						if (taskItems.Length > 2)
-						{
-							lastException = "SolrSecondaryIndex." + taskItems[2];
-						}
-						else
-						{
-							lastException = "SolrSecondaryIndex";
-						}
-					}
-				}
+                        if (taskItems.Length > 2)
+                        {
+                            lastException = "SolrSecondaryIndex." + taskItems[2];
+                        }
+                        else
+                        {
+                            lastException = "SolrSecondaryIndex";
+                        }
+                    }
+                }
 
-				if(lastException == null)
-				{
-					ParseExceptions(ipAddress, (string)dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates, false);
-					lastException = dataRow["Exception"] as string;
-				}
+                if (lastException == null)
+                {
+                    ParseExceptions(ipAddress, (string)dataRow["Indicator"], dataRow, dataRow["Description"] as string, additionalUpdates, false);
+                    lastException = dataRow["Exception"] as string;
+                }
             }
 
             dataRow.BeginEdit();
 
-            if(exception == "java.lang.OutOfMemoryError")
+            if (exception == "java.lang.OutOfMemoryError")
             {
                 //Flag it so that it can be included in the stats
                 dataRow["Flagged"] = (int)LogFlagStatus.Stats;
@@ -2399,13 +2399,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             var protocolPos = exceptionDescSplits[nIndex].IndexOf(':');
 
-                            if(protocolPos > 0)
+                            if (protocolPos > 0)
                             {
                                 exceptionDescSplits[nIndex] = exceptionDescSplits[nIndex].Substring(0, protocolPos) + ":####";
                             }
                         }
                     }
-                    if(lastException == null || !lastException.Contains(exceptionDescSplits[nIndex]))
+                    if (lastException == null || !lastException.Contains(exceptionDescSplits[nIndex]))
                     {
                         currentExceptionDesc += " " + exceptionDescSplits[nIndex];
                     }
@@ -2432,12 +2432,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             additionalUpdates?.Invoke(exception, extendedExceptionDesc, dataRow);
 
-			if (dataRow["Flagged"] == DBNull.Value || (int)dataRow["Flagged"] == 0)
-			{
-				dataRow["Flagged"] = (int)LogFlagStatus.Exception;
-			}
+            if (dataRow["Flagged"] == DBNull.Value || (int)dataRow["Flagged"] == 0)
+            {
+                dataRow["Flagged"] = (int)LogFlagStatus.Exception;
+            }
 
-			dataRow.EndEdit();
+            dataRow.EndEdit();
         }
 
         static string UpdateRowColumn(DataRow dataRow, string columnName, string currentValue, string appendValue, string delimitor = "=>")
@@ -2466,8 +2466,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         static void ParseCassandraLogIntoSummaryDataTable(DataTable dtroCLog,
                                                             DataTable dtCSummaryLog,
                                                             DataTable dtCExceptionSummaryLog,
-															DateTimeRange maxminLogDate,
-															string[] logAggregateAdditionalTaskExceptionItems,
+                                                            DateTimeRange maxminLogDate,
+                                                            string[] logAggregateAdditionalTaskExceptionItems,
                                                             string[] ignoreTaskExceptionItems,
                                                             IEnumerable<Tuple<DateTime, TimeSpan>> bucketFromAggregatePeriods)
         {
@@ -2483,7 +2483,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtCSummaryLog.Columns.Add("Associated Item Type", typeof(string)).AllowDBNull = true; //H
                 dtCSummaryLog.Columns.Add("Associated Item", typeof(string)).AllowDBNull = true; //I
                 dtCSummaryLog.Columns.Add("Last Occurrence", typeof(DateTime)).AllowDBNull = true; //J
-				dtCSummaryLog.Columns.Add("Occurrences", typeof(int)); //K
+                dtCSummaryLog.Columns.Add("Occurrences", typeof(int)); //K
                 dtCSummaryLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true; //L
                 dtCSummaryLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true; //M
                 dtCSummaryLog.Columns.Add("Table", typeof(string)).AllowDBNull = true; //N
@@ -2497,9 +2497,9 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var segments = new List<Tuple<DateTime, DateTime, TimeSpan, List<CLogSummaryInfo>>>();
 
-				Program.ConsoleParsingLog.Increment("Summary Segment Generation...");
+                Program.ConsoleParsingLog.Increment("Summary Segment Generation...");
 
-				for (int nIndex = 0; nIndex < bucketFromAggregatePeriods.Count(); ++nIndex)
+                for (int nIndex = 0; nIndex < bucketFromAggregatePeriods.Count(); ++nIndex)
                 {
                     segments.Add(new Tuple<DateTime, DateTime, TimeSpan, List<CLogSummaryInfo>>(bucketFromAggregatePeriods.ElementAt(nIndex).Item1,
                                                                                                     bucketFromAggregatePeriods.ElementAtOrDefault(nIndex + 1) == null
@@ -2509,9 +2509,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                     new List<CLogSummaryInfo>()));
                 }
 
-				Program.ConsoleParsingLog.TaskEnd("Summary Segment Generation...");
+                Program.ConsoleParsingLog.TaskEnd("Summary Segment Generation...");
 
-				Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
+                Logger.Instance.InfoFormat("Summary Log Ranges: {{{0}}} Nbr Log Rows: {1:###,###,##0}", string.Join("; ", segments.Select(element => string.Format("#{0}# >= [Timestamp] and #{1}# < [Timestamp], Interval{{{2}}}", element.Item1, element.Item2, element.Item3))), dtroCLog.Rows.Count);
 
                 var dtroCLogRows = (from dr in dtroCLog.AsEnumerable()
                                     let timeStamp = dr.Field<DateTime>("Timestamp")
@@ -2539,12 +2539,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Parallel.ForEach(segments, element =>
                 //foreach (var element in segments)
                 {
-					Program.ConsoleParsingLog.Increment(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
+                    Program.ConsoleParsingLog.Increment(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
 
-					var segmentView = from dr in dtroCLogRows
-                                       where element.Item1 >= dr.Timestamp && element.Item2 < dr.Timestamp
-									   orderby dr.Timestamp descending
-									   select dr;
+                    var segmentView = from dr in dtroCLogRows
+                                      where element.Item1 >= dr.Timestamp && element.Item2 < dr.Timestamp
+                                      orderby dr.Timestamp descending
+                                      select dr;
 
                     var startPeriod = element.Item1;
                     var endPeriod = startPeriod - element.Item3;
@@ -2584,17 +2584,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         if (!string.IsNullOrEmpty(dataView.Exception))
                         {
                             var exceptionName = DetermineExceptionNameFromPath(dataView.Exception);
-							var exceptionPath = dataView.Exception;
+                            var exceptionPath = dataView.Exception;
 
-							if (exceptionPath == exceptionName)
+                            if (exceptionPath == exceptionName)
                             {
-                                if(string.IsNullOrEmpty(dataView.AssocItem))
+                                if (string.IsNullOrEmpty(dataView.AssocItem))
                                 {
-									exceptionPath = null;
+                                    exceptionPath = null;
                                 }
                                 else
                                 {
-									exceptionPath += string.Format("({0})", dataView.AssocItem);
+                                    exceptionPath += string.Format("({0})", dataView.AssocItem);
                                 }
                             }
 
@@ -2617,11 +2617,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
+                            summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
                         }
                         else if (dataView.Flagged)
                         {
-							var item = dataView.Item;
+                            var item = dataView.Item;
                             var itemNameSplit = RegExSummaryLogExceptionName.Split(item);
                             var itemName = itemNameSplit.Length < 2 ? item : itemNameSplit[1];
 
@@ -2645,7 +2645,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             {
                                 summaryInfo = new CLogSummaryInfo(startPeriod,
                                                                     element.Item3,
-																	"Flagged",
+                                                                    "Flagged",
                                                                     itemName,
                                                                     item,
                                                                     dataView.DataCenter,
@@ -2653,8 +2653,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
-						}
+                            summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
+                        }
                         else
                         {
                             string itemType;
@@ -2667,7 +2667,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 itemName = dataView.TaskItem;
                                 itemPath = string.Format("{0}({1})", dataView.TaskItem, dataView.AssocItem);
                             }
-                            else if(logAggregateAdditionalTaskExceptionItems.Contains(dataView.Item) && dataView.AssocItem != null)
+                            else if (logAggregateAdditionalTaskExceptionItems.Contains(dataView.Item) && dataView.AssocItem != null)
                             {
                                 itemType = "Item";
                                 itemName = dataView.Item;
@@ -2684,26 +2684,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                             if (summaryInfo == null)
                             {
                                 summaryInfo = new CLogSummaryInfo(startPeriod,
-																	element.Item3,
-																	itemType,
-																	itemName,
-																	itemPath,
-																	dataView.DataCenter,
-																	dataView.IpAdress);
+                                                                    element.Item3,
+                                                                    itemType,
+                                                                    itemName,
+                                                                    itemPath,
+                                                                    dataView.DataCenter,
+                                                                    dataView.IpAdress);
                                 element.Item4.Add(summaryInfo);
                             }
 
-							summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
-						}
+                            summaryInfo.Increment(dataView.Timestamp, dataView.AssocItem, dataView.DataRowArray);
+                        }
 
                     }
 
-					Program.ConsoleParsingLog.TaskEnd(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
-				});//foreach
+                    Program.ConsoleParsingLog.TaskEnd(string.Format("Summary Parallel Segment Processing {0} to {1}", element.Item1, element.Item2));
+                });//foreach
 
-				var sortedSegments = from segment in segments
-									 orderby segment.Item1 descending
-									 select segment;
+                var sortedSegments = from segment in segments
+                                     orderby segment.Item1 descending
+                                     select segment;
 
                 Program.ConsoleParsingNonLog.Increment("Summary Generating DataTable...");
 
@@ -2740,11 +2740,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataSummaryRow["Type"] = item.ItemType;
                                     dataSummaryRow["Key"] = item.ItemKey;
                                     dataSummaryRow["Path"] = item.ItemPath;
-                                    dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp.HasValue ? (object) item.MaxTimeStamp.Value : DBNull.Value;
+                                    dataSummaryRow["Last Occurrence"] = item.MaxTimeStamp.HasValue ? (object)item.MaxTimeStamp.Value : DBNull.Value;
                                     dataSummaryRow["Occurrences"] = item.AggregationCount;
                                     dataSummaryRow["Reconciliation Reference"] = item.GroupIndicator;
 
-                                    if(item.AssociatedItems.Count > 0)
+                                    if (item.AssociatedItems.Count > 0)
                                     {
                                         dataSummaryRow["Associated Item"] = string.Join("; ", item.AssociatedItems);
 
@@ -2811,7 +2811,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 summaryExceptionDataTableTask.Wait();
 
                 Program.ConsoleParsingNonLog.TaskEnd("Summary Generating DataTable...");
-			}
+            }
 
             Logger.Instance.InfoFormat("Summary Log Nbr Rows: {0:###,###,##0}", dtCSummaryLog.Rows.Count);
         }
@@ -2829,7 +2829,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 ? exceptionPath
                                 : exceptionPathNodes[exceptionPathNodes.Length - posFromEnd];
 
-            if(keyNode.Length > 5
+            if (keyNode.Length > 5
                     && keyNode[0] == '/'
                     && (exceptionPathNodes.Length - (posFromEnd + 1)) >= 0)
             {
@@ -2844,7 +2844,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 return exceptionName;
             }
 
-            if(ParserSettings.SummaryIgnoreExceptions.Contains(exceptionName.ToLower()))
+            if (ParserSettings.SummaryIgnoreExceptions.Contains(exceptionName.ToLower()))
             {
                 return DetermineExceptionNameFromPath(exceptionPath, exceptionPathNodes, posFromEnd + 1);
             }
@@ -2852,16 +2852,16 @@ namespace DSEDiagnosticAnalyticParserConsole
             return exceptionName;
         }
 
-		//GCInspector.java:258 - G1 Young Generation GC in 691ms.  G1 Eden Space: 4,682,940,416 -> 0; G1 Old Gen: 2,211,450,256 -> 2,797,603,280; G1 Survivor Space: 220,200,960 -> 614,465,536;
-		//GCInspector.java:258 - G1 Young Generation GC in 277ms. G1 Eden Space: 4047503360 -> 0; G1 Old Gen: 2855274656 -> 2855274648;
-		static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+([0-9,]+)(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Survivor Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+).*)?.*",
+        //GCInspector.java:258 - G1 Young Generation GC in 691ms.  G1 Eden Space: 4,682,940,416 -> 0; G1 Old Gen: 2,211,450,256 -> 2,797,603,280; G1 Survivor Space: 220,200,960 -> 614,465,536;
+        //GCInspector.java:258 - G1 Young Generation GC in 277ms. G1 Eden Space: 4047503360 -> 0; G1 Old Gen: 2855274656 -> 2855274648;
+        static Regex RegExG1Line = new Regex(@"\s*G1.+in\s+([0-9,]+)(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Survivor Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+).*)?.*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
-		static Regex RegExGCLine = new Regex(@"\s*GC.+ParNew:\s+([0-9,]+)",
+        //GCInspector.java (line 116) GC for ParNew: 394 ms for 1 collections, 13571498424 used; max is 25340346368
+        static Regex RegExGCLine = new Regex(@"\s*GC.+ParNew:\s+([0-9,]+)",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//ConcurrentMarkSweep GC in 363ms. CMS Old Gen: 5688178056 -> 454696416; Par Eden Space: 3754560 -> 208755688;
-		//ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
-		static Regex RegExGCMSLine = new Regex(@"\s*ConcurrentMarkSweep.+in\s+([0-9,]+)(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?.*",
+        //ConcurrentMarkSweep GC in 363ms. CMS Old Gen: 5688178056 -> 454696416; Par Eden Space: 3754560 -> 208755688;
+        //ConcurrentMarkSweep GC in 2083ms. CMS Old Gen: 8524829104 -> 8531031448; CMS Perm Gen: 68555136 -> 68555392; Par Eden Space: 1139508352 -> 47047616; Par Survivor Space: 35139688 -> 45900968
+        static Regex RegExGCMSLine = new Regex(@"\s*ConcurrentMarkSweep.+in\s+([0-9,]+)(?:.*Old Gen:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?(?:.*Eden Space:\s*([0-9,.]+)\s*->\s*([0-9,.]+))?.*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExPoolLine = new Regex(@"\s*(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -2871,174 +2871,174 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
         static Regex RegExPool2Line = new Regex(@"\s*(\w+)\s+(\w+/\w+|\d+)\s+(\w+/\w+|\d+).*",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
-		//DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
-		static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
+        //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+        //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
+        static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-		static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+session:.+on range\s+\[?\(([0-9-]+).*\,([0-9-]+)\]\]?\s+for\s+(.+)\.\[.+\]",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
-		static Regex RegExRepairUserRequest = new Regex(@".*starting\s+user-requested\s+repair.+range\s+\[?\(\s*([0-9-]+)\s*\,\s*([0-9-]+)\s*\]\]?\s+.+keyspace\s+(.+)\s+and.+",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
-		static Regex RegExRepairUserRequest1 = new Regex(@".*Starting\s+repair\s+command\s.+keyspace\s+(.+)\s+\((.+)\)",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
-		static Regex RegExRepairEndSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+session\s+(.+)\s+(.+)",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
-		static Regex RegExRepairNbrRangesLine = new Regex(@"\[.+\s+#(.+)\]\s+Performing streaming repair.+\s+(\d+)\s+ranges.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//[repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
-		static Regex RegExRepairReceivedLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+merkle tree for\s+.+from.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
+        static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+session:.+on range\s+\[?\(([0-9-]+).*\,([0-9-]+)\]\]?\s+for\s+(.+)\.\[.+\]",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //starting user-requested repair of range [(-1537228672809129313,-1531223873305968652]] for keyspace prod_fcra and column families [ifps_inquiry, ifps_contribution, rtics_contribution, rtics_inquiry, bics_contribution, avlo_inquiry, bics_inquiry]
+        static Regex RegExRepairUserRequest = new Regex(@".*starting\s+user-requested\s+repair.+range\s+\[?\(\s*([0-9-]+)\s*\,\s*([0-9-]+)\s*\]\]?\s+.+keyspace\s+(.+)\s+and.+",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Starting repair command #9, repairing 1 ranges for keyspace prod_fcra (parallelism=PARALLEL, full=true)
+        static Regex RegExRepairUserRequest1 = new Regex(@".*Starting\s+repair\s+command\s.+keyspace\s+(.+)\s+\((.+)\)",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
+        static Regex RegExRepairEndSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+session\s+(.+)\s+(.+)",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
+        static Regex RegExRepairNbrRangesLine = new Regex(@"\[.+\s+#(.+)\]\s+Performing streaming repair.+\s+(\d+)\s+ranges.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //[repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
+        static Regex RegExRepairReceivedLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+merkle tree for\s+.+from.+\/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Reindexing on keyspace account_owner and column family ew_account_owners
-		//Finished reindexing on keyspace prod_fcra and column family rtics_contribution
-		static Regex RegExSolrReIndex = new Regex(@".*Reindexing.+keyspace\s+(.+)\s+.+column\s+family\s+(.+)",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
-		static Regex RegExSolrReIndex1 = new Regex(@".*Reindexing\s+(\d+)\s+commit.+core\s+(.+)\.(.+)\s*",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//Executing hard commit on index prod_fcra.bics_contribution
-		static Regex RegExSolrReIndex2 = new Regex(@".*Executing hard commit on index\s+(.+)\.(.+)\s*",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		//Truncated commit log for core prod_fcra.bics_contribution
-		static Regex RegExSolrReIndex3 = new Regex(@".*Truncated commit log for core\s+(.+)\.(.+)\s*",
-												RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Reindexing on keyspace account_owner and column family ew_account_owners
+        //Finished reindexing on keyspace prod_fcra and column family rtics_contribution
+        static Regex RegExSolrReIndex = new Regex(@".*Reindexing.+keyspace\s+(.+)\s+.+column\s+family\s+(.+)",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Reindexing 1117 commit log updates for core prod_fcra.bics_contribution
+        static Regex RegExSolrReIndex1 = new Regex(@".*Reindexing\s+(\d+)\s+commit.+core\s+(.+)\.(.+)\s*",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Executing hard commit on index prod_fcra.bics_contribution
+        static Regex RegExSolrReIndex2 = new Regex(@".*Executing hard commit on index\s+(.+)\.(.+)\s*",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Truncated commit log for core prod_fcra.bics_contribution
+        static Regex RegExSolrReIndex3 = new Regex(@".*Truncated commit log for core\s+(.+)\.(.+)\s*",
+                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static readonly Regex RegExSolrHardCommitInternalTime = new Regex(@"^commitInternal\w+\s+(?:duration\s*=\s*(\d+)\s*ms\s+)*startTime\s*=\s*(\d+)$",
                                                                         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		public interface ILogInfo
-		{
-			string DataCenter { get; }
-			string IPAddress { get; }
-			string Keyspace { get; }
-			string Table { get; }
-			DateTime StartTime { get; }
-			DateTime CompletionTime { get; }
-			DateTime LogTimestamp { get; }
-			int Duration { get; }
-			object GroupIndicator { get; }
-			string Type { get; }
-		}
+        public interface ILogInfo
+        {
+            string DataCenter { get; }
+            string IPAddress { get; }
+            string Keyspace { get; }
+            string Table { get; }
+            DateTime StartTime { get; }
+            DateTime CompletionTime { get; }
+            DateTime LogTimestamp { get; }
+            int Duration { get; }
+            object GroupIndicator { get; }
+            string Type { get; }
+        }
 
-		public interface ILogRateInfo : ILogInfo
-		{
-			decimal IORate { get; }
-		}
+        public interface ILogRateInfo : ILogInfo
+        {
+            decimal IORate { get; }
+        }
 
-		public interface ILogSessionInfo
-		{
-			string SessionPath { get; }
-			string Session { get; set; }
-		}
+        public interface ILogSessionInfo
+        {
+            string SessionPath { get; }
+            string Session { get; set; }
+        }
 
-		public abstract class LogSessionInfo : ILogSessionInfo
-		{
-			public string SessionPath { get; private set; }
-			public string Session { get; set; }
+        public abstract class LogSessionInfo : ILogSessionInfo
+        {
+            public string SessionPath { get; private set; }
+            public string Session { get; set; }
 
-			public string SetSession()
-			{
-				return this.Session = (Guid.NewGuid()).ToString();
-			}
+            public string SetSession()
+            {
+                return this.Session = (Guid.NewGuid()).ToString();
+            }
 
-			public string SetSession(Guid session)
-			{
-				return this.Session = session.ToString();
-			}
+            public string SetSession(Guid session)
+            {
+                return this.Session = session.ToString();
+            }
 
-			public string SetSession(string session)
-			{
-				return this.Session = session;
-			}
+            public string SetSession(string session)
+            {
+                return this.Session = session;
+            }
 
-			public string GenerateSessionPath<T>(IEnumerable<T> sessionCollection)
-				where T : ILogSessionInfo
-			{
-				var sessionValues = sessionCollection?.Select(i => string.IsNullOrEmpty(i.Session) ? string.Empty : i.Session);
+            public string GenerateSessionPath<T>(IEnumerable<T> sessionCollection)
+                where T : ILogSessionInfo
+            {
+                var sessionValues = sessionCollection?.Select(i => string.IsNullOrEmpty(i.Session) ? string.Empty : i.Session);
 
-				return this.SessionPath = sessionValues == null ? null : string.Join("=>", sessionValues);
-			}
-		}
+                return this.SessionPath = sessionValues == null ? null : string.Join("=>", sessionValues);
+            }
+        }
 
-		public class GCLogInfo : ILogInfo
-		{
-			#region ILogInfo
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; }
-			public string Table { get { return null; } }
-			public DateTime StartTime
-			{
-				get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); }
-			}
-			public DateTime CompletionTime { get { return this.LogTimestamp; } }
-			public DateTime LogTimestamp { get; set; }
-			public int Duration { get; set; }
-			public object GroupIndicator { get; set; }
-			public string Type { get { return "GC"; } }
+        public class GCLogInfo : ILogInfo
+        {
+            #region ILogInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; }
+            public string Table { get { return null; } }
+            public DateTime StartTime
+            {
+                get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); }
+            }
+            public DateTime CompletionTime { get { return this.LogTimestamp; } }
+            public DateTime LogTimestamp { get; set; }
+            public int Duration { get; set; }
+            public object GroupIndicator { get; set; }
+            public string Type { get { return "GC"; } }
 
-			#endregion
+            #endregion
 
-			public decimal GCEdenFrom;
-			public decimal GCEdenTo;
-			public decimal GCSurvivorFrom;
-			public decimal GCSurvivorTo;
-			public decimal GCOldFrom;
-			public decimal GCOldTo;
-		}
+            public decimal GCEdenFrom;
+            public decimal GCEdenTo;
+            public decimal GCSurvivorFrom;
+            public decimal GCSurvivorTo;
+            public decimal GCOldFrom;
+            public decimal GCOldTo;
+        }
 
-		public interface ICompactionLogInfo : ILogRateInfo
-		{
-			int SSTables { get;}
-		}
+        public interface ICompactionLogInfo : ILogRateInfo
+        {
+            int SSTables { get; }
+        }
 
-		public class CompactionLogInfo : ICompactionLogInfo
-		{
-			#region ICompactionLogInto Members
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public int SSTables { get; set; }
-			public object GroupIndicator { get; set; }
-			public DateTime LogTimestamp { get; set; }
-			public DateTime StartTime { get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); } }
-			public DateTime CompletionTime { get { return this.LogTimestamp; } }
-			public int Duration { get; set; }
-			public decimal IORate { get; set; }
-			public string Type {  get { return "Compaction"; } }
-			#endregion
+        public class CompactionLogInfo : ICompactionLogInfo
+        {
+            #region ICompactionLogInto Members
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public int SSTables { get; set; }
+            public object GroupIndicator { get; set; }
+            public DateTime LogTimestamp { get; set; }
+            public DateTime StartTime { get { return this.LogTimestamp.Subtract(TimeSpan.FromMilliseconds(this.Duration)); } }
+            public DateTime CompletionTime { get { return this.LogTimestamp; } }
+            public int Duration { get; set; }
+            public decimal IORate { get; set; }
+            public string Type { get { return "Compaction"; } }
+            #endregion
 
-			public decimal OldSize;
-			public decimal NewSize;
-			public string PartitionsMerged;
-			public string MergeCounts;
+            public decimal OldSize;
+            public decimal NewSize;
+            public string PartitionsMerged;
+            public string MergeCounts;
 
-		}
+        }
 
-		public class AntiCompactionLogInfo : ICompactionLogInfo
-		{
-			#region ICompactionLogInto Members
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public int SSTables { get; set; }
-			public object GroupIndicator { get; set; }
-			public DateTime StartTime { get; set; }
-			public DateTime LogTimestamp { get { return this.StartTime; } }
-			public DateTime CompletionTime { get; set; }
-			public decimal IORate
+        public class AntiCompactionLogInfo : ICompactionLogInfo
+        {
+            #region ICompactionLogInto Members
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public int SSTables { get; set; }
+            public object GroupIndicator { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public DateTime CompletionTime { get; set; }
+            public decimal IORate
             {
                 get
                 {
-                    if(this.OldSize.HasValue && this.NewSize.HasValue)
+                    if (this.OldSize.HasValue && this.NewSize.HasValue)
                     {
                         return (this.OldSize.Value + this.NewSize.Value) / ((decimal)this.Duration / 1000M);
                     }
@@ -3046,40 +3046,40 @@ namespace DSEDiagnosticAnalyticParserConsole
                     return 0;
                 }
             }
-			public int Duration
-			{
-				get
-				{
-					return this.CompletionTime == DateTime.MinValue ? 0 : (int) (this.CompletionTime - this.StartTime).TotalMilliseconds;
-				}
-			}
-			public string Type { get { return "AntiCompaction"; } }
-			#endregion
+            public int Duration
+            {
+                get
+                {
+                    return this.CompletionTime == DateTime.MinValue ? 0 : (int)(this.CompletionTime - this.StartTime).TotalMilliseconds;
+                }
+            }
+            public string Type { get { return "AntiCompaction"; } }
+            #endregion
 
-			public List<Tuple<string, string>> TokenRanges = null;
+            public List<Tuple<string, string>> TokenRanges = null;
 
-			public void AddRange(string startRange, string endRange)
-			{
-				startRange = startRange?.Trim();
-				endRange = endRange?.Trim();
+            public void AddRange(string startRange, string endRange)
+            {
+                startRange = startRange?.Trim();
+                endRange = endRange?.Trim();
 
-				if(string.IsNullOrEmpty(startRange) || string.IsNullOrEmpty(endRange))
-				{
-					return;
-				}
+                if (string.IsNullOrEmpty(startRange) || string.IsNullOrEmpty(endRange))
+                {
+                    return;
+                }
 
-				if(this.TokenRanges == null)
-				{
-					this.TokenRanges = new List<Tuple<string, string>>() { new Tuple<string, string>(startRange, endRange) };
-					return;
-				}
+                if (this.TokenRanges == null)
+                {
+                    this.TokenRanges = new List<Tuple<string, string>>() { new Tuple<string, string>(startRange, endRange) };
+                    return;
+                }
 
-				if(!this.TokenRanges.Exists(i => i.Item1 == startRange && i.Item2 == endRange))
-				{
-					this.TokenRanges.Add(new Tuple<string, string>(startRange, endRange));
-				}
-			}
-			public bool Aborted { get; set; }
+                if (!this.TokenRanges.Exists(i => i.Item1 == startRange && i.Item2 == endRange))
+                {
+                    this.TokenRanges.Add(new Tuple<string, string>(startRange, endRange));
+                }
+            }
+            public bool Aborted { get; set; }
 
             public decimal? OldSize;
             public decimal? NewSize;
@@ -3121,374 +3121,374 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         public class SolrReIndexingLogInfo : ILogInfo
-		{
-			#region ILogInfo Members
+        {
+            #region ILogInfo Members
 
-			public DateTime StartTime { get; set; }
-			public DateTime CompletionTime { get; set; }
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public object GroupIndicator { get; set; }
-			public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
-			public DateTime LogTimestamp {  get { return this.StartTime; } }
-			public string Type {  get { return "SolrReIndexing"; } }
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get; set; }
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public object GroupIndicator { get; set; }
+            public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public string Type { get { return "SolrReIndexing"; } }
 
-			#endregion
+            #endregion
 
-			public int NbrUpdates;
-		}
+            public int NbrUpdates;
+        }
 
 
-		public class MemTableFlushOccurrenceLogInfo : LogSessionInfo, ILogRateInfo
-		{
-			#region ILogRateInfo
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public DateTime StartTime { get; set; }
-			public DateTime CompletionTime { get; set; }
-			public DateTime LogTimestamp { get { return this.StartTime; } }
-			public object GroupIndicator { get; set; }
-			public string Type { get { return "MemTableFlushOccurrence"; } }
-			public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
-			public decimal IORate { get { return this.Duration == 0 ? 0 : this.FlushedStorage / ((decimal)this.Duration / 1000M); } }
+        public class MemTableFlushOccurrenceLogInfo : LogSessionInfo, ILogRateInfo
+        {
+            #region ILogRateInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get; set; }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public object GroupIndicator { get; set; }
+            public string Type { get { return "MemTableFlushOccurrence"; } }
+            public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+            public decimal IORate { get { return this.Duration == 0 ? 0 : this.FlushedStorage / ((decimal)this.Duration / 1000M); } }
 
-			#endregion
+            #endregion
 
-			public MemTableFlushOccurrenceLogInfo(Guid session)
-			{
-				this.SetSession(session);
-			}
+            public MemTableFlushOccurrenceLogInfo(Guid session)
+            {
+                this.SetSession(session);
+            }
 
-			public MemTableFlushOccurrenceLogInfo(string session)
-			{
-				this.SetSession(session);
-			}
+            public MemTableFlushOccurrenceLogInfo(string session)
+            {
+                this.SetSession(session);
+            }
 
-			public MemTableFlushOccurrenceLogInfo()
-			{
-				this.SetSession();
-			}
+            public MemTableFlushOccurrenceLogInfo()
+            {
+                this.SetSession();
+            }
 
-			public int NbrWriteOPS;
-			//public decimal PreFlushOnHeapMemory;
-			//public decimal PreFlushOffHeapMemory;
-			public decimal FlushedStorage;
-			public string SSTableFilePath;
-			public int TaskId;
-		}
+            public int NbrWriteOPS;
+            //public decimal PreFlushOnHeapMemory;
+            //public decimal PreFlushOffHeapMemory;
+            public decimal FlushedStorage;
+            public string SSTableFilePath;
+            public int TaskId;
+        }
 
-		public class MemTableFlushLogInfo : LogSessionInfo, ILogRateInfo
-		{
-			#region ILogRateInfo
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public DateTime StartTime { get { return this.EnqueuingStart; } }
-			public DateTime CompletionTime { get { return this.Duration == 0 ? this.StartTime : this.Occurrences.Max(i => i.CompletionTime); } }
-			public DateTime LogTimestamp { get { return this.StartTime; } }
-			public object GroupIndicator { get; set; }
-			private string _type;
-			public string Type
-			{
-				get { return string.IsNullOrEmpty(this._type) ? this._type : "MemTable Flush (" + this._type + ")"; }
-				set { this._type = value; }
-			}
+        public class MemTableFlushLogInfo : LogSessionInfo, ILogRateInfo
+        {
+            #region ILogRateInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public DateTime StartTime { get { return this.EnqueuingStart; } }
+            public DateTime CompletionTime { get { return this.Duration == 0 ? this.StartTime : this.Occurrences.Max(i => i.CompletionTime); } }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public object GroupIndicator { get; set; }
+            private string _type;
+            public string Type
+            {
+                get { return string.IsNullOrEmpty(this._type) ? this._type : "MemTable Flush (" + this._type + ")"; }
+                set { this._type = value; }
+            }
 
-			public int Duration
-			{
-				get
-				{
-					if (this.OccurrenceCount == 0)
-					{
-						return 0;
-					}
+            public int Duration
+            {
+                get
+                {
+                    if (this.OccurrenceCount == 0)
+                    {
+                        return 0;
+                    }
 
-					return this.Occurrences.Sum(i => i.CompletionTime == DateTime.MinValue ? 0 : i.Duration);
-				}
-			}
-			public decimal IORate
-			{
-				get
-				{
-					var duration = this.Duration;
+                    return this.Occurrences.Sum(i => i.CompletionTime == DateTime.MinValue ? 0 : i.Duration);
+                }
+            }
+            public decimal IORate
+            {
+                get
+                {
+                    var duration = this.Duration;
 
-					return duration == 0 ? 0 : this.FlushedStorage / ((decimal)duration / 1000M);
-				}
-			}
+                    return duration == 0 ? 0 : this.FlushedStorage / ((decimal)duration / 1000M);
+                }
+            }
 
-			#endregion
+            #endregion
 
-			public MemTableFlushLogInfo()
-			{
-				this.SetSession();
-			}
+            public MemTableFlushLogInfo()
+            {
+                this.SetSession();
+            }
 
-			public DateTime EnqueuingStart;
+            public DateTime EnqueuingStart;
 
-			public int TaskId;
-			public bool Completed;
-			public DataRow LogDataRow;
+            public int TaskId;
+            public bool Completed;
+            public DataRow LogDataRow;
 
-			public decimal MaxIORate
-			{
-				get { return this.Occurrences.Max(i => i.IORate); }
-			}
-			public decimal MinIORate
-			{
-				get { return this.Occurrences.Where(i => i.IORate > 0).Min(i => i.IORate); }
-			}
-			public decimal AvgIORate
-			{
-				get { return this.Occurrences.Where(i => i.IORate > 0).Average(i => i.IORate); }
-			}
+            public decimal MaxIORate
+            {
+                get { return this.Occurrences.Max(i => i.IORate); }
+            }
+            public decimal MinIORate
+            {
+                get { return this.Occurrences.Where(i => i.IORate > 0).Min(i => i.IORate); }
+            }
+            public decimal AvgIORate
+            {
+                get { return this.Occurrences.Where(i => i.IORate > 0).Average(i => i.IORate); }
+            }
 
-			public int NbrWriteOPS
-			{
-				get { return this.Occurrences.Sum(i => i.NbrWriteOPS); }
-			}
+            public int NbrWriteOPS
+            {
+                get { return this.Occurrences.Sum(i => i.NbrWriteOPS); }
+            }
 
-			public decimal FlushedStorage
-			{
-				get { return this.Occurrences.Sum(i => i.FlushedStorage); }
-			}
+            public decimal FlushedStorage
+            {
+                get { return this.Occurrences.Sum(i => i.FlushedStorage); }
+            }
 
-			public IEnumerable<MemTableFlushOccurrenceLogInfo> Occurrences = Enumerable.Empty<MemTableFlushOccurrenceLogInfo>();
+            public IEnumerable<MemTableFlushOccurrenceLogInfo> Occurrences = Enumerable.Empty<MemTableFlushOccurrenceLogInfo>();
 
-			public int OccurrenceCount
-			{
-				get
-				{
-					return this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>()
-								? 0
-								: this.Occurrences.Count(i => i.CompletionTime != DateTime.MinValue);
-				}
-			}
+            public int OccurrenceCount
+            {
+                get
+                {
+                    return this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>()
+                                ? 0
+                                : this.Occurrences.Count(i => i.CompletionTime != DateTime.MinValue);
+                }
+            }
 
-			public MemTableFlushOccurrenceLogInfo AddOccurrence(MemTableFlushOccurrenceLogInfo occurence)
-			{
-				if(this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
-				{
-					this.Occurrences = new List<MemTableFlushOccurrenceLogInfo>();
-				}
+            public MemTableFlushOccurrenceLogInfo AddOccurrence(MemTableFlushOccurrenceLogInfo occurence)
+            {
+                if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+                {
+                    this.Occurrences = new List<MemTableFlushOccurrenceLogInfo>();
+                }
 
-				((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Add(occurence);
+                ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Add(occurence);
 
-				occurence.DataCenter = this.DataCenter;
-				occurence.IPAddress = this.IPAddress;
+                occurence.DataCenter = this.DataCenter;
+                occurence.IPAddress = this.IPAddress;
 
-				return occurence;
-			}
+                return occurence;
+            }
 
-			public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string table,
-																		DateTime timeStamp,
-																		int nbrOPS,
-																		int taskId,
-																		decimal groupId,
-																		bool alwaysCreateNewInstance = true)
-			{
-				if(this.TaskId == 0)
-				{
-					this.TaskId = taskId;
-				}
+            public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string table,
+                                                                        DateTime timeStamp,
+                                                                        int nbrOPS,
+                                                                        int taskId,
+                                                                        decimal groupId,
+                                                                        bool alwaysCreateNewInstance = true)
+            {
+                if (this.TaskId == 0)
+                {
+                    this.TaskId = taskId;
+                }
 
-				if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
-				{
-					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
-					{
-						Table = table,
-						StartTime = timeStamp,
-						TaskId = taskId,
-						GroupIndicator = groupId,
-						NbrWriteOPS = nbrOPS
-					});
-				}
+                if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+                {
+                    return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+                    {
+                        Table = table,
+                        StartTime = timeStamp,
+                        TaskId = taskId,
+                        GroupIndicator = groupId,
+                        NbrWriteOPS = nbrOPS
+                    });
+                }
 
-				var occurrence = alwaysCreateNewInstance
-										? null
-										: ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => string.IsNullOrEmpty(i.Keyspace)
-																												&& i.Table == table
-																												&& i.TaskId == taskId);
+                var occurrence = alwaysCreateNewInstance
+                                        ? null
+                                        : ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => string.IsNullOrEmpty(i.Keyspace)
+                                                                                                                && i.Table == table
+                                                                                                                && i.TaskId == taskId);
 
-				if (occurrence == null)
-				{
-					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
-					{
-						Table = table,
-						StartTime = timeStamp,
-						TaskId = taskId,
-						GroupIndicator = groupId,
-						NbrWriteOPS = nbrOPS
-					});
-				}
+                if (occurrence == null)
+                {
+                    return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+                    {
+                        Table = table,
+                        StartTime = timeStamp,
+                        TaskId = taskId,
+                        GroupIndicator = groupId,
+                        NbrWriteOPS = nbrOPS
+                    });
+                }
 
-				return occurrence;
-			}
+                return occurrence;
+            }
 
-			public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string keySpace,
-																		string table,
-																		string ssTableFilePath,
-																		DateTime timeStamp,
-																		decimal flushedStorage,
-																		int taskId,
-																		decimal groupId)
-			{
-				if(string.IsNullOrEmpty(this.Keyspace))
-				{
-					this.Keyspace = keySpace;
-				}
-				if (this.TaskId == 0)
-				{
-					this.TaskId = taskId;
-				}
+            public MemTableFlushOccurrenceLogInfo AddUpdateOccurrence(string keySpace,
+                                                                        string table,
+                                                                        string ssTableFilePath,
+                                                                        DateTime timeStamp,
+                                                                        decimal flushedStorage,
+                                                                        int taskId,
+                                                                        decimal groupId)
+            {
+                if (string.IsNullOrEmpty(this.Keyspace))
+                {
+                    this.Keyspace = keySpace;
+                }
+                if (this.TaskId == 0)
+                {
+                    this.TaskId = taskId;
+                }
 
-				if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
-				{
-					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
-					{
-						Keyspace = keySpace,
-						Table = table,
-						StartTime = timeStamp,
-						CompletionTime = timeStamp,
-						TaskId = taskId,
-						GroupIndicator = groupId,
-						FlushedStorage = flushedStorage,
-						SSTableFilePath = ssTableFilePath
-					});
-				}
+                if (this.Occurrences == Enumerable.Empty<MemTableFlushOccurrenceLogInfo>())
+                {
+                    return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+                    {
+                        Keyspace = keySpace,
+                        Table = table,
+                        StartTime = timeStamp,
+                        CompletionTime = timeStamp,
+                        TaskId = taskId,
+                        GroupIndicator = groupId,
+                        FlushedStorage = flushedStorage,
+                        SSTableFilePath = ssTableFilePath
+                    });
+                }
 
-				var occurrence = ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => (string.IsNullOrEmpty(i.Keyspace) || i.Keyspace == keySpace)
-																										&& i.Table == table
-																										&& i.TaskId == taskId);
+                var occurrence = ((List<MemTableFlushOccurrenceLogInfo>)this.Occurrences).Find(i => (string.IsNullOrEmpty(i.Keyspace) || i.Keyspace == keySpace)
+                                                                                                        && i.Table == table
+                                                                                                        && i.TaskId == taskId);
 
-				if(occurrence == null)
-				{
-					return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
-					{
-						Keyspace = keySpace,
-						Table = table,
-						StartTime = timeStamp,
-						CompletionTime = timeStamp,
-						TaskId = taskId,
-						GroupIndicator = groupId,
-						FlushedStorage = flushedStorage,
-						SSTableFilePath = ssTableFilePath
-					});
-				}
+                if (occurrence == null)
+                {
+                    return this.AddOccurrence(new MemTableFlushOccurrenceLogInfo(this.Session)
+                    {
+                        Keyspace = keySpace,
+                        Table = table,
+                        StartTime = timeStamp,
+                        CompletionTime = timeStamp,
+                        TaskId = taskId,
+                        GroupIndicator = groupId,
+                        FlushedStorage = flushedStorage,
+                        SSTableFilePath = ssTableFilePath
+                    });
+                }
 
-				occurrence.Keyspace = keySpace;
-				occurrence.CompletionTime = timeStamp;
-				occurrence.FlushedStorage = flushedStorage;
-				occurrence.SSTableFilePath = ssTableFilePath;
+                occurrence.Keyspace = keySpace;
+                occurrence.CompletionTime = timeStamp;
+                occurrence.FlushedStorage = flushedStorage;
+                occurrence.SSTableFilePath = ssTableFilePath;
 
-				return occurrence;
-			}
-		}
+                return occurrence;
+            }
+        }
 
-		public class RepairLogInfo : LogSessionInfo, ILogInfo
-		{
-			#region ILogInfo
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get { return null; } }
-			public DateTime StartTime { get; set; }
-			public DateTime CompletionTime { get; set; }
-			public DateTime LogTimestamp { get { return this.StartTime; } }
-			public object GroupIndicator { get; set; }
-			public string Type { get { return "Repair"; } }
-			public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+        public class RepairLogInfo : LogSessionInfo, ILogInfo
+        {
+            #region ILogInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get { return null; } }
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get; set; }
+            public DateTime LogTimestamp { get { return this.StartTime; } }
+            public object GroupIndicator { get; set; }
+            public string Type { get { return "Repair"; } }
+            public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
 
-			#endregion
+            #endregion
 
-			public string Options;
-			public bool UserRequest;
-			public string TokenRangeStart;
-			public string TokenRangeEnd;
-			public int GCs {  get { return this.GCList == null ? 0 : this.GCList.Count(); } }
-			public int Compactions { get { return this.CompactionList == null ? 0 : this.CompactionList.Count(); } }
-			public int MemTableFlushes { get { return this.MemTableFlushList == null ? 0 : this.MemTableFlushList.Count(); } }
-			public int Exceptions;
+            public string Options;
+            public bool UserRequest;
+            public string TokenRangeStart;
+            public string TokenRangeEnd;
+            public int GCs { get { return this.GCList == null ? 0 : this.GCList.Count(); } }
+            public int Compactions { get { return this.CompactionList == null ? 0 : this.CompactionList.Count(); } }
+            public int MemTableFlushes { get { return this.MemTableFlushList == null ? 0 : this.MemTableFlushList.Count(); } }
+            public int Exceptions;
 
-			public bool Aborted;
-			public string Exception;
-			public int NbrRepairs;
-			public List<string> RepairNodes = new List<string>();
-			public List<string> ReceivedNodes = new List<string>();
-			public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
+            public bool Aborted;
+            public string Exception;
+            public int NbrRepairs;
+            public List<string> RepairNodes = new List<string>();
+            public List<string> ReceivedNodes = new List<string>();
+            public IEnumerable<SolrReIndexingLogInfo> SolrReIndexing = null;
             public IEnumerable<SolrHardCommitLogInfo> SolrHardCommits = null;
             public IEnumerable<GCLogInfo> GCList = null;
-			public IEnumerable<ICompactionLogInfo> CompactionList = null;
-			public IEnumerable<MemTableFlushLogInfo> MemTableFlushList = null;
-			public IEnumerable<PerformanceInfo> PerformanceWarningList = null;
+            public IEnumerable<ICompactionLogInfo> CompactionList = null;
+            public IEnumerable<MemTableFlushLogInfo> MemTableFlushList = null;
+            public IEnumerable<PerformanceInfo> PerformanceWarningList = null;
 
-			public static string DCIPAddress(string dcName, string ipAdress)
-			{
-				return (dcName == null ? string.Empty : dcName) + "|" + ipAdress;
-			}
+            public static string DCIPAddress(string dcName, string ipAdress)
+            {
+                return (dcName == null ? string.Empty : dcName) + "|" + ipAdress;
+            }
 
-			public RepairLogInfo Add()
-			{
-				return this;
-			}
+            public RepairLogInfo Add()
+            {
+                return this;
+            }
 
-			public RepairLogInfo Completed(DateTime timestamp)
-			{
-				this.CompletionTime = timestamp;
+            public RepairLogInfo Completed(DateTime timestamp)
+            {
+                this.CompletionTime = timestamp;
 
-				return this;
-			}
+                return this;
+            }
 
-			public RepairLogInfo Abort(DateTime timestamp, string exception = null)
-			{
-				this.Completed(timestamp);
-				this.Aborted = true;
+            public RepairLogInfo Abort(DateTime timestamp, string exception = null)
+            {
+                this.Completed(timestamp);
+                this.Aborted = true;
 
-				if (!string.IsNullOrEmpty(exception))
-				{
-					this.Exception = exception;
-				}
-				return this;
-			}
+                if (!string.IsNullOrEmpty(exception))
+                {
+                    this.Exception = exception;
+                }
+                return this;
+            }
 
-		}
+        }
 
-		public class PerformanceInfo : ILogInfo
-		{
-			#region ILogInfo
-			public string DataCenter { get; set; }
-			public string IPAddress { get; set; }
-			public string Keyspace { get; set; }
-			public string Table { get; set; }
-			public DateTime StartTime { get; set; }
-			public DateTime CompletionTime { get; set; }
-			public DateTime LogTimestamp
-			{
-				get { return this.StartTime; }
-				set { this.StartTime = value; }
-			}
-			public object GroupIndicator { get; set; }
-			public string Type { get; set; }
-			public int Duration
-			{
-				get
-				{
-					if (this.StartTime != DateTime.MinValue && this.CompletionTime != DateTime.MinValue)
-					{
-						return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds;
-					}
+        public class PerformanceInfo : ILogInfo
+        {
+            #region ILogInfo
+            public string DataCenter { get; set; }
+            public string IPAddress { get; set; }
+            public string Keyspace { get; set; }
+            public string Table { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime CompletionTime { get; set; }
+            public DateTime LogTimestamp
+            {
+                get { return this.StartTime; }
+                set { this.StartTime = value; }
+            }
+            public object GroupIndicator { get; set; }
+            public string Type { get; set; }
+            public int Duration
+            {
+                get
+                {
+                    if (this.StartTime != DateTime.MinValue && this.CompletionTime != DateTime.MinValue)
+                    {
+                        return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds;
+                    }
 
-					return this.Latency;
-				}
-			}
-			#endregion
+                    return this.Latency;
+                }
+            }
+            #endregion
 
-			public int Latency { get; set; }
-		}
+            public int Latency { get; set; }
+        }
 
         public class MemTableStatInfo : ILogInfo
         {
@@ -3500,7 +3500,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             public DateTime StartTime { get; set; }
             public DateTime CompletionTime { get { return this.LogTimestamp; } }
             public DateTime LogTimestamp { get; set; }
-            public int Duration { get { return (int) (this.CompletionTime - this.StartTime).TotalMilliseconds; } }
+            public int Duration { get { return (int)(this.CompletionTime - this.StartTime).TotalMilliseconds; } }
             public object GroupIndicator { get; set; }
             public string Type { get { return "MemTable Stats"; } }
 
@@ -3514,74 +3514,74 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>> GCOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<GCLogInfo>>();
-		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>>();
-		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
-		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
-		static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>> PerformanceOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>> CompactionOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>> SolrReindexingOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>> MemTableFlushOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>>();
+        static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>> PerformanceOccurrences = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo>>();
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>> SolrHardCommits = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo>>();
         static Common.Patterns.Collections.ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, Common.Patterns.Collections.ThreadSafe.List<MemTableStatInfo>> MemTableStats = new Common.Patterns.Collections.ThreadSafe.Dictionary<string, Common.Patterns.Collections.ThreadSafe.List<MemTableStatInfo>>();
 
         const decimal ReferenceIncrementValue = 0.000001m;
 
-		static void InitializeStatusDataTable(DataTable dtCStatusLog)
-		{
-			if (dtCStatusLog.Columns.Count == 0)
-			{
-				dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
+        static void InitializeStatusDataTable(DataTable dtCStatusLog)
+        {
+            if (dtCStatusLog.Columns.Count == 0)
+            {
+                dtCStatusLog.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
 
-				dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
-				dtCStatusLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Node IPAddress", typeof(string));
-				dtCStatusLog.Columns.Add("Pool/Cache Type", typeof(string)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Table", typeof(string)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Timestamp", typeof(DateTime));
+                dtCStatusLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Node IPAddress", typeof(string));
+                dtCStatusLog.Columns.Add("Pool/Cache Type", typeof(string)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Table", typeof(string)).AllowDBNull = true;
 
-				dtCStatusLog.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //h
-				dtCStatusLog.Columns.Add("Eden-From (mb)", typeof(decimal)).AllowDBNull = true; //i
-				dtCStatusLog.Columns.Add("Eden-To (mb)", typeof(decimal)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Old-From (mb)", typeof(decimal)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Old-To (mb)", typeof(decimal)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Survivor-From (mb)", typeof(decimal)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Survivor-To (mb)", typeof(decimal)).AllowDBNull = true; //n
+                dtCStatusLog.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //h
+                dtCStatusLog.Columns.Add("Eden-From (mb)", typeof(decimal)).AllowDBNull = true; //i
+                dtCStatusLog.Columns.Add("Eden-To (mb)", typeof(decimal)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Old-From (mb)", typeof(decimal)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Old-To (mb)", typeof(decimal)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Survivor-From (mb)", typeof(decimal)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Survivor-To (mb)", typeof(decimal)).AllowDBNull = true; //n
 
-				dtCStatusLog.Columns.Add("Active", typeof(object)).AllowDBNull = true; //o
-				dtCStatusLog.Columns.Add("Pending", typeof(object)).AllowDBNull = true; //p
-				dtCStatusLog.Columns.Add("Completed", typeof(long)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("Blocked", typeof(long)).AllowDBNull = true;
-				dtCStatusLog.Columns.Add("All Time Blocked", typeof(long)).AllowDBNull = true; //s
+                dtCStatusLog.Columns.Add("Active", typeof(object)).AllowDBNull = true; //o
+                dtCStatusLog.Columns.Add("Pending", typeof(object)).AllowDBNull = true; //p
+                dtCStatusLog.Columns.Add("Completed", typeof(long)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("Blocked", typeof(long)).AllowDBNull = true;
+                dtCStatusLog.Columns.Add("All Time Blocked", typeof(long)).AllowDBNull = true; //s
 
-				dtCStatusLog.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;//t
-				dtCStatusLog.Columns.Add("Capacity (mb)", typeof(decimal)).AllowDBNull = true; //u
-				dtCStatusLog.Columns.Add("KeysToSave", typeof(string)).AllowDBNull = true; //v
-				dtCStatusLog.Columns.Add("MemTable OPS", typeof(long)).AllowDBNull = true; //w
-				dtCStatusLog.Columns.Add("Data (mb)", typeof(decimal)).AllowDBNull = true; //x
+                dtCStatusLog.Columns.Add("Size (mb)", typeof(decimal)).AllowDBNull = true;//t
+                dtCStatusLog.Columns.Add("Capacity (mb)", typeof(decimal)).AllowDBNull = true; //u
+                dtCStatusLog.Columns.Add("KeysToSave", typeof(string)).AllowDBNull = true; //v
+                dtCStatusLog.Columns.Add("MemTable OPS", typeof(long)).AllowDBNull = true; //w
+                dtCStatusLog.Columns.Add("Data (mb)", typeof(decimal)).AllowDBNull = true; //x
 
-				dtCStatusLog.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //y
-				dtCStatusLog.Columns.Add("From (mb)", typeof(decimal)).AllowDBNull = true; //z
-				dtCStatusLog.Columns.Add("To (mb)", typeof(decimal)).AllowDBNull = true;//aa
-				dtCStatusLog.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true; //ab
-				dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ac
-				dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ad
-				dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ae
+                dtCStatusLog.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //y
+                dtCStatusLog.Columns.Add("From (mb)", typeof(decimal)).AllowDBNull = true; //z
+                dtCStatusLog.Columns.Add("To (mb)", typeof(decimal)).AllowDBNull = true;//aa
+                dtCStatusLog.Columns.Add("Latency (ms)", typeof(int)).AllowDBNull = true; //ab
+                dtCStatusLog.Columns.Add("Rate (MB/s)", typeof(decimal)).AllowDBNull = true; //ac
+                dtCStatusLog.Columns.Add("Partitions Merged", typeof(string)).AllowDBNull = true; //ad
+                dtCStatusLog.Columns.Add("Merge Counts", typeof(string)).AllowDBNull = true; //ae
 
-				dtCStatusLog.Columns.Add("Session", typeof(string)).AllowDBNull = true; //af
-				dtCStatusLog.Columns.Add("Duration (ms)", typeof(int)).AllowDBNull = true; //ag
-				dtCStatusLog.Columns.Add("Start Token Range (exclusive)", typeof(string)).AllowDBNull = true; //ah
-				dtCStatusLog.Columns.Add("End Token Range (inclusive)", typeof(string)).AllowDBNull = true; //ai
-				dtCStatusLog.Columns.Add("Nbr GCs", typeof(int)).AllowDBNull = true; //aj
-				dtCStatusLog.Columns.Add("Nbr Compactions", typeof(int)).AllowDBNull = true; //ak
-				dtCStatusLog.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //al
-				dtCStatusLog.Columns.Add("Nbr Solr ReIdxs", typeof(int)).AllowDBNull = true; //am
-				dtCStatusLog.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true; //an
-				dtCStatusLog.Columns.Add("Requested", typeof(bool)).AllowDBNull = true; //ao
-				dtCStatusLog.Columns.Add("Aborted", typeof(int)).AllowDBNull = true; //ap
-				dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //aq
+                dtCStatusLog.Columns.Add("Session", typeof(string)).AllowDBNull = true; //af
+                dtCStatusLog.Columns.Add("Duration (ms)", typeof(int)).AllowDBNull = true; //ag
+                dtCStatusLog.Columns.Add("Start Token Range (exclusive)", typeof(string)).AllowDBNull = true; //ah
+                dtCStatusLog.Columns.Add("End Token Range (inclusive)", typeof(string)).AllowDBNull = true; //ai
+                dtCStatusLog.Columns.Add("Nbr GCs", typeof(int)).AllowDBNull = true; //aj
+                dtCStatusLog.Columns.Add("Nbr Compactions", typeof(int)).AllowDBNull = true; //ak
+                dtCStatusLog.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //al
+                dtCStatusLog.Columns.Add("Nbr Solr ReIdxs", typeof(int)).AllowDBNull = true; //am
+                dtCStatusLog.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true; //an
+                dtCStatusLog.Columns.Add("Requested", typeof(bool)).AllowDBNull = true; //ao
+                dtCStatusLog.Columns.Add("Aborted", typeof(int)).AllowDBNull = true; //ap
+                dtCStatusLog.Columns.Add("Session Path", typeof(string)).AllowDBNull = true; //aq
 
-				//dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
-			}
-		}
+                //dtCStatusLog.DefaultView.Sort = "[Timestamp] DESC, [Data Center], [Pool/Cache Type], [KeySpace], [Table], [Node IPAddress]";
+            }
+        }
 
-		static void ParseCassandraLogIntoStatusLogDataTable(DataTable dtroCLog,
+        static void ParseCassandraLogIntoStatusLogDataTable(DataTable dtroCLog,
                                                                 DataTable dtCStatusLog,
                                                                 DataTable dtCFStats,
                                                                 DataTable dtTPStats,
@@ -3591,49 +3591,49 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 IEnumerable<string> ignoreKeySpaces,
                                                                 List<CKeySpaceTableNames> kstblExists)
         {
-			#region data table definations
-			//StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
-			//StatusLogger.java:66 - MutationStage                     0         0     2424035521         0                 0
-			//StatusLogger.java:66 - CompactionManager                 1         1
-			//StatusLogger.java:66 - MessagingService                n/a       0/0
-			//
-			//StatusLogger.java:97 - Cache Type                     Size                 Capacity               KeysToSave
-			//StatusLogger.java:99 - KeyCache                  100245406                104857600                      all
-			//
-			//StatusLogger.java:112 - ColumnFamily                Memtable ops,data
-			//StatusLogger.java:115 - dse_perf.node_slow_log            2120,829964
-			//
-			//CompactionTask.java - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
+            #region data table definations
+            //StatusLogger.java:51 - Pool Name                    Active   Pending      Completed   Blocked  All Time Blocked
+            //StatusLogger.java:66 - MutationStage                     0         0     2424035521         0                 0
+            //StatusLogger.java:66 - CompactionManager                 1         1
+            //StatusLogger.java:66 - MessagingService                n/a       0/0
+            //
+            //StatusLogger.java:97 - Cache Type                     Size                 Capacity               KeysToSave
+            //StatusLogger.java:99 - KeyCache                  100245406                104857600                      all
+            //
+            //StatusLogger.java:112 - ColumnFamily                Memtable ops,data
+            //StatusLogger.java:115 - dse_perf.node_slow_log            2120,829964
+            //
+            //CompactionTask.java - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
 
-			//Out of order example:
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:115 - system.hints                          23,1572
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:66 - MiscStage                         0         0              0         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.IndexInfo                          0,0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_columnfamilies                 0,0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_triggers                    0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - AntiEntropySessions               0         0           3467         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.size_estimates          377300,9604612
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - HintedHandoff                     0         1           1400         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.paxos                              0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:66 - GossipStage                       0         0        1490684         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:115 - system.peer_events                        0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CacheCleanupExecutor              0         0              0         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.range_xfers                        0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - InternalResponseStage             0         0              0         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.compactions_in_progress                 0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CommitLogArchiver                 0         0              0         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.peers                              0,0
-			//INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CompactionExecutor                0         0        2120758         0                 0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_keyspaces                   0,0
-			//INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_usertypes                   0,0
-			//INFO  [AntiEntropySessions:19] 2016-10-17 16:16:07,725  RepairSession.java:260 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-			//INFO  [AntiEntropySessions:19] 2016-10-17 16:16:08,478  RepairSession.java:299 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
+            //Out of order example:
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:115 - system.hints                          23,1572
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,820  StatusLogger.java:66 - MiscStage                         0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.IndexInfo                          0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_columnfamilies                 0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.schema_triggers                    0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - AntiEntropySessions               0         0           3467         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.size_estimates          377300,9604612
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:66 - HintedHandoff                     0         1           1400         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,829  StatusLogger.java:115 - system.paxos                              0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:66 - GossipStage                       0         0        1490684         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,830  StatusLogger.java:115 - system.peer_events                        0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CacheCleanupExecutor              0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.range_xfers                        0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - InternalResponseStage             0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.compactions_in_progress                 0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CommitLogArchiver                 0         0              0         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.peers                              0,0
+            //INFO[Service Thread] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:66 - CompactionExecutor                0         0        2120758         0                 0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_keyspaces                   0,0
+            //INFO[ScheduledTasks: 1] 2016 - 09 - 18 19:29:55,831  StatusLogger.java:115 - system.schema_usertypes                   0,0
+            //INFO  [AntiEntropySessions:19] 2016-10-17 16:16:07,725  RepairSession.java:260 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
+            //INFO  [AntiEntropySessions:19] 2016-10-17 16:16:08,478  RepairSession.java:299 - [repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
 
-			InitializeStatusDataTable(dtCStatusLog);
+            InitializeStatusDataTable(dtCStatusLog);
 
-			#endregion
+            #endregion
 
-			if (dtroCLog.Rows.Count > 0)
+            if (dtroCLog.Rows.Count > 0)
             {
                 //		dtCLog.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Node IPAddress", typeof(string));
@@ -3645,25 +3645,28 @@ namespace DSEDiagnosticAnalyticParserConsole
                 //		dtCLog.Columns.Add("Associated Value", typeof(object)).AllowDBNull = true;
                 //		dtCLog.Columns.Add("Description", typeof(string));
                 //		dtCLog.Columns.Add("Flagged", typeof(int)).AllowDBNull = true;
-				var statusLogItem = from dr in dtroCLog.AsEnumerable()
-									let item = dr.Field<string>("Item")
-									let timestamp = dr.Field<DateTime>("Timestamp")
-									let flagged = dr.Field<int?>("Flagged")
-									let descr = dr.Field<string>("Description")?.Trim()
-									where ((flagged.HasValue && (flagged.Value == (int)LogFlagStatus.Stats || flagged.Value == (int) LogFlagStatus.StatsOnly))
-											|| item == "GCInspector.java"
-											|| item == "StatusLogger.java"
-											|| item == "CompactionTask.java")
-									orderby timestamp ascending, item ascending
-									select new { Task = dr.Field<string>("Task"),
-                                                    TaskId = dr.Field<int?>("TaskId"),
-													Item = item,
-													Timestamp = timestamp,
-													Flagged = flagged,
-													Exception = dr.Field<string>("Exception"),
-													AssocItem = dr.Field<string>("Associated Item"),
-													AssocValue = dr.Field<object>("Associated Value"),
-													Description = descr };
+                var statusLogItem = from dr in dtroCLog.AsEnumerable()
+                                    let item = dr.Field<string>("Item")
+                                    let timestamp = dr.Field<DateTime>("Timestamp")
+                                    let flagged = dr.Field<int?>("Flagged")
+                                    let descr = dr.Field<string>("Description")?.Trim()
+                                    where ((flagged.HasValue && (flagged.Value == (int)LogFlagStatus.Stats || flagged.Value == (int)LogFlagStatus.StatsOnly))
+                                            || item == "GCInspector.java"
+                                            || item == "StatusLogger.java"
+                                            || item == "CompactionTask.java")
+                                    orderby timestamp ascending, item ascending
+                                    select new
+                                    {
+                                        Task = dr.Field<string>("Task"),
+                                        TaskId = dr.Field<int?>("TaskId"),
+                                        Item = item,
+                                        Timestamp = timestamp,
+                                        Flagged = flagged,
+                                        Exception = dr.Field<string>("Exception"),
+                                        AssocItem = dr.Field<string>("Associated Item"),
+                                        AssocValue = dr.Field<object>("Associated Value"),
+                                        Description = descr
+                                    };
 
 
                 var gcLatencies = new List<int>();
@@ -3678,18 +3681,18 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var batchSizes = new List<Tuple<string, string, string, long>>();
                 var jvmFatalErrors = new List<string>();
                 var workPoolErrors = new List<string>();
-                var nodeStatus = new List<Tuple<string,string,string>>();
+                var nodeStatus = new List<Tuple<string, string, string>>();
                 var droppedHints = new List<int>();
-				var timedoutHints = new List<int>();
-				var droppedMutations = new List<int>();
+                var timedoutHints = new List<int>();
+                var droppedMutations = new List<int>();
                 var maxMemoryAllocFailed = new List<int>();
-				var solrReindexing = new List<SolrReIndexingLogInfo>();
+                var solrReindexing = new List<SolrReIndexingLogInfo>();
                 var solrHardCommit = new List<SolrHardCommitLogInfo>();
                 var detectedSchemaChanges = new List<Tuple<char, string, string>>();
                 var shardStateChanges = new List<string>();
                 var memTblStats = new List<MemTableStatInfo>();
                 long grpInd = CLogSummaryInfo.IncrementGroupInicator();
-				var refCnt = (decimal)grpInd;
+                var refCnt = (decimal)grpInd;
 
                 foreach (var item in statusLogItem)
                 {
@@ -3923,23 +3926,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                     var memTblStat = memTblStats.FirstOrDefault(m => m.Keyspace == ksTable.Item1 && m.Table == ksTable.Item2);
 
-                                    if(memTblStat == null
+                                    if (memTblStat == null
                                             || memTblStat.EndingOPS > mOPS)
                                     {
                                         memTblStat = new MemTableStatInfo()
-                                                        {
-                                                            DataCenter = dcName,
-                                                            IPAddress = ipAddress,
-                                                            Keyspace = ksTable.Item1,
-                                                            Table = ksTable.Item2,
-                                                            StartTime = item.Timestamp,
-                                                            LogTimestamp = item.Timestamp,
-                                                            GroupIndicator = grpInd,
-                                                            InitialOPS = memTblStat == null ? mOPS : 0,
-                                                            InitialSize = memTblStat == null ? (long) (mSize * BytesToMB) : 0,
-                                                            EndingOPS = mOPS,
-                                                            EndingSize = (long)(mSize * BytesToMB)
-                                                        };
+                                        {
+                                            DataCenter = dcName,
+                                            IPAddress = ipAddress,
+                                            Keyspace = ksTable.Item1,
+                                            Table = ksTable.Item2,
+                                            StartTime = item.Timestamp,
+                                            LogTimestamp = item.Timestamp,
+                                            GroupIndicator = grpInd,
+                                            InitialOPS = memTblStat == null ? mOPS : 0,
+                                            InitialSize = memTblStat == null ? (long)(mSize * BytesToMB) : 0,
+                                            EndingOPS = mOPS,
+                                            EndingSize = (long)(mSize * BytesToMB)
+                                        };
                                         memTblStats.Add(memTblStat);
                                     }
                                     else
@@ -4042,7 +4045,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 var ksItem = kstblExists.FirstOrDefault(k => k.KeySpaceName == ksItems.Item1 && k.Name == ksItems.Item2);
 
-                                if(ksItem == null)
+                                if (ksItem == null)
                                 {
                                     ksItem = new CKeySpaceTableNames(ksItems.Item1,
                                                                         ksItems.Item4 == null
@@ -4851,7 +4854,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     else if (item.Item == "ShardRouter.java")
                     {
                         #region ShardRouter.java (shard change)
-                        shardStateChanges.Add((string) item.AssocValue);
+                        shardStateChanges.Add((string)item.AssocValue);
                         #endregion
                     }
                 }
@@ -5104,9 +5107,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     {
                         Logger.Instance.InfoFormat("Adding Pause ({2}) to TPStats for \"{0}\" \"{1}\"", dcName, ipAddress, pauses.Count);
 
-                        var gcMax = (int) pauses.Max();
-                        var gcMin = (int) pauses.Min();
-                        var gcAvg = (int) pauses.Average();
+                        var gcMax = (int)pauses.Max();
+                        var gcMin = (int)pauses.Min();
+                        var gcAvg = (int)pauses.Average();
 
                         var dataRow = dtTPStats.NewRow();
 
@@ -5160,12 +5163,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (jvmFatalErrors.Count > 0)
                     {
                         var jvmItems = from jvmItem in jvmFatalErrors
-                                        group jvmItem by jvmItem into g
-                                        select new
-                                        {
-                                            item = g.Key,
-                                            Count = g.Count()
-                                        };
+                                       group jvmItem by jvmItem into g
+                                       select new
+                                       {
+                                           item = g.Key,
+                                           Count = g.Count()
+                                       };
 
                         foreach (var jvmGrp in jvmItems)
                         {
@@ -5189,12 +5192,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (workPoolErrors.Count > 0)
                     {
                         var wptems = from wpItem in workPoolErrors
-                                       group wpItem by wpItem into g
-                                       select new
-                                       {
-                                           item = g.Key,
-                                           Count = g.Count()
-                                       };
+                                     group wpItem by wpItem into g
+                                     select new
+                                     {
+                                         item = g.Key,
+                                         Count = g.Count()
+                                     };
 
                         foreach (var wpGrp in wptems)
                         {
@@ -5218,13 +5221,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     if (nodeStatus.Count > 0)
                     {
                         var nodeStatusItems = from nodeItem in nodeStatus
-                                                    where string.IsNullOrEmpty(nodeItem.Item2)
-                                                    group nodeItem.Item1 by nodeItem.Item1 into g
-                                                    select new
-                                                    {
-                                                        item = g.Key,
-                                                        Count = g.Count()
-                                                    };
+                                              where string.IsNullOrEmpty(nodeItem.Item2)
+                                              group nodeItem.Item1 by nodeItem.Item1 into g
+                                              select new
+                                              {
+                                                  item = g.Key,
+                                                  Count = g.Count()
+                                              };
 
                         foreach (var statusGrp in nodeStatusItems)
                         {
@@ -5250,7 +5253,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         var droppedTotalNbr = droppedHints.Sum();
                         var droppedMaxNbr = droppedHints.Max();
                         var droppedMinNbr = droppedHints.Min();
-                        var droppedAvgNbr = (int) droppedHints.Average();
+                        var droppedAvgNbr = (int)droppedHints.Average();
                         var droppedOccurences = droppedHints.Count;
 
                         //Dropped Hints Total
@@ -5320,95 +5323,95 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dtTPStats.Rows.Add(dataRow);
                     }
 
-					#endregion
+                    #endregion
 
-					#region Timed Out Hints
+                    #region Timed Out Hints
 
-					if (timedoutHints.Count > 0)
-					{
-						var timedoutTotalNbr = timedoutHints.Sum();
-						var timedoutMaxNbr = timedoutHints.Max();
-						var timedoutMinNbr = timedoutHints.Min();
-						var timedoutAvgNbr = (int)timedoutHints.Average();
-						var timedoutOccurences = timedoutHints.Count;
+                    if (timedoutHints.Count > 0)
+                    {
+                        var timedoutTotalNbr = timedoutHints.Sum();
+                        var timedoutMaxNbr = timedoutHints.Max();
+                        var timedoutMinNbr = timedoutHints.Min();
+                        var timedoutAvgNbr = (int)timedoutHints.Average();
+                        var timedoutOccurences = timedoutHints.Count;
 
-						//Timedout Hints Total
-						//Timedout Hints maximum
-						//Timedout Hints mean
-						//Timedout Hints minimum
-						//Timedout Hints occurrences
+                        //Timedout Hints Total
+                        //Timedout Hints maximum
+                        //Timedout Hints mean
+                        //Timedout Hints minimum
+                        //Timedout Hints occurrences
 
-						var dataRow = dtTPStats.NewRow();
+                        var dataRow = dtTPStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = dcName;
-						dataRow["Node IPAddress"] = ipAddress;
-						dataRow["Attribute"] = "Timedout Hints Total";
-						dataRow["Reconciliation Reference"] = grpInd;
-						dataRow["Completed"] = timedoutTotalNbr;
-						//dataRow["Occurrences"] = statusGrp.Count;
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Timedout Hints Total";
+                        dataRow["Reconciliation Reference"] = grpInd;
+                        dataRow["Completed"] = timedoutTotalNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
 
-						dtTPStats.Rows.Add(dataRow);
+                        dtTPStats.Rows.Add(dataRow);
 
-						dataRow = dtTPStats.NewRow();
+                        dataRow = dtTPStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = dcName;
-						dataRow["Node IPAddress"] = ipAddress;
-						dataRow["Attribute"] = "Timedout Hints maximum";
-						dataRow["Reconciliation Reference"] = grpInd;
-						dataRow["Completed"] = timedoutMaxNbr;
-						//dataRow["Occurrences"] = statusGrp.Count;
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Timedout Hints maximum";
+                        dataRow["Reconciliation Reference"] = grpInd;
+                        dataRow["Completed"] = timedoutMaxNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
 
-						dtTPStats.Rows.Add(dataRow);
+                        dtTPStats.Rows.Add(dataRow);
 
-						dataRow = dtTPStats.NewRow();
+                        dataRow = dtTPStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = dcName;
-						dataRow["Node IPAddress"] = ipAddress;
-						dataRow["Attribute"] = "Timedout Hints mean";
-						dataRow["Reconciliation Reference"] = grpInd;
-						dataRow["Completed"] = timedoutAvgNbr;
-						//dataRow["Occurrences"] = statusGrp.Count;
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Timedout Hints mean";
+                        dataRow["Reconciliation Reference"] = grpInd;
+                        dataRow["Completed"] = timedoutAvgNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
 
-						dtTPStats.Rows.Add(dataRow);
+                        dtTPStats.Rows.Add(dataRow);
 
-						dataRow = dtTPStats.NewRow();
+                        dataRow = dtTPStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = dcName;
-						dataRow["Node IPAddress"] = ipAddress;
-						dataRow["Attribute"] = "Timedout Hints minimum";
-						dataRow["Reconciliation Reference"] = grpInd;
-						dataRow["Completed"] = timedoutMinNbr;
-						//dataRow["Occurrences"] = statusGrp.Count;
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Timedout Hints minimum";
+                        dataRow["Reconciliation Reference"] = grpInd;
+                        dataRow["Completed"] = timedoutMinNbr;
+                        //dataRow["Occurrences"] = statusGrp.Count;
 
-						dtTPStats.Rows.Add(dataRow);
+                        dtTPStats.Rows.Add(dataRow);
 
-						dataRow = dtTPStats.NewRow();
+                        dataRow = dtTPStats.NewRow();
 
-						dataRow["Source"] = "Cassandra Log";
-						dataRow["Data Center"] = dcName;
-						dataRow["Node IPAddress"] = ipAddress;
-						dataRow["Attribute"] = "Timedout Hints occurrences";
-						dataRow["Reconciliation Reference"] = grpInd;
-						//dataRow["Value"] = droppedMinNbr;
-						dataRow["Occurrences"] = timedoutOccurences;
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Timedout Hints occurrences";
+                        dataRow["Reconciliation Reference"] = grpInd;
+                        //dataRow["Value"] = droppedMinNbr;
+                        dataRow["Occurrences"] = timedoutOccurences;
 
-						dtTPStats.Rows.Add(dataRow);
-					}
+                        dtTPStats.Rows.Add(dataRow);
+                    }
 
-					#endregion
+                    #endregion
 
-					#region Allocation Failed Maximum Memory Reached
+                    #region Allocation Failed Maximum Memory Reached
 
-					if (maxMemoryAllocFailed.Count > 0)
+                    if (maxMemoryAllocFailed.Count > 0)
                     {
                         var allocTotalMem = maxMemoryAllocFailed.Sum();
                         var allocMaxMem = maxMemoryAllocFailed.Max();
                         var allocMinMem = maxMemoryAllocFailed.Min();
-                        var allocAvgMem = (decimal) maxMemoryAllocFailed.Average();
+                        var allocAvgMem = (decimal)maxMemoryAllocFailed.Average();
                         var allocMemOccurences = maxMemoryAllocFailed.Count;
 
                         //Allocation Failed Maximum Memory Reached Total
@@ -5424,7 +5427,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached Total";
                         dataRow["Reconciliation Reference"] = grpInd;
-                        dataRow["Size (mb)"] = ((decimal) allocTotalMem) / BytesToMB;
+                        dataRow["Size (mb)"] = ((decimal)allocTotalMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -5448,7 +5451,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached mean";
                         dataRow["Reconciliation Reference"] = grpInd;
-                        dataRow["Size (mb)"] = allocAvgMem/BytesToMB;
+                        dataRow["Size (mb)"] = allocAvgMem / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -5460,7 +5463,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Node IPAddress"] = ipAddress;
                         dataRow["Attribute"] = "Allocation Failed Maximum Memory Reached minimum";
                         dataRow["Reconciliation Reference"] = grpInd;
-                        dataRow["Size (mb)"] = ((decimal) allocMinMem)/BytesToMB;
+                        dataRow["Size (mb)"] = ((decimal)allocMinMem) / BytesToMB;
                         //dataRow["Occurrences"] = statusGrp.Count;
 
                         dtTPStats.Rows.Add(dataRow);
@@ -5561,13 +5564,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     #region Shard Changes
                     {
                         var shardStats = from shardItem in shardStateChanges
-                                        group shardItem by shardItem
+                                         group shardItem by shardItem
                                               into g
-                                        select new
-                                        {
-                                            ShardType = g.Key,
-                                            Count = g.Count()
-                                        };
+                                         select new
+                                         {
+                                             ShardType = g.Key,
+                                             Count = g.Count()
+                                         };
 
                         foreach (var statItem in shardStats)
                         {
@@ -6214,10 +6217,10 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     if (nodeStatus.Count > 0)
                     {
-						#region Node Status
-						initializeCFStatsDataTable(dtCFStats);
+                        #region Node Status
+                        initializeCFStatsDataTable(dtCFStats);
 
-						var nodeStatusItems = from nodeItem in nodeStatus
+                        var nodeStatusItems = from nodeItem in nodeStatus
                                               where !string.IsNullOrEmpty(nodeItem.Item2)
                                               group nodeItem by new { nodeItem.Item1, nodeItem.Item2, nodeItem.Item3 } into g
                                               select new
@@ -6248,104 +6251,104 @@ namespace DSEDiagnosticAnalyticParserConsole
                         #endregion
                     }
 
-					if (solrReindexing.Count > 0)
-					{
-						#region Solr ReIndexing
-						initializeCFStatsDataTable(dtCFStats);
+                    if (solrReindexing.Count > 0)
+                    {
+                        #region Solr ReIndexing
+                        initializeCFStatsDataTable(dtCFStats);
 
-						var solrReIdxItems = from solrItem in solrReindexing
-                                              where solrItem.Duration > 0
-											  group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
-											  select new
-											  {
-												  KeySpace = g.Key.Keyspace,
-												  Table = g.Key.Table,
-												  Count = g.Count(),
-												  Max = g.Max(i => i.Duration),
-												  Min = g.Min(i => i.Duration),
-												  Avg = g.Average(i => i.Duration),
-												  Std = g.Select(i => i.Duration).StandardDeviationP()
-											  };
+                        var solrReIdxItems = from solrItem in solrReindexing
+                                             where solrItem.Duration > 0
+                                             group solrItem by new { solrItem.Keyspace, solrItem.Table } into g
+                                             select new
+                                             {
+                                                 KeySpace = g.Key.Keyspace,
+                                                 Table = g.Key.Table,
+                                                 Count = g.Count(),
+                                                 Max = g.Max(i => i.Duration),
+                                                 Min = g.Min(i => i.Duration),
+                                                 Avg = g.Average(i => i.Duration),
+                                                 Std = g.Select(i => i.Duration).StandardDeviationP()
+                                             };
 
-						foreach (var statusGrp in solrReIdxItems)
-						{
-							var dataRow = dtCFStats.NewRow();
+                        foreach (var statusGrp in solrReIdxItems)
+                        {
+                            var dataRow = dtCFStats.NewRow();
 
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statusGrp.KeySpace;
-							dataRow["Table"] = statusGrp.Table;
-							dataRow["Attribute"] = "Solr reindex duration maximum";
-							dataRow["Reconciliation Reference"] = grpInd;
-							dataRow["Value"] = statusGrp.Max;
-							dataRow["(value)"] = statusGrp.Max;
-							dataRow["Unit of Measure"] = "ms";
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr reindex duration maximum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Max;
+                            dataRow["(value)"] = statusGrp.Max;
+                            dataRow["Unit of Measure"] = "ms";
 
-							dtCFStats.Rows.Add(dataRow);
+                            dtCFStats.Rows.Add(dataRow);
 
-							dataRow = dtCFStats.NewRow();
+                            dataRow = dtCFStats.NewRow();
 
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statusGrp.KeySpace;
-							dataRow["Table"] = statusGrp.Table;
-							dataRow["Attribute"] = "Solr reindex duration minimum";
-							dataRow["Reconciliation Reference"] = grpInd;
-							dataRow["Value"] = statusGrp.Min;
-							dataRow["(value)"] = statusGrp.Min;
-							dataRow["Unit of Measure"] = "ms";
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr reindex duration minimum";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Min;
+                            dataRow["(value)"] = statusGrp.Min;
+                            dataRow["Unit of Measure"] = "ms";
 
-							dtCFStats.Rows.Add(dataRow);
+                            dtCFStats.Rows.Add(dataRow);
 
-							dataRow = dtCFStats.NewRow();
+                            dataRow = dtCFStats.NewRow();
 
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statusGrp.KeySpace;
-							dataRow["Table"] = statusGrp.Table;
-							dataRow["Attribute"] = "Solr reindex duration mean";
-							dataRow["Reconciliation Reference"] = grpInd;
-							dataRow["Value"] = statusGrp.Avg;
-							dataRow["(value)"] = statusGrp.Avg;
-							dataRow["Unit of Measure"] = "ms";
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr reindex duration mean";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Avg;
+                            dataRow["(value)"] = statusGrp.Avg;
+                            dataRow["Unit of Measure"] = "ms";
 
-							dtCFStats.Rows.Add(dataRow);
+                            dtCFStats.Rows.Add(dataRow);
 
-							dataRow = dtCFStats.NewRow();
+                            dataRow = dtCFStats.NewRow();
 
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statusGrp.KeySpace;
-							dataRow["Table"] = statusGrp.Table;
-							dataRow["Attribute"] = "Solr reindex duration stdev";
-							dataRow["Reconciliation Reference"] = grpInd;
-							dataRow["Value"] = statusGrp.Std;
-							dataRow["(value)"] = statusGrp.Std;
-							dataRow["Unit of Measure"] = "ms";
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr reindex duration stdev";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Std;
+                            dataRow["(value)"] = statusGrp.Std;
+                            dataRow["Unit of Measure"] = "ms";
 
-							dtCFStats.Rows.Add(dataRow);
+                            dtCFStats.Rows.Add(dataRow);
 
-							dataRow = dtCFStats.NewRow();
+                            dataRow = dtCFStats.NewRow();
 
-							dataRow["Source"] = "Cassandra Log";
-							dataRow["Data Center"] = dcName;
-							dataRow["Node IPAddress"] = ipAddress;
-							dataRow["KeySpace"] = statusGrp.KeySpace;
-							dataRow["Table"] = statusGrp.Table;
-							dataRow["Attribute"] = "Solr reindex occurrences";
-							dataRow["Reconciliation Reference"] = grpInd;
-							dataRow["Value"] = statusGrp.Count;
-							dataRow["(value)"] = statusGrp.Count;
+                            dataRow["Source"] = "Cassandra Log";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = statusGrp.KeySpace;
+                            dataRow["Table"] = statusGrp.Table;
+                            dataRow["Attribute"] = "Solr reindex occurrences";
+                            dataRow["Reconciliation Reference"] = grpInd;
+                            dataRow["Value"] = statusGrp.Count;
+                            dataRow["(value)"] = statusGrp.Count;
 
-							dtCFStats.Rows.Add(dataRow);
-						}
+                            dtCFStats.Rows.Add(dataRow);
+                        }
 
-						#endregion
-					}
+                        #endregion
+                    }
 
                     if (solrHardCommit.Count > 0)
                     {
@@ -6354,9 +6357,12 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         var solrHrdCmttems = from solrItem in solrHardCommit
                                                                 .SelectMany(s => s.SolrIndexes
-                                                                                    .Select(i => new {  Keyspace = i.Item1,
-                                                                                                        Index =i.Item2,
-                                                                                                        Duration = s.Duration}))
+                                                                                    .Select(i => new
+                                                                                    {
+                                                                                        Keyspace = i.Item1,
+                                                                                        Index = i.Item2,
+                                                                                        Duration = s.Duration
+                                                                                    }))
                                              where solrItem.Duration > 0
                                              group solrItem by new { solrItem.Keyspace, solrItem.Index } into g
                                              select new
@@ -6456,27 +6462,30 @@ namespace DSEDiagnosticAnalyticParserConsole
                         initializeCFStatsDataTable(dtCFStats);
 
                         var nodeSchemaChangeItem = from schemaItem in detectedSchemaChanges
-                                                      group schemaItem by new { schemaItem.Item1, schemaItem.Item2, schemaItem.Item3 } into g
-                                                      select new
-                                                      {
-                                                          chgType = g.Key.Item1,
-                                                          KeySpace = g.Key.Item2,
-                                                          Table = g.Key.Item3,
-                                                          Count = g.Count()
-                                                      };
+                                                   group schemaItem by new { schemaItem.Item1, schemaItem.Item2, schemaItem.Item3 } into g
+                                                   select new
+                                                   {
+                                                       chgType = g.Key.Item1,
+                                                       KeySpace = g.Key.Item2,
+                                                       Table = g.Key.Item3,
+                                                       Count = g.Count()
+                                                   };
 
                         foreach (var statusGrp in nodeSchemaChangeItem)
                         {
                             var dataRow = dtCFStats.NewRow();
                             string changeType = string.Empty;
 
-                            switch(statusGrp.chgType)
+                            switch (statusGrp.chgType)
                             {
-                                case 'C': changeType = "Created";
+                                case 'C':
+                                    changeType = "Created";
                                     break;
-                                case 'D': changeType = "Dropped";
+                                case 'D':
+                                    changeType = "Dropped";
                                     break;
-                                case 'U': changeType = "Updated";
+                                case 'U':
+                                    changeType = "Updated";
                                     break;
                             }
 
@@ -6659,21 +6668,21 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         class GCContinuousInfo
         {
-			/// <summary>
-			/// The change in the Java Pool space. Positive number means the pool increased, a negative number decrease.
-			/// </summary>
-			public struct SpaceChanged
-			{
-				public decimal Eden;
-				public decimal Survivor;
-				public decimal Old;
-			}
+            /// <summary>
+            /// The change in the Java Pool space. Positive number means the pool increased, a negative number decrease.
+            /// </summary>
+            public struct SpaceChanged
+            {
+                public decimal Eden;
+                public decimal Survivor;
+                public decimal Old;
+            }
 
-			public string Node;
+            public string Node;
             public List<int> Latencies;
             public List<object> GroupRefIds;
             public List<DateTime> Timestamps;
-			public List<SpaceChanged> GCSpacePoolChanges;
+            public List<SpaceChanged> GCSpacePoolChanges;
             public string Type;
             public decimal Percentage;
             public bool Deleted = false;
@@ -6711,15 +6720,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var gcInfoTimeLineCnt = gcInfoTimeLine.Count();
                 bool redueGCTimeFrameAnalysis = ParserSettings.GCComplexReduceAnalysisOverEvents > 0 && gcInfoTimeLineCnt > ParserSettings.GCComplexReduceAnalysisOverEvents;
 
-                if(redueGCTimeFrameAnalysis)
+                if (redueGCTimeFrameAnalysis)
                 {
 
-                    if(ParserSettings.GCComplexAnalysisTakeEventsWhenOver <= 0 || ParserSettings.GCComplexAnalysisTakeEventsWhenOver > ParserSettings.GCComplexReduceAnalysisOverEvents)
+                    if (ParserSettings.GCComplexAnalysisTakeEventsWhenOver <= 0 || ParserSettings.GCComplexAnalysisTakeEventsWhenOver > ParserSettings.GCComplexReduceAnalysisOverEvents)
                     {
                         Logger.Instance.WarnFormat("GC Timeframe analysis disabled due to large number of GCs ({1:###,###,###,000}) for node {0}. GC Log Timestamp {2}, Ending Timestamp {3}",
                                                 gcInfo.Key,
                                                 gcInfoTimeLineCnt,
-                                                gcInfoTimeLine.First().LogTimestamp,                                                
+                                                gcInfoTimeLine.First().LogTimestamp,
                                                 gcInfoTimeLine.Last().LogTimestamp);
 
                         ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
@@ -6751,7 +6760,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     int skipNbr = 0;
 
-                    if(maxPos > midWayPt)
+                    if (maxPos > midWayPt)
                     {
                         skipNbr = maxPos - midWayPt;
 
@@ -6964,11 +6973,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous maximum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Max();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -6978,11 +6987,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous minimum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Min();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -6992,11 +7001,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous mean latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Average();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7011,7 +7020,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                                     item.Timestamps.ElementAtOrDefault(idx)))) + "]";
                             dataRow["Occurrences"] = item.Latencies.Count;
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7021,11 +7030,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Sum();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7035,11 +7044,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC Continuous standard deviation latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             //Update Log with warning
                             lock (dtLog)
@@ -7063,7 +7072,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dtLog.Rows.Add(dataRow);
                             }
                             #endregion
-                            }
+                        }
                         else if (item.Type == "TimeFrame")
                         {
                             #region GC TimeFrame
@@ -7077,11 +7086,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame maximum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Max();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Max(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7091,11 +7100,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame minimum latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Min();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Min(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7105,11 +7114,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame mean latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Average();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Average(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7134,11 +7143,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = item.Latencies.Sum();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Eden);
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Survivor);
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Sum(i => i.Old);
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7148,11 +7157,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             dataRow["Attribute"] = "GC TimeFrame standard deviation latency";
                             dataRow["Reconciliation Reference"] = refIds;
                             dataRow["Latency (ms)"] = (int)item.Latencies.StandardDeviationP();
-							dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
-							dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
-							dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
+                            dataRow["GC Eden Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Eden).StandardDeviationP();
+                            dataRow["GC Survivor Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Survivor).StandardDeviationP();
+                            dataRow["GC Old Space Change (mb)"] = item.GCSpacePoolChanges.Select(i => i.Old).StandardDeviationP();
 
-							dtNodeStats.Rows.Add(dataRow);
+                            dtNodeStats.Rows.Add(dataRow);
 
                             dataRow = dtNodeStats.NewRow();
 
@@ -7201,763 +7210,763 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
         public static IEnumerable<RepairLogInfo> ParseReadRepairFromLog(DataTable dtroCLog,
-																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
-																			Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
-																			IEnumerable<string> ignoreKeySpaces,
-																			int readrepairThreshold)
-		{
+                                                                            Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+                                                                            Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
+                                                                            IEnumerable<string> ignoreKeySpaces,
+                                                                            int readrepairThreshold)
+        {
 
-			if (dtroCLog.Rows.Count == 0)
-			{
-				return Enumerable.Empty<RepairLogInfo>();
-			}
+            if (dtroCLog.Rows.Count == 0)
+            {
+                return Enumerable.Empty<RepairLogInfo>();
+            }
 
             Logger.Instance.Info("Begin Parsing of Repairs from logs");
 
             var globalReadRepairs = new Common.Patterns.Collections.ThreadSafe.List<RepairLogInfo>();
-			{
-				var logItems = from dr in dtroCLog.AsEnumerable()
-							   let dcName = dr.Field<string>("Data Center")
-							   let ipAddress = dr.Field<string>("Node IPAddress")
-							   let item = dr.Field<string>("Item")
-							   let timestamp = dr.Field<DateTime>("Timestamp")
-							   let flagged = dr.Field<int?>("Flagged")
-							   let descr = dr.Field<string>("Description")?.Trim().ToLower()
-							   let exception = dr.Field<string>("Exception")
+            {
+                var logItems = from dr in dtroCLog.AsEnumerable()
+                               let dcName = dr.Field<string>("Data Center")
+                               let ipAddress = dr.Field<string>("Node IPAddress")
+                               let item = dr.Field<string>("Item")
+                               let timestamp = dr.Field<DateTime>("Timestamp")
+                               let flagged = dr.Field<int?>("Flagged")
+                               let descr = dr.Field<string>("Description")?.Trim().ToLower()
+                               let exception = dr.Field<string>("Exception")
                                let assocValue = dr.Field<object>("Associated Value")
-							   where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
-									   || (item == "RepairSession.java"
-											   && (descr.Contains("new session")
-														|| descr.Contains("session completed")
-														|| descr.Contains("received merkle tree")))
-									   || (item == "StreamingRepairTask.java"
-												&& descr.Contains("streaming repair"))
-										|| (exception != null
-												&& (exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
-														|| exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))))
-							   group new
-							   {
-								   Task = dr.Field<string>("Task"),
-								   Item = item,
-								   Timestamp = timestamp,
-								   Flagged = flagged,
-								   Exception = exception,
-								   Description = descr,
-								   AssocValue = assocValue is string ? (string) assocValue : assocValue?.ToString()
+                               where ((flagged.HasValue && (flagged.Value == 3 || flagged.Value == 1))
+                                       || (item == "RepairSession.java"
+                                               && (descr.Contains("new session")
+                                                        || descr.Contains("session completed")
+                                                        || descr.Contains("received merkle tree")))
+                                       || (item == "StreamingRepairTask.java"
+                                                && descr.Contains("streaming repair"))
+                                        || (exception != null
+                                                && (exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
+                                                        || exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))))
+                               group new
+                               {
+                                   Task = dr.Field<string>("Task"),
+                                   Item = item,
+                                   Timestamp = timestamp,
+                                   Flagged = flagged,
+                                   Exception = exception,
+                                   Description = descr,
+                                   AssocValue = assocValue is string ? (string)assocValue : assocValue?.ToString()
                                }
-							   by new { dcName, ipAddress } into g
-							   select new
-							   {
-								   DCName = g.Key.dcName,
-								   IPAddress = g.Key.ipAddress,
-								   LogItems = (from l in g orderby l.Timestamp ascending select l)
-							   };
+                               by new { dcName, ipAddress } into g
+                               select new
+                               {
+                                   DCName = g.Key.dcName,
+                                   IPAddress = g.Key.ipAddress,
+                                   LogItems = (from l in g orderby l.Timestamp ascending select l)
+                               };
 
                 Parallel.ForEach(logItems, logGroupItem =>
-				//foreach (var logGroupItem in logItems)
-				{
+                //foreach (var logGroupItem in logItems)
+                {
                     Logger.Instance.InfoFormat("Begin Parsing of Repairs for {0}|{1} with {2} items",
                                                     logGroupItem.DCName,
                                                     logGroupItem.IPAddress,
                                                     logGroupItem.LogItems.Count());
 
                     DateTime oldestLogTimeStamp = DateTime.MaxValue;
-					var dtStatusLog = new DataTable(string.Format("NodeStatus-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
-					var currentReadRepairs = new List<RepairLogInfo>();
-					var optionsReadRepair = new List<Tuple<string, string>>(); //Keyspace, Options
-					var userRequests = new List<Tuple<string, string, bool>>(); //Start Range, Keyspace, User Request
-					var readRepairs = new List<RepairLogInfo>();
-					var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
+                    var dtStatusLog = new DataTable(string.Format("NodeStatus-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                    var currentReadRepairs = new List<RepairLogInfo>();
+                    var optionsReadRepair = new List<Tuple<string, string>>(); //Keyspace, Options
+                    var userRequests = new List<Tuple<string, string, bool>>(); //Start Range, Keyspace, User Request
+                    var readRepairs = new List<RepairLogInfo>();
+                    var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
 
-					if(dtLogStatusStack != null) dtLogStatusStack.Push(dtStatusLog);
+                    if (dtLogStatusStack != null) dtLogStatusStack.Push(dtStatusLog);
 
-					InitializeStatusDataTable(dtStatusLog);
+                    InitializeStatusDataTable(dtStatusLog);
 
-					foreach (var item in logGroupItem.LogItems)
-					{
-						oldestLogTimeStamp = item.Timestamp;
+                    foreach (var item in logGroupItem.LogItems)
+                    {
+                        oldestLogTimeStamp = item.Timestamp;
 
-						if (item.Item == "RepairSession.java")
-						{
-							#region RepairSession.java
-							//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
-							var regExNewSession = RegExRepairNewSessionLine.Split(item.Description);
+                        if (item.Item == "RepairSession.java")
+                        {
+                            #region RepairSession.java
+                            //[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
+                            var regExNewSession = RegExRepairNewSessionLine.Split(item.Description);
 
-							if (regExNewSession.Length > 5 && regExNewSession[2] == "new")
-							{
-								#region New Session
-								if (ignoreKeySpaces.Contains(regExNewSession[5].Trim()))
-								{
-									continue;
-								}
+                            if (regExNewSession.Length > 5 && regExNewSession[2] == "new")
+                            {
+                                #region New Session
+                                if (ignoreKeySpaces.Contains(regExNewSession[5].Trim()))
+                                {
+                                    continue;
+                                }
 
-								var logInfo = new RepairLogInfo()
-								{
-									Session = regExNewSession[1].Trim(),
-									DataCenter = logGroupItem.DCName,
-									IPAddress = logGroupItem.IPAddress,
-									Keyspace = regExNewSession[5].Trim(),
-									StartTime = item.Timestamp,
-									//Finish;
-									TokenRangeStart = regExNewSession[3].Trim(),
-									TokenRangeEnd = regExNewSession[4].Trim(),
-									GroupIndicator = groupIndicator
-								};
+                                var logInfo = new RepairLogInfo()
+                                {
+                                    Session = regExNewSession[1].Trim(),
+                                    DataCenter = logGroupItem.DCName,
+                                    IPAddress = logGroupItem.IPAddress,
+                                    Keyspace = regExNewSession[5].Trim(),
+                                    StartTime = item.Timestamp,
+                                    //Finish;
+                                    TokenRangeStart = regExNewSession[3].Trim(),
+                                    TokenRangeEnd = regExNewSession[4].Trim(),
+                                    GroupIndicator = groupIndicator
+                                };
 
-								var dataRow = dtStatusLog.NewRow();
+                                var dataRow = dtStatusLog.NewRow();
 
-								dataRow["Timestamp"] = item.Timestamp;
-								dataRow["Data Center"] = logGroupItem.DCName;
-								dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-								dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Start";
-								dataRow["Reconciliation Reference"] = groupIndicator;
+                                dataRow["Timestamp"] = item.Timestamp;
+                                dataRow["Data Center"] = logGroupItem.DCName;
+                                dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+                                dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Start";
+                                dataRow["Reconciliation Reference"] = groupIndicator;
 
-								dataRow["Session"] = logInfo.Session;
-								dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
-								dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
-								dataRow["KeySpace"] = logInfo.Keyspace;
-								dataRow["Requested"] = !string.IsNullOrEmpty(logInfo.Options);
+                                dataRow["Session"] = logInfo.Session;
+                                dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
+                                dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
+                                dataRow["KeySpace"] = logInfo.Keyspace;
+                                dataRow["Requested"] = !string.IsNullOrEmpty(logInfo.Options);
 
-								logInfo.Add();
-								currentReadRepairs.Add(logInfo);
-								readRepairs.Add(logInfo);
-								globalReadRepairs.Add(logInfo);
+                                logInfo.Add();
+                                currentReadRepairs.Add(logInfo);
+                                readRepairs.Add(logInfo);
+                                globalReadRepairs.Add(logInfo);
 
-								dataRow["Session Path"] = logInfo.GenerateSessionPath(currentReadRepairs);
-								dtStatusLog.Rows.Add(dataRow);
-								#endregion
-							}
-							else
-							{
-								//[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
-								var regExEndSession = RegExRepairEndSessionLine.Split(item.Description);
+                                dataRow["Session Path"] = logInfo.GenerateSessionPath(currentReadRepairs);
+                                dtStatusLog.Rows.Add(dataRow);
+                                #endregion
+                            }
+                            else
+                            {
+                                //[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] session completed successfully
+                                var regExEndSession = RegExRepairEndSessionLine.Split(item.Description);
 
-								if (regExEndSession.Length > 3 && regExEndSession[2] == "completed")
-								{
-									#region Session Completed
-									var logInfo = currentReadRepairs.Find(r => r.Session == regExEndSession[1]);
+                                if (regExEndSession.Length > 3 && regExEndSession[2] == "completed")
+                                {
+                                    #region Session Completed
+                                    var logInfo = currentReadRepairs.Find(r => r.Session == regExEndSession[1]);
 
-									if (logInfo != null)
-									{
-										var rrOption = optionsReadRepair.FindAll(u => u.Item1 == logInfo.Keyspace).LastOrDefault();
-										var userRequest = userRequests.FindAll(u => u.Item1 == logInfo.TokenRangeStart && u.Item2 == logInfo.Keyspace).LastOrDefault();
+                                    if (logInfo != null)
+                                    {
+                                        var rrOption = optionsReadRepair.FindAll(u => u.Item1 == logInfo.Keyspace).LastOrDefault();
+                                        var userRequest = userRequests.FindAll(u => u.Item1 == logInfo.TokenRangeStart && u.Item2 == logInfo.Keyspace).LastOrDefault();
 
-										currentReadRepairs.Remove(logInfo);
+                                        currentReadRepairs.Remove(logInfo);
 
-										if (rrOption != null)
-										{
-											logInfo.Options = rrOption.Item2;
-											optionsReadRepair.Remove(rrOption);
-										}
-										if (userRequest != null)
-										{
-											logInfo.UserRequest = userRequest.Item3;
-											userRequests.Remove(userRequest);
-										}
+                                        if (rrOption != null)
+                                        {
+                                            logInfo.Options = rrOption.Item2;
+                                            optionsReadRepair.Remove(rrOption);
+                                        }
+                                        if (userRequest != null)
+                                        {
+                                            logInfo.UserRequest = userRequest.Item3;
+                                            userRequests.Remove(userRequest);
+                                        }
 
-										logInfo.Completed(item.Timestamp);
+                                        logInfo.Completed(item.Timestamp);
 
-										var dataRow = dtStatusLog.NewRow();
+                                        var dataRow = dtStatusLog.NewRow();
 
-										dataRow["Timestamp"] = item.Timestamp;
-										dataRow["Data Center"] = logGroupItem.DCName;
-										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-										dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Finished";
-										dataRow["Reconciliation Reference"] = groupIndicator;
+                                        dataRow["Timestamp"] = item.Timestamp;
+                                        dataRow["Data Center"] = logGroupItem.DCName;
+                                        dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+                                        dataRow["Pool/Cache Type"] = "Read Repair (" + item.Task + ") Finished";
+                                        dataRow["Reconciliation Reference"] = groupIndicator;
 
-										dataRow["Session"] = logInfo.Session;
-										dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
-										dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
-										dataRow["KeySpace"] = logInfo.Keyspace;
-										dataRow["Nbr GCs"] = logInfo.GCs;
-										dataRow["Nbr Compactions"] = logInfo.Compactions;
-										dataRow["Nbr MemTable Flush Events"] = logInfo.MemTableFlushes;
-										dataRow["Nbr Exceptions"] = logInfo.Exceptions;
-										dataRow["Nbr Solr ReIdxs"] = logInfo.SolrReIndexing == null ? 0 : logInfo.SolrReIndexing.Count();
-										dataRow["Duration (ms)"] = logInfo.Duration;
-										if (logInfo.UserRequest) dataRow["Requested"] = logInfo.UserRequest;
-										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session)) + "X" + logInfo.Session;
+                                        dataRow["Session"] = logInfo.Session;
+                                        dataRow["Start Token Range (exclusive)"] = logInfo.TokenRangeStart;
+                                        dataRow["End Token Range (inclusive)"] = logInfo.TokenRangeEnd;
+                                        dataRow["KeySpace"] = logInfo.Keyspace;
+                                        dataRow["Nbr GCs"] = logInfo.GCs;
+                                        dataRow["Nbr Compactions"] = logInfo.Compactions;
+                                        dataRow["Nbr MemTable Flush Events"] = logInfo.MemTableFlushes;
+                                        dataRow["Nbr Exceptions"] = logInfo.Exceptions;
+                                        dataRow["Nbr Solr ReIdxs"] = logInfo.SolrReIndexing == null ? 0 : logInfo.SolrReIndexing.Count();
+                                        dataRow["Duration (ms)"] = logInfo.Duration;
+                                        if (logInfo.UserRequest) dataRow["Requested"] = logInfo.UserRequest;
+                                        dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(r => r.Session)) + "X" + logInfo.Session;
 
-										dtStatusLog.Rows.Add(dataRow);
-									}
-									#endregion
-								}
-								else
-								{
-									#region Received Tree
-									// RepairSession.java:181 - [repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
-									var regExReceived = RegExRepairReceivedLine.Split(item.Description);
+                                        dtStatusLog.Rows.Add(dataRow);
+                                    }
+                                    #endregion
+                                }
+                                else
+                                {
+                                    #region Received Tree
+                                    // RepairSession.java:181 - [repair #87a95910-bf45-11e6-a2a7-f19e9c4c25c4] Received merkle tree for node_slow_log from /10.14.149.8
+                                    var regExReceived = RegExRepairReceivedLine.Split(item.Description);
 
-									if (regExReceived.Length > 4 && regExReceived[2] == "received")
-									{
-										var logInfo = currentReadRepairs.Find(r => r.Session == regExReceived[1]);
+                                    if (regExReceived.Length > 4 && regExReceived[2] == "received")
+                                    {
+                                        var logInfo = currentReadRepairs.Find(r => r.Session == regExReceived[1]);
 
-										if (logInfo != null)
-										{
+                                        if (logInfo != null)
+                                        {
                                             if (!logInfo.ReceivedNodes.Contains(regExReceived[3]))
                                             {
                                                 logInfo.ReceivedNodes.Add(regExReceived[3]);
                                             }
-										}
-									}
-									#endregion
-								}
-							}
-							#endregion
-						}
-						else if (item.Item == "StreamingRepairTask.java")
-						{
-							#region StreamingRepairTask.java
+                                        }
+                                    }
+                                    #endregion
+                                }
+                            }
+                            #endregion
+                        }
+                        else if (item.Item == "StreamingRepairTask.java")
+                        {
+                            #region StreamingRepairTask.java
 
-							//[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
-							var regExNbrSession = RegExRepairNbrRangesLine.Split(item.Description);
+                            //[streaming task #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] Performing streaming repair of 1 ranges with /10.12.51.29
+                            var regExNbrSession = RegExRepairNbrRangesLine.Split(item.Description);
 
-							if (regExNbrSession.Length > 4)
-							{
-								var gcInfo = currentReadRepairs.Find(r => r.Session == regExNbrSession[1].Trim());
+                            if (regExNbrSession.Length > 4)
+                            {
+                                var gcInfo = currentReadRepairs.Find(r => r.Session == regExNbrSession[1].Trim());
 
-								if (gcInfo != null)
-								{
-									gcInfo.NbrRepairs += int.Parse(regExNbrSession[2]);
+                                if (gcInfo != null)
+                                {
+                                    gcInfo.NbrRepairs += int.Parse(regExNbrSession[2]);
 
-									if(!gcInfo.RepairNodes.Contains(regExNbrSession[3]))
-									{
-										gcInfo.RepairNodes.Add(regExNbrSession[3]);
-									}
-								}
-							}
+                                    if (!gcInfo.RepairNodes.Contains(regExNbrSession[3]))
+                                    {
+                                        gcInfo.RepairNodes.Add(regExNbrSession[3]);
+                                    }
+                                }
+                            }
 
-							#endregion
-						}
-						else if(item.Item == "StorageService.java")
-						{
-							#region StorageService.java
-							var regExRepairOpts = RegExRepairUserRequest1.Split(item.Description);
+                            #endregion
+                        }
+                        else if (item.Item == "StorageService.java")
+                        {
+                            #region StorageService.java
+                            var regExRepairOpts = RegExRepairUserRequest1.Split(item.Description);
 
-							if (regExRepairOpts.Length == 4)
-							{
-								if (ignoreKeySpaces.Contains(regExRepairOpts[1].Trim()))
-								{
-									continue;
-								}
-								optionsReadRepair.Add(new Tuple<string, string>(regExRepairOpts[1].Trim(), regExRepairOpts[2].Trim()));
-							}
-							else
-							{
-								var regExRepairUseRequest = RegExRepairUserRequest.Split(item.Description);
+                            if (regExRepairOpts.Length == 4)
+                            {
+                                if (ignoreKeySpaces.Contains(regExRepairOpts[1].Trim()))
+                                {
+                                    continue;
+                                }
+                                optionsReadRepair.Add(new Tuple<string, string>(regExRepairOpts[1].Trim(), regExRepairOpts[2].Trim()));
+                            }
+                            else
+                            {
+                                var regExRepairUseRequest = RegExRepairUserRequest.Split(item.Description);
 
-								if (regExRepairUseRequest.Length == 5)
-								{
-									if (ignoreKeySpaces.Contains(regExRepairUseRequest[3].Trim()))
-									{
-										continue;
-									}
-									userRequests.Add(new Tuple<string, string, bool>(regExRepairUseRequest[1].Trim(), regExRepairUseRequest[3].Trim(), true));
-								}
-							}
-							#endregion
-						}
+                                if (regExRepairUseRequest.Length == 5)
+                                {
+                                    if (ignoreKeySpaces.Contains(regExRepairUseRequest[3].Trim()))
+                                    {
+                                        continue;
+                                    }
+                                    userRequests.Add(new Tuple<string, string, bool>(regExRepairUseRequest[1].Trim(), regExRepairUseRequest[3].Trim(), true));
+                                }
+                            }
+                            #endregion
+                        }
 
-						#region Read Repair Aborted Porcessing
-						if (currentReadRepairs.Count > 0
-								&& !string.IsNullOrEmpty(item.Exception))
-						{
-							if (item.Exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
-									|| item.Exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))
-							{
-								currentReadRepairs.AsEnumerable().Reverse().ToArray().ForEach(r =>
-								{
-									if (!string.IsNullOrEmpty(r.Session))
-									{
-										r.Abort(item.Timestamp, item.Exception);
-										currentReadRepairs.Remove(r);
+                        #region Read Repair Aborted Porcessing
+                        if (currentReadRepairs.Count > 0
+                                && !string.IsNullOrEmpty(item.Exception))
+                        {
+                            if (item.Exception.StartsWith("node shutdown", StringComparison.CurrentCultureIgnoreCase)
+                                    || item.Exception.StartsWith("node startup", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                currentReadRepairs.AsEnumerable().Reverse().ToArray().ForEach(r =>
+                                {
+                                    if (!string.IsNullOrEmpty(r.Session))
+                                    {
+                                        r.Abort(item.Timestamp, item.Exception);
+                                        currentReadRepairs.Remove(r);
 
-										var dataRow = dtStatusLog.NewRow();
+                                        var dataRow = dtStatusLog.NewRow();
 
-										dataRow["Timestamp"] = item.Timestamp;
-										dataRow["Data Center"] = logGroupItem.DCName;
-										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-										dataRow["Pool/Cache Type"] = "Read Repair (" + item.Exception + ") Aborted";
-										dataRow["Reconciliation Reference"] = groupIndicator;
+                                        dataRow["Timestamp"] = item.Timestamp;
+                                        dataRow["Data Center"] = logGroupItem.DCName;
+                                        dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+                                        dataRow["Pool/Cache Type"] = "Read Repair (" + item.Exception + ") Aborted";
+                                        dataRow["Reconciliation Reference"] = groupIndicator;
 
-										dataRow["Session"] = r.Session;
-										dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
-										dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
-										dataRow["KeySpace"] = r.Keyspace;
-										dataRow["Nbr GCs"] = r.GCs;
-										dataRow["Nbr Compactions"] = r.Compactions;
-										dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
-										dataRow["Nbr Exceptions"] = r.Exceptions;
-										dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
-										dataRow["Duration (ms)"] = r.Duration;
-										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
-										dataRow["Aborted"] = 1;
-										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
+                                        dataRow["Session"] = r.Session;
+                                        dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+                                        dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+                                        dataRow["KeySpace"] = r.Keyspace;
+                                        dataRow["Nbr GCs"] = r.GCs;
+                                        dataRow["Nbr Compactions"] = r.Compactions;
+                                        dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
+                                        dataRow["Nbr Exceptions"] = r.Exceptions;
+                                        dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
+                                        dataRow["Duration (ms)"] = r.Duration;
+                                        if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
+                                        dataRow["Aborted"] = 1;
+                                        dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
 
-										dtStatusLog.Rows.Add(dataRow);
-									}
-								});
+                                        dtStatusLog.Rows.Add(dataRow);
+                                    }
+                                });
 
-								currentReadRepairs.Clear();
-							}
-							else if (!string.IsNullOrEmpty(item.AssocValue)
-											&& currentReadRepairs.Any(r => !string.IsNullOrEmpty(r.Session)
-																				&& item.AssocValue.Contains(r.Session)))
-							{
-								currentReadRepairs.ToArray().ForEach(r =>
-								{
-									if (!string.IsNullOrEmpty(r.Session)
-											&& item.AssocValue.Contains(r.Session))
-									{
-										r.Abort(item.Timestamp, item.Exception);
-										++r.Exceptions;
+                                currentReadRepairs.Clear();
+                            }
+                            else if (!string.IsNullOrEmpty(item.AssocValue)
+                                            && currentReadRepairs.Any(r => !string.IsNullOrEmpty(r.Session)
+                                                                                && item.AssocValue.Contains(r.Session)))
+                            {
+                                currentReadRepairs.ToArray().ForEach(r =>
+                                {
+                                    if (!string.IsNullOrEmpty(r.Session)
+                                            && item.AssocValue.Contains(r.Session))
+                                    {
+                                        r.Abort(item.Timestamp, item.Exception);
+                                        ++r.Exceptions;
 
-										currentReadRepairs.Remove(r);
+                                        currentReadRepairs.Remove(r);
 
-										var dataRow = dtStatusLog.NewRow();
+                                        var dataRow = dtStatusLog.NewRow();
 
-										dataRow["Timestamp"] = item.Timestamp;
-										dataRow["Data Center"] = logGroupItem.DCName;
-										dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-										dataRow["Pool/Cache Type"] = "Read Repair Session Failure";
-										dataRow["Reconciliation Reference"] = groupIndicator;
+                                        dataRow["Timestamp"] = item.Timestamp;
+                                        dataRow["Data Center"] = logGroupItem.DCName;
+                                        dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+                                        dataRow["Pool/Cache Type"] = "Read Repair Session Failure";
+                                        dataRow["Reconciliation Reference"] = groupIndicator;
 
-										dataRow["Session"] = r.Session;
-										dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
-										dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
-										dataRow["KeySpace"] = r.Keyspace;
-										dataRow["Nbr GCs"] = r.GCs;
-										dataRow["Nbr Compactions"] = r.Compactions;
-										dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
-										dataRow["Nbr Exceptions"] = r.Exceptions;
-										dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
-										dataRow["Latency (ms)"] = r.Duration;
-										if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
-										dataRow["Aborted"] = 1;
-										dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
+                                        dataRow["Session"] = r.Session;
+                                        dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+                                        dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+                                        dataRow["KeySpace"] = r.Keyspace;
+                                        dataRow["Nbr GCs"] = r.GCs;
+                                        dataRow["Nbr Compactions"] = r.Compactions;
+                                        dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
+                                        dataRow["Nbr Exceptions"] = r.Exceptions;
+                                        dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
+                                        dataRow["Latency (ms)"] = r.Duration;
+                                        if (r.UserRequest) dataRow["Requested"] = r.UserRequest;
+                                        dataRow["Aborted"] = 1;
+                                        dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => "X" + i.Session));
 
-										dtStatusLog.Rows.Add(dataRow);
-									}
-								});
-							}
-							else
-							{
-								currentReadRepairs.ForEach(r =>
-								{
-									++r.Exceptions;
-								});
-							}
-						}
-						#endregion
-					}
+                                        dtStatusLog.Rows.Add(dataRow);
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                currentReadRepairs.ForEach(r =>
+                                {
+                                    ++r.Exceptions;
+                                });
+                            }
+                        }
+                        #endregion
+                    }
 
-					#region Orphaned RRs
-					currentReadRepairs.Where(r => !string.IsNullOrEmpty(r.Session) && r.CompletionTime == DateTime.MinValue).ToArray().ForEach(r =>
-					{
-						r.Abort(DateTime.MinValue, "Orphaned");
+                    #region Orphaned RRs
+                    currentReadRepairs.Where(r => !string.IsNullOrEmpty(r.Session) && r.CompletionTime == DateTime.MinValue).ToArray().ForEach(r =>
+                    {
+                        r.Abort(DateTime.MinValue, "Orphaned");
 
-						var dataRow = dtStatusLog.NewRow();
+                        var dataRow = dtStatusLog.NewRow();
 
-						dataRow["Timestamp"] = oldestLogTimeStamp;
-						dataRow["Data Center"] = logGroupItem.DCName;
-						dataRow["Node IPAddress"] = logGroupItem.IPAddress;
-						dataRow["Pool/Cache Type"] = "Read Repair Orphaned";
-						dataRow["Reconciliation Reference"] = groupIndicator;
+                        dataRow["Timestamp"] = oldestLogTimeStamp;
+                        dataRow["Data Center"] = logGroupItem.DCName;
+                        dataRow["Node IPAddress"] = logGroupItem.IPAddress;
+                        dataRow["Pool/Cache Type"] = "Read Repair Orphaned";
+                        dataRow["Reconciliation Reference"] = groupIndicator;
 
-						dataRow["Session"] = r.Session;
-						dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
-						dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
-						dataRow["KeySpace"] = r.Keyspace;
-						dataRow["Nbr GCs"] = r.GCs;
-						dataRow["Nbr Compactions"] = r.Compactions;
-						dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
-						dataRow["Nbr Exceptions"] = r.Exceptions;
-						dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
-						dataRow["Aborted"] = r.Aborted ? 1 : 0;
-						//dataRow["Duration (ms)"] = r.Duration;
-						dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
+                        dataRow["Session"] = r.Session;
+                        dataRow["Start Token Range (exclusive)"] = r.TokenRangeStart;
+                        dataRow["End Token Range (inclusive)"] = r.TokenRangeEnd;
+                        dataRow["KeySpace"] = r.Keyspace;
+                        dataRow["Nbr GCs"] = r.GCs;
+                        dataRow["Nbr Compactions"] = r.Compactions;
+                        dataRow["Nbr MemTable Flush Events"] = r.MemTableFlushes;
+                        dataRow["Nbr Exceptions"] = r.Exceptions;
+                        dataRow["Nbr Solr ReIdxs"] = r.SolrReIndexing == null ? 0 : r.SolrReIndexing.Count();
+                        dataRow["Aborted"] = r.Aborted ? 1 : 0;
+                        //dataRow["Duration (ms)"] = r.Duration;
+                        dataRow["Session Path"] = string.Join("=>", currentReadRepairs.Select(i => (i.Session == r.Session ? "X" : string.Empty) + i.Session));
 
-						dtStatusLog.Rows.Add(dataRow);
-					});
-					currentReadRepairs.Clear();
-					optionsReadRepair.Clear();
-					#endregion
+                        dtStatusLog.Rows.Add(dataRow);
+                    });
+                    currentReadRepairs.Clear();
+                    optionsReadRepair.Clear();
+                    #endregion
 
-					if (readRepairs.Count > 0)
-					{
-						#region read repairs CFStats and GC/Compaction/Solr collection updates
+                    if (readRepairs.Count > 0)
+                    {
+                        #region read repairs CFStats and GC/Compaction/Solr collection updates
 
-						{
-							Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo> nodeCompCollection = null;
-							Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
-							Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
-							Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo> nodeMemTblFlushCollection = null;
-							Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
+                        {
+                            Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo> nodeCompCollection = null;
+                            Common.Patterns.Collections.ThreadSafe.List<GCLogInfo> nodeGCCollection = null;
+                            Common.Patterns.Collections.ThreadSafe.List<SolrReIndexingLogInfo> nodeSolrIdxCollection = null;
+                            Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo> nodeMemTblFlushCollection = null;
+                            Common.Patterns.Collections.ThreadSafe.List<PerformanceInfo> nodePerfCollection = null;
                             Common.Patterns.Collections.ThreadSafe.List<SolrHardCommitLogInfo> nodeSolrHrdCmtCollection = null;
 
                             var dcIpAddress = (logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress;
 
-							CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
-							GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
-							SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
-							MemTableFlushOccurrences.TryGetValue(dcIpAddress, out nodeMemTblFlushCollection);
-							PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
+                            CompactionOccurrences.TryGetValue(dcIpAddress, out nodeCompCollection);
+                            GCOccurrences.TryGetValue(dcIpAddress, out nodeGCCollection);
+                            SolrReindexingOccurrences.TryGetValue(dcIpAddress, out nodeSolrIdxCollection);
+                            MemTableFlushOccurrences.TryGetValue(dcIpAddress, out nodeMemTblFlushCollection);
+                            PerformanceOccurrences.TryGetValue(dcIpAddress, out nodePerfCollection);
                             SolrHardCommits.TryGetValue(dcIpAddress, out nodeSolrHrdCmtCollection);
 
-							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
-							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
+                            //(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\{0}.txt", dcIpAddress.Replace('|', '-'))))
+                            //	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(nodeSolrIdxCollection, Newtonsoft.Json.Formatting.Indented));
 
-							readRepairs.ForEach(rrInfo =>
-								{
-									rrInfo.CompactionList = nodeCompCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
-																									&& rrInfo.StartTime <= c.StartTime
-																									&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
-									rrInfo.GCList = nodeGCCollection?.UnSafe.Where(c => rrInfo.StartTime <= c.StartTime
-																							&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold)
-																							&& rrInfo.SessionPath == rrInfo.Session);
-									rrInfo.SolrReIndexing = nodeSolrIdxCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
-																									&& rrInfo.StartTime <= c.StartTime
-																									&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
-									rrInfo.MemTableFlushList = nodeMemTblFlushCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
-																											&& rrInfo.StartTime <= c.StartTime
-																											&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
-									rrInfo.PerformanceWarningList = nodePerfCollection?.UnSafe.Where(c => (c.Keyspace == null || rrInfo.Keyspace == c.Keyspace)
-																											&& rrInfo.StartTime <= c.StartTime
-																											&& c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
+                            readRepairs.ForEach(rrInfo =>
+                                {
+                                    rrInfo.CompactionList = nodeCompCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+                                                                                                    && rrInfo.StartTime <= c.StartTime
+                                                                                                    && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
+                                    rrInfo.GCList = nodeGCCollection?.UnSafe.Where(c => rrInfo.StartTime <= c.StartTime
+                                                                                            && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold)
+                                                                                            && rrInfo.SessionPath == rrInfo.Session);
+                                    rrInfo.SolrReIndexing = nodeSolrIdxCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+                                                                                                    && rrInfo.StartTime <= c.StartTime
+                                                                                                    && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
+                                    rrInfo.MemTableFlushList = nodeMemTblFlushCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
+                                                                                                            && rrInfo.StartTime <= c.StartTime
+                                                                                                            && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
+                                    rrInfo.PerformanceWarningList = nodePerfCollection?.UnSafe.Where(c => (c.Keyspace == null || rrInfo.Keyspace == c.Keyspace)
+                                                                                                            && rrInfo.StartTime <= c.StartTime
+                                                                                                            && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
                                     rrInfo.SolrHardCommits = nodeSolrHrdCmtCollection?.UnSafe.Where(c => rrInfo.Keyspace == c.Keyspace
                                                                                                             && rrInfo.StartTime <= c.StartTime
                                                                                                             && c.StartTime < rrInfo.CompletionTime.AddMilliseconds(readrepairThreshold));
                                 });
 
-							//(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\RR-{0}.txt", dcIpAddress.Replace('|', '-'))))
-							//	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(readRepairs, Newtonsoft.Json.Formatting.Indented));
-						}
+                            //(new Common.File.FilePathAbsolute(string.Format(@"[DeskTop]\RR-{0}.txt", dcIpAddress.Replace('|', '-'))))
+                            //	.WriteAllText(Newtonsoft.Json.JsonConvert.SerializeObject(readRepairs, Newtonsoft.Json.Formatting.Indented));
+                        }
 
-						var dtCFStats = new DataTable(string.Format("CFStats-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                        var dtCFStats = new DataTable(string.Format("CFStats-ReadRepair-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
 
-						if(dtCFStatsStack != null) dtCFStatsStack.Push(dtCFStats);
-						initializeCFStatsDataTable(dtCFStats);
+                        if (dtCFStatsStack != null) dtCFStatsStack.Push(dtCFStats);
+                        initializeCFStatsDataTable(dtCFStats);
 
-						Logger.Instance.InfoFormat("Adding Read Repairs ({2}) to CFStats for \"{0}\" \"{1}\"", logGroupItem.DCName, logGroupItem.IPAddress, readRepairs.Count);
+                        Logger.Instance.InfoFormat("Adding Read Repairs ({2}) to CFStats for \"{0}\" \"{1}\"", logGroupItem.DCName, logGroupItem.IPAddress, readRepairs.Count);
 
-						{
-							var readrepairStats = from repairItem in readRepairs
-												  where repairItem.CompletionTime != DateTime.MinValue
-														  && !repairItem.Aborted
-												  group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
-														into g
-												  select new
-												  {
-													  DCName = g.Key.DataCenter,
-													  IpAdress = g.Key.IPAddress,
-													  KeySpace = g.Key.Keyspace,
-													  GrpInds = g.GroupIndicatorString(),
-													  Max = g.Max(s => s.Duration),
-													  Min = g.Min(s => s.Duration),
-													  Avg = (int)g.Average(s => s.Duration),
-													  Count = g.Count()
-												  };
+                        {
+                            var readrepairStats = from repairItem in readRepairs
+                                                  where repairItem.CompletionTime != DateTime.MinValue
+                                                          && !repairItem.Aborted
+                                                  group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
+                                                        into g
+                                                  select new
+                                                  {
+                                                      DCName = g.Key.DataCenter,
+                                                      IpAdress = g.Key.IPAddress,
+                                                      KeySpace = g.Key.Keyspace,
+                                                      GrpInds = g.GroupIndicatorString(),
+                                                      Max = g.Max(s => s.Duration),
+                                                      Min = g.Min(s => s.Duration),
+                                                      Avg = (int)g.Average(s => s.Duration),
+                                                      Count = g.Count()
+                                                  };
 
-							foreach (var statItem in readrepairStats)
-							{
-								var dataRow = dtCFStats.NewRow();
+                            foreach (var statItem in readrepairStats)
+                            {
+                                var dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = statItem.DCName;
-								dataRow["Node IPAddress"] = statItem.IpAdress;
-								dataRow["KeySpace"] = statItem.KeySpace;
-								dataRow["Attribute"] = "Read Repair maximum latency";
-								dataRow["Reconciliation Reference"] = statItem.GrpInds;
-								dataRow["Value"] = statItem.Max;
-								dataRow["(Value)"] = statItem.Max;
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = statItem.DCName;
+                                dataRow["Node IPAddress"] = statItem.IpAdress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Attribute"] = "Read Repair maximum latency";
+                                dataRow["Reconciliation Reference"] = statItem.GrpInds;
+                                dataRow["Value"] = statItem.Max;
+                                dataRow["(Value)"] = statItem.Max;
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = statItem.DCName;
-								dataRow["Node IPAddress"] = statItem.IpAdress;
-								dataRow["KeySpace"] = statItem.KeySpace;
-								dataRow["Attribute"] = "Read Repair minimum latency";
-								dataRow["Reconciliation Reference"] = statItem.GrpInds;
-								dataRow["Value"] = statItem.Min;
-								dataRow["(Value)"] = statItem.Min;
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = statItem.DCName;
+                                dataRow["Node IPAddress"] = statItem.IpAdress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Attribute"] = "Read Repair minimum latency";
+                                dataRow["Reconciliation Reference"] = statItem.GrpInds;
+                                dataRow["Value"] = statItem.Min;
+                                dataRow["(Value)"] = statItem.Min;
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = statItem.DCName;
-								dataRow["Node IPAddress"] = statItem.IpAdress;
-								dataRow["KeySpace"] = statItem.KeySpace;
-								dataRow["Attribute"] = "Read Repair mean latency";
-								dataRow["Reconciliation Reference"] = statItem.GrpInds;
-								dataRow["Value"] = statItem.Avg;
-								dataRow["(Value)"] = statItem.Avg;
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = statItem.DCName;
+                                dataRow["Node IPAddress"] = statItem.IpAdress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Attribute"] = "Read Repair mean latency";
+                                dataRow["Reconciliation Reference"] = statItem.GrpInds;
+                                dataRow["Value"] = statItem.Avg;
+                                dataRow["(Value)"] = statItem.Avg;
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = statItem.DCName;
-								dataRow["Node IPAddress"] = statItem.IpAdress;
-								dataRow["KeySpace"] = statItem.KeySpace;
-								dataRow["Attribute"] = "Read Repair occurrences";
-								dataRow["Reconciliation Reference"] = statItem.GrpInds;
-								dataRow["Value"] = statItem.Count;
-								dataRow["(Value)"] = statItem.Count;
-								//dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = statItem.DCName;
+                                dataRow["Node IPAddress"] = statItem.IpAdress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Attribute"] = "Read Repair occurrences";
+                                dataRow["Reconciliation Reference"] = statItem.GrpInds;
+                                dataRow["Value"] = statItem.Count;
+                                dataRow["(Value)"] = statItem.Count;
+                                //dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
-							}
-						}
-						{
-							var readrepairAbortedStats = from repairItem in readRepairs
-														 where repairItem.Aborted
-														 group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
-															into g
-														 select new
-														 {
-															 DCName = g.Key.DataCenter,
-															 IpAdress = g.Key.IPAddress,
-															 KeySpace = g.Key.Keyspace,
-															 GrpInds = g.GroupIndicatorString(),
-															 Exceptions = string.Join(", ", g.DuplicatesRemoved(i => i.Exception).Select(i => i.Exception)),
-															 Count = g.Count()
-														 };
+                                dtCFStats.Rows.Add(dataRow);
+                            }
+                        }
+                        {
+                            var readrepairAbortedStats = from repairItem in readRepairs
+                                                         where repairItem.Aborted
+                                                         group repairItem by new { repairItem.DataCenter, repairItem.IPAddress, repairItem.Keyspace }
+                                                            into g
+                                                         select new
+                                                         {
+                                                             DCName = g.Key.DataCenter,
+                                                             IpAdress = g.Key.IPAddress,
+                                                             KeySpace = g.Key.Keyspace,
+                                                             GrpInds = g.GroupIndicatorString(),
+                                                             Exceptions = string.Join(", ", g.DuplicatesRemoved(i => i.Exception).Select(i => i.Exception)),
+                                                             Count = g.Count()
+                                                         };
 
-							foreach (var statItem in readrepairAbortedStats)
-							{
-								var dataRow = dtCFStats.NewRow();
+                            foreach (var statItem in readrepairAbortedStats)
+                            {
+                                var dataRow = dtCFStats.NewRow();
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = statItem.DCName;
-								dataRow["Node IPAddress"] = statItem.IpAdress;
-								dataRow["KeySpace"] = statItem.KeySpace;
-								dataRow["Attribute"] = "Read Repair Aborted occurrences";
-								dataRow["Reconciliation Reference"] = statItem.GrpInds;
-								dataRow["Value"] = statItem.Count;
-								dataRow["(Value)"] = statItem.Count;
-								//dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = statItem.DCName;
+                                dataRow["Node IPAddress"] = statItem.IpAdress;
+                                dataRow["KeySpace"] = statItem.KeySpace;
+                                dataRow["Attribute"] = "Read Repair Aborted occurrences";
+                                dataRow["Reconciliation Reference"] = statItem.GrpInds;
+                                dataRow["Value"] = statItem.Count;
+                                dataRow["(Value)"] = statItem.Count;
+                                //dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
-							}
-						}
-						#endregion
-					}
+                                dtCFStats.Rows.Add(dataRow);
+                            }
+                        }
+                        #endregion
+                    }
 
                     Logger.Instance.InfoFormat("Completed Parsing of Repairs for {0}|{1}",
                                                     logGroupItem.DCName,
                                                     logGroupItem.IPAddress);
                 });
-			}//end of scope for logItems
+            }//end of scope for logItems
 
             Logger.Instance.Info("Completed Parsing of Repairs from logs");
 
             return globalReadRepairs.UnSafe;
-		}
+        }
 
-		public static void ReadRepairIntoDataTable(IEnumerable<RepairLogInfo> readRepairs,
-													DataTable dtReadRepair)
-		{
-			#region Read Repair Table
-			if (dtReadRepair == null)
-			{
-				return;
-			}
+        public static void ReadRepairIntoDataTable(IEnumerable<RepairLogInfo> readRepairs,
+                                                    DataTable dtReadRepair)
+        {
+            #region Read Repair Table
+            if (dtReadRepair == null)
+            {
+                return;
+            }
 
-			if (dtReadRepair.Columns.Count == 0)
-			{
-				dtReadRepair.Columns.Add("Start Timestamp", typeof(DateTime)); //a
-				dtReadRepair.Columns.Add("Session Path", typeof(string)); //b 2
-				dtReadRepair.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Node IPAddress", typeof(string));
-				dtReadRepair.Columns.Add("Type", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Table", typeof(string)).AllowDBNull = true; //g
-				dtReadRepair.Columns.Add("Log/Completion Timestamp", typeof(DateTime)).AllowDBNull = true; //h
+            if (dtReadRepair.Columns.Count == 0)
+            {
+                dtReadRepair.Columns.Add("Start Timestamp", typeof(DateTime)); //a
+                dtReadRepair.Columns.Add("Session Path", typeof(string)); //b 2
+                dtReadRepair.Columns.Add("Data Center", typeof(string)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Node IPAddress", typeof(string));
+                dtReadRepair.Columns.Add("Type", typeof(string)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("KeySpace", typeof(string)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Table", typeof(string)).AllowDBNull = true; //g
+                dtReadRepair.Columns.Add("Log/Completion Timestamp", typeof(DateTime)).AllowDBNull = true; //h
 
-				//Read Repair
-				dtReadRepair.Columns.Add("Session", typeof(string)); //i
-				dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true; //j
-				dtReadRepair.Columns.Add("Token Range Start", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Token Range End", typeof(string)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr of Repaired Ranges", typeof(int)).AllowDBNull = true; //m
-				dtReadRepair.Columns.Add("Updating Nodes", typeof(string)).AllowDBNull = true; //n 14
-				dtReadRepair.Columns.Add("Nbr Received Nodes", typeof(int)).AllowDBNull = true; //o
+                //Read Repair
+                dtReadRepair.Columns.Add("Session", typeof(string)); //i
+                dtReadRepair.Columns.Add("Session Duration", typeof(TimeSpan)).AllowDBNull = true; //j
+                dtReadRepair.Columns.Add("Token Range Start", typeof(string)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Token Range End", typeof(string)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Nbr of Repaired Ranges", typeof(int)).AllowDBNull = true; //m
+                dtReadRepair.Columns.Add("Updating Nodes", typeof(string)).AllowDBNull = true; //n 14
+                dtReadRepair.Columns.Add("Nbr Received Nodes", typeof(int)).AllowDBNull = true; //o
                 dtReadRepair.Columns.Add("Received Nodes", typeof(string)).AllowDBNull = true; //p
                 dtReadRepair.Columns.Add("Nbr GC Events", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //s
-				dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Nbr Compaction Events", typeof(int)).AllowDBNull = true;
+                dtReadRepair.Columns.Add("Nbr MemTable Flush Events", typeof(int)).AllowDBNull = true; //s
+                dtReadRepair.Columns.Add("Nbr Solr ReIdx Events", typeof(int)).AllowDBNull = true;
                 dtReadRepair.Columns.Add("Nbr Solr Hard Commit Events", typeof(int)).AllowDBNull = true;
                 dtReadRepair.Columns.Add("Nbr Exceptions", typeof(int)).AllowDBNull = true;
-				dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //w
-				dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //x
-				dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //y
+                dtReadRepair.Columns.Add("Options", typeof(string)).AllowDBNull = true; //w
+                dtReadRepair.Columns.Add("Requested", typeof(int)).AllowDBNull = true; //x
+                dtReadRepair.Columns.Add("Aborted Read Repair", typeof(int)).AllowDBNull = true; //y
 
-				//GC
-				dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //z
-				dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true; //aa
-				dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;//ab
-				dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //ac
+                //GC
+                dtReadRepair.Columns.Add("GC Time (ms)", typeof(long)).AllowDBNull = true; //z
+                dtReadRepair.Columns.Add("Eden Changed (mb)", typeof(decimal)).AllowDBNull = true; //aa
+                dtReadRepair.Columns.Add("Survivor Changed (mb)", typeof(decimal)).AllowDBNull = true;//ab
+                dtReadRepair.Columns.Add("Old Changed (mb)", typeof(decimal)).AllowDBNull = true; //ac
 
-				//Compaction
-				dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ad
-				dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ae
-				dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //af
-				dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ag
-				dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ah
+                //Compaction
+                dtReadRepair.Columns.Add("SSTables", typeof(int)).AllowDBNull = true; //ad
+                dtReadRepair.Columns.Add("Old Size (mb)", typeof(decimal)).AllowDBNull = true;//ae
+                dtReadRepair.Columns.Add("New Size (mb)", typeof(long)).AllowDBNull = true; //af
+                dtReadRepair.Columns.Add("Compaction Time (ms)", typeof(int)).AllowDBNull = true; //ag
+                dtReadRepair.Columns.Add("Compaction IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //ah
 
-				//MemTable Flush
-				dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ai
-				dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//aj
-				dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //ak
-				dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //al
-				dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //am
+                //MemTable Flush
+                dtReadRepair.Columns.Add("Occurrences", typeof(int)).AllowDBNull = true; //ai
+                dtReadRepair.Columns.Add("Flushed to SSTable(s) Size (mb)", typeof(decimal)).AllowDBNull = true;//aj
+                dtReadRepair.Columns.Add("Flush Time (ms)", typeof(int)).AllowDBNull = true; //ak
+                dtReadRepair.Columns.Add("Write Rate (ops)", typeof(int)).AllowDBNull = true; //al
+                dtReadRepair.Columns.Add("Effective Flush IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //am
 
-				//Performance Warnings
-				dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //an
-				dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//ao
+                //Performance Warnings
+                dtReadRepair.Columns.Add("Perf Warnings", typeof(int)).AllowDBNull = true; //an
+                dtReadRepair.Columns.Add("Perf Average Latency", typeof(int)).AllowDBNull = true;//ao
 
-				//Solr Reindexing
-				dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ap
+                //Solr Reindexing
+                dtReadRepair.Columns.Add("Solr ReIdx Duration", typeof(int)).AllowDBNull = true; //ap
                 dtReadRepair.Columns["Solr ReIdx Duration"].Caption = "ReIdx"; //aq
                 dtReadRepair.Columns.Add("Solr Hard Commit Duration", typeof(int)).AllowDBNull = true; //ar
                 dtReadRepair.Columns["Solr Hard Commit Duration"].Caption = "Hard Commit"; //as
 
                 dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //at
-			}
-		#endregion
+            }
+            #endregion
 
-			if (readRepairs.Count() > 0)
-			{
-				var readRepairItems = from rrItem in readRepairs
-									  orderby rrItem.StartTime ascending, rrItem.SessionPath ascending, rrItem.DataCenter, rrItem.IPAddress
-									  select rrItem;
+            if (readRepairs.Count() > 0)
+            {
+                var readRepairItems = from rrItem in readRepairs
+                                      orderby rrItem.StartTime ascending, rrItem.SessionPath ascending, rrItem.DataCenter, rrItem.IPAddress
+                                      select rrItem;
 
-				foreach (var rrItem in readRepairItems)
-				{
-					var newDataRow = dtReadRepair.NewRow();
+                foreach (var rrItem in readRepairItems)
+                {
+                    var newDataRow = dtReadRepair.NewRow();
 
 
-					newDataRow["Start Timestamp"] = rrItem.StartTime;
-					newDataRow["Session Path"] = rrItem.SessionPath;
-					newDataRow["Data Center"] = rrItem.DataCenter;
-					newDataRow["Node IPAddress"] = rrItem.IPAddress;
-					newDataRow["Reconciliation Reference"] = rrItem.GroupIndicator;
+                    newDataRow["Start Timestamp"] = rrItem.StartTime;
+                    newDataRow["Session Path"] = rrItem.SessionPath;
+                    newDataRow["Data Center"] = rrItem.DataCenter;
+                    newDataRow["Node IPAddress"] = rrItem.IPAddress;
+                    newDataRow["Reconciliation Reference"] = rrItem.GroupIndicator;
 
-					//Read Repair
-					if (rrItem.Aborted)
-					{
-						if(string.IsNullOrEmpty(rrItem.Exception))
-						{
-							newDataRow["Type"] = "Read Repair (aborted)";
-						}
-						else if(rrItem.Exception.ToLower().Contains("shutdown")
-								 || rrItem.Exception.ToLower().Contains("startup"))
-						{
-							newDataRow["Type"] = "Read Repair (shutdown)";
-						}
-						else
-						{
-							newDataRow["Type"] = "Read Repair (exception)";
-						}
-					}
-					else
-					{
-						newDataRow["Type"] = "Read Repair";
-					}
-					newDataRow["KeySpace"] = rrItem.Keyspace;
-					newDataRow["Session"] = rrItem.Session;
-					if (rrItem.CompletionTime != DateTime.MinValue)
-					{
-						newDataRow["Log/Completion Timestamp"] = rrItem.CompletionTime;
+                    //Read Repair
+                    if (rrItem.Aborted)
+                    {
+                        if (string.IsNullOrEmpty(rrItem.Exception))
+                        {
+                            newDataRow["Type"] = "Read Repair (aborted)";
+                        }
+                        else if (rrItem.Exception.ToLower().Contains("shutdown")
+                                 || rrItem.Exception.ToLower().Contains("startup"))
+                        {
+                            newDataRow["Type"] = "Read Repair (shutdown)";
+                        }
+                        else
+                        {
+                            newDataRow["Type"] = "Read Repair (exception)";
+                        }
+                    }
+                    else
+                    {
+                        newDataRow["Type"] = "Read Repair";
+                    }
+                    newDataRow["KeySpace"] = rrItem.Keyspace;
+                    newDataRow["Session"] = rrItem.Session;
+                    if (rrItem.CompletionTime != DateTime.MinValue)
+                    {
+                        newDataRow["Log/Completion Timestamp"] = rrItem.CompletionTime;
                         if (rrItem.Duration >= 0)
                         {
                             newDataRow["Session Duration"] = TimeSpan.FromMilliseconds(rrItem.Duration);
                         }
-					}
-					newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
-					newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
-					newDataRow["Nbr of Repaired Ranges"] = rrItem.NbrRepairs;
-					newDataRow["Updating Nodes"] = string.Join(", ", rrItem.RepairNodes);
-					newDataRow["Nbr Received Nodes"] = rrItem.ReceivedNodes.Count;
+                    }
+                    newDataRow["Token Range Start"] = rrItem.TokenRangeStart;
+                    newDataRow["Token Range End"] = rrItem.TokenRangeEnd;
+                    newDataRow["Nbr of Repaired Ranges"] = rrItem.NbrRepairs;
+                    newDataRow["Updating Nodes"] = string.Join(", ", rrItem.RepairNodes);
+                    newDataRow["Nbr Received Nodes"] = rrItem.ReceivedNodes.Count;
                     newDataRow["Received Nodes"] = string.Join(", ", rrItem.ReceivedNodes);
                     newDataRow["Nbr GC Events"] = rrItem.GCs;
-					newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
-					newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
+                    newDataRow["Nbr Compaction Events"] = rrItem.Compactions;
+                    newDataRow["Nbr Solr ReIdx Events"] = rrItem.SolrReIndexing == null ? 0 : rrItem.SolrReIndexing.Count();
                     newDataRow["Nbr Solr Hard Commit Events"] = rrItem.SolrHardCommits == null ? 0 : rrItem.SolrHardCommits.Count();
                     newDataRow["Nbr MemTable Flush Events"] = rrItem.MemTableFlushes;
-					newDataRow["Nbr Exceptions"] = rrItem.Exceptions;
-					newDataRow["Aborted Read Repair"] = rrItem.Aborted ? 1 : 0;
-					newDataRow["Options"] = rrItem.Options;
-					newDataRow["Requested"] = rrItem.UserRequest ? 1 : 0;
+                    newDataRow["Nbr Exceptions"] = rrItem.Exceptions;
+                    newDataRow["Aborted Read Repair"] = rrItem.Aborted ? 1 : 0;
+                    newDataRow["Options"] = rrItem.Options;
+                    newDataRow["Requested"] = rrItem.UserRequest ? 1 : 0;
 
-					dtReadRepair.Rows.Add(newDataRow);
+                    dtReadRepair.Rows.Add(newDataRow);
 
-					if (rrItem.GCList != null)
-					{
-						foreach (var item in (from gc in rrItem.GCList
-											  let startTime = gc.StartTime
-											  orderby startTime ascending
-											  select new { StartTime = startTime, GC = gc }))
-						{
-							newDataRow = dtReadRepair.NewRow();
+                    if (rrItem.GCList != null)
+                    {
+                        foreach (var item in (from gc in rrItem.GCList
+                                              let startTime = gc.StartTime
+                                              orderby startTime ascending
+                                              select new { StartTime = startTime, GC = gc }))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
 
-							newDataRow["Start Timestamp"] = item.StartTime;
-							newDataRow["Session Path"] = rrItem.SessionPath;
-							newDataRow["Data Center"] = item.GC.DataCenter;
-							newDataRow["Node IPAddress"] = item.GC.IPAddress;
-							newDataRow["Type"] = "GC";
-							newDataRow["Log/Completion Timestamp"] = item.GC.LogTimestamp;
-							newDataRow["Session"] = rrItem.Session;
-							newDataRow["GC Time (ms)"] = item.GC.Duration;
-							newDataRow["Eden Changed (mb)"] = item.GC.GCEdenTo - item.GC.GCEdenFrom;
-							newDataRow["Survivor Changed (mb)"] = item.GC.GCSurvivorTo - item.GC.GCSurvivorFrom;
-							newDataRow["Old Changed (mb)"] = item.GC.GCOldTo - item.GC.GCOldFrom;
-							newDataRow["Reconciliation Reference"] = item.GC.GroupIndicator;
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.GC.DataCenter;
+                            newDataRow["Node IPAddress"] = item.GC.IPAddress;
+                            newDataRow["Type"] = "GC";
+                            newDataRow["Log/Completion Timestamp"] = item.GC.LogTimestamp;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["GC Time (ms)"] = item.GC.Duration;
+                            newDataRow["Eden Changed (mb)"] = item.GC.GCEdenTo - item.GC.GCEdenFrom;
+                            newDataRow["Survivor Changed (mb)"] = item.GC.GCSurvivorTo - item.GC.GCSurvivorFrom;
+                            newDataRow["Old Changed (mb)"] = item.GC.GCOldTo - item.GC.GCOldFrom;
+                            newDataRow["Reconciliation Reference"] = item.GC.GroupIndicator;
 
-							dtReadRepair.Rows.Add(newDataRow);
-						}
-					}
+                            dtReadRepair.Rows.Add(newDataRow);
+                        }
+                    }
 
-					if (rrItem.CompactionList != null)
-					{
-						foreach (var item in (from comp in rrItem.CompactionList
-											  let startTime = comp.StartTime
-											  orderby startTime ascending
-											  select new { StartTime = startTime, Comp = comp }))
-						{
-							newDataRow = dtReadRepair.NewRow();
+                    if (rrItem.CompactionList != null)
+                    {
+                        foreach (var item in (from comp in rrItem.CompactionList
+                                              let startTime = comp.StartTime
+                                              orderby startTime ascending
+                                              select new { StartTime = startTime, Comp = comp }))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
 
-							newDataRow["Start Timestamp"] = item.StartTime;
-							newDataRow["Session Path"] = rrItem.SessionPath;
-							newDataRow["Data Center"] = item.Comp.DataCenter;
-							newDataRow["Node IPAddress"] = item.Comp.IPAddress;
-							newDataRow["Type"] = item.Comp.Type;
-							newDataRow["Log/Completion Timestamp"] = item.Comp.CompletionTime;
-							newDataRow["Session"] = rrItem.Session;
-							newDataRow["KeySpace"] = item.Comp.Keyspace;
-							newDataRow["Table"] = item.Comp.Table;
-							newDataRow["SSTables"] = item.Comp.SSTables;
-							newDataRow["Compaction Time (ms)"] = item.Comp.Duration;
-							newDataRow["Reconciliation Reference"] = item.Comp.GroupIndicator;
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.Comp.DataCenter;
+                            newDataRow["Node IPAddress"] = item.Comp.IPAddress;
+                            newDataRow["Type"] = item.Comp.Type;
+                            newDataRow["Log/Completion Timestamp"] = item.Comp.CompletionTime;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["KeySpace"] = item.Comp.Keyspace;
+                            newDataRow["Table"] = item.Comp.Table;
+                            newDataRow["SSTables"] = item.Comp.SSTables;
+                            newDataRow["Compaction Time (ms)"] = item.Comp.Duration;
+                            newDataRow["Reconciliation Reference"] = item.Comp.GroupIndicator;
 
-							if(item.Comp is CompactionLogInfo)
-							{
-								newDataRow["Old Size (mb)"] = ((CompactionLogInfo)item.Comp).OldSize;
-								newDataRow["New Size (mb)"] = ((CompactionLogInfo)item.Comp).NewSize;
-								newDataRow["Compaction IORate (mb/sec)"] = ((CompactionLogInfo)item.Comp).IORate;
-							}
+                            if (item.Comp is CompactionLogInfo)
+                            {
+                                newDataRow["Old Size (mb)"] = ((CompactionLogInfo)item.Comp).OldSize;
+                                newDataRow["New Size (mb)"] = ((CompactionLogInfo)item.Comp).NewSize;
+                                newDataRow["Compaction IORate (mb/sec)"] = ((CompactionLogInfo)item.Comp).IORate;
+                            }
                             else if (item.Comp is AntiCompactionLogInfo)
                             {
                                 if (((AntiCompactionLogInfo)item.Comp).OldSize.HasValue)
@@ -7975,87 +7984,87 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
 
                             dtReadRepair.Rows.Add(newDataRow);
-						}
-					}
+                        }
+                    }
 
-					if (rrItem.MemTableFlushList != null)
-					{
-						foreach (var item in (from memTbl in rrItem.MemTableFlushList
-											  let startTime = memTbl.StartTime
-											  orderby startTime ascending
-											  select new { StartTime = startTime, MemTbl = memTbl }))
-						{
-							newDataRow = dtReadRepair.NewRow();
+                    if (rrItem.MemTableFlushList != null)
+                    {
+                        foreach (var item in (from memTbl in rrItem.MemTableFlushList
+                                              let startTime = memTbl.StartTime
+                                              orderby startTime ascending
+                                              select new { StartTime = startTime, MemTbl = memTbl }))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
 
-							newDataRow["Start Timestamp"] = item.StartTime;
-							newDataRow["Session Path"] = rrItem.SessionPath;
-							newDataRow["Data Center"] = item.MemTbl.DataCenter;
-							newDataRow["Node IPAddress"] = item.MemTbl.IPAddress;
-							newDataRow["Type"] = item.MemTbl.Type;
-							newDataRow["Log/Completion Timestamp"] = item.MemTbl.CompletionTime;
-							newDataRow["Session"] = rrItem.Session;
-							newDataRow["KeySpace"] = item.MemTbl.Keyspace;
-							newDataRow["Table"] = item.MemTbl.Table;
-							newDataRow["Occurrences"] = item.MemTbl.OccurrenceCount;
-							newDataRow["Flushed to SSTable(s) Size (mb)"] = item.MemTbl.FlushedStorage;
-							newDataRow["Flush Time (ms)"] = item.MemTbl.Duration;
-							newDataRow["Write Rate (ops)"] = item.MemTbl.NbrWriteOPS;
-							newDataRow["Effective Flush IORate (mb/sec)"] = item.MemTbl.IORate;
-							newDataRow["Reconciliation Reference"] = item.MemTbl.GroupIndicator;
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.MemTbl.DataCenter;
+                            newDataRow["Node IPAddress"] = item.MemTbl.IPAddress;
+                            newDataRow["Type"] = item.MemTbl.Type;
+                            newDataRow["Log/Completion Timestamp"] = item.MemTbl.CompletionTime;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["KeySpace"] = item.MemTbl.Keyspace;
+                            newDataRow["Table"] = item.MemTbl.Table;
+                            newDataRow["Occurrences"] = item.MemTbl.OccurrenceCount;
+                            newDataRow["Flushed to SSTable(s) Size (mb)"] = item.MemTbl.FlushedStorage;
+                            newDataRow["Flush Time (ms)"] = item.MemTbl.Duration;
+                            newDataRow["Write Rate (ops)"] = item.MemTbl.NbrWriteOPS;
+                            newDataRow["Effective Flush IORate (mb/sec)"] = item.MemTbl.IORate;
+                            newDataRow["Reconciliation Reference"] = item.MemTbl.GroupIndicator;
 
-							dtReadRepair.Rows.Add(newDataRow);
-						}
-					}
+                            dtReadRepair.Rows.Add(newDataRow);
+                        }
+                    }
 
-					if (rrItem.PerformanceWarningList != null)
-					{
-						foreach (var item in (from perfItem in rrItem.PerformanceWarningList
-											  let startTime = perfItem.StartTime
-											  orderby startTime ascending
-											  select new { StartTime = startTime, PerfItem = perfItem }))
-						{
-							newDataRow = dtReadRepair.NewRow();
+                    if (rrItem.PerformanceWarningList != null)
+                    {
+                        foreach (var item in (from perfItem in rrItem.PerformanceWarningList
+                                              let startTime = perfItem.StartTime
+                                              orderby startTime ascending
+                                              select new { StartTime = startTime, PerfItem = perfItem }))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
 
-							newDataRow["Start Timestamp"] = item.StartTime;
-							newDataRow["Session Path"] = rrItem.SessionPath;
-							newDataRow["Data Center"] = item.PerfItem.DataCenter;
-							newDataRow["Node IPAddress"] = item.PerfItem.IPAddress;
-							newDataRow["Type"] = "Performance Warning(" + item.PerfItem.Type + ")";
-							newDataRow["Log/Completion Timestamp"] = item.PerfItem.LogTimestamp;
-							newDataRow["Session"] = rrItem.Session;
-							newDataRow["KeySpace"] = item.PerfItem.Keyspace;
-							newDataRow["Table"] = item.PerfItem.Table;
-							newDataRow["Reconciliation Reference"] = item.PerfItem.GroupIndicator;
-							newDataRow["Perf Warnings"] = 1;
-							newDataRow["Perf Average Latency"] = item.PerfItem.Latency;
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.PerfItem.DataCenter;
+                            newDataRow["Node IPAddress"] = item.PerfItem.IPAddress;
+                            newDataRow["Type"] = "Performance Warning(" + item.PerfItem.Type + ")";
+                            newDataRow["Log/Completion Timestamp"] = item.PerfItem.LogTimestamp;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["KeySpace"] = item.PerfItem.Keyspace;
+                            newDataRow["Table"] = item.PerfItem.Table;
+                            newDataRow["Reconciliation Reference"] = item.PerfItem.GroupIndicator;
+                            newDataRow["Perf Warnings"] = 1;
+                            newDataRow["Perf Average Latency"] = item.PerfItem.Latency;
 
-							dtReadRepair.Rows.Add(newDataRow);
-						}
-					}
+                            dtReadRepair.Rows.Add(newDataRow);
+                        }
+                    }
 
-					if (rrItem.SolrReIndexing != null)
-					{
-						foreach (var item in (from solrIdx in rrItem.SolrReIndexing
-											  orderby solrIdx.StartTime ascending
-											  select solrIdx))
-						{
-							newDataRow = dtReadRepair.NewRow();
+                    if (rrItem.SolrReIndexing != null)
+                    {
+                        foreach (var item in (from solrIdx in rrItem.SolrReIndexing
+                                              orderby solrIdx.StartTime ascending
+                                              select solrIdx))
+                        {
+                            newDataRow = dtReadRepair.NewRow();
 
-							newDataRow["Start Timestamp"] = item.StartTime;
-							newDataRow["Session Path"] = rrItem.SessionPath;
-							newDataRow["Data Center"] = item.DataCenter;
-							newDataRow["Node IPAddress"] = item.IPAddress;
-							newDataRow["Type"] = "Solr ReIndex";
-							newDataRow["Log/Completion Timestamp"] = item.CompletionTime;
-							newDataRow["Session"] = rrItem.Session;
-							newDataRow["KeySpace"] = item.Keyspace;
-							newDataRow["Table"] = item.Table;
-							newDataRow["Solr ReIdx Duration"] = item.Duration;
-							newDataRow["Reconciliation Reference"] = item.GroupIndicator;
+                            newDataRow["Start Timestamp"] = item.StartTime;
+                            newDataRow["Session Path"] = rrItem.SessionPath;
+                            newDataRow["Data Center"] = item.DataCenter;
+                            newDataRow["Node IPAddress"] = item.IPAddress;
+                            newDataRow["Type"] = "Solr ReIndex";
+                            newDataRow["Log/Completion Timestamp"] = item.CompletionTime;
+                            newDataRow["Session"] = rrItem.Session;
+                            newDataRow["KeySpace"] = item.Keyspace;
+                            newDataRow["Table"] = item.Table;
+                            newDataRow["Solr ReIdx Duration"] = item.Duration;
+                            newDataRow["Reconciliation Reference"] = item.GroupIndicator;
 
-							dtReadRepair.Rows.Add(newDataRow);
-						}
-					}
+                            dtReadRepair.Rows.Add(newDataRow);
+                        }
+                    }
 
                     if (rrItem.SolrHardCommits != null)
                     {
@@ -8081,17 +8090,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                         }
                     }
                 }
-			}
-		}
+            }
+        }
 
 
-		public static void ReleaseGlobalLogCollections()
-		{
-			GCOccurrences.Clear();
-			CompactionOccurrences.Clear();
-			SolrReindexingOccurrences.Clear();
-			MemTableFlushOccurrences.Clear();
-			PerformanceOccurrences.Clear();
+        public static void ReleaseGlobalLogCollections()
+        {
+            GCOccurrences.Clear();
+            CompactionOccurrences.Clear();
+            SolrReindexingOccurrences.Clear();
+            MemTableFlushOccurrences.Clear();
+            PerformanceOccurrences.Clear();
             SolrHardCommits.Clear();
             ComponentDisabled.Clear();
 
@@ -8147,10 +8156,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,762 CompactionManager.java:1263 - Anticompacting[BigTableReader(path = '/var/lib/cassandra/data/product_v2/clientproducts_by_client_class_cpk_view-852430b0fe0211e6acbe19d8c614acf1/mc-393-big-Data.db')]
         //INFO  [AntiCompactionExecutor:12] 2017-07-02 09:05:48,801 CompactionManager.java:1242 - Anticompaction completed successfully, anticompacted from 0 to 4 sstable(s).
 
-		static Regex RegExAntiCompStarting = new Regex(@"^Starting\s+anticompaction\s+for\s+([a-z0-9'-_$%+=@!?<>^*&]+)\.([a-z0-9'-_$%+=@!?<>^*&]+)\s+on\s+(\d+)\/",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		static Regex RegExAntiCompRange = new Regex(@"^SSTable\s+BigTableReader(?:\(path='[0-9a-z\-_/.]+'\))\sfully\scontained\sin\s+range\s*\(\s*([0-9-]+)\,\s*([0-9-]+)\s*\]",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegExAntiCompStarting = new Regex(@"^Starting\s+anticompaction\s+for\s+([a-z0-9'-_$%+=@!?<>^*&]+)\.([a-z0-9'-_$%+=@!?<>^*&]+)\s+on\s+(\d+)\/",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegExAntiCompRange = new Regex(@"^SSTable\s+BigTableReader(?:\(path='[0-9a-z\-_/.]+'\))\sfully\scontained\sin\s+range\s*\(\s*([0-9-]+)\,\s*([0-9-]+)\s*\]",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         static Regex RegExAntiCompStarting2 = new Regex(@"^\s*Anticompacting\s*\[(?:\s*BigTableReader\s*\(\s*path\s*\=\s*'([^\'\)]+)'\s*\)\s*\,?)+\s*\]",
                                                             RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -8158,23 +8167,23 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         public static void ParseAntiCompactionFromLog(DataTable dtroCLog,
                                                         DataTable dtCompactionHist,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
-														IEnumerable<string> ignoreKeySpaces)
-		{
-			if (dtroCLog.Rows.Count == 0)
-			{
-				return;
-			}
+                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStatsStack,
+                                                        IEnumerable<string> ignoreKeySpaces)
+        {
+            if (dtroCLog.Rows.Count == 0)
+            {
+                return;
+            }
 
             Logger.Instance.Info("Begin Review of AntiCompacation from logs");
 
             ulong recNbr = 0;
-			var globalAntiCompactions = CompactionOccurrences; //ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, ThreadSafe.List<ICompactionLogInto>>
-			{
-                IReadOnlyDictionary<string, IEnumerable<Tuple<DateTime,decimal,decimal>>> compHistSizeInfo = null;
+            var globalAntiCompactions = CompactionOccurrences; //ThreadSafe.Dictionary<string /*DataCenter|Node IPAddress*/, ThreadSafe.List<ICompactionLogInto>>
+            {
+                IReadOnlyDictionary<string, IEnumerable<Tuple<DateTime, decimal, decimal>>> compHistSizeInfo = null;
 
-                if(dtCompactionHist != null && dtCompactionHist.Rows.Count > 0)
+                if (dtCompactionHist != null && dtCompactionHist.Rows.Count > 0)
                 {
                     compHistSizeInfo = (from drCompHist in dtCompactionHist.AsEnumerable()
                                         let dc = drCompHist.Field<string>("Data Center")
@@ -8195,50 +8204,50 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         }).ToDictionary(i => i.Key, i => i.Info);
                 }
 
-				var antiCompactionLogItems = from dr in dtroCLog.AsEnumerable()
-											 let dcName = dr.Field<string>("Data Center")
-											 let ipAddress = dr.Field<string>("Node IPAddress")
-											 let timestamp = dr.Field<DateTime>("Timestamp")
-											 let descr = dr.Field<string>("Description")?.Trim()
-											 let taskId = dr.Field<int?>("TaskId")
+                var antiCompactionLogItems = from dr in dtroCLog.AsEnumerable()
+                                             let dcName = dr.Field<string>("Data Center")
+                                             let ipAddress = dr.Field<string>("Node IPAddress")
+                                             let timestamp = dr.Field<DateTime>("Timestamp")
+                                             let descr = dr.Field<string>("Description")?.Trim()
+                                             let taskId = dr.Field<int?>("TaskId")
                                              let task = dr.Field<string>("Task")
                                              where (task == "CompactionExecutor"
                                                         || task == "AntiCompactionExecutor")
                                                     && dr.Field<string>("Item") == "CompactionManager.java"
-													&& taskId.HasValue
-											 group new
-											 {
-												 Timestamp = timestamp,
-												 Description = descr,
-												 RecordNbr = ++recNbr
-											 }
-												by new { dcName, ipAddress, task, taskId.Value } into g
-											 select new
-											 {
-												 DCName = g.Key.dcName,
-												 IPAddress = g.Key.ipAddress,
+                                                    && taskId.HasValue
+                                             group new
+                                             {
+                                                 Timestamp = timestamp,
+                                                 Description = descr,
+                                                 RecordNbr = ++recNbr
+                                             }
+                                                by new { dcName, ipAddress, task, taskId.Value } into g
+                                             select new
+                                             {
+                                                 DCName = g.Key.dcName,
+                                                 IPAddress = g.Key.ipAddress,
                                                  Task = g.Key.task,
-												 TaskId = g.Key.Value,
-												 LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
-											 };
+                                                 TaskId = g.Key.Value,
+                                                 LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
+                                             };
 
-				Parallel.ForEach(antiCompactionLogItems, logGroupItem =>
-				//foreach (var logGroupItem in antiCompactionLogItems)
-				{
-					AntiCompactionLogInfo currentAntiCompaction = null;
-					Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo> antiCompactionDCNodeList = null;
-					var localAntiCompList = new List<AntiCompactionLogInfo>();
-					var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
+                Parallel.ForEach(antiCompactionLogItems, logGroupItem =>
+                //foreach (var logGroupItem in antiCompactionLogItems)
+                {
+                    AntiCompactionLogInfo currentAntiCompaction = null;
+                    Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo> antiCompactionDCNodeList = null;
+                    var localAntiCompList = new List<AntiCompactionLogInfo>();
+                    var groupIndicator = CLogSummaryInfo.IncrementGroupInicator();
 
-					globalAntiCompactions.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
-														ignore =>
-															{
-																return antiCompactionDCNodeList = new Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>();
-															},
-														(ignore, gcList) =>
-															{
-																return antiCompactionDCNodeList = gcList;
-															});
+                    globalAntiCompactions.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
+                                                        ignore =>
+                                                            {
+                                                                return antiCompactionDCNodeList = new Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>();
+                                                            },
+                                                        (ignore, gcList) =>
+                                                            {
+                                                                return antiCompactionDCNodeList = gcList;
+                                                            });
 
                     Logger.Instance.InfoFormat("Start Review of AntiCompacation for {0}|{1} {2}.{3} with {4} items",
                                                     logGroupItem.DCName,
@@ -8248,7 +8257,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     logGroupItem.LogItems.Count());
 
                     foreach (var item in logGroupItem.LogItems)
-					{
+                    {
                         if (logGroupItem.Task == "AntiCompactionExecutor")
                         {
                             #region AntiCompactionExecutor
@@ -8288,7 +8297,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     {
                                         currentAntiCompaction = null;
                                     }
-                                    else if(currentAntiCompaction != null)
+                                    else if (currentAntiCompaction != null)
                                     {
                                         currentAntiCompaction.SSTables += item.Description.Count(c => c == ',') + 1;
                                     }
@@ -8377,13 +8386,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
 
                     if (currentAntiCompaction != null)
-					{
-						currentAntiCompaction.Aborted = true;
-						currentAntiCompaction = null;
-					}
+                    {
+                        currentAntiCompaction.Aborted = true;
+                        currentAntiCompaction = null;
+                    }
 
-					if (localAntiCompList.Count > 0)
-					{
+                    if (localAntiCompList.Count > 0)
+                    {
                         HasAntiCompactions = true;
 
                         #region Determine Compacted Sizes from Compaction History
@@ -8392,13 +8401,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                         {
                             foreach (var antiComp in localAntiCompList.Where(i => !i.Aborted))
                             {
-                                IEnumerable<Tuple<DateTime,decimal,decimal>> compTSSizeInfo;
+                                IEnumerable<Tuple<DateTime, decimal, decimal>> compTSSizeInfo;
 
-                                if(compHistSizeInfo.TryGetValue(antiComp.DataCenter + '|' + antiComp.IPAddress + '|' + antiComp.Keyspace + '|' + antiComp.Table, out compTSSizeInfo))
+                                if (compHistSizeInfo.TryGetValue(antiComp.DataCenter + '|' + antiComp.IPAddress + '|' + antiComp.Keyspace + '|' + antiComp.Table, out compTSSizeInfo))
                                 {
                                     var sizeItem = compTSSizeInfo.FirstOrDefault(i => i.Item1 >= antiComp.StartTime && i.Item1 <= antiComp.CompletionTime);
 
-                                    if(sizeItem != null)
+                                    if (sizeItem != null)
                                     {
                                         antiComp.OldSize = sizeItem.Item2;
                                         antiComp.NewSize = sizeItem.Item3;
@@ -8411,165 +8420,165 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                         #region Log Status DT
                         if (dtLogStatusStack != null)
-						{
-							var dtCStatusLog = new DataTable(string.Format("NodeStatus-AntiCompaction-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
-							InitializeStatusDataTable(dtCStatusLog);
-							dtLogStatusStack.Push(dtCStatusLog);
+                        {
+                            var dtCStatusLog = new DataTable(string.Format("NodeStatus-AntiCompaction-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                            InitializeStatusDataTable(dtCStatusLog);
+                            dtLogStatusStack.Push(dtCStatusLog);
 
-							foreach (var antiComp in localAntiCompList)
-							{
-								var dtCStatusLogRow = dtCStatusLog.NewRow();
-								dtCStatusLogRow["Reconciliation Reference"] = antiComp.GroupIndicator;
-								dtCStatusLogRow["Timestamp"] = antiComp.StartTime;
-								dtCStatusLogRow["Data Center"] = antiComp.DataCenter;
-								dtCStatusLogRow["Node IPAddress"] = antiComp.IPAddress;
-								dtCStatusLogRow["Pool/Cache Type"] = "AntiCompaction";
-								dtCStatusLogRow["KeySpace"] = antiComp.Keyspace;
-								dtCStatusLogRow["Table"] = antiComp.Table;
-								dtCStatusLogRow["SSTables"] = antiComp.SSTables;
-								dtCStatusLogRow["Latency (ms)"] = antiComp.Duration;
-								if (antiComp.TokenRanges != null && antiComp.TokenRanges.Count > 0)
-								{
-									dtCStatusLogRow["Start Token Range (exclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item1));
-									dtCStatusLogRow["End Token Range (inclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item2));
-								}
-								if (antiComp.Aborted)
-								{
-									dtCStatusLogRow["Aborted"] = 1;
-								}
+                            foreach (var antiComp in localAntiCompList)
+                            {
+                                var dtCStatusLogRow = dtCStatusLog.NewRow();
+                                dtCStatusLogRow["Reconciliation Reference"] = antiComp.GroupIndicator;
+                                dtCStatusLogRow["Timestamp"] = antiComp.StartTime;
+                                dtCStatusLogRow["Data Center"] = antiComp.DataCenter;
+                                dtCStatusLogRow["Node IPAddress"] = antiComp.IPAddress;
+                                dtCStatusLogRow["Pool/Cache Type"] = "AntiCompaction";
+                                dtCStatusLogRow["KeySpace"] = antiComp.Keyspace;
+                                dtCStatusLogRow["Table"] = antiComp.Table;
+                                dtCStatusLogRow["SSTables"] = antiComp.SSTables;
+                                dtCStatusLogRow["Latency (ms)"] = antiComp.Duration;
+                                if (antiComp.TokenRanges != null && antiComp.TokenRanges.Count > 0)
+                                {
+                                    dtCStatusLogRow["Start Token Range (exclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item1));
+                                    dtCStatusLogRow["End Token Range (inclusive)"] = string.Join(",", antiComp.TokenRanges.Select(i => i.Item2));
+                                }
+                                if (antiComp.Aborted)
+                                {
+                                    dtCStatusLogRow["Aborted"] = 1;
+                                }
 
-                                if(antiComp.IORate > 0)
+                                if (antiComp.IORate > 0)
                                 {
                                     dtCStatusLogRow["Rate (MB/s)"] = antiComp.IORate;
                                 }
 
-								dtCStatusLog.Rows.Add(dtCStatusLogRow);
-							}
-						}
-						#endregion
+                                dtCStatusLog.Rows.Add(dtCStatusLogRow);
+                            }
+                        }
+                        #endregion
 
-						#region CFStats DT
-						if (dtCFStatsStack != null)
-						{
-							var dtCFStats = new DataTable(string.Format("CFStats-AntiCompaction-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
-							initializeCFStatsDataTable(dtCFStats);
-							dtCFStatsStack.Push(dtCFStats);
+                        #region CFStats DT
+                        if (dtCFStatsStack != null)
+                        {
+                            var dtCFStats = new DataTable(string.Format("CFStats-AntiCompaction-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                            initializeCFStatsDataTable(dtCFStats);
+                            dtCFStatsStack.Push(dtCFStats);
 
-							//AntiCompaction maximum latency
-							//AntiCompaction mean latency
-							//AntiCompaction minimum latency
-							//AntiCompaction occurrences
-							//AntiCompaction SSTable count
+                            //AntiCompaction maximum latency
+                            //AntiCompaction mean latency
+                            //AntiCompaction minimum latency
+                            //AntiCompaction occurrences
+                            //AntiCompaction SSTable count
 
-							var grpStats = from item in localAntiCompList
-											 group new { Latency = item.Duration, SSTables = item.SSTables, Rate=item.IORate, GrpInd = item.GroupIndicator }
-														by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
-											 let latencyEnum = g.Select(i => i.Latency)
-											 let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
-                                             let rateEnum = g.Where(i => i.Rate > 0).Select(i => i.Rate).DefaultIfEmpty()
-											 select new
-											 {
-												 Max = latencyEnum.Max(),
-												 Min = latencyEnum1.Min(),
-												 Mean = latencyEnum1.Average(),
-                                                 RateMax = rateEnum.Max(),
-                                                 RateMin = rateEnum.Min(),
-                                                 RateMean = rateEnum.Average(),
-                                                 RateOccurrences = rateEnum.Count(),
-                                                 SSTables = g.Sum(i => i.SSTables),
-												 GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
-												 Count = g.Count(),
-												 DCName = g.Key.DataCenter,
-												 IPAddress = g.Key.IPAddress,
-												 KeySpace = g.Key.Keyspace,
-												 Table = g.Key.Table
-											 };
+                            var grpStats = from item in localAntiCompList
+                                           group new { Latency = item.Duration, SSTables = item.SSTables, Rate = item.IORate, GrpInd = item.GroupIndicator }
+                                                      by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table } into g
+                                           let latencyEnum = g.Select(i => i.Latency)
+                                           let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
+                                           let rateEnum = g.Where(i => i.Rate > 0).Select(i => i.Rate).DefaultIfEmpty()
+                                           select new
+                                           {
+                                               Max = latencyEnum.Max(),
+                                               Min = latencyEnum1.Min(),
+                                               Mean = latencyEnum1.Average(),
+                                               RateMax = rateEnum.Max(),
+                                               RateMin = rateEnum.Min(),
+                                               RateMean = rateEnum.Average(),
+                                               RateOccurrences = rateEnum.Count(),
+                                               SSTables = g.Sum(i => i.SSTables),
+                                               GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
+                                               Count = g.Count(),
+                                               DCName = g.Key.DataCenter,
+                                               IPAddress = g.Key.IPAddress,
+                                               KeySpace = g.Key.Keyspace,
+                                               Table = g.Key.Table
+                                           };
 
-							foreach (var stats in grpStats)
-							{
-								var dataRow = dtCFStats.NewRow();
+                            foreach (var stats in grpStats)
+                            {
+                                var dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = stats.DCName;
-								dataRow["Node IPAddress"] = stats.IPAddress;
-								dataRow["KeySpace"] = stats.KeySpace;
-								dataRow["Table"] = stats.Table;
-								dataRow["Attribute"] = "AntiCompaction maximum latency";
-								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								if (stats.Max > 0)
-								{
-									dataRow["Value"] = stats.Max;
-									dataRow["(Value)"] = stats.Max;
-								}
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction maximum latency";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.Max > 0)
+                                {
+                                    dataRow["Value"] = stats.Max;
+                                    dataRow["(Value)"] = stats.Max;
+                                }
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = stats.DCName;
-								dataRow["Node IPAddress"] = stats.IPAddress;
-								dataRow["KeySpace"] = stats.KeySpace;
-								dataRow["Table"] = stats.Table;
-								dataRow["Attribute"] = "AntiCompaction mean latency";
-								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								if (stats.Mean > 0)
-								{
-									dataRow["Value"] = stats.Mean;
-									dataRow["(Value)"] = stats.Mean;
-								}
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction mean latency";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.Mean > 0)
+                                {
+                                    dataRow["Value"] = stats.Mean;
+                                    dataRow["(Value)"] = stats.Mean;
+                                }
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = stats.DCName;
-								dataRow["Node IPAddress"] = stats.IPAddress;
-								dataRow["KeySpace"] = stats.KeySpace;
-								dataRow["Table"] = stats.Table;
-								dataRow["Attribute"] = "AntiCompaction minimum latency";
-								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								if (stats.Min > 0)
-								{
-									dataRow["Value"] = stats.Min;
-									dataRow["(Value)"] = stats.Min;
-								}
-								dataRow["Unit of Measure"] = "ms";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction minimum latency";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                if (stats.Min > 0)
+                                {
+                                    dataRow["Value"] = stats.Min;
+                                    dataRow["(Value)"] = stats.Min;
+                                }
+                                dataRow["Unit of Measure"] = "ms";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = stats.DCName;
-								dataRow["Node IPAddress"] = stats.IPAddress;
-								dataRow["KeySpace"] = stats.KeySpace;
-								dataRow["Table"] = stats.Table;
-								dataRow["Attribute"] = "AntiCompaction occurrences";
-								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								dataRow["Value"] = stats.Count;
-								dataRow["(Value)"] = stats.Count;
-								//dataRow["Unit of Measure"] = "";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction occurrences";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                dataRow["Value"] = stats.Count;
+                                dataRow["(Value)"] = stats.Count;
+                                //dataRow["Unit of Measure"] = "";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
-								dataRow = dtCFStats.NewRow();
+                                dataRow = dtCFStats.NewRow();
 
-								dataRow["Source"] = "Cassandra Log";
-								dataRow["Data Center"] = stats.DCName;
-								dataRow["Node IPAddress"] = stats.IPAddress;
-								dataRow["KeySpace"] = stats.KeySpace;
-								dataRow["Table"] = stats.Table;
-								dataRow["Attribute"] = "AntiCompaction SSTable count";
-								dataRow["Reconciliation Reference"] = stats.GrpInds;
-								dataRow["Value"] = stats.SSTables;
-								dataRow["(Value)"] = stats.SSTables;
-								//dataRow["Unit of Measure"] = "";
+                                dataRow["Source"] = "Cassandra Log";
+                                dataRow["Data Center"] = stats.DCName;
+                                dataRow["Node IPAddress"] = stats.IPAddress;
+                                dataRow["KeySpace"] = stats.KeySpace;
+                                dataRow["Table"] = stats.Table;
+                                dataRow["Attribute"] = "AntiCompaction SSTable count";
+                                dataRow["Reconciliation Reference"] = stats.GrpInds;
+                                dataRow["Value"] = stats.SSTables;
+                                dataRow["(Value)"] = stats.SSTables;
+                                //dataRow["Unit of Measure"] = "";
 
-								dtCFStats.Rows.Add(dataRow);
+                                dtCFStats.Rows.Add(dataRow);
 
                                 //AntiCompaction maximum rate
                                 //AntiCompaction mean rate
@@ -8644,7 +8653,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 dtCFStats.Rows.Add(dataRow);
                             }
-						}
+                        }
                         #endregion
                     }
 
@@ -8654,7 +8663,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     logGroupItem.Task,
                                                     logGroupItem.TaskId);
                 });
-			}//end of scope for antiCompactionLogItems
+            }//end of scope for antiCompactionLogItems
 
             Logger.Instance.Info("Completed Review of AntiCompacation from logs");
         }
@@ -8713,7 +8722,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         //Group1					Group2
         //"'homeKS'"	"'homebase_tasktracking_ops_l3'"
         static Regex RegexMFFlushing = new Regex(@"^Flushing[a-z ]+\(\s*Keyspace\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\,\s*ColumnFamily\s*=\s*([a-z0-9'-_$%+=@!?<>^*&]+)",
-													RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //Enqueuing flush of inode: 971 (0%) on-heap, 0 (0%) off-heap
         //"inode"	"971"	"0"		"%"		"0"		"0"		"%"
@@ -8721,62 +8730,62 @@ namespace DSEDiagnosticAnalyticParserConsole
         //Enqueuing flush of Memtable-user_ids.user_ids_gid@1844633142(189/1890 serialized/live bytes, 7 ops)
         //"user_ids.user_ids_gid"	"1890"
         static Regex RegexMFEnqueuing = new Regex(@"^Enqueuing\s+flush\s+of\s+(?:Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\@\d+|([a-z0-9'-_$%+=@!?<>^*&]+))\s*(?:\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap\s*,\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)|\(([0-9,.]+))",
-													RegexOptions.IgnoreCase | RegexOptions.Compiled);
+                                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1							Group2		Group3	    Group4
-		//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"85762"
-		static Regex RegexMFWritingMemTbl = new Regex(@"^Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@\d+\(([0-9.]+)\s*([a-z]{1,5})?/?\d*\s+serialized(?:/live)?\s+bytes\,\s+([0-9,.]+)\s+ops",
-														RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Group1							Group2		Group3	    Group4
+        //"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"85762"
+        static Regex RegexMFWritingMemTbl = new Regex(@"^Writing\s+Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\s*\@\d+\(([0-9.]+)\s*([a-z]{1,5})?/?\d*\s+serialized(?:/live)?\s+bytes\,\s+([0-9,.]+)\s+ops",
+                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		//Group1																																			Group2		    Group3
-		//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"|NULL	"MiB"|NULL
-		static Regex RegexMFCompletedMemTbl = new Regex(@"^Completed\s+flushing\s+([0-9a-z\-_/.]+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;\s+nothing\s+needed[a-z ]+retained)",
-															RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //Group1																																			Group2		    Group3
+        //"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"|NULL	"MiB"|NULL
+        static Regex RegexMFCompletedMemTbl = new Regex(@"^Completed\s+flushing\s+([0-9a-z\-_/.]+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;\s+nothing\s+needed[a-z ]+retained)",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-		public static void ParseMemTblFlushFromLog(DataTable dtCLog,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStack,
-														List<CKeySpaceTableNames> kstblExists,
-														IEnumerable<string> ignoreKeySpaces,
-														int flushFlagThresholdInMS,
-														decimal flushFlagThresholdAsIORate)
-		{
-			if (dtCLog.Rows.Count == 0)
-			{
-				return;
-			}
+        public static void ParseMemTblFlushFromLog(DataTable dtCLog,
+                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtCFStack,
+                                                        List<CKeySpaceTableNames> kstblExists,
+                                                        IEnumerable<string> ignoreKeySpaces,
+                                                        int flushFlagThresholdInMS,
+                                                        decimal flushFlagThresholdAsIORate)
+        {
+            if (dtCLog.Rows.Count == 0)
+            {
+                return;
+            }
 
             Logger.Instance.Info("Begin Parsing Memtable flushing from logs");
 
             ulong recNbr = 0;
-			var flushLogItems = from dr in dtCLog.AsEnumerable()
-									let dcName = dr.Field<string>("Data Center")
-									let ipAddress = dr.Field<string>("Node IPAddress")
-									let flagged = dr.Field<int?>("Flagged")
-									let taskId = dr.Field<int?>("TaskId")
-									where flagged.HasValue && flagged == (int)LogFlagStatus.MemTblFlush
-									group new
-									{
-										Timestamp = dr.Field<DateTime>("Timestamp"),
-										Description = dr.Field<string>("Description")?.Trim(),
-										Task = dr.Field<string>("Task"),
-										TaskId = taskId,
-										RecordNbr = ++recNbr,
-										DataRow = dr
-									}
-										by new { dcName, ipAddress } into g
-									select new
-									{
-										DCName = g.Key.dcName,
-										IPAddress = g.Key.ipAddress,
-										LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
-									};
+            var flushLogItems = from dr in dtCLog.AsEnumerable()
+                                let dcName = dr.Field<string>("Data Center")
+                                let ipAddress = dr.Field<string>("Node IPAddress")
+                                let flagged = dr.Field<int?>("Flagged")
+                                let taskId = dr.Field<int?>("TaskId")
+                                where flagged.HasValue && flagged == (int)LogFlagStatus.MemTblFlush
+                                group new
+                                {
+                                    Timestamp = dr.Field<DateTime>("Timestamp"),
+                                    Description = dr.Field<string>("Description")?.Trim(),
+                                    Task = dr.Field<string>("Task"),
+                                    TaskId = taskId,
+                                    RecordNbr = ++recNbr,
+                                    DataRow = dr
+                                }
+                                    by new { dcName, ipAddress } into g
+                                select new
+                                {
+                                    DCName = g.Key.dcName,
+                                    IPAddress = g.Key.ipAddress,
+                                    LogItems = (from l in g orderby l.Timestamp ascending, l.RecordNbr ascending select l)
+                                };
 
-			Parallel.ForEach(flushLogItems, logGroupItem =>
-			//foreach (var logGroupItem in flushLogItems)
-			{
-				var currentFlushes = new List<MemTableFlushLogInfo>();
-				var groupIndicator = (decimal) CLogSummaryInfo.IncrementGroupInicator();
+            Parallel.ForEach(flushLogItems, logGroupItem =>
+            //foreach (var logGroupItem in flushLogItems)
+            {
+                var currentFlushes = new List<MemTableFlushLogInfo>();
+                var groupIndicator = (decimal)CLogSummaryInfo.IncrementGroupInicator();
 
                 Logger.Instance.InfoFormat("Start Parsing Memtable flushing for {0}|{1} with Memtable Log items {2}",
                                                 logGroupItem.DCName,
@@ -8784,106 +8793,106 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 logGroupItem.LogItems.Count());
 
                 foreach (var item in logGroupItem.LogItems)
-				{
-					#region Memtable Flush Processing
-					//New Flush Event
-					//Group1							Group2		Group3	Group4	Group5	Group6	Group 7
-					//"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
-					var splitInfo = RegexMFEnqueuing.Split(item.Description);
+                {
+                    #region Memtable Flush Processing
+                    //New Flush Event
+                    //Group1							Group2		Group3	Group4	Group5	Group6	Group 7
+                    //"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
+                    var splitInfo = RegexMFEnqueuing.Split(item.Description);
 
-					if (splitInfo.Length > 1)
-					{
-						var flushInfo = new MemTableFlushLogInfo()
-						{
-							DataCenter = logGroupItem.DCName,
-							IPAddress = logGroupItem.IPAddress,
-							EnqueuingStart = item.Timestamp,
-							Type = item.Task,
-							GroupIndicator = groupIndicator += ReferenceIncrementValue,
-							Table = RemoveQuotes(splitInfo[1].Trim()),
-							LogDataRow = item.DataRow
-						};
+                    if (splitInfo.Length > 1)
+                    {
+                        var flushInfo = new MemTableFlushLogInfo()
+                        {
+                            DataCenter = logGroupItem.DCName,
+                            IPAddress = logGroupItem.IPAddress,
+                            EnqueuingStart = item.Timestamp,
+                            Type = item.Task,
+                            GroupIndicator = groupIndicator += ReferenceIncrementValue,
+                            Table = RemoveQuotes(splitInfo[1].Trim()),
+                            LogDataRow = item.DataRow
+                        };
 
-						currentFlushes.Where(i => !i.Completed
-													&& i.Table == flushInfo.Table
-													&& !i.Occurrences.IsEmpty()
-													&& i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
-										.ForEach(i => i.Completed = true);
-						currentFlushes.Add(flushInfo);
-						continue;
-					}
+                        currentFlushes.Where(i => !i.Completed
+                                                    && i.Table == flushInfo.Table
+                                                    && !i.Occurrences.IsEmpty()
+                                                    && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
+                                        .ForEach(i => i.Completed = true);
+                        currentFlushes.Add(flushInfo);
+                        continue;
+                    }
 
-					//Group1							Group2		Group3	    Group4
-					//"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"857621"
-					splitInfo = RegexMFWritingMemTbl.Split(item.Description);
+                    //Group1							Group2		Group3	    Group4
+                    //"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"857621"
+                    splitInfo = RegexMFWritingMemTbl.Split(item.Description);
 
-					if(splitInfo.Length > 1)
-					{
-						var tableName = RemoveQuotes(splitInfo[1].Trim());
-						var flushInfo = currentFlushes.Find(i => (tableName == i.Table || tableName.StartsWith(i.Table + "."))
-																		&& (i.TaskId == 0 || (i.TaskId == item.TaskId.Value && !i.Completed))
-																		&& item.Timestamp >= i.StartTime);
+                    if (splitInfo.Length > 1)
+                    {
+                        var tableName = RemoveQuotes(splitInfo[1].Trim());
+                        var flushInfo = currentFlushes.Find(i => (tableName == i.Table || tableName.StartsWith(i.Table + "."))
+                                                                        && (i.TaskId == 0 || (i.TaskId == item.TaskId.Value && !i.Completed))
+                                                                        && item.Timestamp >= i.StartTime);
 
-						if(flushInfo == null)
-						{
-							flushInfo = new MemTableFlushLogInfo()
-							{
-								DataCenter = logGroupItem.DCName,
-								IPAddress = logGroupItem.IPAddress,
-								EnqueuingStart = item.Timestamp,
-								Type = item.Task,
-								GroupIndicator = groupIndicator += ReferenceIncrementValue,
-								Table = tableName,
+                        if (flushInfo == null)
+                        {
+                            flushInfo = new MemTableFlushLogInfo()
+                            {
+                                DataCenter = logGroupItem.DCName,
+                                IPAddress = logGroupItem.IPAddress,
+                                EnqueuingStart = item.Timestamp,
+                                Type = item.Task,
+                                GroupIndicator = groupIndicator += ReferenceIncrementValue,
+                                Table = tableName,
                                 LogDataRow = item.DataRow
-							};
-							currentFlushes.Add(flushInfo);
-						}
+                            };
+                            currentFlushes.Add(flushInfo);
+                        }
 
-						flushInfo.AddUpdateOccurrence(tableName, item.Timestamp, int.Parse(splitInfo[4]), item.TaskId.Value, groupIndicator);
-						continue;
-					}
+                        flushInfo.AddUpdateOccurrence(tableName, item.Timestamp, int.Parse(splitInfo[4]), item.TaskId.Value, groupIndicator);
+                        continue;
+                    }
 
-					//Group1																																			Group2		Group3
-					//"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
-					// /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db
-					splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
+                    //Group1																																			Group2		Group3
+                    //"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
+                    // /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db
+                    splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
 
-					if (splitInfo.Length > 1)
-					{
+                    if (splitInfo.Length > 1)
+                    {
                         var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
 
-						if (ksItems == null)
+                        if (ksItems == null)
                         {
                             Logger.Instance.WarnFormat("Invalid SSTable Path of \"{0}\" detected. Ignoring SSTable for MemTable Flush", splitInfo[1]);
                         }
                         else
-						{
-							var flushInfo = currentFlushes.Find(i => !i.Completed
-																		&& (ksItems.Item2 == i.Table)
-																		&& i.TaskId == item.TaskId.Value
-																		&& item.Timestamp >= i.StartTime);
+                        {
+                            var flushInfo = currentFlushes.Find(i => !i.Completed
+                                                                        && (ksItems.Item2 == i.Table)
+                                                                        && i.TaskId == item.TaskId.Value
+                                                                        && item.Timestamp >= i.StartTime);
 
-							if (flushInfo != null)
-							{
-								if (ignoreKeySpaces.Contains(ksItems.Item1))
-								{
-									currentFlushes.Remove(flushInfo);
-									continue;
-								}
+                            if (flushInfo != null)
+                            {
+                                if (ignoreKeySpaces.Contains(ksItems.Item1))
+                                {
+                                    currentFlushes.Remove(flushInfo);
+                                    continue;
+                                }
 
-								flushInfo.AddUpdateOccurrence(ksItems.Item1,
-																ksItems.Item2,
-																splitInfo[1],
-																item.Timestamp,
-																splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
-																item.TaskId.Value,
-																groupIndicator);
-								continue;
-							}
-						}
-					}
-					#endregion
-				}
+                                flushInfo.AddUpdateOccurrence(ksItems.Item1,
+                                                                ksItems.Item2,
+                                                                splitInfo[1],
+                                                                item.Timestamp,
+                                                                splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
+                                                                item.TaskId.Value,
+                                                                groupIndicator);
+                                continue;
+                            }
+                        }
+                    }
+                    #endregion
+                }
 
                 Logger.Instance.InfoFormat("Parsed Memtable flushing for {0}|{1} resulting in {2} flushes",
                                                 logGroupItem.DCName,
@@ -8891,339 +8900,339 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                 currentFlushes.Count);
 
                 currentFlushes.Where(i => !i.Completed && !i.Occurrences.IsEmpty() && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
-								.ForEach(i => i.Completed = true);
-				MemTableFlushOccurrences.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
-														ignore => { return new Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>(currentFlushes.Where(i => i.Completed)); },
-														(ignore, gcList) =>
-														{
-															gcList.AddRange(currentFlushes.Where(i => i.Completed));
-															return gcList;
-														});
+                                .ForEach(i => i.Completed = true);
+                MemTableFlushOccurrences.AddOrUpdate((logGroupItem.DCName == null ? string.Empty : logGroupItem.DCName) + "|" + logGroupItem.IPAddress,
+                                                        ignore => { return new Common.Patterns.Collections.ThreadSafe.List<MemTableFlushLogInfo>(currentFlushes.Where(i => i.Completed)); },
+                                                        (ignore, gcList) =>
+                                                        {
+                                                            gcList.AddRange(currentFlushes.Where(i => i.Completed));
+                                                            return gcList;
+                                                        });
 
                 #region Log Status DT and Warnings
                 if (dtLogStatusStack != null)
-				{
-					var dtStatusLog = new DataTable(string.Format("NodeStatus-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
-					InitializeStatusDataTable(dtStatusLog);
-					dtLogStatusStack.Push(dtStatusLog);
+                {
+                    var dtStatusLog = new DataTable(string.Format("NodeStatus-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                    InitializeStatusDataTable(dtStatusLog);
+                    dtLogStatusStack.Push(dtStatusLog);
 
-					foreach (var memTblFlush in currentFlushes)
-					{
-						var dtStatusLogRow = dtStatusLog.NewRow();
-						dtStatusLogRow["Reconciliation Reference"] = memTblFlush.GroupIndicator;
-						dtStatusLogRow["Timestamp"] = memTblFlush.LogTimestamp;
-						dtStatusLogRow["Data Center"] = memTblFlush.DataCenter;
-						dtStatusLogRow["Node IPAddress"] = memTblFlush.IPAddress;
-						dtStatusLogRow["Pool/Cache Type"] = memTblFlush.Type;
-						dtStatusLogRow["KeySpace"] = memTblFlush.Keyspace;
-						dtStatusLogRow["Table"] = memTblFlush.Table;
+                    foreach (var memTblFlush in currentFlushes)
+                    {
+                        var dtStatusLogRow = dtStatusLog.NewRow();
+                        dtStatusLogRow["Reconciliation Reference"] = memTblFlush.GroupIndicator;
+                        dtStatusLogRow["Timestamp"] = memTblFlush.LogTimestamp;
+                        dtStatusLogRow["Data Center"] = memTblFlush.DataCenter;
+                        dtStatusLogRow["Node IPAddress"] = memTblFlush.IPAddress;
+                        dtStatusLogRow["Pool/Cache Type"] = memTblFlush.Type;
+                        dtStatusLogRow["KeySpace"] = memTblFlush.Keyspace;
+                        dtStatusLogRow["Table"] = memTblFlush.Table;
 
-						dtStatusLogRow["Session"] = memTblFlush.Session;
-						dtStatusLogRow["Nbr MemTable Flush Events"] = memTblFlush.OccurrenceCount;
-						dtStatusLogRow["Duration (ms)"] = memTblFlush.Duration;
-						dtStatusLogRow["MemTable OPS"] = memTblFlush.NbrWriteOPS;
-						//dtStatusLogRow["Size(mb)"] = memTblFlush.
-						dtStatusLogRow["Data (mb)"] = memTblFlush.FlushedStorage;
-						dtStatusLogRow["Rate (MB/s)"] = memTblFlush.IORate;
-						dtStatusLogRow["Aborted"] = !memTblFlush.Completed;
+                        dtStatusLogRow["Session"] = memTblFlush.Session;
+                        dtStatusLogRow["Nbr MemTable Flush Events"] = memTblFlush.OccurrenceCount;
+                        dtStatusLogRow["Duration (ms)"] = memTblFlush.Duration;
+                        dtStatusLogRow["MemTable OPS"] = memTblFlush.NbrWriteOPS;
+                        //dtStatusLogRow["Size(mb)"] = memTblFlush.
+                        dtStatusLogRow["Data (mb)"] = memTblFlush.FlushedStorage;
+                        dtStatusLogRow["Rate (MB/s)"] = memTblFlush.IORate;
+                        dtStatusLogRow["Aborted"] = !memTblFlush.Completed;
 
-						dtStatusLog.Rows.Add(dtStatusLogRow);
+                        dtStatusLog.Rows.Add(dtStatusLogRow);
 
-						foreach (var memTblOccurrence in memTblFlush.Occurrences)
-						{
-							dtStatusLogRow = dtStatusLog.NewRow();
+                        foreach (var memTblOccurrence in memTblFlush.Occurrences)
+                        {
+                            dtStatusLogRow = dtStatusLog.NewRow();
 
-							dtStatusLogRow["Reconciliation Reference"] = memTblOccurrence.GroupIndicator;
-							dtStatusLogRow["Timestamp"] = memTblOccurrence.StartTime;
-							dtStatusLogRow["Data Center"] = memTblOccurrence.DataCenter;
-							dtStatusLogRow["Node IPAddress"] = memTblOccurrence.IPAddress;
-							dtStatusLogRow["Pool/Cache Type"] = "Memtable Flush";
-							dtStatusLogRow["KeySpace"] = memTblOccurrence.Keyspace;
-							dtStatusLogRow["Table"] = memTblOccurrence.Table;
+                            dtStatusLogRow["Reconciliation Reference"] = memTblOccurrence.GroupIndicator;
+                            dtStatusLogRow["Timestamp"] = memTblOccurrence.StartTime;
+                            dtStatusLogRow["Data Center"] = memTblOccurrence.DataCenter;
+                            dtStatusLogRow["Node IPAddress"] = memTblOccurrence.IPAddress;
+                            dtStatusLogRow["Pool/Cache Type"] = "Memtable Flush";
+                            dtStatusLogRow["KeySpace"] = memTblOccurrence.Keyspace;
+                            dtStatusLogRow["Table"] = memTblOccurrence.Table;
 
-							dtStatusLogRow["Session"] = memTblOccurrence.Session;
-							dtStatusLogRow["Duration (ms)"] = memTblOccurrence.Duration;
-							dtStatusLogRow["MemTable OPS"] = memTblOccurrence.NbrWriteOPS;
-							//dtStatusLogRow["Size(mb)"] = memTblOccurrence
-							dtStatusLogRow["Data (mb)"] = memTblOccurrence.FlushedStorage;
-							dtStatusLogRow["Rate (MB/s)"] = memTblOccurrence.IORate;
-							dtStatusLogRow["Partitions Merged"] = memTblOccurrence.SSTableFilePath;
+                            dtStatusLogRow["Session"] = memTblOccurrence.Session;
+                            dtStatusLogRow["Duration (ms)"] = memTblOccurrence.Duration;
+                            dtStatusLogRow["MemTable OPS"] = memTblOccurrence.NbrWriteOPS;
+                            //dtStatusLogRow["Size(mb)"] = memTblOccurrence
+                            dtStatusLogRow["Data (mb)"] = memTblOccurrence.FlushedStorage;
+                            dtStatusLogRow["Rate (MB/s)"] = memTblOccurrence.IORate;
+                            dtStatusLogRow["Partitions Merged"] = memTblOccurrence.SSTableFilePath;
 
-							dtStatusLog.Rows.Add(dtStatusLogRow);
-						}
+                            dtStatusLog.Rows.Add(dtStatusLogRow);
+                        }
 
-						if (memTblFlush.LogDataRow != null
-								&& string.IsNullOrEmpty(memTblFlush.LogDataRow.Field<string>("Exception"))
-								&& memTblFlush.Completed
-								&& memTblFlush.Duration > 0)
-						{
-							if (flushFlagThresholdInMS > 0
-									&& memTblFlush.Duration >= flushFlagThresholdInMS)
-							{
+                        if (memTblFlush.LogDataRow != null
+                                && string.IsNullOrEmpty(memTblFlush.LogDataRow.Field<string>("Exception"))
+                                && memTblFlush.Completed
+                                && memTblFlush.Duration > 0)
+                        {
+                            if (flushFlagThresholdInMS > 0
+                                    && memTblFlush.Duration >= flushFlagThresholdInMS)
+                            {
                                 lock (memTblFlush.LogDataRow.Table)
                                 {
                                     memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush Latency Warning");
                                 }
-							}
-							if (flushFlagThresholdAsIORate > 0
-									&& memTblFlush.IORate < flushFlagThresholdAsIORate)
-							{
+                            }
+                            if (flushFlagThresholdAsIORate > 0
+                                    && memTblFlush.IORate < flushFlagThresholdAsIORate)
+                            {
                                 lock (memTblFlush.LogDataRow.Table)
                                 {
                                     memTblFlush.LogDataRow.SetField<string>("Exception", "Memtable Flush IO Rate Warning");
                                 }
-							}
-						}
-					}
-				}
-				#endregion
+                            }
+                        }
+                    }
+                }
+                #endregion
 
-				#region CFStats DT
+                #region CFStats DT
 
-				if (dtCFStack != null)
-				{
-					var dtCFStats = new DataTable(string.Format("CFStats-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
-					initializeCFStatsDataTable(dtCFStats);
-					dtCFStack.Push(dtCFStats);
+                if (dtCFStack != null)
+                {
+                    var dtCFStats = new DataTable(string.Format("CFStats-MemTableFlush-{0}|{1}", logGroupItem.DCName, logGroupItem.IPAddress));
+                    initializeCFStatsDataTable(dtCFStats);
+                    dtCFStack.Push(dtCFStats);
 
-					//Memtable Flush maximum latency
-					//Memtable Flush mean latency
-					//Memtable Flush minimum latency
-					//Memtable Flush occurrences
-					//Memtable Flush maximum IORate
-					//Memtable Flush mean IORate
-					//Memtable Flush minimum IORate
-					//Memtable Flush maximum Storage
-					//Memtable Flush mean Storage
-					//Memtable Flush minimum Storage
-					//Memtable Flush total Storage
+                    //Memtable Flush maximum latency
+                    //Memtable Flush mean latency
+                    //Memtable Flush minimum latency
+                    //Memtable Flush occurrences
+                    //Memtable Flush maximum IORate
+                    //Memtable Flush mean IORate
+                    //Memtable Flush minimum IORate
+                    //Memtable Flush maximum Storage
+                    //Memtable Flush mean Storage
+                    //Memtable Flush minimum Storage
+                    //Memtable Flush total Storage
 
-					var grpStats = from item in currentFlushes
-								   where item.Completed && item.Duration > 0
-								   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
-												by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table, item.Type } into g
-								   let latencyEnum = g.Select(i => i.Latency)
-								   let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
-								   let iorateEnum = g.Select(i => i.IORate)
-								   let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
-								   let sizeEnum = g.Select(i => i.FlushedStorage)
-								   let sizeEnum1 = sizeEnum.Where(i => i > 0).DefaultIfEmpty()
-								   select new
-								   {
-									   MaxLatency = latencyEnum.Max(),
-									   MinLatency = latencyEnum1.Min(),
-									   MeanLatency = latencyEnum1.Average(),
-									   MaxIORate = iorateEnum.Max(),
-									   MinIORate = iorateEnum1.Min(),
-									   MeanIORate = iorateEnum1.Average(),
-									   MaxSize = sizeEnum.Max(),
-									   MinSize = sizeEnum1.Min(),
-									   MeanSize = sizeEnum1.Average(),
-									   TotalSize = sizeEnum.Sum(),
-									   GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
-									   Count = g.Count(),
-									   DCName = g.Key.DataCenter,
-									   IPAddress = g.Key.IPAddress,
-									   KeySpace = g.Key.Keyspace,
-									   Table = g.Key.Table,
-									   Type = g.Key.Type
-								   };
+                    var grpStats = from item in currentFlushes
+                                   where item.Completed && item.Duration > 0
+                                   group new { Latency = item.Duration, IORate = item.IORate, FlushedStorage = item.FlushedStorage, GrpInd = item.GroupIndicator }
+                                                by new { item.DataCenter, item.IPAddress, item.Keyspace, item.Table, item.Type } into g
+                                   let latencyEnum = g.Select(i => i.Latency)
+                                   let latencyEnum1 = latencyEnum.Where(i => i > 0).DefaultIfEmpty()
+                                   let iorateEnum = g.Select(i => i.IORate)
+                                   let iorateEnum1 = iorateEnum.Where(i => i > 0).DefaultIfEmpty()
+                                   let sizeEnum = g.Select(i => i.FlushedStorage)
+                                   let sizeEnum1 = sizeEnum.Where(i => i > 0).DefaultIfEmpty()
+                                   select new
+                                   {
+                                       MaxLatency = latencyEnum.Max(),
+                                       MinLatency = latencyEnum1.Min(),
+                                       MeanLatency = latencyEnum1.Average(),
+                                       MaxIORate = iorateEnum.Max(),
+                                       MinIORate = iorateEnum1.Min(),
+                                       MeanIORate = iorateEnum1.Average(),
+                                       MaxSize = sizeEnum.Max(),
+                                       MinSize = sizeEnum1.Min(),
+                                       MeanSize = sizeEnum1.Average(),
+                                       TotalSize = sizeEnum.Sum(),
+                                       GrpInds = string.Join(",", g.Select(i => i.GrpInd).DuplicatesRemoved(i => i)),
+                                       Count = g.Count(),
+                                       DCName = g.Key.DataCenter,
+                                       IPAddress = g.Key.IPAddress,
+                                       KeySpace = g.Key.Keyspace,
+                                       Table = g.Key.Table,
+                                       Type = g.Key.Type
+                                   };
 
-					foreach (var stats in grpStats)
-					{
-						var dataRow = dtCFStats.NewRow();
+                    foreach (var stats in grpStats)
+                    {
+                        var dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush maximum latency";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MaxLatency > 0)
-						{
-							dataRow["Value"] = stats.MaxLatency;
-							dataRow["(Value)"] = stats.MaxLatency;
-						}
-						dataRow["Unit of Measure"] = "ms";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush maximum latency";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MaxLatency > 0)
+                        {
+                            dataRow["Value"] = stats.MaxLatency;
+                            dataRow["(Value)"] = stats.MaxLatency;
+                        }
+                        dataRow["Unit of Measure"] = "ms";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush mean latency";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MeanLatency > 0)
-						{
-							dataRow["Value"] = stats.MeanLatency;
-							dataRow["(Value)"] = stats.MeanLatency;
-						}
-						dataRow["Unit of Measure"] = "ms";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush mean latency";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MeanLatency > 0)
+                        {
+                            dataRow["Value"] = stats.MeanLatency;
+                            dataRow["(Value)"] = stats.MeanLatency;
+                        }
+                        dataRow["Unit of Measure"] = "ms";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush minimum latency";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MinLatency > 0)
-						{
-							dataRow["Value"] = stats.MinLatency;
-							dataRow["(Value)"] = stats.MinLatency;
-						}
-						dataRow["Unit of Measure"] = "ms";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush minimum latency";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MinLatency > 0)
+                        {
+                            dataRow["Value"] = stats.MinLatency;
+                            dataRow["(Value)"] = stats.MinLatency;
+                        }
+                        dataRow["Unit of Measure"] = "ms";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush occurrences";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.Count;
-						dataRow["(Value)"] = stats.Count;
-						//dataRow["Unit of Measure"] = "";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush occurrences";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        dataRow["Value"] = stats.Count;
+                        dataRow["(Value)"] = stats.Count;
+                        //dataRow["Unit of Measure"] = "";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush maximum IORate";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MaxIORate > 0)
-						{
-							dataRow["Value"] = stats.MaxIORate;
-							dataRow["(Value)"] = stats.MaxIORate;
-						}
-						dataRow["Unit of Measure"] = "MB/sec";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush maximum IORate";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MaxIORate > 0)
+                        {
+                            dataRow["Value"] = stats.MaxIORate;
+                            dataRow["(Value)"] = stats.MaxIORate;
+                        }
+                        dataRow["Unit of Measure"] = "MB/sec";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush mean IORate";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MeanIORate > 0)
-						{
-							dataRow["Value"] = stats.MeanIORate;
-							dataRow["(Value)"] = stats.MeanIORate;
-						}
-						dataRow["Unit of Measure"] = "MB/sec";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush mean IORate";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MeanIORate > 0)
+                        {
+                            dataRow["Value"] = stats.MeanIORate;
+                            dataRow["(Value)"] = stats.MeanIORate;
+                        }
+                        dataRow["Unit of Measure"] = "MB/sec";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush minimum IORate";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MinIORate > 0)
-						{
-							dataRow["Value"] = stats.MinIORate;
-							dataRow["(Value)"] = stats.MinIORate;
-						}
-						dataRow["Unit of Measure"] = "MB/sec";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush minimum IORate";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MinIORate > 0)
+                        {
+                            dataRow["Value"] = stats.MinIORate;
+                            dataRow["(Value)"] = stats.MinIORate;
+                        }
+                        dataRow["Unit of Measure"] = "MB/sec";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush minimum Storage";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MinSize > 0)
-						{
-							dataRow["Value"] = stats.MinSize;
-							dataRow["(Value)"] = stats.MinSize;
-						}
-						dataRow["Unit of Measure"] = "MB";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush minimum Storage";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MinSize > 0)
+                        {
+                            dataRow["Value"] = stats.MinSize;
+                            dataRow["(Value)"] = stats.MinSize;
+                        }
+                        dataRow["Unit of Measure"] = "MB";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush maximum Storage";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MaxSize > 0)
-						{
-							dataRow["Value"] = stats.MaxSize;
-							dataRow["(Value)"] = stats.MaxSize;
-						}
-						dataRow["Unit of Measure"] = "MB";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush maximum Storage";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MaxSize > 0)
+                        {
+                            dataRow["Value"] = stats.MaxSize;
+                            dataRow["(Value)"] = stats.MaxSize;
+                        }
+                        dataRow["Unit of Measure"] = "MB";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush mean Storage";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						if (stats.MeanSize > 0)
-						{
-							dataRow["Value"] = stats.MeanSize;
-							dataRow["(Value)"] = stats.MeanSize;
-						}
-						dataRow["Unit of Measure"] = "MB";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush mean Storage";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        if (stats.MeanSize > 0)
+                        {
+                            dataRow["Value"] = stats.MeanSize;
+                            dataRow["(Value)"] = stats.MeanSize;
+                        }
+                        dataRow["Unit of Measure"] = "MB";
 
-						dtCFStats.Rows.Add(dataRow);
+                        dtCFStats.Rows.Add(dataRow);
 
-						dataRow = dtCFStats.NewRow();
+                        dataRow = dtCFStats.NewRow();
 
-						dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
-						dataRow["Data Center"] = stats.DCName;
-						dataRow["Node IPAddress"] = stats.IPAddress;
-						dataRow["KeySpace"] = stats.KeySpace;
-						dataRow["Table"] = stats.Table;
-						dataRow["Attribute"] = "Memtable Flush total Storage";
-						dataRow["Reconciliation Reference"] = stats.GrpInds;
-						dataRow["Value"] = stats.TotalSize;
-						dataRow["(Value)"] = stats.TotalSize;
-						dataRow["Unit of Measure"] = "MB";
+                        dataRow["Source"] = string.Format("Cassandra Log ({0})", stats.Type);
+                        dataRow["Data Center"] = stats.DCName;
+                        dataRow["Node IPAddress"] = stats.IPAddress;
+                        dataRow["KeySpace"] = stats.KeySpace;
+                        dataRow["Table"] = stats.Table;
+                        dataRow["Attribute"] = "Memtable Flush total Storage";
+                        dataRow["Reconciliation Reference"] = stats.GrpInds;
+                        dataRow["Value"] = stats.TotalSize;
+                        dataRow["(Value)"] = stats.TotalSize;
+                        dataRow["Unit of Measure"] = "MB";
 
-						dtCFStats.Rows.Add(dataRow);
-					}
-				}
+                        dtCFStats.Rows.Add(dataRow);
+                    }
+                }
                 #endregion
 
                 Logger.Instance.InfoFormat("Completed Parsing Memtable flushing for {0}|{1}",
@@ -9234,96 +9243,96 @@ namespace DSEDiagnosticAnalyticParserConsole
             Logger.Instance.Info("Completed Parsing Memtable flushing from logs");
         }
 
-		private class ConcurrentInfo
-		{
-			public ConcurrentInfo(ILogRateInfo itemInfo, DateTime? startTime = null)
-			{
-				this.DataCenter = itemInfo.DataCenter;
-				this.IPAddress = itemInfo.IPAddress;
-				this.StartFinish = new DateTimeRange(startTime.HasValue ? startTime.Value : itemInfo.StartTime, itemInfo.CompletionTime);
-				this.ConcurrentList.Add(itemInfo);
-			}
+        private class ConcurrentInfo
+        {
+            public ConcurrentInfo(ILogRateInfo itemInfo, DateTime? startTime = null)
+            {
+                this.DataCenter = itemInfo.DataCenter;
+                this.IPAddress = itemInfo.IPAddress;
+                this.StartFinish = new DateTimeRange(startTime.HasValue ? startTime.Value : itemInfo.StartTime, itemInfo.CompletionTime);
+                this.ConcurrentList.Add(itemInfo);
+            }
 
-			public string DataCenter;
-			public string IPAddress;
-			public DateTimeRange StartFinish = null;
-			public List<ILogRateInfo> ConcurrentList = new List<ILogRateInfo>();
-		}
+            public string DataCenter;
+            public string IPAddress;
+            public DateTimeRange StartFinish = null;
+            public List<ILogRateInfo> ConcurrentList = new List<ILogRateInfo>();
+        }
 
-		public static void ConcurrentCompactionFlush(Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
-														Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
+        public static void ConcurrentCompactionFlush(Common.Patterns.Collections.LockFree.Stack<DataTable> dtLogStatusStack,
+                                                        Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack,
                                                         DataTable dtLog)
-		{
+        {
             Logger.Instance.Info("Begin Detecting Concurrent Compactions/Flushes Occurrences");
 
             ConcurrentInfo currentConcurrentItem = null;
-			var concurrentCollection = from info in CompactionOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>()
-														.Union(MemTableFlushOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>())
-									   group new { Item = info } by new { info.DataCenter, info.IPAddress} into g
-									   select (from i in g orderby i.Item.StartTime ascending, i.Item.CompletionTime ascending select i.Item)
-												.SelectWithPrevious((prevInfo, currentInfo)
-																			=>
-																		{
-																			if (prevInfo == null)
-																			{
-																				currentConcurrentItem = null;
-																				return null;
-																			}
+            var concurrentCollection = from info in CompactionOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>()
+                                                        .Union(MemTableFlushOccurrences.UnSafe.Values.SelectMany(i => i).Cast<ILogRateInfo>())
+                                       group new { Item = info } by new { info.DataCenter, info.IPAddress } into g
+                                       select (from i in g orderby i.Item.StartTime ascending, i.Item.CompletionTime ascending select i.Item)
+                                                .SelectWithPrevious((prevInfo, currentInfo)
+                                                                            =>
+                                                                        {
+                                                                            if (prevInfo == null)
+                                                                            {
+                                                                                currentConcurrentItem = null;
+                                                                                return null;
+                                                                            }
 
-																			ConcurrentInfo returnValue = null;
+                                                                            ConcurrentInfo returnValue = null;
 
-																			if (currentConcurrentItem != null)
-																			{
-																				if(currentConcurrentItem.StartFinish.Includes(currentInfo.StartTime))
-																				{
-																					currentConcurrentItem.ConcurrentList.Add(currentInfo);
-																					return null;
-																				}
+                                                                            if (currentConcurrentItem != null)
+                                                                            {
+                                                                                if (currentConcurrentItem.StartFinish.Includes(currentInfo.StartTime))
+                                                                                {
+                                                                                    currentConcurrentItem.ConcurrentList.Add(currentInfo);
+                                                                                    return null;
+                                                                                }
 
-																				returnValue = currentConcurrentItem;
-																				currentConcurrentItem = null;
-																			}
-																			if(prevInfo.CompletionTime > currentInfo.StartTime)
-																			{
-																				currentConcurrentItem = new ConcurrentInfo(prevInfo, currentInfo.StartTime);
-																				currentConcurrentItem.ConcurrentList.Add(currentInfo);
-																			}
+                                                                                returnValue = currentConcurrentItem;
+                                                                                currentConcurrentItem = null;
+                                                                            }
+                                                                            if (prevInfo.CompletionTime > currentInfo.StartTime)
+                                                                            {
+                                                                                currentConcurrentItem = new ConcurrentInfo(prevInfo, currentInfo.StartTime);
+                                                                                currentConcurrentItem.ConcurrentList.Add(currentInfo);
+                                                                            }
 
-																			return returnValue;
-																		})
-												.Append(currentConcurrentItem)
-												.Where(i => i != null);
+                                                                            return returnValue;
+                                                                        })
+                                                .Append(currentConcurrentItem)
+                                                .Where(i => i != null);
             var concurrentCollectionCnt = concurrentCollection.Count();
 
 
             if (concurrentCollectionCnt > 0)
-			{
+            {
                 DataTable dtNodeStats = null;
                 DataTable dtCStatusLog = null;
-               
+
                 Logger.Instance.InfoFormat("Processing Concurrent Compactions/Flushes for {0} Nodes", concurrentCollectionCnt);
 
                 if (dtLogStatusStack != null)
-				{
-					dtCStatusLog = new DataTable(ParserSettings.ExcelWorkSheetNodeStats + " Workbook - Concurrent Compaction");
-					InitializeStatusDataTable(dtCStatusLog);
-					dtLogStatusStack.Push(dtCStatusLog);
-				}
+                {
+                    dtCStatusLog = new DataTable(ParserSettings.ExcelWorkSheetNodeStats + " Workbook - Concurrent Compaction");
+                    InitializeStatusDataTable(dtCStatusLog);
+                    dtLogStatusStack.Push(dtCStatusLog);
+                }
 
-				if (dtNodeStatsStack != null)
-				{
-					dtNodeStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Concurrent Compaction");
-					dtNodeStatsStack.Push(dtNodeStats);
+                if (dtNodeStatsStack != null)
+                {
+                    dtNodeStats = new System.Data.DataTable(ParserSettings.ExcelWorkSheetNodeStats + "-" + "Concurrent Compaction");
+                    dtNodeStatsStack.Push(dtNodeStats);
 
-					initializeTPStatsDataTable(dtNodeStats);
-				}
+                    initializeTPStatsDataTable(dtNodeStats);
+                }
 
                 var concurrentTotalItems = concurrentCollection.SelectMany(i => i);
                 decimal grpRef = CLogSummaryInfo.IncrementGroupInicator();
                 int nbrAdded = 0;
 
                 foreach (var item in concurrentTotalItems)
-				{
+                {
                     try
                     {
                         grpRef += ReferenceIncrementValue;
@@ -9823,7 +9832,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             #endregion
                         }
                     }
-                    catch(System.Exception ex)
+                    catch (System.Exception ex)
                     {
                         Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} with {3} items. Current Items Added {4}, Total Nbr Items {5}",
                                                         item.DataCenter,
@@ -9834,8 +9843,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         concurrentTotalItems.Count());
                         Logger.Instance.Error("Concurrent Compactions/Flushes Exception", ex);
 
-                        if(ex is System.OutOfMemoryException)
-                        {                            
+                        if (ex is System.OutOfMemoryException)
+                        {
                             ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
                                                         item.StartFinish.Min,
                                                         string.Format("{0}|{1}", item.DataCenter, item.IPAddress),
@@ -9844,17 +9853,17 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                         concurrentTotalItems.Count()));
                             throw;
                         }
-                    }                    
+                    }
                 }
 
-				Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to NodeStats",
+                Logger.Instance.InfoFormat("Added Concurrent Compactions/Flushes Occurrences ({0}) to NodeStats",
                                             nbrAdded);
-			}
+            }
 
             Logger.Instance.Info("Completed Detecting Concurrent Compactions/Flushes Occurrences");
         }
 
-        public static Task<DataTable> ReviewDropsBlocks(Task<DataTable> logTask,
+        public static Task<DataTable> ReviewDropsBlocksThresholdsOtherComponentIssues(Task<DataTable> logTask,
                                                         Task<DataTable> statLogTask,
                                                         Task[] waitOnAdditionalTasks,
                                                         int warningThreshold,
@@ -9867,13 +9876,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                    Program.ConsoleParsingLog.Increment("Processing Review of Drops/Blocks");
 
                                                    var dtLog = ((Task<DataTable>)tasks[0]).Result;
+                                                   var allCompleted = tasks.All(t => t.Status == TaskStatus.RanToCompletion);
 
-                                                   ReviewDropsBlocks(dtLog,
-                                                                        ((Task<DataTable>)tasks[1]).Result,
-                                                                        warningThreshold,
-                                                                        warningPeriodInMins);
+                                                   if (allCompleted)
+                                                   {
+                                                       if (warningThreshold > 0
+                                                            && ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
+                                                       {
+                                                           ReviewDropsBlocksThresholdsOtherComponentIssues(dtLog,
+                                                                                ((Task<DataTable>)tasks[1]).Result,
+                                                                                warningThreshold,
+                                                                                warningPeriodInMins);
+                                                       }
 
-                                                   ReviewLogThresholds(dtLog);
+                                                       ReviewLogThresholds(dtLog);
+                                                   }
+                                                   else
+                                                   {
+                                                       Logger.Instance.ErrorFormat("Component Task Failure(s) detected with status \"{0}\"",
+                                                                                    string.Join(", ", tasks.Select(t => t.Status)));
+
+                                                       ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
+                                                                                   DateTime.Now,
+                                                                                   "<Component>",
+                                                                                   null,
+                                                                                   "Component Failure",
+                                                                                   1));
+                                                   }
+
+                                                   ReviewComponentDisabledItems(dtLog);
 
                                                    dtLog.AcceptChanges();
 
@@ -9884,13 +9915,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                     | TaskContinuationOptions.LongRunning);
         }
 
-        public static void ReviewDropsBlocks(DataTable dtLog,
+        public static void ReviewDropsBlocksThresholdsOtherComponentIssues(DataTable dtLog,
                                                 DataTable dtStatLog,
                                                 int warningThreshold,
                                                 int warningPeriodInMins)
         {
 
-            if(dtLog == null || dtStatLog == null || dtStatLog.Rows.Count == 0)
+            if (dtLog == null || dtStatLog == null || dtStatLog.Rows.Count == 0)
             {
                 return;
             }
@@ -9946,7 +9977,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                        TimeStampGrp = grpTS.Key,
                                                        Total = grpTS.Sum(i => i.Items)
                                                    }).Where(i => i.Total >= warningThreshold)
-                                                : (from tsValue in grp where tsValue.Items >= warningThreshold
+                                                : (from tsValue in grp
+                                                   where tsValue.Items >= warningThreshold
                                                    select new
                                                    {
                                                        TimeStampGrp = tsValue.Timestamp,
@@ -9954,14 +9986,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                    })
                                };
 
-            foreach(var warningItem in warningItems)
+            foreach (var warningItem in warningItems)
             {
                 foreach (var warningValue in warningItem.Warnings)
                 {
                     DataRow dataRow = null;
                     long runningTotal = 0;
 
-                    for (long i = 0; i < warningValue.Total/warningThreshold; i++)
+                    for (long i = 0; i < warningValue.Total / warningThreshold; i++)
                     {
                         dataRow = dtLog.NewRow();
 
@@ -9982,7 +10014,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dtLog.Rows.Add(dataRow);
                     }
 
-                    if(dataRow != null && warningValue.Total > runningTotal)
+                    if (dataRow != null && warningValue.Total > runningTotal)
                     {
                         dataRow.BeginEdit();
                         dataRow["Associated Value"] = warningThreshold + (warningValue.Total - runningTotal);
@@ -10068,7 +10100,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 Logger.Instance.Info("Begin Review of Solr ReIndexing Thresholds");
             }
 
-            if(ParserSettings.AntiCompactionLatencyThresholdMS > 0
+            if (ParserSettings.AntiCompactionLatencyThresholdMS > 0
                     && HasAntiCompactions)
             {
                 Logger.Instance.Info("Begin Review of AntiCompacation Thresholds");
@@ -10105,8 +10137,11 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                 Logger.Instance.Info("Completed Review of AntiCompacation Thresholds");
             }
+        }
 
-            if(ComponentDisabled.UnSafe.Count > 0)
+        public static void ReviewComponentDisabledItems(DataTable dtLog)
+        {
+            if (ComponentDisabled.UnSafe.Count > 0)
             {
                 /// Log Timestamp, DC|Node, Keyspace.Table, Component (e.g., GC, flushing, etc.), nbr of detected items
                 foreach (var componentItem in ComponentDisabled.UnSafe)
@@ -10132,8 +10167,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
             }
         }
-
-
     }
     public static class GroupIndicatorHelpers
 	{

@@ -1686,11 +1686,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 if (ParserSettings.LogParsingExcelOptions.Parse.IsEnabled()
                         || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
                 {
-                    if (ParserSettings.QueueDroppedBlockedWarningThreshold > 0
-                            && ParserSettings.ParsingExcelOptions.ProduceStatsWorkbook.IsEnabled())
-                    {
-                        //Below Tasks will update Log DataTable
-                        runLogAdditionalInfoTask = ProcessFileTasks.ReviewDropsBlocks(runLogMergedTask,
+                    runLogAdditionalInfoTask = ProcessFileTasks.ReviewDropsBlocksThresholdsOtherComponentIssues(runLogMergedTask,
                                                                                         runStatsLogMerged,
                                                                                         new Task[] { runMemTableFlushTask,
                                                                                                         runAntiCompactionTask,
@@ -1698,8 +1694,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                                                         runNodeStatsMergedTask,
                                                                                                         runConcurrentCompactionFlushTask },
                                                                                         ParserSettings.QueueDroppedBlockedWarningThreshold,
-                                                                                        ParserSettings.QueueDroppedBlockedWarningPeriodInMins);                        
-                    }                    
+                                                                                        ParserSettings.QueueDroppedBlockedWarningPeriodInMins);
+
+
                 }
                 
                 if (ParserSettings.ParsingExcelOptions.ParseSummaryLogs.IsEnabled())
