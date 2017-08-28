@@ -9825,10 +9825,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     catch(System.Exception ex)
                     {
-                        Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2}. Current Items Added {3}, Total Nbr Items {4}",
+                        Logger.Instance.ErrorFormat("Concurrent Compactions/Flushes Exception occurred for {0}.{1} on Range {2} with {3} items. Current Items Added {4}, Total Nbr Items {5}",
                                                         item.DataCenter,
                                                         item.IPAddress,
                                                         item.StartFinish,
+                                                        item.ConcurrentList.Count,
                                                         nbrAdded,
                                                         concurrentTotalItems.Count());
                         Logger.Instance.Error("Concurrent Compactions/Flushes Exception", ex);
