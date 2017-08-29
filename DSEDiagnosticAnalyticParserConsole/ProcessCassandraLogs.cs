@@ -8094,7 +8094,7 @@ namespace DSEDiagnosticAnalyticParserConsole
         }
 
 
-        public static void ReleaseGlobalLogCollections()
+        public static void ReleaseGlobalLogCollections(bool clearComponentDisabled = true)
         {
             GCOccurrences.Clear();
             CompactionOccurrences.Clear();
@@ -8102,8 +8102,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             MemTableFlushOccurrences.Clear();
             PerformanceOccurrences.Clear();
             SolrHardCommits.Clear();
-            ComponentDisabled.Clear();
-
+            if(clearComponentDisabled) ComponentDisabled.Clear();
         }
 
         //INFO  [CompactionExecutor:659] 2016-12-11 03:09:46,553  CompactionManager.java:511 - Starting anticompaction for testks_synchronization.cardticketmap on 0/[] sstables
@@ -9892,16 +9891,27 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                        ReviewLogThresholds(dtLog);
                                                    }
                                                    else
-                                                   {
-                                                       Logger.Instance.ErrorFormat("Component Task Failure(s) detected with status \"{0}\"",
-                                                                                    string.Join(", ", tasks.Select(t => t.Status)));
+                                                   {                                                                                                            
+                                                       if(tasks.Any(t => t.Exception != null
+                                                                            && t.Exception.InnerExceptions.Any(e => e is System.OutOfMemoryException)))
+                                                       {
+                                                           ReleaseGlobalLogCollections(false);
+                                                           System.GC.Collect();
+                                                       } 
 
+                                                       Logger.Instance.ErrorFormat("Component Task Failure(s) detected with status \"{0}\"",
+                                                                                    string.Join(", ", tasks.Select(t => string.Format("{{{0}{1}}}",
+                                                                                                                                        t.Status,
+                                                                                                                                        (string.Join(", ", t.Exception?.InnerExceptions.Select(e => string.Format(", {0}, {1}",
+                                                                                                                                                                                                                    e.GetType().Name,
+                                                                                                                                                                                                                    e.Message)))
+                                                                                                                                            ?? string.Empty)))));                                                      
                                                        ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
                                                                                    DateTime.Now,
                                                                                    "<Component>",
                                                                                    null,
                                                                                    "Component Failure",
-                                                                                   1));
+                                                                                   1));                                                       
                                                    }
 
                                                    ReviewComponentDisabledItems(dtLog);

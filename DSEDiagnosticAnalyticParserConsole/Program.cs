@@ -1681,6 +1681,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 																	  return dtLogStats;
 																  });
 
+                
+
                 runLogAdditionalInfoTask = runLogMergedTask;
                 
                 if (ParserSettings.LogParsingExcelOptions.Parse.IsEnabled()
