@@ -28,6 +28,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             /// If enabled, the parsed log files will be captured into separate Excel workbooks.
             /// </summary>
             CreateWorkbook = 0x0004,
+            
             /// <summary>
             /// Enables both current and archived log parsing.
             /// </summary>
@@ -147,11 +148,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 			/// Enables the creation of the Read-Repair worksheet (i.e., ParseReadRepairs)
 			/// </summary>
 			LoadReadRepairWorkSheets = 0x100000,
-
-			/// <summary>
-			/// Enables the loading of all worksheets into the main Excel workbook.
-			/// </summary>
-			LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets | LoadReadRepairWorkSheets,
+            /// <summary>
+            /// If defined only log files defined by AlternativeLogFilePath will be parsed
+            /// </summary>
+            OnlyAlternativeLogs = 0x200000,
+            /// <summary>
+            /// Enables the loading of all worksheets into the main Excel workbook.
+            /// </summary>
+            LoadAllWorkSheets = LoadWorkSheets | LoadSummaryWorkSheets | LoadReadRepairWorkSheets,
             /// <summary>
             /// Enables all settings.
             /// </summary>
@@ -486,6 +490,11 @@ namespace DSEDiagnosticAnalyticParserConsole
             return ParsingExcelOption == option
                         ? true
                         : (ParsingExcelOption == ParsingExcelOptions.Disable ? false : (ParsingExcelOption & option) == option);
+        }
+
+        public static bool CheckEnabled(this ParsingExcelOptions option)
+        {
+            return (ParsingExcelOption & option) == option;
         }
 
         public static bool CheckEnabled(this LogParsingExcelOptions options, LogParsingExcelOptions option)

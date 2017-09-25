@@ -650,6 +650,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                                 if (readStream.BaseStream.Length > 1024)
                                 {
+                                    readStream.DiscardBufferedData();
                                     readStream.BaseStream.Seek(-1024, System.IO.SeekOrigin.End);
                                 }
 
@@ -679,6 +680,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     return 0;
                                 }
 
+                                readStream.DiscardBufferedData();
                                 readStream.BaseStream.Seek(readNextLine.Length + 1, System.IO.SeekOrigin.Begin);
                             }
                             else if (lineDateTime > onlyEntriesAllowedRange.Max)
@@ -2226,14 +2228,14 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             if (!minmaxDate.IsEmpty())
             {
-                if (!isDebugLogFile)
-                {
+                //if (!isDebugLogFile)
+                //{
                     lock (LogCassandraMaxMinTimestamp)
                     {
                         LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Min);
                         LogCassandraMaxMinTimestamp.SetMinMax(minmaxDate.Max);
                     }
-                }
+               // }
 
                 LogCassandraNodeMaxMinTimestamps.AddOrUpdate(ipAddress,
                                                                 strAddress => new List<LogCassandraNodeMaxMinTimestamp>()
@@ -9902,10 +9904,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                        Logger.Instance.ErrorFormat("Component Task Failure(s) detected with status \"{0}\"",
                                                                                     string.Join(", ", tasks.Select(t => string.Format("{{{0}{1}}}",
                                                                                                                                         t.Status,
-                                                                                                                                        (string.Join(", ", t.Exception?.InnerExceptions.Select(e => string.Format(", {0}, {1}",
+                                                                                                                                        (t.Exception == null || t.Exception.InnerException == null
+                                                                                                                                            ? string.Empty
+                                                                                                                                            : string.Join(", ", t.Exception.InnerExceptions.Select(e => string.Format(", {0}, {1}",
                                                                                                                                                                                                                     e.GetType().Name,
-                                                                                                                                                                                                                    e.Message)))
-                                                                                                                                            ?? string.Empty)))));                                                      
+                                                                                                                                                                                                                    e.Message))))
+                                                                                                                                            ))));                                                      
                                                        ComponentDisabled.Add(new Tuple<DateTime, string, string, string, int>(
                                                                                    DateTime.Now,
                                                                                    "<Component>",

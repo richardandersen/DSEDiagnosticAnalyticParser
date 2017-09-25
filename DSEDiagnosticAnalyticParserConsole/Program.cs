@@ -548,7 +548,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 #endregion
                             }
                             else if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
-                                        && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile))
+                                        && diagFile.Name.Contains(ParserSettings.LogCassandraSystemLogFile)
+                                        && !ParserSettings.ParsingExcelOptions.OnlyAlternativeLogs.CheckEnabled())
                             {
                                 #region C* Log Parsing
                                 if (string.IsNullOrEmpty(dcName))
@@ -1032,7 +1033,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     #endregion
                     #region Parse C* Log
-                    if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled()))
+                    if ((ParserSettings.LogParsingExcelOptions.Parse.IsEnabled() || ParserSettings.LogParsingExcelOptions.ParseArchivedLogs.IsEnabled())
+                            && !ParserSettings.ParsingExcelOptions.OnlyAlternativeLogs.CheckEnabled())
                     {
                         var logTasks = new List<Task<int>>();
 
@@ -1791,7 +1793,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             ConsoleDisplay.End();
             Logger.Instance.InfoFormat("Completed");
 
-            Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Gray, ConsoleColor.DarkRed);            
+            if(!argResult.Value.NoExitPrompt)
+                Common.ConsoleHelper.Prompt("Press Return to Exit", ConsoleColor.Gray, ConsoleColor.DarkRed);            
         }
 
         private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)

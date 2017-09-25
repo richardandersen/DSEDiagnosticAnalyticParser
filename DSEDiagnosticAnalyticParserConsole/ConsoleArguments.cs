@@ -546,6 +546,14 @@ namespace DSEDiagnosticAnalyticParserConsole
             set;
         }
 
+        [Option("NoExitPrompt", HelpText = "No Exit Prompt",
+                    Required = false)]
+        public bool NoExitPrompt
+        {
+            get;
+            set;
+        }
+
         [Option("Debug", HelpText = "Debug",
                     Required = false)]
         public bool Debug
