@@ -793,6 +793,9 @@ namespace DSEDiagnosticAnalyticParserConsole
                     //Failure to flush may cause excessive growth of Cassandra commit log.
                     //SharedPool-Worker-1	DseAuthenticator.java					 Plain text authentication without client / server encryption is strongly discouraged
 
+                    //ERROR [Repair#508:1] 2017-08-28 14:48:16,321  SystemDistributedKeyspace.java:208 - Error executing query UPDATE system_distributed.repair_history SET status = 'SUCCESS', finished_at = toTimestamp(now()) WHERE keyspace_name = 'rts_data' AND columnfamily_name = 'minmax_by_logid_mnemonic' AND id = eb437f00-8bff-11e7-8f3d-cf2f446dbb84
+                    //org.apache.cassandra.exceptions.UnavailableException: Cannot achieve consistency level ONE
+
                     #region Exception Log Info Parsing
 
                     if (nbrRows > 0 || assertError)
