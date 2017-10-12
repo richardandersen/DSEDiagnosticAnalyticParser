@@ -60,7 +60,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTable.Columns.Add("DC Chance", typeof(decimal)).AllowDBNull = true;//j
                 dtTable.Columns.Add("Policy", typeof(string)).AllowDBNull = true;//k
                 dtTable.Columns.Add("GC Grace Period", typeof(TimeSpan)).AllowDBNull = true;//l
-                dtTable.Columns.Add("TTL", typeof(int)).AllowDBNull = true; //m
+                dtTable.Columns.Add("TTL", typeof(TimeSpan)).AllowDBNull = true; //m
                 dtTable.Columns.Add("Collections", typeof(int)).AllowDBNull = true;//n
                 dtTable.Columns.Add("Counters", typeof(int)).AllowDBNull = true;//o
                 dtTable.Columns.Add("Blobs", typeof(int)).AllowDBNull = true;//p

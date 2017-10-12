@@ -44,7 +44,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             workSheet.Cells["I:I"].Style.Numberformat.Format = "0%";
                                             workSheet.Cells["J:J"].Style.Numberformat.Format = "0%";
                                             workSheet.Cells["L:L"].Style.Numberformat.Format = "d hh:mm";
-                                            
+                                            workSheet.Cells["M:M"].Style.Numberformat.Format = "d hh:mm";
                                             workSheet.Cells["N:N"].Style.Numberformat.Format = "#,###";
                                             workSheet.Cells["O:O"].Style.Numberformat.Format = "#,###";
                                             workSheet.Cells["P:P"].Style.Numberformat.Format = "#,###";

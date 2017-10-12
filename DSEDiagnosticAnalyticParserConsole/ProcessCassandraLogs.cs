@@ -1626,6 +1626,49 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             #endregion
                         }
+                        else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "DseDaemon.java"
+                                    && parsedValues[ParserSettings.CLogLineFormats.IndicatorPos] == "WARN")
+                        {
+                            #region Nodes seems down
+                            //WARN  [main] 2017-10-05 01:39:04,635  DseDaemon.java:616 - The following nodes seems to be down: [/10.53.0.36]. Some Cassandra operations may fail with UnavailableException.
+                            if (parsedValues[nCell] == "down:")
+                            {
+                                dataRow["Exception"] = "Following Nodes Detected as Down";
+                                dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                dataRow["Associated Item"] = parsedValues[nCell + 1];
+                                handled = true;
+
+                                var downNodes = parsedValues[nCell + 1].Split(',', ' ');
+                                
+                                foreach (var downNode in downNodes)
+                                {
+                                    if (LookForIPAddress(downNode, ipAddress, out lineIPAddress))
+                                    {
+                                        string downDCName;
+                                        
+                                        if (ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out downDCName))
+                                        {
+                                            var nodedownDR = dtCLog.NewRow();
+                                            nodedownDR["Data Center"] = downDCName;
+                                            nodedownDR["Node IPAddress"] = lineIPAddress;
+                                            nodedownDR["Timestamp"] = dataRow["Timestamp"];
+                                            nodedownDR["Indicator"] = dataRow["Indicator"];
+                                            nodedownDR["Task"] = dataRow["Task"];
+                                            nodedownDR["TaskId"] = dataRow["TaskId"];
+                                            nodedownDR["Item"] = dataRow["Item"];
+                                            nodedownDR["Exception"] = "Node Detected Down";
+                                            nodedownDR["Flagged"] = dataRow["Flagged"];
+                                            nodedownDR["Associated Item"] = dataRow["Node IPAddress"];
+                                            nodedownDR["Associated Value"] = dataRow["Associated Value"];
+                                            nodedownDR["Description"] = string.Format("{0} detected this node down.", dataRow["Node IPAddress"].ToString());
+
+                                            AddRowToLogDataTable(dtCLog, nodedownDR, isDebugLogFile);
+                                        }
+                                    }
+                                }                                
+                            }
+                            #endregion
+                        }
                         else if (parsedValues[ParserSettings.CLogLineFormats.ItemPos] == "StorageService.java")
                         {
                             #region StorageService.java
@@ -3695,6 +3738,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var solrHardCommit = new List<SolrHardCommitLogInfo>();
                 var detectedSchemaChanges = new List<Tuple<char, string, string>>();
                 var shardStateChanges = new List<string>();
+                var nodeDetectedDown = new List<int>();
                 var memTblStats = new List<MemTableStatInfo>();
                 long grpInd = CLogSummaryInfo.IncrementGroupInicator();
                 var refCnt = (decimal)grpInd;
@@ -4862,6 +4906,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                         shardStateChanges.Add((string)item.AssocValue);
                         #endregion
                     }
+                    else if(item.Item == "DseDaemon.java"
+                                && item.Exception == "Following Nodes Detected as Down")
+                    {
+                        #region DseDaemon.java (Node Detected Down)
+                        //WARN  [main] 2017-10-05 01:39:04,635  DseDaemon.java:616 - The following nodes seems to be down: [/10.53.0.36]. Some Cassandra operations may fail with UnavailableException.
+                        nodeDetectedDown.Add(((string)item.AssocItem).Count(i => i == '/'));
+                        #endregion
+                    }
                 }
 
                 #region Add TP/CF Stats Info
@@ -5598,6 +5650,22 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                             dtTPStats.Rows.Add(dataRow);
                         }
+                    }
+                    #endregion
+
+                    #region Node Detected Down
+                    if(nodeDetectedDown.Count > 0)
+                    {
+                        var dataRow = dtTPStats.NewRow();
+
+                        dataRow["Source"] = "Cassandra Log";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["Attribute"] = "Detected Nodes as Dead";                        
+                        dataRow["Reconciliation Reference"] = grpInd;                        
+                        dataRow["Dropped"] = nodeDetectedDown.Sum();
+
+                        dtTPStats.Rows.Add(dataRow);                        
                     }
                     #endregion
                 }

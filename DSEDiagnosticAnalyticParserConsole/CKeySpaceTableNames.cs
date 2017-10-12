@@ -101,9 +101,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                 this.SolrIndexName = this.NormalizedName;
             }
             else if (this.IndexName.StartsWith(this.KeySpaceName + '_')
-                        && this.IndexName.Contains('_' + this.TableName + '_'))
+                        && (string.IsNullOrEmpty(this.TableName)
+                                || this.IndexName.Contains('_' + this.TableName + '_')))
             {
                 this.SolrIndexName = this.IndexName;
+            }
+            else if(string.IsNullOrEmpty(this.TableName))
+            {
+                this.SolrIndexName = this.KeySpaceName + '_' + this.IndexName;
             }
             else
             {
