@@ -1638,7 +1638,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Associated Item"] = parsedValues[nCell + 1];
                                 handled = true;
 
-                                var downNodes = parsedValues[nCell + 1].Split(',', ' ');
+                                var downNodes = parsedValues[nCell + 1].Substring(0, parsedValues[nCell + 1].Length - 1).Split(',', ' ');
                                 
                                 foreach (var downNode in downNodes)
                                 {

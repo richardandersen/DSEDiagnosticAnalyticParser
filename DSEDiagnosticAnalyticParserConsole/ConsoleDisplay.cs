@@ -71,7 +71,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 else
                 {
-                    consoleWriter.WriteLine(this.Line(taskItem, 1));
+                    var line = this.Line(taskItem, 1);
+                    if(line.Contains('{'))
+                    {
+                        line = line.Replace('{', '[').Replace('}', ']');
+                    }
+                    consoleWriter.WriteLine(line);
                 }
             }
 
@@ -104,7 +109,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                     else
                     {
-                        consoleWriter.WriteLine(this.Line(taskItem, 0));
+                        var line = this.Line(taskItem, 0);
+                        if (line.Contains('{'))
+                        {
+                            line = line.Replace('{', '[').Replace('}', ']');
+                        }
+                        consoleWriter.WriteLine(line);
                     }
                 }
             }

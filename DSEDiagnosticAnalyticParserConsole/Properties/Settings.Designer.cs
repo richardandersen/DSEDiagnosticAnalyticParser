@@ -95,8 +95,8 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("[{\"Item1\":\"4.00:00:00\",\"Item2\":\"00:30:00\"},{\"Item1\":\"3.00:00:00\",\"Item2\":\"12:00:0" +
-            "0\"},{\"Item1\":\"4.00:00:00\",\"Item2\":\"1.00:00:00\"}]")]
+        [global::System.Configuration.DefaultSettingValueAttribute("[{\"Item1\":\"14.00:00:00\",\"Item2\":\"00:30:00\"},{\"Item1\":\"7.00:00:00\",\"Item2\":\"12:00:" +
+            "00\"},{\"Item1\":\"7.00:00:00\",\"Item2\":\"1.00:00:00\"}]")]
         public string LogSummaryPeriodRanges {
             get {
                 return ((string)(this["LogSummaryPeriodRanges"]));
