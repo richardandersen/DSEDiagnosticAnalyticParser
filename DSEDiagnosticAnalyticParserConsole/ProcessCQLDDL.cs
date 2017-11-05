@@ -11,11 +11,7 @@ namespace DSEDiagnosticAnalyticParserConsole
 {
     static public partial class ProcessFileTasks
     {
-        static Regex RegExCreateIndex = new Regex(@"\s*create\s+(?:custom\s*)?index\s+(.+)?\s*on\s+(.+)\s+\(\s*(?:(?:keys\(\s*(.+)\s*\))?|(?:entries\(\s*(.+)\s*\))?|(?:full\(\s*(.+)\s*\))?|(.+)?)\).*",
-                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        static Regex RegExCreateIndexUsing = new Regex(@".+using\s*((?:'|""|`)?.+?(?:'|""|`))?",
-                                                RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
+        
         static public void InitializeCQLDDLDataTables(DataTable dtKeySpace,
                                                       DataTable dtTable)
         {
