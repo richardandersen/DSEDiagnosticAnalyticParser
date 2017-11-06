@@ -7916,7 +7916,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtReadRepair.Columns.Add("Solr Hard Commit Duration", typeof(int)).AllowDBNull = true; //ar
                 dtReadRepair.Columns["Solr Hard Commit Duration"].Caption = "Hard Commit"; //as
 
-                dtReadRepair.Columns.Add("Reconciliation Reference", typeof(long)).AllowDBNull = true; //at
+                dtReadRepair.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true; //at
             }
             #endregion
 
