@@ -311,6 +311,8 @@
   &lt;string&gt;Solr Hard Commit duration mean&lt;/string&gt;
   &lt;string&gt;Solr Hard Commit duration stdev&lt;/string&gt;
   &lt;string&gt;Solr Hard Commit occurrences&lt;/string&gt;
+  &lt;string&gt;Solr Index Storage Size&lt;/string&gt;
+  &lt;string&gt;Solr Index Storage Size Ratio&lt;/string&gt;
   &lt;string&gt;Schema Created occurrences&lt;/string&gt;
   &lt;string&gt;Schema Dropped occurrences&lt;/string&gt;
   &lt;string&gt;Schema Updated occurrences&lt;/string&gt;
@@ -730,6 +732,9 @@
     </Setting>
     <Setting Name="GCComplexAnalysisTakeEventsWhenOver" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">3000</Value>
+    </Setting>
+    <Setting Name="SolrJsonIndexSizeFilePath" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">..\solr\index_size.json</Value>
     </Setting>
   </Settings>
 </SettingsFile>

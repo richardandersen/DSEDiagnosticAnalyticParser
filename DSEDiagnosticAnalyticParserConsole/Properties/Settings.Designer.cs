@@ -12,7 +12,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.5.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -610,19 +610,20 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
             "<string>Memtable Flush total Storage</string>\r\n  <string>Solr Hard Commit durati" +
             "on maximum</string>\r\n  <string>Solr Hard Commit duration minimum</string>\r\n  <st" +
             "ring>Solr Hard Commit duration mean</string>\r\n  <string>Solr Hard Commit duratio" +
-            "n stdev</string>\r\n  <string>Solr Hard Commit occurrences</string>\r\n  <string>Sch" +
-            "ema Created occurrences</string>\r\n  <string>Schema Dropped occurrences</string>\r" +
-            "\n  <string>Schema Updated occurrences</string>\r\n  <string>MemTable Write OPS Del" +
-            "ta maximum</string>\r\n  <string>MemTable Write OPS Delta minimum</string>\r\n  <str" +
-            "ing>MemTable Write OPS Delta mean</string>\r\n  <string>MemTable Write Delta occur" +
-            "rences</string>\r\n  <string>MemTable Write Size Delta maximum</string>\r\n  <string" +
-            ">MemTable Write Size Delta minimum</string>\r\n  <string>MemTable Write Size Delta" +
-            " mean</string>\r\n  <string>MemTable Write Size Delta Total</string>\r\n  <string>Qu" +
-            "ery read warning Total</string>\r\n  <string>Query read warning maximum</string>\r\n" +
-            "  <string>Query read warning minimum</string>\r\n  <string>Query read warning mean" +
-            "</string>\r\n  <string>Query read warning occurrences</string>\r\n  <string>org.apac" +
-            "he.cassandra.exceptions.UnavailableException</string>\r\n  <string>Node Detected D" +
-            "own</string>\r\n</ArrayOfString>")]
+            "n stdev</string>\r\n  <string>Solr Hard Commit occurrences</string>\r\n  <string>Sol" +
+            "r Index Storage Size</string>\r\n  <string>Solr Index Storage Size Ratio</string>\r" +
+            "\n  <string>Schema Created occurrences</string>\r\n  <string>Schema Dropped occurre" +
+            "nces</string>\r\n  <string>Schema Updated occurrences</string>\r\n  <string>MemTable" +
+            " Write OPS Delta maximum</string>\r\n  <string>MemTable Write OPS Delta minimum</s" +
+            "tring>\r\n  <string>MemTable Write OPS Delta mean</string>\r\n  <string>MemTable Wri" +
+            "te Delta occurrences</string>\r\n  <string>MemTable Write Size Delta maximum</stri" +
+            "ng>\r\n  <string>MemTable Write Size Delta minimum</string>\r\n  <string>MemTable Wr" +
+            "ite Size Delta mean</string>\r\n  <string>MemTable Write Size Delta Total</string>" +
+            "\r\n  <string>Query read warning Total</string>\r\n  <string>Query read warning maxi" +
+            "mum</string>\r\n  <string>Query read warning minimum</string>\r\n  <string>Query rea" +
+            "d warning mean</string>\r\n  <string>Query read warning occurrences</string>\r\n  <s" +
+            "tring>org.apache.cassandra.exceptions.UnavailableException</string>\r\n  <string>N" +
+            "ode Detected Down</string>\r\n</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection CFStatsAttribs {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["CFStatsAttribs"]));
@@ -1266,6 +1267,15 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         public int GCComplexAnalysisTakeEventsWhenOver {
             get {
                 return ((int)(this["GCComplexAnalysisTakeEventsWhenOver"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("..\\solr\\index_size.json")]
+        public string SolrJsonIndexSizeFilePath {
+            get {
+                return ((string)(this["SolrJsonIndexSizeFilePath"]));
             }
         }
     }

@@ -207,7 +207,104 @@ namespace DSEDiagnosticAnalyticParserConsole
                     }
                 }
             }
+
+            ReadSolrIndexFileParseIntoDataTable(cfstatsFilePath, ipAddress, dcName, dtCFStats, ignoreKeySpaces, addToMBColumn);
         }
+
+
+        static private void ReadSolrIndexFileParseIntoDataTable(IFilePath cfstatsFilePath,
+                                                                string ipAddress,
+                                                                string dcName,
+                                                                System.Data.DataTable dtCFStats,
+                                                                IEnumerable<string> ignoreKeySpaces,
+                                                                IEnumerable<string> addToMBColumn)
+        {
+            IFilePath jsonFilePath;
+
+            if (cfstatsFilePath.ParentDirectoryPath.MakeFile(Properties.Settings.Default.SolrJsonIndexSizeFilePath, out jsonFilePath)
+                    && jsonFilePath.Exist())
+            {
+                var indexInfoDict = ParseJson(jsonFilePath.ReadAllText());                
+                DataRow dataRow;
+                
+                foreach (var kvItem in indexInfoDict)
+                {
+                    try
+                    {
+                        var kstblName = SplitTableName(kvItem.Key);
+                        decimal? indexSizeMB = null;
+
+                        if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(kstblName.Item1))
+                        {
+                            continue;
+                        }
+
+                        dataRow = dtCFStats.NewRow();
+
+                        dataRow["Source"] = "Solr Json";
+                        dataRow["Data Center"] = dcName;
+                        dataRow["Node IPAddress"] = ipAddress;
+                        dataRow["KeySpace"] = kstblName.Item1;
+                        dataRow["Table"] = kstblName.Item2;
+                        dataRow["Attribute"] = "Solr Index Storage Size";
+                        dataRow["Value"] = kvItem.Value;
+                        dataRow["Unit of Measure"] = "byte";
+
+                        if (kvItem.Value != null)
+                        {                        
+                            unchecked
+                            {
+                                dataRow["(Value)"] = ((dynamic)kvItem.Value) < 0 ? (ulong)((dynamic)kvItem.Value) : kvItem.Value;
+                            }
+                            dataRow["Size in MB"] = indexSizeMB = ((decimal)((dynamic)kvItem.Value)) / BytesToMB;                            
+                        }
+                        
+                        dtCFStats.Rows.Add(dataRow);
+
+                        if(indexSizeMB.HasValue)
+                        {
+                            var totalStorageSize = (from r in dtCFStats.AsEnumerable()
+                                                    where r.Field<string>("Attribute") == "Space used (total)"
+                                                             && r.Field<string>("Node IPAddress") == ipAddress
+                                                             && r.Field<string>("KeySpace") == kstblName.Item1
+                                                             && r.Field<string>("Table") == kstblName.Item2
+                                                             && !r.IsNull("Size in MB")
+                                                    select r.Field<decimal>("Size in MB"))
+                                                    .DefaultIfEmpty()
+                                                    .Sum();
+                            var storageRatio = totalStorageSize == 0 ? 1m : (indexSizeMB.Value / totalStorageSize);
+
+                            dataRow = dtCFStats.NewRow();
+
+                            dataRow["Source"] = "Solr";
+                            dataRow["Data Center"] = dcName;
+                            dataRow["Node IPAddress"] = ipAddress;
+                            dataRow["KeySpace"] = kstblName.Item1;
+                            dataRow["Table"] = kstblName.Item2;
+                            dataRow["Attribute"] = "Solr Index Storage Size Ratio";
+                            dataRow["Value"] = storageRatio;
+                            dataRow["Unit of Measure"] = "ratio";
+                            dataRow["(Value)"] = storageRatio;
+                            
+                            dtCFStats.Rows.Add(dataRow);
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Logger.Instance.Error(string.Format("Parsing for solr index size for Node {0} failed during parsing of item \"{1}, {2}\". item skipped.",
+                                                        ipAddress,
+                                                        kvItem.Key,
+                                                        kvItem.Value),
+                                                ex);
+                        Program.ConsoleWarnings.Increment("solr index size Parsing Exception; Item Skipped");
+                    }
+                }
+
+            }
+            
+
+        }
+
         static public void ReadCFStatsFileForKeyspaceTableInfo(IFilePath cfstatsFilePath,
                                                                 IEnumerable<string> ignoreKeySpaces,
                                                                 List<CKeySpaceTableNames> kstblNames)
