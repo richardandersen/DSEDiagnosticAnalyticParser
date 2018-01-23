@@ -2103,6 +2103,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:10,567  AbstractSolrSecondaryIndex.java:1133 - Executing hard commit on index prod_fcra.bics_contribution
                             //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13,616  AbstractSolrSecondaryIndex.java:581 - Reindexed 1117 commit log updates for core prod_fcra.bics_contribution
                             //INFO[SolrSecondaryIndex prod_fcra.bics_contribution index initializer.] 2016-10-18 23:03:13, 618  AbstractSolrSecondaryIndex.java:584 - Truncated commit log for core prod_fcra.bics_contribution
+                            //INFO  [SolrSecondaryIndex cybs_rtd_search.transaction_search index initializer.] 2017-11-20 03:17:40,492  AbstractSolrSecondaryIndex.java:546 - Reindexing 74 commit log updates for core cybs_rtd_search.transaction_search
 
                             if (parsedValues[nCell] == "Reindexing"
                                 || (parsedValues[nCell] == "Finished" && parsedValues[nCell + 1] == "reindexing")
