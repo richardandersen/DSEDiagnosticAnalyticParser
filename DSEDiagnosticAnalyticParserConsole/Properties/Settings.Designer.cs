@@ -1152,7 +1152,7 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
         public int QueueDroppedBlockedWarningThreshold {
             get {
                 return ((int)(this["QueueDroppedBlockedWarningThreshold"]));

@@ -10029,9 +10029,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                                   let nbrBlocks = statRow.Field<long?>("Blocked")
                                   let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
                                   let nbrCompleted = statRow.Field<long?>("Completed")
+                                  let nbrPending = statRow.Field<long?>("Pending")
                                   let attribute = statRow.Field<string>("Pool/Cache Type")
                                   where (nbrBlocks.HasValue && nbrBlocks.Value > 0)
                                             || (nbrAllBlocks.HasValue && nbrAllBlocks.Value > 0)
+                                            || (nbrPending.HasValue && nbrPending.Value > 0)
                                             || (nbrCompleted.HasValue && nbrCompleted.Value > 0
                                                     && attribute == "Dropped Mutation")
                                   select new
@@ -10042,6 +10044,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                       Items = (nbrAllBlocks.HasValue ? nbrAllBlocks.Value : 0)
                                                 + (nbrBlocks.HasValue ? nbrBlocks.Value : 0)
                                                 + (nbrCompleted.HasValue ? nbrCompleted.Value : 0)
+                                                + (nbrPending.HasValue ? nbrPending.Value : 0)
                                   };
 
             var allItems = blocksFromStats; // droppedFromLog.Concat(blocksFromStats);
@@ -10093,7 +10096,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                         dataRow["Indicator"] = "WARN";
                         dataRow["Task"] = "DroppedBlockedReview";
                         dataRow["Item"] = "Generated";
-                        dataRow["Description"] = string.Format("Dropped/Blocked Warning where a total of {0} detected that exceed threshold {1} during period of {2} in mintues",
+                        dataRow["Description"] = string.Format("Dropped/Blocked/Pending Warning where a total of {0} detected that exceed threshold {1} during period of {2} in mintues",
                                                                 warningValue.Total,
                                                                 warningThreshold,
                                                                 warningPeriodInMins);
