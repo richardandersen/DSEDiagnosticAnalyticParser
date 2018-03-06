@@ -110,12 +110,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                 
                 if(keySpace.LocalStrategy || keySpace.EverywhereStrategy)
                 {
-                    if (!dtKeySpace.Rows.Contains(new object[] { keySpace.Name, keySpace.DataCenter.Name }))
+                    var dcName = keySpace.DataCenter?.Name ?? (keySpace.LocalStrategy ? "LocalDC" : "AllDCs");
+                    if (!dtKeySpace.Rows.Contains(new object[] { keySpace.Name, dcName }))
                     {
                         dataRow = dtKeySpace.NewRow();
                         dataRow["Name"] = keySpace.Name;
                         dataRow["Replication Strategy"] = keySpace.ReplicationStrategy;
-                        dataRow["Data Center"] = keySpace.DataCenter.Name;
+                        dataRow["Data Center"] = dcName;
                         dataRow["Replication Factor"] = 0;
                         dataRow["DDL"] = keySpace.DDL;
                         dtKeySpace.Rows.Add(dataRow);

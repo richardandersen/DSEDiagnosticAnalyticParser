@@ -71,12 +71,15 @@ namespace DSEDiagnosticAnalyticParserConsole
                 }
                 else
                 {
-                    var line = this.Line(taskItem, 1);
-                    if(line.Contains('{'))
+                    try
                     {
-                        line = line.Replace('{', '[').Replace('}', ']');
+                        var line = this.Line(taskItem, 1);
+                        
+                        consoleWriter.WriteLine(line);
                     }
-                    consoleWriter.WriteLine(line);
+                    catch
+                    { }
+                    
                 }
             }
 

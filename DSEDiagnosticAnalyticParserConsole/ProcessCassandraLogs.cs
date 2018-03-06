@@ -7262,7 +7262,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow["Indicator"] = "WARN";
                                 dataRow["Task"] = "DetectContinuousGCIntoNodeStats";
                                 dataRow["Item"] = "Generated";
-                                dataRow["Description"] = string.Format("GC TimeFrame percent Warning where a total of {0} detected for a total latency of {1:###,###,##0) ms that had an ending timestamp of {2}",
+                                dataRow["Description"] = string.Format("GC TimeFrame percent Warning where a total of {0} detected for a total latency of {1:###,###,##0} ms that had an ending timestamp of {2}",
                                                                         item.Latencies.Count,
                                                                         item.Latencies.Sum(),
                                                                         item.Timestamps.LastOrDefault());
@@ -10029,7 +10029,8 @@ namespace DSEDiagnosticAnalyticParserConsole
                                   let nbrBlocks = statRow.Field<long?>("Blocked")
                                   let nbrAllBlocks = statRow.Field<long?>("All Time Blocked")
                                   let nbrCompleted = statRow.Field<long?>("Completed")
-                                  let nbrPending = statRow.Field<long?>("Pending")
+                                  let pendingItem = statRow["Pending"]
+                                  let nbrPending = pendingItem is string ? (long?) null : statRow.Field<long?>("Pending")
                                   let attribute = statRow.Field<string>("Pool/Cache Type")
                                   where (nbrBlocks.HasValue && nbrBlocks.Value > 0)
                                             || (nbrAllBlocks.HasValue && nbrAllBlocks.Value > 0)

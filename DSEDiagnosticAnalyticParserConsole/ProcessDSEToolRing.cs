@@ -23,6 +23,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             bool dse5Format = false;
             bool vNodes = false;
             bool bResult = true;
+            bool serverId = false;
 
             //INFO  17:16:14  Resource level latency tracking is not enabled
             // 
@@ -47,6 +48,8 @@ namespace DSEDiagnosticAnalyticParserConsole
             //10.200.178.76    dc1  rack1   Cassandra   no     Up       Normal   406.54 MB  ?       32      0.90
             //Note: you must specify a keyspace to get ownership information.
             //
+            //Server ID          Address          DC                   Rack         Workload             Graph  Status  State    Load             Owns                 VNodes                                       Health [0,1] 
+            //3C-A8-2A-17-08-08  172.26.2.132     Chicago rack1        Cassandra yes    Up Normal   211.37 GB ? 32                                           0.90
 
             foreach (var element in fileLines)
             {
@@ -75,7 +78,19 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             Common.StringFunctions.IgnoreWithinDelimiterFlag.Text | Common.StringFunctions.IgnoreWithinDelimiterFlag.Brace,
                                                             Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
 
-                if(parsedLine[0].ToLower() == "address")
+                if(serverId)
+                {
+                    parsedLine = parsedLine.Skip(1).ToList();
+                }
+
+                if(parsedLine[0].ToLower() == "server")
+                {
+                    dse5Format = true;
+                    vNodes = !(parsedLine.Count >= 10 && (parsedLine[10].ToLower() == "token"));
+                    serverId = true;
+                    continue;
+                }
+                else if(parsedLine[0].ToLower() == "address")
                 {
                     dse5Format = parsedLine.Count >= 4 && parsedLine[4].ToLower() == "graph";
                     vNodes = !(dse5Format 
