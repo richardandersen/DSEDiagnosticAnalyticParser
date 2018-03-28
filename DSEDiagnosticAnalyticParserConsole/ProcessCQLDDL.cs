@@ -79,7 +79,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             {
                 var ddlParser = new DSEDiagnosticFileParser.cql_ddl(cqlDDLFilePath,
                                                                         "dseCluster",
-                                                                        "Local");
+                                                                            null);
 
                 ddlParser.ProcessFile();
                 ddlParser.Task?.Wait();

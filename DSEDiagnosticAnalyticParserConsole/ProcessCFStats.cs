@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using Common;
+using DSEDiagnosticToDataTable;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
@@ -43,168 +44,178 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             initializeCFStatsDataTable(dtCFStats);
 
-            var fileLines = cfstatsFilePath.ReadAllLines();
-            string line;
-            DataRow dataRow;
-            List<string> parsedLine;
-            List<string> parsedValue;
-            string currentKS = null;
-            string currentTbl = null;
-			bool warningFlag = false;
-			string warningTbl = null;
-			var warrningItems = Properties.Settings.Default.TableUseWarning
-									.ToEnumerable()
-									.Where(i => !string.IsNullOrEmpty(i))
-									.Select(i =>
-									{
-										var parts = i.Split('.');
+            var fileInfo = new DSEDiagnosticFileParser.file_nodetool_cfstats(cfstatsFilePath, "dseCluster", dcName);
+            fileInfo.IgnoreWarningsErrosInKeySpaces = ignoreKeySpaces;
 
-										if(parts.Length == 1)
-										{
-											return new Tuple<string, string>(parts[0].Trim(), null);
-										}
-										return new Tuple<string, string>(parts[0].Trim(), parts[1].Trim());
-									});
+            fileInfo.ProcessFile();
+            fileInfo.Task?.Wait();
 
-			object numericValue;
-
-            foreach (var element in fileLines)
+            if(fileInfo.NbrWarnings > 0)
             {
-                line = element.Trim();
+                Program.ConsoleWarnings.Increment("CFStats Parsing Warnings Detected");
+            }
+            if (fileInfo.NbrErrors > 0)
+            {
+                Program.ConsoleErrors.Increment("CFStats Parsing Exceptions Detected");
+            }
 
-                if (!string.IsNullOrEmpty(line) && line[0] != '-')
+            DataRow dataRow;
+            var tblWarningLabels = Properties.Settings.Default.TableUseWarning.ToArray();
+            var node = fileInfo.Node;
+            var statCollection = node.AggregatedStats.Where(i => i.Class.HasFlag(DSEDiagnosticLibrary.EventClasses.KeyspaceTableViewIndexStats | DSEDiagnosticLibrary.EventClasses.Node));
+            bool warn = false;
+
+            foreach (var stat in statCollection)
+            {                
+                warn = false;
+
+                if (stat.Keyspace != null && tblWarningLabels.Any(n => n == stat.Keyspace.Name || (stat.TableViewIndex != null && stat.TableViewIndex.FullName == n)))
                 {
-                    parsedLine = Common.StringFunctions.Split(line,
-                                                                ':',
-                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                Common.StringFunctions.SplitBehaviorOptions.Default);
+                    warn = stat.Data.Any(s => ((stat.TableViewIndex == null && (s.Key == "Read Count" || s.Key == "Write Count"))
+                                                || (stat.TableViewIndex != null && (s.Key == "Local read count" || s.Key == "Local write count"))) && (dynamic)s.Value > 0);
+                }
 
-                    if (parsedLine[0] == "Keyspace")
+                if (!warn && stat.Keyspace != null && ignoreKeySpaces.Any(n => n == stat.Keyspace.Name))
+                {
+                    continue;
+                }
+
+                var keyspaceName = warn ? stat.Keyspace.Name + " (Warning)" : (stat.Keyspace?.Name ?? "<KS does not Exist>");
+
+                {
+                    object errorValue;
+
+                    if (stat.Data.TryGetValue(DSEDiagnosticLibrary.AggregatedStats.DCNotInKS, out errorValue))
                     {
-						warningTbl = null;
-						warningFlag = false;
-						currentKS = null;
-						currentTbl = null;
-
-						if (ignoreKeySpaces != null && ignoreKeySpaces.Contains(parsedLine[1]))
+                        keyspaceName += string.Format(" {{!{0}}}", errorValue);
+                        dataRow = dtCFStats.NewRow();
+                        
+                        dataRow.SetField("Source", stat.Source.ToString());
+                        dataRow.SetField("Data Center", stat.DataCenter.Name);
+                        dataRow.SetField("Node IPAddress", stat.Node.Id.NodeName());
+                        dataRow.SetField("KeySpace", keyspaceName);
+                        if (stat.TableViewIndex != null)
                         {
-							var warningItem = warrningItems.FirstOrDefault(i => i.Item1 == parsedLine[1]);
-
-							if (warningItem != null)
-							{
-								currentKS = parsedLine[1];
-								warningTbl = warningItem.Item2;
-								warningFlag = true;
-							}
-                        }
-                        else
-                        {
-                            currentKS = parsedLine[1];
+                            dataRow.SetField("Table", warn ? stat.TableViewIndex.Name + " (Warning)" : stat.TableViewIndex.Name);
+                            dataRow.SetField("Active", stat.TableViewIndex.IsActive);
                         }
 
-						continue;
+                        dataRow.SetField("Attribute", DSEDiagnosticLibrary.AggregatedStats.DCNotInKS);
+                        dataRow.SetField("Value",
+                                            string.Format("{0} not found within Keyspace \"{1}\"",
+                                                            errorValue.ToString(),
+                                                            stat.Keyspace.Name));
+
+                        dtCFStats.Rows.Add(dataRow);
                     }
 
-					if (currentKS == null)
+                    if (stat.Data.TryGetValue(DSEDiagnosticLibrary.AggregatedStats.Errors, out errorValue))
+                    {
+                        foreach (var strError in (IList<string>)errorValue)
+                        {                            
+                            dataRow = dtCFStats.NewRow();
+                            
+                            dataRow.SetField("Source", stat.Source.ToString());
+                            dataRow.SetField("Data Center", stat.DataCenter.Name);
+                            dataRow.SetField("Node IPAddress", stat.Node.Id.NodeName());
+                            dataRow.SetField("KeySpace", keyspaceName);
+                            if (stat.TableViewIndex != null)
+                            {
+                                dataRow.SetField("Table", warn ? stat.TableViewIndex.Name + " (Warning)" : stat.TableViewIndex.Name);
+                                dataRow.SetField("Active", stat.TableViewIndex.IsActive);
+                            }
+
+                            dataRow.SetField("Attribute", DSEDiagnosticLibrary.AggregatedStats.Errors);
+                            dataRow.SetField("Value", strError);
+
+                            dtCFStats.Rows.Add(dataRow);                          
+                        }
+                    }
+                }
+
+                foreach (var item in stat.Data)
+                {                    
+                    if (item.Key == DSEDiagnosticLibrary.AggregatedStats.Errors
+                        || item.Key == DSEDiagnosticLibrary.AggregatedStats.DCNotInKS)
                     {
                         continue;
                     }
 
-					if (parsedLine[0] == "Table")
+                    if (warn && !item.Key.StartsWith("Local read") && !item.Key.StartsWith("Local write"))
                     {
-                        currentTbl = parsedLine[1];
-						continue;
+                        continue;
                     }
 
-					if (parsedLine[0] == "Table (index)")
+                    dataRow = dtCFStats.NewRow();
+
+                    dataRow.SetField("Source", "CFStats");
+                    dataRow.SetField("Data Center", stat.DataCenter.Name);
+                    dataRow.SetField("Node IPAddress", stat.Node.Id.NodeName());
+                    dataRow.SetField("KeySpace", keyspaceName);
+
+                    if (stat.TableViewIndex != null)
                     {
-                        currentTbl = parsedLine[1] + " (index)";
-						continue;
+                        var itemName = stat.TableViewIndex.Name;
+
+                        if (stat.TableViewIndex is DSEDiagnosticLibrary.ICQLIndex)
+                            itemName += " (index)";
+                        else if (stat.TableViewIndex is DSEDiagnosticLibrary.ICQLIndex)
+                            itemName += " (mv)";
+
+                        dataRow.SetField("Table", warn ? itemName + " (Warning)" : itemName);                        
                     }
+                    
+                    dataRow.SetField("Attribute", item.Key);
 
-					if(warningFlag && warningTbl != null && warningTbl != currentTbl)
-					{
-						continue;
-					}
-
-					try
+                    if (item.Value is DSEDiagnosticLibrary.UnitOfMeasure)
                     {
-                        dataRow = dtCFStats.NewRow();
-
-                        dataRow["Source"] = "CFStats";
-                        dataRow["Data Center"] = dcName;
-                        dataRow["Node IPAddress"] = ipAddress;
-                        dataRow["KeySpace"] = currentKS;
-                        dataRow["Table"] = currentTbl;
-                        dataRow["Attribute"] = parsedLine[0];
-
-                        parsedValue = Common.StringFunctions.Split(parsedLine[1],
-                                                                    ' ',
-                                                                    Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                    Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
-
-                        if (Common.StringFunctions.ParseIntoNumeric(parsedValue[0], out numericValue, true))
+                        DSEDiagnosticLibrary.UnitOfMeasure uom = (DSEDiagnosticLibrary.UnitOfMeasure)item.Value;
+                        if (uom.Value % 1 == 0)
                         {
+                            dataRow.SetFieldToLong("Value", uom);
+                            dataRow.SetFieldToULong("(Value)", uom);
+                        }
+                        else
+                        {
+                            dataRow.SetFieldToDecimal("Value", uom);
+                            dataRow.SetFieldToDecimal("(Value)", uom);
+                        }
 
-							if(warningFlag)
-							{
-								if(((dynamic)numericValue) <= 0
-										|| currentTbl == null
-										|| !(parsedLine[0].StartsWith("Local write") || parsedLine[0].StartsWith("Local read")))
-								{
-									continue;
-								}
+                        dataRow.SetField("Unit of Measure", uom.UnitType.ToString());
 
-								dataRow["Table"] = string.Format("{0} ({1} -- Warning)", currentTbl, currentKS);
+                        if ((uom.UnitType & DSEDiagnosticLibrary.UnitOfMeasure.Types.SizeUnits) != 0)
+                        {
+                            dataRow.SetField("Size in MB", uom.ConvertSizeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB));
+                        }
+                    }
+                    else
+                    {                        
+                        dataRow.SetField("Value", item.Value);
 
-								//WarningInformationList.Add(new WarningInformation() { KeySpace = currentKS, Table = currentTbl, Count = (dynamic)numericValue });
-							}
-
-                            dataRow["Value"] = numericValue;
-
+                        if(item.Value is string)
+                        { }
+                        else if((dynamic)item.Value < 0)
+                        {
                             unchecked
                             {
-                                dataRow["(Value)"] = ((dynamic)numericValue) < 0 ? (ulong) ((dynamic)numericValue) : numericValue;
-                            }
-
-                            if (parsedValue.Count() > 1)
-                            {
-                                dataRow["Unit of Measure"] = parsedValue[1];
-                            }
-
-                            if (addToMBColumn != null)
-                            {
-                                var decNbr = decimal.Parse(numericValue.ToString());
-
-                                foreach (var item in addToMBColumn)
-                                {
-                                    if (parsedLine[0].ToLower().Contains(item))
-                                    {
-                                        dataRow["Size in MB"] = decNbr / BytesToMB;
-                                        break;
-                                    }
-                                }
+                                dataRow.SetField("(Value)", (ulong)item.Value);                                
                             }
                         }
-						else if (warningFlag)
-						{
-							continue;
-						}
-						else
+                        else
                         {
-                            dataRow["Unit of Measure"] = parsedLine[1];
+                            dataRow.SetField("(Value)", item.Value);
                         }
+                    }
 
-                        dtCFStats.Rows.Add(dataRow);
-                    }
-                    catch (System.Exception ex)
+                    if (stat.ReconciliationRefs.HasAtLeastOneElement())
                     {
-                        Logger.Instance.Error(string.Format("Parsing for CFStats for Node {0} failed during parsing of line \"{1}\". Line skipped.",
-                                                        ipAddress,
-                                                        line),
-                                                ex);
-                        Program.ConsoleWarnings.Increment("CCFStats Parsing Exception; Line Skipped");
+                        dataRow.SetFieldStringLimit(ColumnNames.ReconciliationRef,
+                                                        stat.ReconciliationRefs.IsMultiple()
+                                                                ? (object)string.Join(",", stat.ReconciliationRefs)
+                                                                : (object)stat.ReconciliationRefs.First());
                     }
+                    
+                    dtCFStats.Rows.Add(dataRow);
                 }
             }
 

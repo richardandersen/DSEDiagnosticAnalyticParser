@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using Common;
+using DSEDiagnosticToDataTable;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
@@ -67,126 +68,46 @@ namespace DSEDiagnosticAnalyticParserConsole
                 dtTokenRange.Columns.Add("Load(MB)", typeof(decimal));
             }
 
-            var fileLines = ringFilePath.ReadAllLines();
+            var fileInfo = new DSEDiagnosticFileParser.file_nodetool_ring(ringFilePath, "dseCluster", null);
 
-            string currentDC = null;
-            long? currentStartToken = null;
-            long endToken;
-            string line = null;
-            string ipAddress;
+            fileInfo.ProcessFile();
+            fileInfo.Task?.Wait();
+
             DataRow dataRow;
-            List<string> parsedLine;
-            bool newDC = true;
-            bool rangeStart = false;
-            bool bResult = true;
 
-            foreach (var element in fileLines)
+            foreach (var node in DSEDiagnosticLibrary.Cluster.MasterCluster.Nodes)
             {
-                line = element.Trim();
+                dataRow = dtRingInfo.Rows.Find(node.Id.NodeName());
 
-                if (!string.IsNullOrEmpty(line))
+                if (dataRow == null)
                 {
-                    if(line == "stderr:")
-                    {
-                        Logger.Instance.ErrorFormat("Nodetool Ring File is not valid or failed to generate properly. File \"{0}\" will be ignored", ringFilePath.PathResolved);
-                        Program.ConsoleErrors.Increment("Nodetool Ring File Invalid");
-                        bResult = false;
-                        break;
-                    }
+                    dataRow = dtRingInfo.NewRow();
 
-                    if (line.StartsWith("Datacenter:"))
-                    {
-                        newDC = true;
-                        currentDC = line.Substring(12).Trim();
-                        continue;
-                    }
-                    else if (newDC)
-                    {
-                        if (line[0] != '='
-                                && !line.StartsWith("Address")
-                                && !line.StartsWith("Note:")
-                                && !line.StartsWith("Warning:"))
-                        {
-                            newDC = false;
-                            rangeStart = true;
+                    dataRow.SetField("Node IPAddress", node.Id.NodeName());
+                    dataRow.SetField("Data Center", node.DataCenter.Name);
+                    dataRow.SetField("Rack", node.DSE.Rack);
+                    dataRow.SetField("Status", node.DSE.Statuses.ToString());
 
-                            long lngToken;
+                    dtRingInfo.Rows.Add(dataRow);
+                }
 
-                            if(long.TryParse(line, out lngToken))
-                            {
-                                currentStartToken = lngToken;
-                                continue;
-                            }
-                            else
-                            {
-                                currentStartToken = null;
-                            }
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                   
-                    //Address         Rack        Status State   Load Type            Owns                Token (end)
-                    parsedLine = Common.StringFunctions.Split(line,
-                                                                ' ',
-                                                                Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                                Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
+                foreach (var token in node.DSE.TokenRanges)
+                {
+                    dataRow = dtTokenRange.NewRow();
 
-                    if (Char.IsDigit(parsedLine[0][0]) || parsedLine[0][0] == '-')
-                    {
-                        IPAddressStr(parsedLine[0], out ipAddress);
+                    dataRow.SetField("Data Center", node.DataCenter.Name);
+                    dataRow.SetField("Node IPAddress", node.Id.NodeName());
 
-                        dataRow = dtRingInfo.Rows.Find(ipAddress);
+                    dataRow.SetField("Start Token (exclusive)", token.StartRange.ToString());
+                    dataRow.SetField("End Token (inclusive)", token.EndRange.ToString());
+                    dataRow.SetField("Slots", token.SlotsFormatted());
+                    dataRow.SetFieldToDecimal("Load(MB)", token.Load, DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB);
 
-                        if (dataRow == null)
-                        {
-                            dataRow = dtRingInfo.NewRow();
-
-                            dataRow["Node IPAddress"] = ipAddress;
-                            dataRow["Data Center"] = currentDC;
-                            dataRow["Rack"] = parsedLine[1];
-                            dataRow["Status"] = parsedLine[2];
-
-                            dtRingInfo.Rows.Add(dataRow);
-                        }
-
-                        dataRow = dtTokenRange.NewRow();
-
-                        dataRow["Data Center"] = currentDC;
-                        dataRow["Node IPAddress"] = ipAddress;
-
-                        endToken = long.Parse(parsedLine[7]);
-
-                        if(!currentStartToken.HasValue)
-                        {
-                            currentStartToken = endToken;
-                        }
-
-                        dataRow["Start Token (exclusive)"] = currentStartToken.ToString();                        
-                        dataRow["End Token (inclusive)"] = endToken.ToString();
-
-                        if (rangeStart)
-                        {
-                            rangeStart = false;
-                            dataRow["Slots"] = ((endToken - long.MinValue)
-                                                    + (long.MaxValue - currentStartToken.Value)).ToString("###,###,###,###,##0");
-                        }
-                        else
-                        {
-                            dataRow["Slots"] = Math.Abs(endToken - currentStartToken.Value).ToString("###,###,###,###,##0");
-                        }
-
-                        dataRow["Load(MB)"] = ConvertInToMB(parsedLine[4], parsedLine[5]);
-
-                        currentStartToken = endToken;
-
-                        dtTokenRange.Rows.Add(dataRow);
-                    }                    
+                    dtTokenRange.Rows.Add(dataRow);
                 }
             }
-            return bResult;
+
+            return true;
         }
 
         static public void UpdateRingInfo(DataTable dtRingInfo,

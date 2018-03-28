@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using Common;
+using DSEDiagnosticToDataTable;
 
 namespace DSEDiagnosticAnalyticParserConsole
 {
@@ -44,74 +45,66 @@ namespace DSEDiagnosticAnalyticParserConsole
 
             initializeTPStatsDataTable(dtTPStats);
 
-            var fileLines = tpstatsFilePath.ReadAllLines();
-            string line;
-            DataRow dataRow;
-            int parsingSection = -1; //0 -- Pool, 1 -- Message Type
-            List<string> parsedValue;
+            var fileInfo = new DSEDiagnosticFileParser.file_nodetool_tpstats(tpstatsFilePath, "dseCluster", dcName);
 
-            foreach (var element in fileLines)
+            fileInfo.ProcessFile();
+            fileInfo.Task?.Wait();
+
+            if (fileInfo.NbrWarnings > 0)
             {
-                line = element.Trim();
+                Program.ConsoleWarnings.Increment("TPStats Parsing Warnings Detected");
+            }
+            if (fileInfo.NbrErrors > 0)
+            {
+                Program.ConsoleErrors.Increment("TPStats Parsing Exceptions Detected");
+            }
 
-                if (string.IsNullOrEmpty(line))
-                {
-                    continue;
-                }
-                if (line.StartsWith("Pool Name"))
-                {
-                    parsingSection = 0;
-                    continue;
-                }
-                else if (line.StartsWith("Message type"))
-                {
-                    parsingSection = 1;
-                    continue;
-                }
-                else if(parsingSection == -1)
-                {
-                    Logger.Instance.ErrorFormat("TPStats file has an invalid file format for node {0}. File skipped.", ipAddress);
-                    Program.ConsoleErrors.Increment("TPStats File Skipped",  string.Format("Invalid File Format for node {0}", ipAddress));
-                    break;
-                }
+            DataRow dataRow = null;
+            var node = fileInfo.Node;
+            var statCollection = node.AggregatedStats.Where(i => (i.Class & DSEDiagnosticLibrary.EventClasses.NodeStats) != 0
+                                                                && (i.Class & DSEDiagnosticLibrary.EventClasses.Keyspace) == 0
+                                                                && (i.Class & DSEDiagnosticLibrary.EventClasses.TableViewIndex) == 0);
 
-                parsedValue = Common.StringFunctions.Split(line,
-                                                            ' ',
-                                                            Common.StringFunctions.IgnoreWithinDelimiterFlag.Text,
-                                                            Common.StringFunctions.SplitBehaviorOptions.Default | Common.StringFunctions.SplitBehaviorOptions.RemoveEmptyEntries);
-                try
-                {                
+            Logger.Instance.InfoFormat("Loading {0} NodeStats", statCollection.Count());
+
+            foreach (var stat in statCollection)
+            {                
+                var tpStatGroups = from statItem in stat.Data
+                                   let attrKeyCol = TPStatsDataTable.GetColumnNameFromAttributeKey(statItem.Key)
+                                   group new { Col = attrKeyCol.Item2, Value = statItem.Value } by attrKeyCol.Item1 into g
+                                   select new { Attr = g.Key, Values = g };
+
+                foreach (var item in tpStatGroups)
+                {                    
                     dataRow = dtTPStats.NewRow();
+                    
+                    dataRow.SetField("Source", stat.Source.ToString());
+                    dataRow.SetField("Data Center", stat.DataCenter.Name);
+                    dataRow.SetField("Node IPAddress", stat.Node.Id.NodeName());
 
-                    dataRow["Source"] = "TPStats";
-                    dataRow["Data Center"] = dcName;
-                    dataRow["Node IPAddress"] = ipAddress;
-                    dataRow["Attribute"] = parsedValue[0];
+                    dataRow.SetField("Attribute", item.Attr);
 
-                    if (parsingSection == 0)
+                    foreach (var itemValue in item.Values)
                     {
-                        //Pool Name                    Active   Pending      Completed   Blocked  All time blocked
-                        dataRow["Active"] = long.Parse(parsedValue[1]);
-                        dataRow["Pending"] = long.Parse(parsedValue[2]);
-                        dataRow["Completed"] = long.Parse(parsedValue[3]);
-                        dataRow["Blocked"] = long.Parse(parsedValue[4]);
-                        dataRow["All time blocked"] = long.Parse(parsedValue[5]);
+                        if (itemValue.Value is DSEDiagnosticLibrary.UnitOfMeasure)
+                        {
+                            dataRow.SetFieldToDecimal(itemValue.Col, (DSEDiagnosticLibrary.UnitOfMeasure)itemValue.Value, DSEDiagnosticLibrary.UnitOfMeasure.Types.MS);
+                        }
+                        else
+                        {
+                            dataRow.SetField(itemValue.Col, itemValue.Value);
+                        }
                     }
-                    else if (parsingSection == 1)
+
+                    if (stat.ReconciliationRefs.HasAtLeastOneElement())
                     {
-                        //Message type           Dropped
-                        dataRow["Dropped"] = long.Parse(parsedValue[1]);
+                        dataRow.SetFieldStringLimit(ColumnNames.ReconciliationRef,
+                                                        stat.ReconciliationRefs.IsMultiple()
+                                                            ? (object)string.Join(",", stat.ReconciliationRefs)
+                                                            : (object)stat.ReconciliationRefs.First());
                     }
 
                     dtTPStats.Rows.Add(dataRow);
-                }
-                catch (System.Exception ex)
-                {
-                    Logger.Instance.Error(string.Format("Parsing for TPStats for Node {0} failed during parsing of line \"{1}\". Line skipped.",
-                                                            ipAddress,
-                                                            line),
-                                            ex);
-                    Program.ConsoleWarnings.Increment("TPStats Parsing Exception; Line Skipped");
                 }
             }
         }

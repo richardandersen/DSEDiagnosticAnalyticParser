@@ -256,29 +256,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var logTaskStartPos = 0;
 
                 //Need to process nodetool ring files first
-                var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
 
                 #region preprocessing File
-
-                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && nodetoolRingChildFiles.HasAtLeastOneElement())
-                {
-                    foreach (var element in nodetoolRingChildFiles)
-                    {
-                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
-
-                        Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
-                        ProcessFileTasks.ReadRingFileParseIntoDataTables((IFilePath)element, dtRingInfo, dtTokenRange);
-                        //parsedRingList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
-                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
-                        element.MakeEmpty();
-                    }
-                }
-                else
-                {
-                    Logger.Instance.Warn("Node/DSE tool Ring File is either missing or this option disabled. Data center information will be missing from the worksheets!");
-                }
-
-                nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.DSEToolDir + "_" + ParserSettings.DSEtoolRingFile));
+                
+                var nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.DSEToolDir + "_" + ParserSettings.DSEtoolRingFile));
 
                 if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && nodetoolRingChildFiles.HasAtLeastOneElement())
                 {
@@ -293,7 +274,27 @@ namespace DSEDiagnosticAnalyticParserConsole
                         element.MakeEmpty();
                     }
                 }
+                else
+                {
+                    Logger.Instance.Warn("Node/DSE tool Ring File is either missing or this option disabled. Data center information will be missing from the worksheets!");
+                }
 
+                nodetoolRingChildFiles = diagChildren.Where(c => c is IFilePath && c.Name.Contains(ParserSettings.NodetoolRingFile));
+
+                if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled() && nodetoolRingChildFiles.HasAtLeastOneElement())
+                {
+                    foreach (var element in nodetoolRingChildFiles)
+                    {
+                        Program.ConsoleNonLogReadFiles.Increment((IFilePath)element);
+
+                        Logger.Instance.InfoFormat("Processing File \"{0}\"", element.Path);
+                        ProcessFileTasks.ReadRingFileParseIntoDataTables((IFilePath)element, dtRingInfo, dtTokenRange);
+                        //parsedRingList.TryAdd(((IFilePath)element).FileNameWithoutExtension);
+                        Program.ConsoleNonLogReadFiles.TaskEnd((IFilePath)element);
+                        element.MakeEmpty();
+                    }
+                }
+               
                 IFilePath cqlFilePath;
 
                 if (ParserSettings.ParsingExcelOptions.ParseDDLFiles.IsEnabled() && diagPath.MakeFile(ParserSettings.CQLDDLDirFileExt, out cqlFilePath))
@@ -657,9 +658,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                 for (int fileIndex = 0;
                         fileIndex < nbrNodes && !preFilesProcessed.All(flag => flag);
                         ++fileIndex)
-                {
+                {                    
                     if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
                             && !preFilesProcessed[0]
+                            && MakeFile(nodeDirs[fileIndex], ParserSettings.DSEToolDir, ParserSettings.DSEtoolRingFile, opsCtrDiag, out filePath))
+                    {
+                        if (filePath.Exist())
+                        {
+                            Program.ConsoleNonLogReadFiles.Increment(filePath);
+                            Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
+                            callResult = ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
+                            //parsedRingList.TryAdd(filePath.PathResolved);
+                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
+                            if (!callResult || dtRingInfo == null || dtRingInfo.Rows.Count == 0)
+                            {
+                                Logger.Instance.InfoFormat("DSETool Ring file \"{0}\" did not contain or invalid information. Trying next node folder", filePath.PathResolved);
+                            }
+                            else
+                            {
+                                preFilesProcessed[0] = true;
+                            }
+                        }
+                        else
+                        {
+                            Logger.Instance.InfoFormat("DSETool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
+                        }
+                    }
+
+                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
+                            && !preFilesProcessed[1]
                             && MakeFile(nodeDirs[fileIndex], ParserSettings.NodetoolDir, ParserSettings.NodetoolRingFile, opsCtrDiag, out filePath))
                     {
                         if (filePath.Exist())
@@ -676,38 +703,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                             }
                             else
                             {
-                                preFilesProcessed[0] = true;
-                            }
-                        }
-                        else
-                        {
-                            Logger.Instance.InfoFormat("NodeTool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
-                        }
-                    }
-
-                    if (ParserSettings.ParsingExcelOptions.ParseRingInfoFiles.IsEnabled()
-                            && !preFilesProcessed[1]
-                            && MakeFile(nodeDirs[fileIndex], ParserSettings.DSEToolDir, ParserSettings.DSEtoolRingFile, opsCtrDiag, out filePath))
-                    {
-                        if (filePath.Exist())
-                        {
-                            Program.ConsoleNonLogReadFiles.Increment(filePath);
-                            Logger.Instance.InfoFormat("Processing File \"{0}\"", filePath.Path);
-                            callResult = ProcessFileTasks.ReadDSEToolRingFileParseIntoDataTable(filePath, dtRingInfo);
-                            //parsedRingList.TryAdd(filePath.PathResolved);
-                            Program.ConsoleNonLogReadFiles.TaskEnd(filePath);
-                            if (!callResult || dtRingInfo == null || dtRingInfo.Rows.Count == 0)
-                            {
-                                Logger.Instance.InfoFormat("DSETool Ring file \"{0}\" did not contain or invalid information. Trying next node folder", filePath.PathResolved);
-                            }
-                            else
-                            {
                                 preFilesProcessed[1] = true;
                             }
                         }
                         else
                         {
-                            Logger.Instance.InfoFormat("DSETool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
+                            Logger.Instance.InfoFormat("NodeTool Ring file for \"{0}\" is missing. Trying next node folder", filePath.PathResolved);
                         }
                     }
 
