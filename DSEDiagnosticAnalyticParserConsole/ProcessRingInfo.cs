@@ -87,7 +87,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     dataRow.SetField("Data Center", node.DataCenter.Name);
                     dataRow.SetField("Rack", node.DSE.Rack);
                     dataRow.SetField("Status", node.DSE.Statuses.ToString());
-
+                   
                     dtRingInfo.Rows.Add(dataRow);
                 }
 

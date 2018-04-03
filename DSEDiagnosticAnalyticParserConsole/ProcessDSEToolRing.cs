@@ -42,7 +42,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     dataRow.SetField("Rack", node.DSE.Rack);
                     dataRow.SetField("Status", node.DSE.Statuses.ToString());
                 }
-
+                
                 dataRow.SetField("Instance Type", node.DSE.InstanceType.ToString());
                 dataRow.SetFieldToDecimal("Storage Used (MB)", node.DSE.StorageUsed, DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB)
                                     .SetFieldToDecimal("Storage Utilization", node.DSE.StorageUtilization, DSEDiagnosticLibrary.UnitOfMeasure.Types.Unknown, true);
