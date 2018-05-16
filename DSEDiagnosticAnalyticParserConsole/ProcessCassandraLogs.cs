@@ -1185,9 +1185,11 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //INFO[SlabPoolCleaner] 2016-09-11 16:44:55,289  ColumnFamilyStore.java:905 - Enqueuing flush of homebase_tasktracking_ops_l3: 315219514 (7%) on-heap, 0 (0%) off-heap
                             //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:55,290  Memtable.java:347 - Writing Memtable-homebase_tasktracking_ops_l3@994827943(53.821MiB serialized bytes, 857621 ops, 7%/0% of on/off-heap limit)
                             //INFO[MemtableFlushWriter:1169] 2016-09-11 16:44:56,558  Memtable.java:382 - Completed flushing /mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db (11.901MiB) for commitlog position ReplayPosition(segmentId= 1473433813485, position= 31065241)
+                            //DEBUG[MemtableFlushWriter: 800] 2018 - 04 - 30 12:07:24, 095  ColumnFamilyStore.java:1219 - Flushed to[BigTableReader(path = '/opt/cassandra/data01/ghostlocker/cassandracache-cd9b046155cb11e7b3e4f1176ea923d9/mc-16617-big-Data.db')](1 sstables, 202.247KiB), biggest 202.247KiB, smallest 202.247KiB
 
                             if (parsedValues[nCell] == "Flushing"
-                                    || (parsedValues[nCell] == "Enqueuing" && parsedValues[nCell + 1] == "flush"))
+                                    || (parsedValues[nCell] == "Enqueuing" && parsedValues[nCell + 1] == "flush")
+                                    || parsedValues[nCell] == "Flushed")
                             {
                                 dataRow["Flagged"] = (int)LogFlagStatus.MemTblFlush;
                                 handled = true;
@@ -1208,6 +1210,10 @@ namespace DSEDiagnosticAnalyticParserConsole
                             //DEBUG [MemtableFlushWriter:23] 2017-08-11 13:03:04,864  Memtable.java:364 - Writing Memtable-logmnemonicrecentvalue@1160967395(268.396KiB serialized bytes, 3174 ops, 0%/0% of on/off-heap limit)
                             //DEBUG [MemtableFlushWriter:23] 2017-08-11 13:03:04,872  Memtable.java:397 - Completed flushing / d5 / data / rts_data / logmnemonicrecentvalue - bb61e781f7d111e692c82747a9704109 / mc - 7750112 - big - Data.db(95.876KiB) for commitlog position ReplayPosition(segmentId = 1502112368275, position = 18085469)
 
+                            //DEBUG [ValidationExecutor:91] 2018-04-30 12:07:24,070  ColumnFamilyStore.java:920 - Enqueuing flush of cassandracache: 1.619MiB (0%) on-heap, 0.000KiB (0%) off-heap
+                            //DEBUG[PerDiskMemtableFlushWriter_0: 800] 2018 - 04 - 30 12:07:24,076  Memtable.java:461 - Writing Memtable - cassandracache@793307967(1.349MiB serialized bytes, 798 ops, 0 %/ 0 % of on / off - heap limit), flushed range = (min(-9223372036854775808), max(9223372036854775807)]
+                            //DEBUG[PerDiskMemtableFlushWriter_0: 800] 2018 - 04 - 30 12:07:24,080  Memtable.java:490 - Completed flushing / opt / cassandra / data01 / ghostlocker / cassandracache - cd9b046155cb11e7b3e4f1176ea923d9 / mc - 16617 - big - Data.db(1.305MiB) for commitlog position CommitLogPosition(segmentId = 1524585084668, position = 20383912)
+                            //DEBUG[MemtableFlushWriter: 800] 2018 - 04 - 30 12:07:24, 095  ColumnFamilyStore.java:1219 - Flushed to[BigTableReader(path = '/opt/cassandra/data01/ghostlocker/cassandracache-cd9b046155cb11e7b3e4f1176ea923d9/mc-16617-big-Data.db')](1 sstables, 202.247KiB), biggest 202.247KiB, smallest 202.247KiB
 
                             if ((parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("MemtableFlushWriter")
                                     || (parsedValues[ParserSettings.CLogLineFormats.TaskPos].Contains("FlushWriter")))
@@ -1639,13 +1645,13 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 handled = true;
 
                                 var downNodes = parsedValues[nCell + 1].Substring(0, parsedValues[nCell + 1].Length - 1).Split(',', ' ');
-                                
+
                                 foreach (var downNode in downNodes)
                                 {
                                     if (LookForIPAddress(downNode, ipAddress, out lineIPAddress))
                                     {
                                         string downDCName;
-                                        
+
                                         if (ProcessFileTasks.DetermineDataCenterFromIPAddress(lineIPAddress, out downDCName))
                                         {
                                             var nodedownDR = dtCLog.NewRow();
@@ -1665,7 +1671,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                             AddRowToLogDataTable(dtCLog, nodedownDR, isDebugLogFile);
                                         }
                                     }
-                                }                                
+                                }
                             }
                             #endregion
                         }
@@ -1823,6 +1829,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                             #region CompactionTask.java
                             //INFO  [CompactionExecutor:4657] 2016-06-12 06:26:25,534  CompactionTask.java:274 - Compacted 4 sstables to [/data/system/size_estimates-618f817b005f3678b8a453f3930b8e86/system-size_estimates-ka-11348,]. 2,270,620 bytes to 566,478 (~24% of original) in 342ms = 1.579636MB/s. 40 total partitions merged to 10. Partition merge counts were {4:10, }
                             //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
+                            //DEBUG [CompactionExecutor:67330] 2018-04-24 16:02:00,488  CompactionTask.java:256 - Compacted (d27a5260-47d8-11e8-bbce-6df154ea9215) 4 sstables to [/opt/cassandra/data01/system/size_estimates-618f817b005f3678b8a453f3930b8e86/mc-9962-big,] to level=0.  57.526KiB to 13.715KiB (~23% of original) in 32ms.  Read Throughput = 1.725MiB/s, Write Throughput = 421.110KiB/s, Row Throughput = ~1,269/s.  44 total partitions merged to 11.  Partition merge counts were {4:11, }"
 
                             if (itemPos > 0
                                     && parsedValues[nCell].EndsWith("of original)")
@@ -1831,17 +1838,35 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 object time = DetermineTime(parsedValues[nCell + 2]);
                                 object rate = null;
 
-                                if (Common.StringFunctions.ParseIntoNumeric(parsedValues[nCell + 4].Substring(0, parsedValues[nCell + 4].Length - 4), out rate)
-                                    && compactionFlagThresholdAsIORate > 0)
-                                {
-                                    if ((dynamic)rate < compactionFlagThresholdAsIORate)
+                                if (parsedValues[nCell + 4] == "Throughput")
+                                {                                    
+                                    if (compactionFlagThresholdAsIORate > 0)
                                     {
-                                        dataRow["Flagged"] = (int)LogFlagStatus.Stats;
-                                        dataRow["Exception"] = "Compaction IO Rate Warning";
-                                        handled = true;
+                                        var uom = DSEDiagnosticLibrary.UnitOfMeasure.Create(parsedValues[nCell + 6]);
+
+                                        if (uom.ConvertSizeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB) < compactionFlagThresholdAsIORate)
+                                        {
+                                            dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                            dataRow["Exception"] = "Compaction IO Rate Warning";
+                                            handled = true;
+                                        }
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (Common.StringFunctions.ParseIntoNumeric(parsedValues[nCell + 4].Substring(0, parsedValues[nCell + 4].Length - 4), out rate)
+                                            && compactionFlagThresholdAsIORate > 0)
+                                    {
+                                        if ((dynamic)rate < compactionFlagThresholdAsIORate)
+                                        {
+                                            dataRow["Flagged"] = (int)LogFlagStatus.Stats;
+                                            dataRow["Exception"] = "Compaction IO Rate Warning";
+                                            handled = true;
+                                        }
                                     }
                                 }
-
+                                
                                 if (!handled
                                         && compactionFlagThresholdInMS >= 0
                                         && time is int
@@ -1851,7 +1876,6 @@ namespace DSEDiagnosticAnalyticParserConsole
                                     dataRow["Exception"] = "Compaction Latency Warning";
                                     handled = true;
                                 }
-
                                 dataRow["Associated Value"] = string.Format("{0} ms; {1} MB/sec", time, rate);
                             }
                             else if (parsedValues[nCell] == "Compacted")
@@ -2924,6 +2948,9 @@ namespace DSEDiagnosticAnalyticParserConsole
         //DEBUG	CompactionExecutor	CompactionTask.java	 Compacted (aa83aec0-6a0b-11e6-923c-7d02e3681807) 4 sstables to [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/mb-217-big,] to level=0. 64,352 bytes to 62,408 (~96% of original) in 1,028ms = 0.057896MB/s. 0 total partitions merged to 1,428. Partition merge counts were {1:1456, }
         static Regex RegExCompactionTaskCompletedLine = new Regex(@"Compacted\s+(?:\(.+\)\s+)?(\d+)\s+sstables.+\[\s*(.+)\,\s*\]\s*(?:to level.*\s*)?\.\s+(.+)\s+bytes to (.+)\s+\(\s*(.+)\s*\%.+in\s+(.+)\s*ms\s+=\s+(.+)\s*MB/s.\s+(\d+).+merged to\s+(\d+).+were\s+\{\s*(.+)\,\s*\}",
                                                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        //DEBUG [CompactionExecutor:67331] 2018-04-24 16:02:00,488  CompactionTask.java:256 - Compacted (d27a5260-47d8-11e8-bbce-6df154ea9215) 4 sstables to [/opt/cassandra/data01/system/peers-37f71aca7dc2383ba70672528af04d4f/mc-646-big,] to level=0.  57.526KiB to 13.715KiB (~23% of original) in 32ms.  Read Throughput = 1.725MiB/s, Write Throughput = 421.110KiB/s, Row Throughput = ~1,269/s.  44 total partitions merged to 11.  Partition merge counts were {4:11, }
+        static Regex RegExCompactionTaskCompletedLine2 = new Regex("^Compacted\\s+\\((?<ID>[a-f0-9\\-]+)\\)\\s+(?<sstables>\\d+)\\ssstables\\s+to\\s*\\[(?<SSTABLEPATHS>[a-z0-9\\-_@#/.,\\ +%]*)\\](?:\\s+to\\s+level\\s*=\\s*(?<level>\\d+))?\\.\\s+(?<size>[0-9.,]+\\s*[a-z]+)\\s+to\\s+(?<newsize_size>[0-9.,]+(\\s*[a-z]+)?)\\s\\([0-9a-z\\ %~,.]+\\)+\\sin\\s+(?<DURATION>[0-9,.]+\\s*\\w+)\\.\\s*Read\\sThroughput\\s+\\=\\s+(?<readrate>[0-9.,]+\\s*[a-z/]+),\\s+Write\\sThroughput\\s+\\=\\s+(?<iorate>[0-9.,]+\\s*[a-z/]+),\\s+Row\\sThroughput\\s+\\=\\s+~?(?<rowsrate>[0-9,]+\\s*[a-z/]+)\\.\\s+(?<totalpartions>[0-9,]+)\\s+total\\s+partitions\\s+merged\\s+to\\s+(?<mergedpartitions>[0-9,]+)\\.\\s+Partition\\s+merge\\s+counts\\s+were\\s+\\{(?<mergecounts>[0-9:\\ ,]+)\\s*\\}$",
+                                                                        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //[repair #eb7a25d0-94ae-11e6-a056-0dbb03ae0b81] new session: will sync c1249170.ews.int/10.12.49.11, /10.12.51.29 on range (7698152963051967815,7704157762555128476] for OpsCenter.[rollups7200, settings, events, rollups60, rollups86400, rollups300, events_timeline, backup_reports, bestpractice_results, pdps]
         static Regex RegExRepairNewSessionLine = new Regex(@"\s*\[repair\s+#(.+)\]\s+(.+)\s+session:.+on range\s+\[?\(([0-9-]+).*\,([0-9-]+)\]\]?\s+for\s+(.+)\.\[.+\]",
@@ -4156,6 +4183,89 @@ namespace DSEDiagnosticAnalyticParserConsole
                                         return gcList;
                                     });
                             }
+                        }
+                        else
+                        {
+                            var matches = RegExCompactionTaskCompletedLine2.Match(item.Description);
+
+                            if(matches.Success)
+                            {
+                                var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(matches.Groups["SSTABLEPATHS"].Value.TrimEnd(',', ' '));
+
+                                if (ksItems != null)
+                                {
+                                    if (ignoreKeySpaces.Contains(ksItems.Item1))
+                                    {
+                                        continue;
+                                    }
+
+                                    var ksItem = kstblExists.FirstOrDefault(k => k.KeySpaceName == ksItems.Item1 && k.Name == ksItems.Item2);
+
+                                    if (ksItem == null)
+                                    {
+                                        ksItem = new CKeySpaceTableNames(ksItems.Item1,
+                                                                            ksItems.Item4 == null
+                                                                                ? ksItems.Item2
+                                                                                : ksItems.Item4 + '.' + ksItems.Item2,
+                                                                            ksItems.Item4 != null);
+                                    }
+
+                                    var dataRow = dtCStatusLog.NewRow();
+                                    var time = DSEDiagnosticLibrary.UnitOfMeasure.Create(matches.Groups["DURATION"].Value).ConvertTimeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MS);
+                                    var fromSize = DSEDiagnosticLibrary.UnitOfMeasure.Create(matches.Groups["size"].Value).ConvertSizeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB);
+                                    var toSize = DSEDiagnosticLibrary.UnitOfMeasure.Create(matches.Groups["newsize_size"].Value).ConvertSizeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB);
+                                    var rate = (fromSize - toSize) / (time * 0.001m);
+
+                                    dataRow["Timestamp"] = item.Timestamp;
+                                    dataRow["Data Center"] = dcName;
+                                    dataRow["Node IPAddress"] = ipAddress;
+                                    dataRow["Pool/Cache Type"] = "Compaction";
+                                    dataRow["Reconciliation Reference"] = refCnt;
+
+                                    dataRow["KeySpace"] = ksItem.KeySpaceName;
+                                    dataRow["Table"] = ksItem.DisplayName;
+                                    dataRow["SSTables"] = int.Parse(matches.Groups["sstables"].Value);
+                                    dataRow["From (mb)"] = fromSize;
+                                    dataRow["To (mb)"] = toSize;
+                                    dataRow["Latency (ms)"] = (int) time;
+                                    dataRow["Rate (MB/s)"] = rate;
+                                    dataRow["Partitions Merged"] = matches.Groups["totalpartions"].Value + ':' + matches.Groups["mergedpartitions"].Value;
+                                    dataRow["Merge Counts"] = matches.Groups["mergecounts"].Value;
+
+                                    dtCStatusLog.Rows.Add(dataRow);
+                                    compactionLatencies.Add(new Tuple<string, string, int>(ksItem.KeySpaceName, ksItem.Name, (int)time));
+                                    compactionRates.Add(new Tuple<string, string, decimal>(ksItem.KeySpaceName, ksItem.Name, rate));
+
+                                    var compactionLogInfo = new CompactionLogInfo()
+                                    {
+                                        LogTimestamp = item.Timestamp,
+                                        DataCenter = dcName,
+                                        IPAddress = ipAddress,
+                                        GroupIndicator = refCnt,
+                                        Keyspace = ksItem.KeySpaceName,
+                                        Table = ksItem.Name,
+                                        SSTables = dataRow.Field<int>("SSTables"),
+                                        OldSize = dataRow.Field<decimal>("From (mb)"),
+                                        NewSize = dataRow.Field<decimal>("To (mb)"),
+                                        Duration = (int)time,
+                                        IORate = rate,
+                                        PartitionsMerged = dataRow.Field<string>("Partitions Merged"),
+                                        MergeCounts = dataRow.Field<string>("Merge Counts")
+                                    };
+
+                                    CompactionOccurrences.AddOrUpdate((dcName == null ? string.Empty : dcName) + "|" + ipAddress,
+                                        ignore =>
+                                        {
+                                            return new Common.Patterns.Collections.ThreadSafe.List<ICompactionLogInfo>() { compactionLogInfo };
+                                        },
+                                        (ignore, gcList) =>
+                                        {
+                                            gcList.Add(compactionLogInfo);
+                                            return gcList;
+                                        });
+                                }
+                            }
+
                         }
                         #endregion
                     }
@@ -8804,6 +8914,8 @@ namespace DSEDiagnosticAnalyticParserConsole
         //"user_ids.user_ids_gid"	"1890"
         static Regex RegexMFEnqueuing = new Regex(@"^Enqueuing\s+flush\s+of\s+(?:Memtable\s*\-\s*([a-z0-9'-_$%+=@!?<>^*&]+)\@\d+|([a-z0-9'-_$%+=@!?<>^*&]+))\s*(?:\:\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)\s+on-heap\s*,\s+([0-9,.]+)\s+\(\s*([0-9,.]+)\s*(\%*)\s*\)|\(([0-9,.]+))",
                                                     RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        static Regex RegexMFEnqueuing2 = new Regex("^Enqueuing\\s+flush\\s+of\\s+(?<DDLITEMNAME>[a-z0-9'\\-_$%+=!?<>^*&@/.]+)\\s*\\:\\s+(?<onheap_bytes>[0-9,.]+[a-z]{0,3})\\s+\\((?<onheappercent>[0-9,.]+\\%)\\)\\s+on-heap,\\s+(?<offheap_bytes>[0-9,.]+[a-z]{0,3})\\s+\\((?<offheappercent>[0-9,.]+\\s*[a-z/%]+)\\)\\s",
+                                                    RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //Group1							Group2		Group3	    Group4
         //"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"85762"
@@ -8813,6 +8925,10 @@ namespace DSEDiagnosticAnalyticParserConsole
         //Group1																																			Group2		    Group3
         //"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"|NULL	"MiB"|NULL
         static Regex RegexMFCompletedMemTbl = new Regex(@"^Completed\s+flushing\s+([0-9a-z\-_/.]+)(?:(?:\s+\(([0-9,.]+)\s*([a-z]{0,5}))|\;\s+nothing\s+needed[a-z ]+retained)",
+                                                            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        //DEBUG [MemtableFlushWriter:795] 2018-04-30 12:02:25,534  ColumnFamilyStore.java:1219 - Flushed to[BigTableReader(path = '/opt/cassandra/data01/ghostlocker/cassandracache-cd9b046155cb11e7b3e4f1176ea923d9/mc-16617-big-Data.db')](1 sstables, 202.247KiB), biggest 202.247KiB, smallest 202.247KiB
+        static Regex RegexMFFlushedMemTbl = new Regex(@"^Flushed\s+to\s*\[\w+\s*\(path\s*=\s*'?(?<SSTABLEPATH>[a-z0-9\-_@#/.\ +%]+)'?\s*\)\s*\]\s*\(\s*(?<sstables>\d+)\s*\w+,\s*(?<size>[0-9,.]+\s*\w+)",
                                                             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         public static void ParseMemTblFlushFromLog(DataTable dtCLog,
@@ -8868,36 +8984,65 @@ namespace DSEDiagnosticAnalyticParserConsole
                 foreach (var item in logGroupItem.LogItems)
                 {
                     #region Memtable Flush Processing
-                    //New Flush Event
-                    //Group1							Group2		Group3	Group4	Group5	Group6	Group 7
-                    //"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
-                    var splitInfo = RegexMFEnqueuing.Split(item.Description);
-
-                    if (splitInfo.Length > 1)
+                    if (item.Description.StartsWith("Enqueuing "))
                     {
-                        var flushInfo = new MemTableFlushLogInfo()
-                        {
-                            DataCenter = logGroupItem.DCName,
-                            IPAddress = logGroupItem.IPAddress,
-                            EnqueuingStart = item.Timestamp,
-                            Type = item.Task,
-                            GroupIndicator = groupIndicator += ReferenceIncrementValue,
-                            Table = RemoveQuotes(splitInfo[1].Trim()),
-                            LogDataRow = item.DataRow
-                        };
+                        //New Flush Event
+                        //Group1							Group2		Group3	Group4	Group5	Group6	Group 7
+                        //"homebase_tasktracking_ops_l3"	"315219514"	"7"		"%"		"0"		"0"		"%"
+                        var splitInfo1 = RegexMFEnqueuing.Split(item.Description);
 
-                        currentFlushes.Where(i => !i.Completed
-                                                    && i.Table == flushInfo.Table
-                                                    && !i.Occurrences.IsEmpty()
-                                                    && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
-                                        .ForEach(i => i.Completed = true);
-                        currentFlushes.Add(flushInfo);
-                        continue;
+                        if (splitInfo1.Length > 1)
+                        {
+                            var flushInfo = new MemTableFlushLogInfo()
+                            {
+                                DataCenter = logGroupItem.DCName,
+                                IPAddress = logGroupItem.IPAddress,
+                                EnqueuingStart = item.Timestamp,
+                                Type = item.Task,
+                                GroupIndicator = groupIndicator += ReferenceIncrementValue,
+                                Table = RemoveQuotes(splitInfo1[1].Trim()),
+                                LogDataRow = item.DataRow
+                            };
+
+                            currentFlushes.Where(i => !i.Completed
+                                                        && i.Table == flushInfo.Table
+                                                        && !i.Occurrences.IsEmpty()
+                                                        && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
+                                            .ForEach(i => i.Completed = true);
+                            currentFlushes.Add(flushInfo);
+                            continue;
+                        }
+                        else
+                        {
+                            var splitInfo2 = RegexMFEnqueuing2.Match(item.Description);
+
+                            if(splitInfo2.Success)
+                            {
+                                var flushInfo = new MemTableFlushLogInfo()
+                                {
+                                    DataCenter = logGroupItem.DCName,
+                                    IPAddress = logGroupItem.IPAddress,
+                                    EnqueuingStart = item.Timestamp,
+                                    Type = item.Task,
+                                    GroupIndicator = groupIndicator += ReferenceIncrementValue,
+                                    Table = RemoveQuotes(splitInfo2.Groups["DDLITEMNAME"].Value),
+                                    LogDataRow = item.DataRow
+                                };
+
+                                currentFlushes.Where(i => !i.Completed
+                                                            && i.Table == flushInfo.Table
+                                                            && !i.Occurrences.IsEmpty()
+                                                            && i.Occurrences.All(o => o.CompletionTime != DateTime.MinValue))
+                                                .ForEach(i => i.Completed = true);
+                                currentFlushes.Add(flushInfo);
+                                continue;
+                            }
+                        }
                     }
 
                     //Group1							Group2		Group3	    Group4
                     //"homebase_tasktracking_ops_l3"	"53.821"	"MiB"|NULL	"857621"
-                    splitInfo = RegexMFWritingMemTbl.Split(item.Description);
+                    var splitInfo = RegexMFWritingMemTbl.Split(item.Description);
 
                     if (splitInfo.Length > 1)
                     {
@@ -8925,42 +9070,90 @@ namespace DSEDiagnosticAnalyticParserConsole
                         continue;
                     }
 
-                    //Group1																																			Group2		Group3
-                    //"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
-                    // /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db
-                    splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
+                    if(item.Task.StartsWith("PerDiskMemtableFlushWriter"))
+                    {                        
+                        continue;
+                    }
 
-                    if (splitInfo.Length > 1)
+                    if (item.Description.StartsWith("Completed"))
                     {
-                        var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
+                        //Group1																																			Group2		Group3
+                        //"/mnt/dse/data1/homeKS/homebase_tasktracking_ops_l3-737682f0599311e6ad0fa12fb1b6cb6e/homeKS-homebase_tasktracking_ops_l3-tmp-ka-15175-Data.db"	"11.901"	"MiB"
+                        // /var/lib/cassandra/data/cfs/inode-76298b94ca5f375cab5bb674eddd3d51/cfs-inode.cfs_parent_path-tmp-ka-71-Data.db
+                        splitInfo = RegexMFCompletedMemTbl.Split(item.Description);
 
-                        if (ksItems == null)
+                        if (splitInfo.Length > 1)
                         {
-                            Logger.Instance.WarnFormat("Invalid SSTable Path of \"{0}\" detected. Ignoring SSTable for MemTable Flush", splitInfo[1]);
-                        }
-                        else
-                        {
-                            var flushInfo = currentFlushes.Find(i => !i.Completed
-                                                                        && (ksItems.Item2 == i.Table)
-                                                                        && i.TaskId == item.TaskId.Value
-                                                                        && item.Timestamp >= i.StartTime);
+                            var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(splitInfo[1]);
 
-                            if (flushInfo != null)
+                            if (ksItems == null)
                             {
-                                if (ignoreKeySpaces.Contains(ksItems.Item1))
+                                Logger.Instance.WarnFormat("Invalid SSTable Path of \"{0}\" detected. Ignoring SSTable for MemTable Flush", splitInfo[1]);
+                            }
+                            else
+                            {
+                                var flushInfo = currentFlushes.Find(i => !i.Completed
+                                                                            && (ksItems.Item2 == i.Table)
+                                                                            && i.TaskId == item.TaskId.Value
+                                                                            && item.Timestamp >= i.StartTime);
+
+                                if (flushInfo != null)
                                 {
-                                    currentFlushes.Remove(flushInfo);
+                                    if (ignoreKeySpaces.Contains(ksItems.Item1))
+                                    {
+                                        currentFlushes.Remove(flushInfo);
+                                        continue;
+                                    }
+
+                                    flushInfo.AddUpdateOccurrence(ksItems.Item1,
+                                                                    ksItems.Item2,
+                                                                    splitInfo[1],
+                                                                    item.Timestamp,
+                                                                    splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
+                                                                    item.TaskId.Value,
+                                                                    groupIndicator);
                                     continue;
                                 }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var matchInfo = RegexMFFlushedMemTbl.Match(item.Description);
 
-                                flushInfo.AddUpdateOccurrence(ksItems.Item1,
-                                                                ksItems.Item2,
-                                                                splitInfo[1],
-                                                                item.Timestamp,
-                                                                splitInfo.Length > 3 ? ConvertInToMB(splitInfo[2], splitInfo[3]) : 0,
-                                                                item.TaskId.Value,
-                                                                groupIndicator);
-                                continue;
+                        if (matchInfo.Success)
+                        {
+                            var ksItems = DSEDiagnosticLibrary.StringHelpers.ParseSSTableFileIntoKSTableNames(matchInfo.Groups["SSTABLEPATH"].Value);
+
+                            if (ksItems == null)
+                            {
+                                Logger.Instance.WarnFormat("Invalid SSTable Path of \"{0}\" detected. Ignoring SSTable for MemTable Flush", matchInfo.Groups["SSTABLEPATH"].Value);
+                            }
+                            else
+                            {
+                                var flushInfo = currentFlushes.Find(i => !i.Completed
+                                                                            && (ksItems.Item2 == i.Table)
+                                                                            && i.TaskId == item.TaskId.Value
+                                                                            && item.Timestamp >= i.StartTime);
+
+                                if (flushInfo != null)
+                                {
+                                    if (ignoreKeySpaces.Contains(ksItems.Item1))
+                                    {
+                                        currentFlushes.Remove(flushInfo);
+                                        continue;
+                                    }
+
+                                    var size = DSEDiagnosticLibrary.UnitOfMeasure.Create(matchInfo.Groups["size"].Value);
+                                    flushInfo.AddUpdateOccurrence(ksItems.Item1,
+                                                                    ksItems.Item2,
+                                                                    matchInfo.Groups["SSTABLEPATH"].Value,
+                                                                    item.Timestamp,
+                                                                    size.ConvertSizeUOM(DSEDiagnosticLibrary.UnitOfMeasure.Types.MiB),
+                                                                    item.TaskId.Value,
+                                                                    groupIndicator);
+                                    continue;
+                                }
                             }
                         }
                     }
