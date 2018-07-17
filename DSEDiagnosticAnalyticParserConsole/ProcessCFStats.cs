@@ -107,14 +107,22 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                             stat.Keyspace.Name));
 
                         dtCFStats.Rows.Add(dataRow);
+                    }                    
+                }
+
+                foreach (var item in stat.Data)
+                {                    
+                    if (item.Key == DSEDiagnosticLibrary.AggregatedStats.DCNotInKS)
+                    {
+                        continue;
                     }
 
-                    if (stat.Data.TryGetValue(DSEDiagnosticLibrary.AggregatedStats.Errors, out errorValue))
+                    if (item.Key.StartsWith(DSEDiagnosticLibrary.AggregatedStats.Error))
                     {
-                        foreach (var strError in (IList<string>)errorValue)
-                        {                            
+                        foreach (var strError in (IList<string>)item.Value)
+                        {
                             dataRow = dtCFStats.NewRow();
-                            
+
                             dataRow.SetField("Source", stat.Source.ToString());
                             dataRow.SetField("Data Center", stat.DataCenter.Name);
                             dataRow.SetField("Node IPAddress", stat.Node.Id.NodeName());
@@ -125,19 +133,12 @@ namespace DSEDiagnosticAnalyticParserConsole
                                 dataRow.SetField("Active", stat.TableViewIndex.IsActive);
                             }
 
-                            dataRow.SetField("Attribute", DSEDiagnosticLibrary.AggregatedStats.Errors);
+                            dataRow.SetField("Attribute", item.Key);
                             dataRow.SetField("Value", strError);
 
-                            dtCFStats.Rows.Add(dataRow);                          
+                            dtCFStats.Rows.Add(dataRow);
                         }
-                    }
-                }
 
-                foreach (var item in stat.Data)
-                {                    
-                    if (item.Key == DSEDiagnosticLibrary.AggregatedStats.Errors
-                        || item.Key == DSEDiagnosticLibrary.AggregatedStats.DCNotInKS)
-                    {
                         continue;
                     }
 
