@@ -223,6 +223,18 @@
       <Link>Json\Log4NetParser.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\Log4NetParserLogsNoFlushComp.json">
+      <Link>Json\Log4NetParserLogsNoFlushComp.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\Log4NetParserLogsNoFlushCompGC.json">
+      <Link>Json\Log4NetParserLogsNoFlushCompGC.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\Log4NetParserValidateLogs.json">
+      <Link>Json\Log4NetParserValidateLogs.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappings-CreateOpsCenterCopy.json">
       <Link>Json\ProcessFileMappings-CreateOpsCenterCopy.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -231,8 +243,20 @@
       <Link>Json\ProcessFileMappings.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappingsNoDebugLogs.json">
+      <Link>Json\ProcessFileMappingsNoDebugLogs.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappingsNoLogs.json">
       <Link>Json\ProcessFileMappingsNoLogs.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\ProcessFileMappingsValidate.json">
+      <Link>Json\ProcessFileMappingsValidate.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\DSEDiagnosticApplication\DSEDiagnosticFileParser\Json\Unzip-ProcessFileMappings.json">
+      <Link>Json\Unzip-ProcessFileMappings.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\dseTemplate.xlsm">

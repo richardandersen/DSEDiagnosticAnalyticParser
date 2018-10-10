@@ -197,14 +197,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             }
             set
             {
-                var currentPath = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
-                var newPath = Common.Path.PathUtils.BuildPath(value,
-                                                                currentPath.ParentDirectoryPath.PathResolved,
-                                                                currentPath.FileExtension,
-                                                                true,
-                                                                true,
-                                                                true);
-                ParserSettings.ExcelFilePath = newPath.Path;
+                ParserSettings.ExcelFilePath = value;
             }
         }
 
@@ -570,7 +563,7 @@ namespace DSEDiagnosticAnalyticParserConsole
             var excelTemplateFilePath = ParserSettings.ExcelTemplateFilePath == null ? null : Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelTemplateFilePath);
             var tableHistogramDirPath = string.IsNullOrEmpty(ParserSettings.TableHistogramDirPath) ? null : Common.Path.PathUtils.BuildDirectoryPath(ParserSettings.TableHistogramDirPath);
             var alternativeDDLFilePath = string.IsNullOrEmpty(ParserSettings.AlternativeDDLFilePath) ? null : Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeDDLFilePath);
-            var alternativeLogFilePath = string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath) ? null : Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
+            var alternativeLogFilePath = string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath) ? null : Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath, assumeFilePathIsFileName: false);
 
             if (!diagnosticPath.Exist())
             {

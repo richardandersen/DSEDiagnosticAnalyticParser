@@ -382,16 +382,26 @@ namespace DSEDiagnosticAnalyticParserConsole
                 #region alternative file paths (log)
                 if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
-                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
+                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath, assumeFilePathIsFileName: false);
                     IEnumerable<IFilePath> alterFiles = null;
+
+                    if (alterPath.IsRelativePath)
+                    {
+                        IAbsolutePath absPath;
+
+                        if (diagPath.MakePathFrom((IRelativePath)alterPath, out absPath))
+                        {
+                            alterPath = absPath;
+                        }
+                    }
 
                     if (alterPath.HasWildCardPattern())
                     {
                         alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
-                    {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>();
+                    {                        
+                        alterFiles = ProcessFileTasks.GetAllFiles((IDirectoryPath)alterPath);
                     }
                     else
                     {
@@ -841,16 +851,26 @@ namespace DSEDiagnosticAnalyticParserConsole
 				#region alternative file paths (log)
 				if (!string.IsNullOrEmpty(ParserSettings.AlternativeLogFilePath))
                 {
-                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath);
+                    var alterPath = Common.Path.PathUtils.BuildPath(ParserSettings.AlternativeLogFilePath, assumeFilePathIsFileName: false);
                     IEnumerable<IFilePath> alterFiles = null;
+
+                    if (alterPath.IsRelativePath)
+                    {
+                        IAbsolutePath absPath;
+
+                        if (diagPath.MakePathFrom((IRelativePath)alterPath, out absPath))
+                        {
+                            alterPath = absPath;
+                        }
+                    }
 
                     if (alterPath.HasWildCardPattern())
                     {
                         alterFiles = alterPath.GetWildCardMatches().Where(p => p.IsFilePath).Cast<IFilePath>();
                     }
                     else if (alterPath.IsDirectoryPath)
-                    {
-                        alterFiles = ((IDirectoryPath)alterPath).Children().Where(p => p.IsFilePath).Cast<IFilePath>();
+                    {                        
+                        alterFiles = ProcessFileTasks.GetAllFiles((IDirectoryPath)alterPath);
                     }
                     else
                     {
@@ -1762,7 +1782,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 											dtKeySpace,
 											dtDDLTable,
                                             runCompHistMergeTask,
-											runReleaseDependentLogTask)?.Wait();
+											runReleaseDependentLogTask,
+                                            diagPath)?.Wait();
 
             Program.ConsoleExcelWorkbook.Terminate();
 			GCMonitor.GetInstance().StopGCMonitoring();

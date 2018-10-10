@@ -23,14 +23,26 @@ namespace DSEDiagnosticAnalyticParserConsole
 											DataTable dtKeySpace,
 											DataTable dtDDLTable,
 											Task<DataTable> runCompHistMergeTask,
-											Task runReleaseDependentLogTask)
+											Task runReleaseDependentLogTask,
+                                            IDirectoryPath diagPath)
 		{
 
 			#region Excel Creation/Formatting
 
 			var excelFile = Common.Path.PathUtils.BuildFilePath(ParserSettings.ExcelFilePath);
-			//bool excelFileCopied = false;
-			bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
+
+            if (excelFile.IsRelativePath)
+            {
+                IAbsolutePath absPath;
+
+                if (diagPath.MakePathFrom((IRelativePath)excelFile, out absPath))
+                {
+                    excelFile = (IFilePathAbsolute) absPath;
+                }
+            }
+
+            //bool excelFileCopied = false;
+            bool excelFileExists = (ParserSettings.ParsingExcelOptions.LoadSummaryWorkSheets.IsEnabled()
 										|| ParserSettings.ParsingExcelOptions.LoadWorkSheets.IsEnabled())
 									&& excelFile.Exist();
 			var excelFileFound = excelFileExists;

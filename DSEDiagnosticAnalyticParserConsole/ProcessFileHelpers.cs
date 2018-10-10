@@ -731,6 +731,19 @@ namespace DSEDiagnosticAnalyticParserConsole
 			return false;
 		}
 
-        
+        public static IEnumerable<IFilePath> GetAllFiles(IDirectoryPath directory)
+        {
+            var childList = new List<IFilePath>();
+
+            foreach (var path in directory.Children())
+            {
+                if (path is IFilePath)
+                    childList.Add((IFilePath)path);
+                else
+                    childList.AddRange(GetAllFiles((IDirectoryPath)path));
+            }
+
+            return childList;
+        }
     }
 }
