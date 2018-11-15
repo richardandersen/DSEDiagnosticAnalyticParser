@@ -1279,5 +1279,16 @@ namespace DSEDiagnosticAnalyticParserConsole.Properties {
                 return ((string)(this["SolrJsonIndexSizeFilePath"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
+            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
+            "tring>audit</string>\r\n</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection IgnoreExtractionFileswName {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["IgnoreExtractionFileswName"]));
+            }
+        }
     }
 }

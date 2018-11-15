@@ -33,7 +33,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 				dtTPStats.Columns.Add("GC Survivor Space Change (mb)", typeof(decimal)).AllowDBNull = true;
 				dtTPStats.Columns.Add("GC Old Space Change (mb)", typeof(decimal)).AllowDBNull = true; //p
 				dtTPStats.Columns.Add("IORate (mb/sec)", typeof(decimal)).AllowDBNull = true; //q
-				dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
+                dtTPStats.Columns.Add("Max", typeof(decimal)).AllowDBNull = true; 
+                dtTPStats.Columns.Add("Reconciliation Reference", typeof(object)).AllowDBNull = true;
             }
         }
 
@@ -86,6 +87,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
                     foreach (var itemValue in item.Values)
                     {
+                        if (itemValue.Col.Length == 0 || itemValue.Col.Last() == '%') continue;
+
                         if (itemValue.Value is DSEDiagnosticLibrary.UnitOfMeasure)
                         {
                             dataRow.SetFieldToDecimal(itemValue.Col, (DSEDiagnosticLibrary.UnitOfMeasure)itemValue.Value, DSEDiagnosticLibrary.UnitOfMeasure.Types.MS);

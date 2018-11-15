@@ -28,7 +28,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                                                                 Common.Patterns.Collections.LockFree.Stack<DataTable> dtNodeStatsStack)
         {
             IFilePath[] archivedFilePaths = null;
-
+            
             #region Extract Zip File
             if (diagFilePath.Exist()
                     && (ParserSettings.ExtractFilesWithExtensions.Contains(diagFilePath.FileExtension)))
@@ -37,6 +37,14 @@ namespace DSEDiagnosticAnalyticParserConsole
                 var logFileTasks = new List<Task<int>>();
 
                 Program.ConsoleLogReadFiles.Increment(string.Format("Getting Files for {0}...", diagFilePath.PathResolved));
+
+                if (ParserSettings.IgnoreExtractionFileswName.Any(n => diagFilePath.FileName.StartsWith(n)))
+                {
+                    Logger.Instance.InfoFormat("File \"{0}\" Skipped File...",
+                                                    diagFilePath.PathResolved);
+                    //Program.ConsoleLogReadFiles.Increment(string.Format("Ignoring File for {0}...", diagFilePath.PathResolved));
+                    return Common.Patterns.Tasks.CompletionExtensions.CompletedTask(0);
+                }
 
                 if (ProcessFileTasks.ExtractFileToFolder(diagFilePath, out extractedDir))
                 {
@@ -10433,7 +10441,7 @@ namespace DSEDiagnosticAnalyticParserConsole
                     var ksTblSplit = componentItem.Item2.Split('|');
 
                     dataRow["Data Center"] = ksTblSplit[0];
-                    dataRow["Node IPAddress"] = ksTblSplit[1];
+                    dataRow["Node IPAddress"] = ksTblSplit.Length > 1 ? ksTblSplit[1] : null;
                     dataRow["Timestamp"] = componentItem.Item1;
                     dataRow["Exception"] = string.Format("Component Warning {0}", componentItem.Item4);
                     dataRow["Associated Value"] = componentItem.Item5;

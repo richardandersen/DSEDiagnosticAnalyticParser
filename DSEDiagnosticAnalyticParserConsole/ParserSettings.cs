@@ -397,6 +397,8 @@ namespace DSEDiagnosticAnalyticParserConsole
 
         public static bool EnableLogReadThrottle = Properties.Settings.Default.LogReadThrottleTaskCount > 0;
 
+        public static readonly string[] IgnoreExtractionFileswName = Properties.Settings.Default.IgnoreExtractionFileswName.ToArray();
+
         public static string[] CreateDirStructForNodes = null;
 
         public static Dictionary<string, string> CreateSnitchDictionary(string configString)
